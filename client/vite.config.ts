@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 
-const SERVER_PORT = Number(process.env.SERVER_PORT ?? 2567);
+const SERVER_PORT = Number(process.env.NARCO_SERVER_PORT ?? 2567);
 
 export default defineConfig(({ mode }) => ({
   plugins: [react(), ...(mode === 'https' ? [basicSsl()] : [])],

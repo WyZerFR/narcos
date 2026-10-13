@@ -1,0 +1,262 @@
+import { Client, ErrorCode, type Room } from 'colyseus.js';
+import {
+  ROOM_NAME,
+  ServerMsg,
+  gameData,
+  normalizeRoomCode,
+  type CorrectionMessage,
+  type JoinOptions,
+} from '@narco/shared';
+import { getPlayerId, getSavedName, getSavedRoomCode, saveName, saveRoomCode } from './identity';
+
+/** Vue client du state serveur (`server/src/rooms/schema.ts`), décodé par réflexion. */
+export interface PlayerView {
+  id: string;
+  name: string;
+  color: string;
+  x: number;
+  z: number;
+  rotY: number;
+  connected: boolean;
+}
+
+export interface StateView {
+  code: string;
+  players: Map<string, PlayerView>;
+}
+
+export type GameRoom = Room<StateView>;
+
+export type Status = 'idle' | 'connecting' | 'connected' | 'reconnecting';
+
+export interface Snapshot {
+  status: Status;
+  code: string | null;
+  room: GameRoom | null;
+  error: string | null;
+  attempt: number;
+}
+
+const { room: roomCfg, net } = gameData.config;
+
+/** Masqué plus longtemps que ça, on considère le socket comme suspect (iOS) et on le renouvelle. */
+const STALE_AFTER_HIDDEN_MS = 3000;
+
+function endpoint(): string {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  return `${proto}://${location.host}/colyseus`;
+}
+
+function errorMessage(err: unknown): string {
+  const e = err as { code?: number; message?: string };
+  if (e?.code === ErrorCode.MATCHMAKE_INVALID_ROOM_ID) return 'Aucune partie avec ce code.';
+  if (e?.message) return e.message;
+  return 'Connexion impossible au serveur.';
+}
+
+/** Erreurs après lesquelles réessayer ne sert à rien. */
+function isFatal(err: unknown): boolean {
+  const code = (err as { code?: number })?.code;
+  return code === ErrorCode.MATCHMAKE_INVALID_ROOM_ID || code === 403 || code === 400;
+}
+
+type CorrectionListener = (c: CorrectionMessage) => void;
+
+class Connection {
+  private client = new Client(endpoint());
+  private listeners = new Set<() => void>();
+  private correctionListeners = new Set<CorrectionListener>();
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private hiddenAt: number | null = null;
+  private joining = false;
+
+  private snapshot: Snapshot = {
+    status: 'idle',
+    code: null,
+    room: null,
+    error: null,
+    attempt: 0,
+  };
+
+  constructor() {
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
+    window.addEventListener('pageshow', this.onResume);
+    window.addEventListener('online', this.onResume);
+  }
+
+  // ---------- store pour React (useSyncExternalStore) ----------
+  subscribe = (fn: () => void): (() => void) => {
+    this.listeners.add(fn);
+    return () => this.listeners.delete(fn);
+  };
+  getSnapshot = (): Snapshot => this.snapshot;
+
+  private set(patch: Partial<Snapshot>): void {
+    this.snapshot = { ...this.snapshot, ...patch };
+    for (const fn of this.listeners) fn();
+  }
+
+  onCorrection(fn: CorrectionListener): () => void {
+    this.correctionListeners.add(fn);
+    return () => this.correctionListeners.delete(fn);
+  }
+
+  get playerId(): string {
+    return getPlayerId();
+  }
+
+  private joinOptions(): JoinOptions {
+    return { playerId: getPlayerId(), name: getSavedName() };
+  }
+
+  // ---------- actions du lobby ----------
+  async create(name: string): Promise<void> {
+    saveName(name);
+    this.set({ status: 'connecting', error: null });
+    try {
+      const room = await this.client.create<StateView>(ROOM_NAME, this.joinOptions());
+      this.attach(room);
+    } catch (err) {
+      this.set({ status: 'idle', error: errorMessage(err) });
+    }
+  }
+
+  async join(rawCode: string, name: string): Promise<void> {
+    const code = normalizeRoomCode(rawCode, roomCfg.codeAlphabet, roomCfg.codeLength);
+    if (!code) {
+      this.set({ error: `Le code fait ${roomCfg.codeLength} lettres.` });
+      return;
+    }
+    saveName(name);
+    this.set({ status: 'connecting', error: null });
+    try {
+      const room = await this.client.joinById<StateView>(code, this.joinOptions());
+      this.attach(room);
+    } catch (err) {
+      this.set({ status: 'idle', error: errorMessage(err) });
+    }
+  }
+
+  /** Au lancement : si on était dans une partie (rechargement iOS), on y retourne. */
+  resumeSavedRoom(): void {
+    const code = getSavedRoomCode();
+    if (code && this.snapshot.status === 'idle') {
+      this.set({ status: 'reconnecting', code, attempt: 0 });
+      void this.tryReconnect();
+    }
+  }
+
+  async leave(): Promise<void> {
+    this.clearReconnectTimer();
+    saveRoomCode(null);
+    const room = this.snapshot.room;
+    this.set({ status: 'idle', room: null, code: null, attempt: 0, error: null });
+    if (room) await room.leave(true).catch(() => undefined);
+  }
+
+  // ---------- cycle de vie de la room ----------
+  private attach(room: GameRoom): void {
+    this.clearReconnectTimer();
+    saveRoomCode(room.roomId);
+
+    room.onMessage(ServerMsg.Correction, (c: CorrectionMessage) => {
+      for (const fn of this.correctionListeners) fn(c);
+    });
+    room.onLeave((code) => {
+      if (this.snapshot.room !== room) return; // ancienne room remplacée volontairement
+      console.info(`[net] socket fermé (code ${code})`);
+      if (this.snapshot.status === 'idle') return;
+      this.set({ room: null });
+      this.scheduleReconnect();
+    });
+    room.onError((code, message) => console.warn(`[net] erreur room ${code}: ${message ?? ''}`));
+
+    this.set({ status: 'connected', room, code: room.roomId, attempt: 0, error: null });
+  }
+
+  private scheduleReconnect(): void {
+    if (this.reconnectTimer || this.joining || !this.snapshot.code) return;
+    const backoff = net.reconnectBackoffMs;
+    const attempt = this.snapshot.attempt;
+    const delay = Math.min(
+      backoff[Math.min(attempt, backoff.length - 1)] ?? net.reconnectMaxDelayMs,
+      net.reconnectMaxDelayMs,
+    );
+    this.set({ status: 'reconnecting' });
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      void this.tryReconnect();
+    }, delay);
+  }
+
+  private async tryReconnect(): Promise<void> {
+    const code = this.snapshot.code;
+    if (!code || this.joining) return;
+    this.joining = true;
+    this.set({ status: 'reconnecting', attempt: this.snapshot.attempt + 1 });
+    try {
+      const room = await this.client.joinById<StateView>(code, this.joinOptions());
+      this.joining = false;
+      if (this.snapshot.status === 'idle') {
+        // le joueur a quitté pendant la tentative
+        await room.leave(true);
+        return;
+      }
+      console.info(`[net] reconnecté à ${code}`);
+      this.attach(room);
+    } catch (err) {
+      this.joining = false;
+      if (isFatal(err)) {
+        saveRoomCode(null);
+        this.set({ status: 'idle', room: null, code: null, attempt: 0, error: errorMessage(err) });
+        return;
+      }
+      this.scheduleReconnect();
+    }
+  }
+
+  /** Force un nouveau socket (l'ancien est peut-être à moitié mort après une veille iOS). */
+  private renewNow(): void {
+    if (!this.snapshot.code || this.snapshot.status === 'idle') return;
+    this.clearReconnectTimer();
+    const old = this.snapshot.room;
+    this.set({ room: null });
+    if (old) old.connection.close();
+    void this.tryReconnect();
+  }
+
+  private onVisibilityChange = (): void => {
+    if (document.visibilityState === 'hidden') {
+      this.hiddenAt = Date.now();
+      return;
+    }
+    const hiddenFor = this.hiddenAt ? Date.now() - this.hiddenAt : 0;
+    this.hiddenAt = null;
+    const room = this.snapshot.room;
+    if (!room || !room.connection.isOpen || hiddenFor > STALE_AFTER_HIDDEN_MS) this.renewNow();
+  };
+
+  private onResume = (): void => {
+    const room = this.snapshot.room;
+    if (this.snapshot.code && (!room || !room.connection.isOpen)) this.renewNow();
+  };
+
+  private clearReconnectTimer(): void {
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = null;
+  }
+
+  /** Debug : simule une coupure réseau brutale (console : `narco.dropSocket()`). */
+  dropSocket(): void {
+    this.snapshot.room?.connection.close();
+  }
+}
+
+export const connection = new Connection();
+
+declare global {
+  interface Window {
+    narco?: { connection: Connection; dropSocket: () => void };
+  }
+}
+window.narco = { connection, dropSocket: () => connection.dropSocket() };
