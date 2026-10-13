@@ -1,0 +1,29 @@
+{
+  "room": {
+    "maxPlayers": 3,
+    "codeLength": 4,
+    "codeAlphabet": "ABCDEFGHJKLMNPQRSTUVWXYZ",
+    "emptyRoomTtlSeconds": 900,
+    "patchRateMs": 50
+  },
+  "movement": {
+    "walkSpeed": 5,
+    "runSpeed": 8,
+    "toleranceFactor": 1.25,
+    "maxBurstMs": 600,
+    "clientSendRateHz": 20
+  },
+  "world": {
+    "bounds": { "minX": -45, "maxX": 45, "minZ": -45, "maxZ": 45 },
+    "playerSize": 1
+  },
+  "players": {
+    "colors": ["#e63946", "#2a9d8f", "#f4c430"],
+    "spawnLocationId": "local",
+    "spawnSpread": 2
+  },
+  "net": {
+    "reconnectBackoffMs": [500, 1000, 2000, 4000, 8000],
+    "reconnectMaxDelayMs": 10000
+  }
+}

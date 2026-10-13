@@ -1,0 +1,157 @@
+{
+  "zones": [
+    {
+      "id": "zone1",
+      "name": "Le Quartier",
+      "unlockAct": 1,
+      "bounds": {
+        "minX": -45,
+        "maxX": 45,
+        "minZ": -45,
+        "maxZ": 45
+      }
+    }
+  ],
+  "locations": [
+    {
+      "id": "local",
+      "name": "Le Local",
+      "zone": "zone1",
+      "function": "base",
+      "position": {
+        "x": 0,
+        "z": 0
+      },
+      "size": {
+        "w": 10,
+        "d": 8
+      },
+      "interactRadius": 3,
+      "catalog": []
+    },
+    {
+      "id": "epicerie",
+      "name": "Épicerie Chez Momo",
+      "zone": "zone1",
+      "function": "grocery",
+      "position": {
+        "x": 22,
+        "z": -12
+      },
+      "size": {
+        "w": 8,
+        "d": 6
+      },
+      "interactRadius": 3,
+      "catalog": [
+        {
+          "kind": "item",
+          "id": "water",
+          "price": 3
+        },
+        {
+          "kind": "item",
+          "id": "food",
+          "price": 5
+        }
+      ]
+    },
+    {
+      "id": "repaire_jefe",
+      "name": "Le Repaire d'El Jefe",
+      "zone": "zone1",
+      "function": "supplier",
+      "position": {
+        "x": -30,
+        "z": -28
+      },
+      "size": {
+        "w": 10,
+        "d": 10
+      },
+      "interactRadius": 3,
+      "catalog": [
+        {
+          "kind": "item",
+          "id": "seed_base",
+          "price": 15
+        },
+        {
+          "kind": "item",
+          "id": "seed_citron",
+          "price": 40,
+          "unlockAct": 2
+        }
+      ]
+    },
+    {
+      "id": "ruelles",
+      "name": "Les Ruelles",
+      "zone": "zone1",
+      "function": "street_sales",
+      "position": {
+        "x": -18,
+        "z": 20
+      },
+      "size": {
+        "w": 16,
+        "d": 4
+      },
+      "interactRadius": 6,
+      "catalog": []
+    },
+    {
+      "id": "point_relais",
+      "name": "Point Relais Colis Express",
+      "zone": "zone1",
+      "function": "relay",
+      "position": {
+        "x": 25,
+        "z": 25
+      },
+      "size": {
+        "w": 6,
+        "d": 5
+      },
+      "interactRadius": 3,
+      "catalog": []
+    },
+    {
+      "id": "shop",
+      "name": "Bricoshop",
+      "zone": "zone1",
+      "function": "shop",
+      "position": {
+        "x": -24,
+        "z": 6
+      },
+      "size": {
+        "w": 8,
+        "d": 6
+      },
+      "interactRadius": 3,
+      "catalog": [
+        {
+          "kind": "upgrade",
+          "id": "bag_12",
+          "price": 150
+        },
+        {
+          "kind": "item",
+          "id": "pot",
+          "price": 25
+        },
+        {
+          "kind": "item",
+          "id": "watering_can",
+          "price": 30
+        },
+        {
+          "kind": "service",
+          "id": "lookout",
+          "price": 80
+        }
+      ]
+    }
+  ]
+}

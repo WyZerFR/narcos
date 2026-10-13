@@ -1,0 +1,101 @@
+{
+  "inventory": {
+    "bagSlots": 10,
+    "stockSlots": 60
+  },
+  "calendar": {
+    "realMinutesPerGameDay": 20,
+    "gameDaysPerWeek": 7
+  },
+  "startingMoney": {
+    "dirty": 50,
+    "clean": 0
+  },
+  "survival": {
+    "max": 100,
+    "hungerDecayPerMinute": 2,
+    "thirstDecayPerMinute": 3,
+    "foodRestore": 40,
+    "waterRestore": 50
+  },
+  "strains": [
+    {
+      "id": "base",
+      "name": "Base de la rue",
+      "unlockAct": 1,
+      "growSeconds": 240,
+      "waterEverySeconds": 80,
+      "dryingSeconds": 90,
+      "freshPerPlant": 3,
+      "pouchesPerDried": 2,
+      "pouchSellPrice": 20
+    },
+    {
+      "id": "citron",
+      "name": "Citron Givré",
+      "unlockAct": 2,
+      "growSeconds": 360,
+      "waterEverySeconds": 90,
+      "dryingSeconds": 120,
+      "freshPerPlant": 3,
+      "pouchesPerDried": 2,
+      "pouchSellPrice": 35
+    }
+  ],
+  "elJefe": {
+    "salesTaxRate": 0.25,
+    "starterSeeds": 5
+  },
+  "dealer": {
+    "weeklyCost": 100,
+    "pouchesSoldPerGameDay": 6,
+    "maxDealersAct2": 1
+  },
+  "xp": {
+    "perPouchSold": 4,
+    "perHarvest": 10,
+    "levelThresholds": [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200],
+    "skillPointsPerLevel": 1
+  },
+  "skills": {
+    "growTime": {
+      "maxRank": 5,
+      "effectPerRank": -0.08
+    },
+    "moveSpeed": {
+      "maxRank": 3,
+      "effectPerRank": 0.05
+    },
+    "bagSize": {
+      "maxRank": 3,
+      "effectPerRank": 2
+    }
+  },
+  "heat": {
+    "max": 100,
+    "perSale": 2,
+    "perRunSpotted": 5,
+    "perStockUnitPerMinute": 0.02,
+    "decayPerMinute": 1.5,
+    "raidThreshold": 80
+  },
+  "police": {
+    "fineRateOfBagValue": 0.3,
+    "arrestSeconds": 180,
+    "bribeCost": 150,
+    "bribeHeatReduction": 25,
+    "lookoutRiskReduction": 0.35
+  },
+  "upgrades": {
+    "bag_12": {
+      "name": "Sac à dos XXL",
+      "bagSlots": 12
+    }
+  },
+  "services": {
+    "lookout": {
+      "name": "Guetteur (le petit Kevin)",
+      "durationMinutes": 30
+    }
+  }
+}

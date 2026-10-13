@@ -1,0 +1,138 @@
+{
+  "items": [
+    {
+      "id": "seed_base",
+      "name": "Graines de base",
+      "category": "seed",
+      "storage": "slot",
+      "stackMax": 20,
+      "contraband": true,
+      "confiscable": true,
+      "strain": "base"
+    },
+    {
+      "id": "seed_citron",
+      "name": "Graines Citron Givré",
+      "category": "seed",
+      "storage": "slot",
+      "stackMax": 20,
+      "contraband": true,
+      "confiscable": true,
+      "strain": "citron"
+    },
+    {
+      "id": "plant_fresh_base",
+      "name": "Plante fraîche (base)",
+      "category": "plant_fresh",
+      "storage": "slot",
+      "stackMax": 10,
+      "contraband": true,
+      "confiscable": true,
+      "strain": "base"
+    },
+    {
+      "id": "plant_fresh_citron",
+      "name": "Plante fraîche (Citron Givré)",
+      "category": "plant_fresh",
+      "storage": "slot",
+      "stackMax": 10,
+      "contraband": true,
+      "confiscable": true,
+      "strain": "citron"
+    },
+    {
+      "id": "plant_dried_base",
+      "name": "Plante séchée (base)",
+      "category": "plant_dried",
+      "storage": "slot",
+      "stackMax": 10,
+      "contraband": true,
+      "confiscable": true,
+      "strain": "base"
+    },
+    {
+      "id": "plant_dried_citron",
+      "name": "Plante séchée (Citron Givré)",
+      "category": "plant_dried",
+      "storage": "slot",
+      "stackMax": 10,
+      "contraband": true,
+      "confiscable": true,
+      "strain": "citron"
+    },
+    {
+      "id": "pouch_base",
+      "name": "Pochon (base)",
+      "category": "pouch",
+      "storage": "slot",
+      "stackMax": 25,
+      "contraband": true,
+      "confiscable": true,
+      "strain": "base"
+    },
+    {
+      "id": "pouch_citron",
+      "name": "Pochon (Citron Givré)",
+      "category": "pouch",
+      "storage": "slot",
+      "stackMax": 25,
+      "contraband": true,
+      "confiscable": true,
+      "strain": "citron"
+    },
+    {
+      "id": "water",
+      "name": "Bouteille d'eau",
+      "category": "water",
+      "storage": "slot",
+      "stackMax": 5,
+      "contraband": false,
+      "confiscable": false
+    },
+    {
+      "id": "food",
+      "name": "Sandwich triangle douteux",
+      "category": "food",
+      "storage": "slot",
+      "stackMax": 5,
+      "contraband": false,
+      "confiscable": false
+    },
+    {
+      "id": "pot",
+      "name": "Pot de fleurs (volé à mamie)",
+      "category": "tool",
+      "storage": "slot",
+      "stackMax": 10,
+      "contraband": false,
+      "confiscable": false
+    },
+    {
+      "id": "watering_can",
+      "name": "Arrosoir",
+      "category": "tool",
+      "storage": "slot",
+      "stackMax": 1,
+      "contraband": false,
+      "confiscable": false
+    },
+    {
+      "id": "cash_dirty",
+      "name": "Liasse d'argent sale",
+      "category": "cash_dirty",
+      "storage": "slot",
+      "stackMax": 1000,
+      "contraband": false,
+      "confiscable": true
+    },
+    {
+      "id": "cash_clean",
+      "name": "Argent propre",
+      "category": "cash_clean",
+      "storage": "account",
+      "stackMax": 0,
+      "contraband": false,
+      "confiscable": false
+    }
+  ]
+}
