@@ -12,9 +12,19 @@ export const input = {
   left: false,
   right: false,
   run: false,
-  /** Compteur incrémenté à chaque appui sur le bouton d'action. */
-  actionPresses: 0,
 };
+
+const actionListeners = new Set<() => void>();
+
+/** Bouton ACTION, touche E ou Espace. */
+export function triggerAction(): void {
+  for (const fn of actionListeners) fn();
+}
+
+export function onAction(fn: () => void): () => void {
+  actionListeners.add(fn);
+  return () => actionListeners.delete(fn);
+}
 
 /** Direction écran normalisée (longueur <= 1) + intention de courir. */
 export function readMoveIntent(): { x: number; y: number; magnitude: number; run: boolean } {

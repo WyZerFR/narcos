@@ -61,7 +61,10 @@ function DebugProbe() {
   const acc = useRef({ frames: 0, time: 0 });
   // Accès console en mode debug : `narco.three.gl.info`, rendu manuel, etc.
   useEffect(() => {
-    if (window.narco) window.narco.three = { gl, scene, camera };
+    if (window.narco) {
+      window.narco.three = { gl, scene, camera };
+      window.narco.local = localPlayer;
+    }
     gl.info.autoReset = false;
     return () => {
       gl.info.autoReset = true;

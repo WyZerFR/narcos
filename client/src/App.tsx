@@ -2,19 +2,13 @@ import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { connection, type GameRoom } from './net/connection';
 import { bindKeyboard } from './input/keyboard';
 import { Joystick } from './input/Joystick';
-import { ActionButton } from './input/ActionButton';
+import { Interaction } from './ui/Interaction';
 import { Scene } from './game/Scene';
 import { Lobby } from './ui/Lobby';
 import { Hud } from './ui/Hud';
 import { DebugOverlay } from './ui/DebugOverlay';
 import { useSettings } from './ui/settings';
 import { CameraPanel } from './ui/CameraPanel';
-
-/** Le panneau caméra n'existe qu'avec ?debug=1 dans l'URL (pas via le réglage Options). */
-const DEBUG_URL = (() => {
-  const p = new URLSearchParams(location.search).get('debug');
-  return p !== null && p !== '0';
-})();
 
 export function App() {
   const snapshot = useSyncExternalStore(connection.subscribe, connection.getSnapshot);
@@ -36,8 +30,8 @@ export function App() {
           <Scene room={room} />
           <Hud snapshot={snapshot} room={room} />
           <Joystick />
-          <ActionButton />
-          {DEBUG_URL && <CameraPanel />}
+          <Interaction room={room} />
+          {debug && <CameraPanel />}
         </>
       ) : snapshot.status === 'reconnecting' ? (
         <div className="lobby">

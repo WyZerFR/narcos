@@ -543,3 +543,95 @@ input {
   visibility: hidden;
   will-change: transform;
 }
+
+/* ---------- case à cocher tactile (Options) ---------- */
+.setting.check {
+  cursor: pointer;
+}
+.setting.check small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+.setting.check input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: var(--touch);
+  height: var(--touch);
+  margin: 0;
+  border-radius: 10px;
+  border: 2px solid #4a443c;
+  background: #1f1b17;
+  display: grid;
+  place-content: center;
+  touch-action: manipulation;
+}
+.setting.check input[type='checkbox']:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.setting.check input[type='checkbox']:checked::after {
+  content: '✓';
+  color: #1b1500;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+/* ---------- HUD gauche : carte + mini-carte ---------- */
+.hud-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  pointer-events: none;
+}
+.hud-left .hud-card {
+  pointer-events: auto;
+}
+.minimap {
+  border-radius: 12px;
+  background: var(--panel);
+  pointer-events: none;
+}
+
+/* ---------- bouton ACTION contextuel + toast ---------- */
+.action-button.active {
+  width: auto;
+  min-width: 96px;
+  max-width: min(260px, 40vw);
+  padding: 0 18px;
+  border-radius: 48px;
+  background: rgba(244, 196, 48, 0.85);
+  color: #1b1500;
+  font-size: 15px;
+  letter-spacing: 0;
+  line-height: 1.15;
+}
+.action-button:not(.active) {
+  opacity: 0.55;
+}
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(150px + var(--safe-b));
+  transform: translateX(-50%);
+  max-width: min(520px, 80vw);
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 2px solid var(--ok);
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  z-index: 35;
+  pointer-events: none;
+  animation: toast-in 0.2s ease-out;
+}
+.toast.bad {
+  border-color: var(--danger);
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+}

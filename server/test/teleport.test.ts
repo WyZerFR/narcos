@@ -4,9 +4,11 @@ import {
   ROOM_NAME,
   ServerMsg,
   gameData,
+  interactionPoint,
   maxBurstMeters,
   type CorrectionMessage,
   type MoveMessage,
+  type NoticeMessage,
 } from '@narco/shared';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createGameServer } from '../src/app';
@@ -105,6 +107,29 @@ describe('NarcoRoom — collisions', () => {
     const p = room.state.players.get('player-dddd-0002')!;
     const { spawn, spawnSpread } = config.players;
     expect(Math.hypot(p.x - spawn.x, p.z - spawn.z)).toBeLessThanOrEqual(spawnSpread + 0.01);
+  });
+});
+
+describe('NarcoRoom — interaction avec les lieux', () => {
+  it('accepte l’entrée près de la porte et renvoie la réplique du lieu', async () => {
+    const { client, room } = await createRoomWith('player-eeee-0001');
+    const loc = gameData.locations.get('epicerie')!;
+    const p = room.state.players.get('player-eeee-0001')!;
+    const door = interactionPoint(loc);
+    p.x = door.x;
+    p.z = door.z;
+
+    client.send(ClientMsg.Interact, { locationId: 'epicerie' });
+    const notice = (await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage;
+    expect(notice).toEqual({ ok: true, text: loc.enterText, locationId: 'epicerie' });
+  });
+
+  it('refuse l’entrée de loin', async () => {
+    const { client } = await createRoomWith('player-eeee-0002'); // au carton de départ
+    client.send(ClientMsg.Interact, { locationId: 'repaire_jefe' });
+    const notice = (await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage;
+    expect(notice.ok).toBe(false);
+    expect(notice.text).toMatch(/Trop loin/);
   });
 });
 

@@ -1,4 +1,4 @@
-import { input } from './inputState';
+import { input, triggerAction } from './inputState';
 
 /**
  * Clavier : on lit `event.code` (position physique de la touche), donc WASD sur QWERTY
@@ -31,7 +31,7 @@ export function bindKeyboard(): () => void {
     } else if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
       input.run = down;
     } else if (down && !e.repeat && (e.code === 'KeyE' || e.code === 'Space')) {
-      input.actionPresses++;
+      triggerAction();
       e.preventDefault();
     }
   };

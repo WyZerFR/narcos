@@ -6,6 +6,7 @@ import {
   gameData,
   normalizeRoomCode,
   type CorrectionMessage,
+  type NoticeMessage,
   type JoinOptions,
 } from '@narco/shared';
 import { getPlayerId, getSavedName, getSavedRoomCode, saveName, saveRoomCode } from './identity';
@@ -62,11 +63,13 @@ function isFatal(err: unknown): boolean {
 }
 
 type CorrectionListener = (c: CorrectionMessage) => void;
+type NoticeListener = (n: NoticeMessage) => void;
 
 class Connection {
   private client = new Client(endpoint());
   private listeners = new Set<() => void>();
   private correctionListeners = new Set<CorrectionListener>();
+  private noticeListeners = new Set<NoticeListener>();
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private hiddenAt: number | null = null;
   private joining = false;
@@ -95,6 +98,11 @@ class Connection {
   private set(patch: Partial<Snapshot>): void {
     this.snapshot = { ...this.snapshot, ...patch };
     for (const fn of this.listeners) fn();
+  }
+
+  onNotice(fn: NoticeListener): () => void {
+    this.noticeListeners.add(fn);
+    return () => this.noticeListeners.delete(fn);
   }
 
   onCorrection(fn: CorrectionListener): () => void {
@@ -160,6 +168,9 @@ class Connection {
     this.clearReconnectTimer();
     saveRoomCode(room.roomId);
 
+    room.onMessage(ServerMsg.Notice, (n: NoticeMessage) => {
+      for (const fn of this.noticeListeners) fn(n);
+    });
     room.onMessage(ServerMsg.Correction, (c: CorrectionMessage) => {
       for (const fn of this.correctionListeners) fn(c);
     });
@@ -262,6 +273,8 @@ declare global {
       dropSocket: () => void;
       /** Renseigné par la scène en mode debug. */
       three?: { gl: WebGLRenderer; scene: Scene; camera: Camera };
+      /** Position prédite du joueur local (debug). */
+      local?: { x: number; z: number; rotY: number; seq: number; initialized: boolean };
     };
   }
 }

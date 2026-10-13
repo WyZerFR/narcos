@@ -4,6 +4,7 @@ import { connection } from '../net/connection';
 import { useRoomPlayers } from '../game/Players';
 import { LabelLayer } from '../game/labels';
 import { SettingsPanel } from './SettingsPanel';
+import { Minimap } from './Minimap';
 
 export function Hud({ snapshot, room }: { snapshot: Snapshot; room: GameRoom }) {
   const players = useRoomPlayers(room);
@@ -14,20 +15,23 @@ export function Hud({ snapshot, room }: { snapshot: Snapshot; room: GameRoom }) 
     <>
       <LabelLayer players={players} myId={me} />
       <div className="hud-top">
-        <div className="hud-card">
-          <div className="room-code">
-            Partie <strong>{snapshot.code}</strong>
+        <div className="hud-left">
+          <div className="hud-card">
+            <div className="room-code">
+              Partie <strong>{snapshot.code}</strong>
+            </div>
+            <ul className="player-list">
+              {players.map((p) => (
+                <li key={p.id} className={p.connected ? '' : 'offline'}>
+                  <span className="dot" style={{ background: p.color }} />
+                  {p.name}
+                  {p.id === me ? ' (toi)' : ''}
+                  {!p.connected && ' · hors ligne'}
+                </li>
+              ))}
+            </ul>
           </div>
-          <ul className="player-list">
-            {players.map((p) => (
-              <li key={p.id} className={p.connected ? '' : 'offline'}>
-                <span className="dot" style={{ background: p.color }} />
-                {p.name}
-                {p.id === me ? ' (toi)' : ''}
-                {!p.connected && ' · hors ligne'}
-              </li>
-            ))}
-          </ul>
+          <Minimap room={room} />
         </div>
         <button
           type="button"

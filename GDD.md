@@ -108,7 +108,30 @@ Le monde continue quand un joueur est offline (cultures, dealers). À la reconne
 - **Contrôles** : joystick virtuel à gauche, bouton d'action contextuel à droite ; clavier ZQSD/WASD + souris en bonus. Cibles tactiles ≥ 44 px.
 - **Réseau** : room privée de 3 joueurs max, code 4 lettres. Reconnexion automatique après arrière-plan.
 
-## 6. Jalons
+## 6. Direction artistique
+
+**Low-poly stylisé, arcade, nuit urbaine.** Une capture du quartier doit donner envie de jouer.
+
+- **Palette** : 6 couleurs de base dans `config.json` (`palette` : ciel, sol, rue, murs, néon, végétation). Toutes les nuances en sont dérivées (éclaircir, assombrir, mélanger). Chaque lieu a en plus sa `color` et sa `neonColor` dans `locations.json`.
+- **Nuit** : fond et brouillard bleu-violet, lumière ambiante douce (hémisphère + lune : 2 lumières dynamiques au maximum), aucune ombre temps réel. Les points lumineux (fenêtres, portes, enseignes, lampadaires, guirlandes) sont des **matériaux émissifs**, pas des lumières.
+- **Bâtiments** : blocs de hauteurs variées, toits avec parapets et équipements, fenêtres et portes en petits panneaux émissifs (une partie allumée au hasard, de façon déterministe), une enseigne néon par lieu.
+- **Silhouettes reconnaissables sans étiquette** :
+
+| Lieu              | Silhouette                                                                                  |
+| ----------------- | ------------------------------------------------------------------------------------------- |
+| Local             | Entrepôt bas et large, bardage, rideau métallique, lucarnes roses (on devine le labo), tags |
+| Épicerie          | Deux étages, vitrine éclairée, store rayé, étals de fruits                                  |
+| Repaire d'El Jefe | Le plus haut : podium, tour, couronne et liserés dorés, colonnes                            |
+| Bricoshop         | Toit en dents de scie, grand panneau sur le toit, porte de garage ouverte                   |
+| Point relais      | Kiosque bas, auvent, mur de consignes lumineuses                                            |
+| Ruelles           | Sol sombre, guirlandes lumineuses en travers, flaque qui reflète le néon                    |
+
+- **Sol** : routes, trottoirs surélevés, passages piétons, marquage central, en couleurs plates.
+- **Décor instancié** : lampadaires (avec halo au sol), arbres low-poly, voitures garées (solides), poubelles, caisses, carton de départ. Tout est procédural pour l'instant ; des modèles glTF gratuits (Kenney, Quaternius) pourront remplacer le petit décor, chargés en lazy, **jamais** pour les bâtiments principaux.
+- **Post-traitement** : bloom discret seulement en qualité moyen/haut ; désactivé en qualité basse (défaut).
+- **Budget** : < 200 draw calls ; ~13 en pratique en qualité basse (bâtiments fusionnés en 2 géométries, décor instancié, étiquettes en DOM). Si le budget saute, on réduit le décor, jamais la lisibilité des lieux.
+
+## 7. Jalons
 
 | Jalon  | Contenu                                    | Temps de jeu |
 | ------ | ------------------------------------------ | ------------ |
@@ -116,12 +139,12 @@ Le monde continue quand un joueur est offline (cultures, dealers). À la reconne
 | **J2** | Acte III, zone 2                           | 7 h          |
 | **J3** | Acte IV, zone 3, El Jefe hostile, aéroport | 11 h         |
 
-## 7. Roadmap
+## 8. Roadmap
 
 ### J1 — Actes I-II
 
 1. ✅ **Fondations** : monorepo, multi minimal (cubes synchronisés), reconnexion, JSON chargés et typés, test anti-téléportation.
-2. Blockout de la zone 1 depuis `locations.json` (bâtiments, ruelles, triggers de lieux, instancing).
+2. ✅ **Map zone 1** : quartier de nuit (8 lieux, immeubles, routes, décor), collisions partagées client/serveur, bouton « Entrer : <lieu> », mini-carte, mode debug persistant, réglage caméra.
 3. Inventaire (logique pure dans `shared/` + tests) : sac, stock commun, transferts, UI tactile.
 4. Faim/soif + épicerie.
 5. Production : plantation, arrosage, pousse, séchage, pochons (timers serveur).

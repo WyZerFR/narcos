@@ -9,7 +9,10 @@ import {
   resolveCircle,
   sanitizeName,
   validateMove,
+  distance,
+  interactionPoint,
   type CorrectionMessage,
+  type NoticeMessage,
   type JoinOptions,
   type MoveBudget,
   type MoveRules,
@@ -65,6 +68,7 @@ export class NarcoRoom extends Room<GameState> {
     this.setPatchRate(config.room.patchRateMs);
 
     this.onMessage(ClientMsg.Move, (client, msg: unknown) => this.handleMove(client, msg));
+    this.onMessage(ClientMsg.Interact, (client, msg: unknown) => this.handleInteract(client, msg));
     this.armEmptyTimer();
   }
 
@@ -162,6 +166,26 @@ export class NarcoRoom extends Room<GameState> {
       const correction: CorrectionMessage = { x: result.pos.x, z: result.pos.z, seq };
       client.send(ServerMsg.Correction, correction);
     }
+  }
+
+  /** Entrée dans un lieu : simple vérification de distance, pas encore de gameplay. */
+  private handleInteract(client: Client, msg: unknown): void {
+    const playerId = this.sessions.get(client.sessionId);
+    const player = playerId ? this.state.players.get(playerId) : undefined;
+    if (!player || typeof msg !== 'object' || msg === null) return;
+    const locationId = String((msg as Record<string, unknown>).locationId ?? '');
+    const loc = gameData.locations.get(locationId);
+    let notice: NoticeMessage;
+    if (!loc) {
+      notice = { ok: false, text: "Ce lieu n'existe pas (encore)." };
+    } else {
+      const d = distance(player, interactionPoint(loc));
+      notice =
+        d <= loc.interactRadius + config.world.interactTolerance
+          ? { ok: true, text: loc.enterText, locationId: loc.id }
+          : { ok: false, text: `Trop loin de : ${loc.name}`, locationId: loc.id };
+    }
+    client.send(ServerMsg.Notice, notice);
   }
 
   private armEmptyTimer(): void {

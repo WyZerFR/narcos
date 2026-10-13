@@ -62,7 +62,13 @@ export const ConfigSchema = z.object({
     maxBurstMs: pos,
     clientSendRateHz: pos,
   }),
-  world: z.object({ bounds: BoundsSchema, playerSize: pos, playerRadius: pos }),
+  world: z.object({
+    bounds: BoundsSchema,
+    playerSize: pos,
+    playerRadius: pos,
+    /** Marge (m) accordée par le serveur sur le rayon d'interaction (latence). */
+    interactTolerance: nonNeg,
+  }),
   players: z.object({
     colors: z.array(hexColor).min(1),
     /** Point de départ : un carton dans la rue. */

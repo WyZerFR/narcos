@@ -21,7 +21,8 @@
       "maxZ": 45
     },
     "playerSize": 1,
-    "playerRadius": 0.45
+    "playerRadius": 0.45,
+    "interactTolerance": 1
   },
   "players": {
     "colors": ["#e63946", "#2a9d8f", "#f4c430"],

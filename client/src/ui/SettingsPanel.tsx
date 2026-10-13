@@ -49,25 +49,17 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
-        <div className="setting">
-          <span>Mode debug (FPS)</span>
-          <div className="segmented">
-            <button
-              type="button"
-              className={debug ? '' : 'active'}
-              onClick={() => updateSettings({ debug: false })}
-            >
-              Off
-            </button>
-            <button
-              type="button"
-              className={debug ? 'active' : ''}
-              onClick={() => updateSettings({ debug: true })}
-            >
-              On
-            </button>
-          </div>
-        </div>
+        <label className="setting check">
+          <span>
+            Mode debug
+            <small>FPS, draw calls, panneau caméra</small>
+          </span>
+          <input
+            type="checkbox"
+            checked={debug}
+            onChange={(e) => updateSettings({ debug: e.target.checked })}
+          />
+        </label>
 
         {canFullscreen() && (
           <button type="button" className="btn" onClick={toggleFullscreen}>

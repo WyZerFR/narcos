@@ -37,8 +37,17 @@ function load(): Settings {
     saved = {};
   }
   const quality = saved.quality && saved.quality in QUALITY_PRESETS ? saved.quality : 'low';
+  // ?debug=1 / ?debug=0 : réglage mémorisé, plus besoin du paramètre ensuite.
   const debug = debugParam !== null ? debugParam !== '0' : saved.debug === true;
-  return { quality, debug };
+  const settings = { quality, debug };
+  if (debugParam !== null) {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(settings));
+    } catch {
+      // ignoré
+    }
+  }
+  return settings;
 }
 
 let current = load();

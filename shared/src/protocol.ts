@@ -11,11 +11,15 @@ export interface JoinOptions {
 export const ClientMsg = {
   /** Position prédite par le client, validée par le serveur. */
   Move: 'move',
+  /** Le joueur veut entrer dans un lieu (bouton ACTION). */
+  Interact: 'interact',
 } as const;
 
 export const ServerMsg = {
   /** Le serveur a refusé/ajusté une position : le client se recale. */
   Correction: 'correction',
+  /** Message court affiché au joueur (réponse à une interaction). */
+  Notice: 'notice',
 } as const;
 
 export interface MoveMessage {
@@ -29,6 +33,16 @@ export interface CorrectionMessage {
   x: number;
   z: number;
   seq: number;
+}
+
+export interface InteractMessage {
+  locationId: string;
+}
+
+export interface NoticeMessage {
+  ok: boolean;
+  text: string;
+  locationId?: string;
 }
 
 export const MAX_NAME_LENGTH = 16;
