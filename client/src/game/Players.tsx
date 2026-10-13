@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html } from '@react-three/drei';
 import type { Group } from 'three';
 import {
   ClientMsg,
@@ -13,6 +12,7 @@ import { connection, type GameRoom, type PlayerView } from '../net/connection';
 import { readMoveIntent } from '../input/inputState';
 import { localPlayer } from './localPlayer';
 import { screenToWorld } from './cameraState';
+import { setLabelAnchor } from './labels';
 
 const { movement, world } = gameData.config;
 const SIZE = world.playerSize;
@@ -53,19 +53,15 @@ export function useRoomPlayers(room: GameRoom | null): PlayerInfo[] {
   return room ? players : [];
 }
 
-function Label({ name, offline }: { name: string; offline: boolean }) {
-  return (
-    <Html
-      position={[0, SIZE * 1.6, 0]}
-      center
-      zIndexRange={[10, 0]}
-      style={{ pointerEvents: 'none' }}
-    >
-      <div className={`player-label${offline ? ' offline' : ''}`}>
-        {offline ? `${name} 💤` : name}
-      </div>
-    </Html>
-  );
+/** Ancre l'étiquette DOM du joueur au-dessus de son cube. */
+function usePlayerLabel(id: string, ref: RefObject<Group | null>) {
+  useEffect(() => {
+    setLabelAnchor(`player:${id}`, () => {
+      const g = ref.current;
+      return g ? { x: g.position.x, y: SIZE * 1.7, z: g.position.z } : null;
+    });
+    return () => setLabelAnchor(`player:${id}`, null);
+  }, [id, ref]);
 }
 
 function Body({ color, ghost }: { color: string; ghost: boolean }) {
@@ -73,12 +69,18 @@ function Body({ color, ghost }: { color: string; ghost: boolean }) {
     <>
       <mesh position={[0, SIZE / 2, 0]}>
         <boxGeometry args={[SIZE, SIZE, SIZE]} />
-        <meshLambertMaterial color={color} transparent={ghost} opacity={ghost ? 0.35 : 1} />
+        <meshLambertMaterial
+          color={color}
+          emissive={color}
+          emissiveIntensity={0.45}
+          transparent={ghost}
+          opacity={ghost ? 0.35 : 1}
+        />
       </mesh>
       {/* « nez » : indique la direction du regard */}
       <mesh position={[0, SIZE * 0.7, SIZE * 0.55]}>
         <boxGeometry args={[SIZE * 0.3, SIZE * 0.2, SIZE * 0.2]} />
-        <meshLambertMaterial color="#111111" />
+        <meshLambertMaterial color={gameData.config.palette.sky} />
       </mesh>
     </>
   );
@@ -86,6 +88,7 @@ function Body({ color, ghost }: { color: string; ghost: boolean }) {
 
 export function LocalPlayer({ room, info }: { room: GameRoom; info: PlayerInfo }) {
   const ref = useRef<Group>(null);
+  usePlayerLabel(info.id, ref);
   const sendTimer = useRef(0);
   const lastSent = useRef({ x: NaN, z: NaN, rotY: NaN });
 
@@ -154,7 +157,6 @@ export function LocalPlayer({ room, info }: { room: GameRoom; info: PlayerInfo }
   return (
     <group ref={ref}>
       <Body color={info.color} ghost={false} />
-      <Label name={`${info.name} (toi)`} offline={false} />
     </group>
   );
 }
@@ -166,6 +168,7 @@ function lerpAngle(a: number, b: number, t: number): number {
 
 export function RemotePlayer({ room, info }: { room: GameRoom; info: PlayerInfo }) {
   const ref = useRef<Group>(null);
+  usePlayerLabel(info.id, ref);
   const placed = useRef(false);
 
   useFrame((_, rawDt) => {
@@ -187,7 +190,6 @@ export function RemotePlayer({ room, info }: { room: GameRoom; info: PlayerInfo 
   return (
     <group ref={ref}>
       <Body color={info.color} ghost={!info.connected} />
-      <Label name={info.name} offline={!info.connected} />
     </group>
   );
 }

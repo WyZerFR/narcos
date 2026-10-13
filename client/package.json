@@ -14,7 +14,9 @@
     "@narco/shared": "*",
     "@react-three/drei": "10.7.9",
     "@react-three/fiber": "9.8.1",
+    "@react-three/postprocessing": "3.2.0",
     "colyseus.js": "0.16.22",
+    "postprocessing": "6.39.5",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "three": "0.186.1"

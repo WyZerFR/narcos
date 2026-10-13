@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { GameRoom, Snapshot } from '../net/connection';
 import { connection } from '../net/connection';
 import { useRoomPlayers } from '../game/Players';
+import { LabelLayer } from '../game/labels';
 import { SettingsPanel } from './SettingsPanel';
 
 export function Hud({ snapshot, room }: { snapshot: Snapshot; room: GameRoom }) {
@@ -11,6 +12,7 @@ export function Hud({ snapshot, room }: { snapshot: Snapshot; room: GameRoom }) 
 
   return (
     <>
+      <LabelLayer players={players} myId={me} />
       <div className="hud-top">
         <div className="hud-card">
           <div className="room-code">

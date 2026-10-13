@@ -513,3 +513,33 @@ input {
   -webkit-user-select: text;
   user-select: text;
 }
+
+/* ---------- étiquettes de lieux (néon) ---------- */
+.place-label {
+  padding: 3px 10px;
+  border: 2px solid;
+  border-radius: 8px;
+  background: rgba(10, 8, 20, 0.7);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  text-shadow: 0 0 6px currentColor;
+  box-shadow: 0 0 10px -2px currentColor;
+}
+
+/* Calque des étiquettes flottantes, positionnées par projection (game/labels.tsx). */
+.label-layer {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 5;
+}
+.label-layer > * {
+  position: absolute;
+  left: 0;
+  top: 0;
+  visibility: hidden;
+  will-change: transform;
+}

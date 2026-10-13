@@ -11,7 +11,9 @@ import { connection, type GameRoom } from '../net/connection';
 import { QUALITY_PRESETS, useSettings } from '../ui/settings';
 import { debugStats } from '../ui/DebugOverlay';
 import { localPlayer, resetLocalPlayer } from './localPlayer';
-import { Floor } from './Floor';
+import { City, NightAmbience } from './city/City';
+import { LabelProjector } from './labels';
+import { Bloom, EffectComposer } from '@react-three/postprocessing';
 import { cameraOffset, getCamera, orthoViewHeight, useCamera } from './cameraState';
 import { LocalPlayer, RemotePlayer, useRoomPlayers } from './Players';
 
@@ -60,6 +62,10 @@ function DebugProbe() {
   // Accès console en mode debug : `narco.three.gl.info`, rendu manuel, etc.
   useEffect(() => {
     if (window.narco) window.narco.three = { gl, scene, camera };
+    gl.info.autoReset = false;
+    return () => {
+      gl.info.autoReset = true;
+    };
   }, [gl, scene, camera]);
   useFrame((_, dt) => {
     acc.current.frames++;
@@ -68,23 +74,23 @@ function DebugProbe() {
       debugStats.fps = acc.current.frames / acc.current.time;
       acc.current = { frames: 0, time: 0 };
     }
+    // Compteurs cumulés sur toute la frame précédente (passes de bloom comprises), puis remis à 0.
     debugStats.calls = gl.info.render.calls;
     debugStats.triangles = gl.info.render.triangles;
+    gl.info.reset();
   });
   return null;
 }
 
-function World({ room }: { room: GameRoom }) {
+function World({ room, glowBoost }: { room: GameRoom; glowBoost: number }) {
   const players = useRoomPlayers(room);
   const myId = connection.playerId;
   // Nouvelle room (connexion ou reconnexion) : on repart de la position autoritaire du serveur.
   useEffect(() => resetLocalPlayer(), [room]);
   return (
     <>
-      <color attach="background" args={['#1c1a17']} />
-      <ambientLight intensity={1.1} />
-      <directionalLight position={[10, 20, 8]} intensity={1.6} />
-      <Floor />
+      <NightAmbience />
+      <City glowBoost={glowBoost} />
       {players.map((p) =>
         p.id === myId ? (
           <LocalPlayer key={p.id} room={room} info={p} />
@@ -93,6 +99,7 @@ function World({ room }: { room: GameRoom }) {
         ),
       )}
       <CameraRig />
+      <LabelProjector />
     </>
   );
 }
@@ -108,7 +115,17 @@ export function Scene({ room }: { room: GameRoom }) {
       gl={{ antialias: preset.antialias, powerPreference: 'high-performance' }}
       shadows={false}
     >
-      <World room={room} />
+      <World room={room} glowBoost={preset.glowBoost} />
+      {preset.bloom > 0 && (
+        <EffectComposer multisampling={0}>
+          <Bloom
+            mipmapBlur
+            luminanceThreshold={1}
+            luminanceSmoothing={0.2}
+            intensity={preset.bloom}
+          />
+        </EffectComposer>
+      )}
       {debug && <DebugProbe />}
     </Canvas>
   );

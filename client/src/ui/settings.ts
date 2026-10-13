@@ -7,13 +7,24 @@ export interface Settings {
   debug: boolean;
 }
 
-/** Réglages graphiques par niveau (techniques, pas de l'équilibrage). */
-export const QUALITY_PRESETS: Record<Quality, { label: string; dpr: number; antialias: boolean }> =
-  {
-    low: { label: 'Bas', dpr: 1, antialias: false },
-    medium: { label: 'Moyen', dpr: 1.5, antialias: false },
-    high: { label: 'Haut', dpr: 2, antialias: true },
-  };
+/**
+ * Réglages graphiques par niveau (techniques, pas de l'équilibrage).
+ * `bloom` = intensité du post-traitement (0 = désactivé) ; `glowBoost` pousse les émissifs
+ * au-dessus de 1 pour que seul eux déclenchent le bloom.
+ */
+export interface QualityPreset {
+  label: string;
+  dpr: number;
+  antialias: boolean;
+  bloom: number;
+  glowBoost: number;
+}
+
+export const QUALITY_PRESETS: Record<Quality, QualityPreset> = {
+  low: { label: 'Bas', dpr: 1, antialias: false, bloom: 0, glowBoost: 1 },
+  medium: { label: 'Moyen', dpr: 1.5, antialias: false, bloom: 0.55, glowBoost: 2 },
+  high: { label: 'Haut', dpr: 2, antialias: true, bloom: 0.8, glowBoost: 2.4 },
+};
 
 const KEY = 'narco.settings';
 
