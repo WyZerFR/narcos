@@ -1,4 +1,5 @@
 import { Client, ErrorCode, type Room } from 'colyseus.js';
+import type { Camera, Scene, WebGLRenderer } from 'three';
 import {
   ROOM_NAME,
   ServerMsg,
@@ -256,7 +257,12 @@ export const connection = new Connection();
 
 declare global {
   interface Window {
-    narco?: { connection: Connection; dropSocket: () => void };
+    narco?: {
+      connection: Connection;
+      dropSocket: () => void;
+      /** Renseigné par la scène en mode debug. */
+      three?: { gl: WebGLRenderer; scene: Scene; camera: Camera };
+    };
   }
 }
 window.narco = { connection, dropSocket: () => connection.dropSocket() };

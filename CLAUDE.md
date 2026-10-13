@@ -62,3 +62,12 @@ client/public/      manifest PWA, service worker, icônes
 - Room `narco`, `roomId` = code 4 lettres (sans I/O), privée, 3 joueurs distincts max (`onAuth`).
 - Identité : `playerId` (UUID en `localStorage`) passé au join ; le state indexe les joueurs par `playerId`. Déconnexion → `connected=false`, l'état est gardé ; rejoindre avec le même `playerId` réattache le joueur.
 - Le client se reconnecte seul (backoff + `visibilitychange`/`pageshow`/`online`). La room survit vide pendant `config.room.emptyRoomTtlSeconds`.
+- Le code de la dernière room est gardé en `localStorage` : après un rechargement (iOS tue souvent les onglets en arrière-plan), le client y retourne seul.
+- Les rooms vivent **en mémoire** : un redémarrage serveur (y compris `tsx watch` après modif d'un JSON) les efface, les clients retombent au lobby. Normal tant que SQLite n'est pas branché.
+
+## Debug / tests manuels
+
+- `?joueur=2` : profil d'identité distinct (plusieurs joueurs dans un même navigateur PC).
+- `?debug=1` (ou Options) : overlay FPS / draw calls / triangles ; `window.narco.three` expose `{gl, scene, camera}`.
+- Console : `narco.dropSocket()` simule une coupure réseau.
+- Variables d'env : `NARCO_SERVER_PORT` (défaut 2567), `NARCO_SERVER_HOST` (défaut 0.0.0.0). Ne pas utiliser `PORT` (souvent injecté par les outils).

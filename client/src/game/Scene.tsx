@@ -28,8 +28,12 @@ function CameraRig() {
 
 /** Alimente l'overlay debug (FPS, draw calls, triangles) sans rendu React. */
 function DebugProbe() {
-  const gl = useThree((s) => s.gl);
+  const { gl, scene, camera } = useThree();
   const acc = useRef({ frames: 0, time: 0 });
+  // Accès console en mode debug : `narco.three.gl.info`, rendu manuel, etc.
+  useEffect(() => {
+    if (window.narco) window.narco.three = { gl, scene, camera };
+  }, [gl, scene, camera]);
   useFrame((_, dt) => {
     acc.current.frames++;
     acc.current.time += dt;
