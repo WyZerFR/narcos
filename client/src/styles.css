@@ -386,3 +386,130 @@ input {
     font-size: 64px;
   }
 }
+
+/* ---------- panneau caméra (debug, temporaire) ----------
+   À droite, sous le bouton Options et au-dessus du bouton ACTION :
+   ne recouvre ni le joystick (moitié gauche) ni ACTION (bas droite). */
+.camera-panel {
+  position: fixed;
+  top: calc(72px + var(--safe-t));
+  right: calc(10px + var(--safe-r));
+  width: min(300px, 36vw);
+  max-height: calc(100vh - 72px - 150px - var(--safe-t) - var(--safe-b));
+  overflow-y: auto;
+  touch-action: pan-y;
+  background: var(--panel);
+  border-radius: 12px;
+  z-index: 25;
+  font-size: 14px;
+}
+.camera-panel.collapsed {
+  width: auto;
+}
+.cam-toggle {
+  width: 100%;
+  min-height: var(--touch);
+  padding: 0 14px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: left;
+  touch-action: manipulation;
+}
+.cam-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 12px 12px;
+}
+.cam-slider {
+  display: flex;
+  flex-direction: column;
+}
+.cam-slider.disabled {
+  opacity: 0.35;
+}
+.cam-slider-head {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+}
+.cam-slider-head strong {
+  color: var(--text);
+}
+.cam-slider input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: var(--touch);
+  margin: 0;
+  background: transparent;
+  touch-action: none;
+}
+.cam-slider input[type='range']::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 4px;
+  background: #4a443c;
+}
+.cam-slider input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 32px;
+  height: 32px;
+  margin-top: -12px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+}
+.cam-slider input[type='range']::-moz-range-track {
+  height: 8px;
+  border-radius: 4px;
+  background: #4a443c;
+}
+.cam-slider input[type='range']::-moz-range-thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+}
+.cam-type span {
+  opacity: 0.45;
+}
+.cam-type span.on {
+  opacity: 1;
+  color: var(--accent);
+}
+.cam-values {
+  font:
+    12px/1.5 ui-monospace,
+    monospace;
+  color: var(--muted);
+}
+.cam-actions {
+  display: flex;
+  gap: 8px;
+}
+.cam-actions .btn {
+  flex: 1;
+  padding: 0 10px;
+  font-size: 15px;
+}
+.cam-note {
+  color: var(--ok);
+  font-weight: 600;
+}
+.cam-json {
+  width: 100%;
+  min-height: 64px;
+  font:
+    12px ui-monospace,
+    monospace;
+  background: #1f1b17;
+  color: var(--text);
+  border: 1px solid #4a443c;
+  border-radius: 6px;
+  -webkit-user-select: text;
+  user-select: text;
+}

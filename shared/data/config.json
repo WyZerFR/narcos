@@ -14,13 +14,30 @@
     "clientSendRateHz": 20
   },
   "world": {
-    "bounds": { "minX": -45, "maxX": 45, "minZ": -45, "maxZ": 45 },
+    "bounds": {
+      "minX": -45,
+      "maxX": 45,
+      "minZ": -45,
+      "maxZ": 45
+    },
     "playerSize": 1
   },
   "players": {
     "colors": ["#e63946", "#2a9d8f", "#f4c430"],
     "spawnLocationId": "local",
     "spawnSpread": 2
+  },
+  "camera": {
+    "type": "perspective",
+    "elevation": 53.13,
+    "rotation": 0,
+    "zoom": 20,
+    "fov": 50
+  },
+  "cameraRig": {
+    "followStiffness": 6,
+    "near": 0.5,
+    "far": 300
   },
   "net": {
     "reconnectBackoffMs": [500, 1000, 2000, 4000, 8000],

@@ -6,6 +6,7 @@ import { ClientMsg, clampToBounds, gameData, type MoveMessage } from '@narco/sha
 import { connection, type GameRoom, type PlayerView } from '../net/connection';
 import { readMoveIntent } from '../input/inputState';
 import { localPlayer } from './localPlayer';
+import { screenToWorld } from './cameraState';
 
 const { movement, world } = gameData.config;
 const SIZE = world.playerSize;
@@ -104,14 +105,15 @@ export function LocalPlayer({ room, info }: { room: GameRoom; info: PlayerInfo }
       const speed = intent.run
         ? movement.runSpeed
         : movement.walkSpeed * Math.min(1, intent.magnitude / 0.9);
-      // Caméra regardant vers -Z : haut de l'écran = -Z, droite = +X.
+      // Direction relative à la caméra : haut du joystick = haut de l'écran.
+      const dir = screenToWorld(intent.x, intent.y);
       const next = clampToBounds(
-        { x: localPlayer.x + intent.x * speed * dt, z: localPlayer.z - intent.y * speed * dt },
+        { x: localPlayer.x + dir.x * speed * dt, z: localPlayer.z + dir.z * speed * dt },
         world.bounds,
       );
       localPlayer.x = next.x;
       localPlayer.z = next.z;
-      localPlayer.rotY = Math.atan2(intent.x, -intent.y);
+      localPlayer.rotY = Math.atan2(dir.x, dir.z);
     }
 
     sendTimer.current += dt;

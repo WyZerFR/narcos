@@ -1,29 +1,56 @@
 import { useEffect, useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Vector3 } from 'three';
+import { OrthographicCamera, PerspectiveCamera } from '@react-three/drei';
+import {
+  OrthographicCamera as OrthographicCameraImpl,
+  PerspectiveCamera as PerspectiveCameraImpl,
+  Vector3,
+} from 'three';
+import { gameData } from '@narco/shared';
 import { connection, type GameRoom } from '../net/connection';
 import { QUALITY_PRESETS, useSettings } from '../ui/settings';
 import { debugStats } from '../ui/DebugOverlay';
 import { localPlayer, resetLocalPlayer } from './localPlayer';
 import { Floor } from './Floor';
+import { cameraOffset, getCamera, orthoViewHeight, useCamera } from './cameraState';
 import { LocalPlayer, RemotePlayer, useRoomPlayers } from './Players';
 
-/** Caméra 3/4 vue de dessus (offset technique, pas de l'équilibrage). */
-const CAMERA_OFFSET = new Vector3(0, 16, 12);
-const CAMERA_FOLLOW = 6;
+const { cameraRig } = gameData.config;
 
+/** Caméra 3/4 vue de dessus : suit le joueur local, réglages lus à chaque frame (live). */
 function CameraRig() {
+  const { type, fov } = useCamera();
   const camera = useThree((s) => s.camera);
+  const height = useThree((s) => s.size.height);
   const target = useRef(new Vector3());
+
   useFrame((_, dt) => {
     if (!localPlayer.initialized) return;
-    const t = 1 - Math.exp(-CAMERA_FOLLOW * Math.min(dt, 0.1));
+    const c = getCamera();
+    const t = 1 - Math.exp(-cameraRig.followStiffness * Math.min(dt, 0.1));
     target.current.x += (localPlayer.x - target.current.x) * t;
     target.current.z += (localPlayer.z - target.current.z) * t;
-    camera.position.copy(target.current).add(CAMERA_OFFSET);
+    const o = cameraOffset(c);
+    camera.position.set(target.current.x + o.x, o.y, target.current.z + o.z);
     camera.lookAt(target.current);
+
+    if (camera instanceof PerspectiveCameraImpl && camera.fov !== c.fov) {
+      camera.fov = c.fov;
+      camera.updateProjectionMatrix();
+    } else if (camera instanceof OrthographicCameraImpl) {
+      const zoom = height / orthoViewHeight(c);
+      if (camera.zoom !== zoom) {
+        camera.zoom = zoom;
+        camera.updateProjectionMatrix();
+      }
+    }
   });
-  return null;
+
+  return type === 'ortho' ? (
+    <OrthographicCamera makeDefault near={cameraRig.near} far={cameraRig.far} />
+  ) : (
+    <PerspectiveCamera makeDefault fov={fov} near={cameraRig.near} far={cameraRig.far} />
+  );
 }
 
 /** Alimente l'overlay debug (FPS, draw calls, triangles) sans rendu React. */
@@ -80,7 +107,6 @@ export function Scene({ room }: { room: GameRoom }) {
       dpr={Math.min(preset.dpr, window.devicePixelRatio || 1)}
       gl={{ antialias: preset.antialias, powerPreference: 'high-performance' }}
       shadows={false}
-      camera={{ fov: 50, near: 0.5, far: 200, position: [0, 16, 12] }}
     >
       <World room={room} />
       {debug && <DebugProbe />}

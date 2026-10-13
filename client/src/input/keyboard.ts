@@ -16,7 +16,9 @@ const MOVE_KEYS: Record<string, 'up' | 'down' | 'left' | 'right'> = {
 };
 
 function isTyping(target: EventTarget | null): boolean {
-  return target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+  // Un curseur (range) garde le focus après usage : il ne doit pas bloquer ZQSD.
+  if (target instanceof HTMLInputElement) return target.type !== 'range';
+  return target instanceof HTMLTextAreaElement;
 }
 
 export function bindKeyboard(): () => void {

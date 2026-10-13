@@ -11,6 +11,23 @@ export const BoundsSchema = z
   .refine((b) => b.minX < b.maxX && b.minZ < b.maxZ, 'bornes min/max inversées');
 
 // ---------- config.json ----------
+/** Bornes de réglage de la caméra (degrés), partagées par la validation et le panneau debug. */
+export const CAMERA_LIMITS = {
+  elevation: { min: 10, max: 85 },
+  rotation: { min: 0, max: 360 },
+  fov: { min: 20, max: 80 },
+} as const;
+
+const range = (r: { min: number; max: number }) => z.number().min(r.min).max(r.max);
+
+export const CameraSchema = z.object({
+  type: z.enum(['perspective', 'ortho']),
+  elevation: range(CAMERA_LIMITS.elevation),
+  rotation: range(CAMERA_LIMITS.rotation),
+  zoom: pos,
+  fov: range(CAMERA_LIMITS.fov),
+});
+
 export const ConfigSchema = z.object({
   room: z.object({
     maxPlayers: z.number().int().min(1).max(8),
@@ -32,6 +49,9 @@ export const ConfigSchema = z.object({
     spawnLocationId: z.string(),
     spawnSpread: nonNeg,
   }),
+  /** Cadrage retenu. `zoom` = distance caméra → cible (m) ; en ortho, cadrage équivalent. */
+  camera: CameraSchema,
+  cameraRig: z.object({ followStiffness: pos, near: pos, far: pos }),
   net: z.object({
     reconnectBackoffMs: z.array(pos).min(1),
     reconnectMaxDelayMs: pos,
@@ -181,6 +201,7 @@ export const LocationsFileSchema = z.object({
 
 export type Bounds = z.infer<typeof BoundsSchema>;
 export type GameConfig = z.infer<typeof ConfigSchema>;
+export type CameraConfig = z.infer<typeof CameraSchema>;
 export type ItemCategory = z.infer<typeof ItemCategorySchema>;
 export type ItemDef = z.infer<typeof ItemDefSchema>;
 export type Strain = z.infer<typeof StrainSchema>;
