@@ -1,0 +1,131 @@
+# NARCO-WEB — Game Design Document
+
+> Version 0.1 — 2026-10-13. Document de référence du design. Les **valeurs chiffrées** (prix, timers, plafonds) ne vivent pas ici mais dans `shared/data/*.json` ; ce document décrit les règles et les intentions.
+
+## 1. Concept
+
+Jeu web 3D **coopératif à 3 joueurs**, jouable sur **iPad (Safari, PWA paysage)** et PC. Trois amis expulsés de leur appart montent un cartel et prennent le contrôle d'un quartier.
+
+- **Aucun rôle attribué** : les trois joueurs peuvent tout faire (cultiver, vendre, blanchir, conduire…).
+- **Ton** : arcade, humour noir, absurde assumé. Aucun réalisme (ni procédural, ni visuel).
+- **Cadre** : jeu privé entre amis, aucune monétisation, aucun matchmaking.
+- **Visuel actuel** : blockout (cubes, sol, couleurs plates), caméra 3/4 vue de dessus.
+
+## 2. Progression en 4 actes
+
+| Acte | Contenu | Zone | Budget temps (à 3) |
+|---|---|---|---|
+| **I — La rue** | Départ expulsés dans la rue. Jauges faim/soif, épicerie, local abandonné. Pacte avec **El Jefe** : il fournit les graines de base contre une **taxe sur les ventes**. Tuto fabrication : plantation → arrosage → pousse → séchage → mise en pochons → première vente. | 1 | 1 h |
+| **II — Roue libre** | XP et compétences (temps de pousse, vitesse de déplacement, taille du sac). **Téléphone** : messages de clients PNJ, rendez-vous, GPS. **Premier dealer** (100 $/semaine). Nouvelles variétés. | 1 | 5 h |
+| **III — Blanchiment** | **Laverie** (argent sale → propre). Rénovation du local en **labo**. **Banque**. Façade **« iReconditionné »** (le stockage du téléphone = le grammage : 64 Go = 64 g, 128 Go = 128 g, 256 Go = 256 g, 512 Go = 512 g, 1 To = 1000 g). **Concessionnaire**. | 2 | 7 h |
+| **IV — L'empire** | Commerces de façade, **usine** (production de masse), **armurier**, réseau de dealers. **El Jefe devient hostile** (PvE, IA scriptée). **Aéroport** (fin de partie). | 3 | 11 h |
+
+**Durée cible** : 24 h de jeu actif à 3, soit ~8 sessions de 3 h.
+
+## 3. Règles de design
+
+### 3.1 Coopération par ressources partagées
+La coop naît de la **rareté partagée**, pas de rôles :
+- **Caisse commune** (argent propre sur compte commun).
+- **Stock commun** dans le local (60 slots).
+- **Sac limité par joueur** (10 slots) → il faut se répartir les tâches et les trajets.
+- **Heat commune** : la bêtise d'un joueur pèse sur les trois.
+- **Un seul dealer au début** → il faut décider ensemble où l'affecter.
+
+### 3.2 Map
+3 zones débloquables, chacune **traversable à pied en moins de 60 s**.
+
+| Zone | Débloquée | Lieux |
+|---|---|---|
+| **Zone 1** | Acte I | Local, épicerie, repaire d'El Jefe, ruelles, point relais, shop |
+| **Zone 2** | Acte III | Laverie, banque, concessionnaire, premiers magasins |
+| **Zone 3** | Acte IV (via concessionnaire) | Usine, armurier, commerces lourds, aéroport |
+
+### 3.3 Lieux et fonction de gameplay
+
+| Lieu | Zone | Fonction |
+|---|---|---|
+| Local | 1 | Base : stock commun, plantations, séchage, mise en pochons. Heat propre (monte avec stock et ventes). Devient labo en Acte III. |
+| Épicerie | 1 | Eau et nourriture (faim/soif). |
+| Repaire d'El Jefe | 1 | Graines de base, pacte, taxe sur ventes. Devient hostile en Acte IV. |
+| Ruelles | 1 | Points de vente de rue, raccourcis hors des patrouilles. |
+| Point relais | 1 | Dépôt/retrait de colis, rendez-vous clients. |
+| Shop | 1 | Sacs (plus de slots), pots, outils, guetteur. |
+| Laverie | 2 | Premier blanchiment : argent sale → propre, plafond par jour. |
+| Banque | 2 | Dépôt d'argent propre, prêts, plafond de dépôt journalier, compte gelé si Heat haute. |
+| Concessionnaire | 2 | Voitures (vitesse, coffre, discrétion). Débloque la zone 3. |
+| Magasins (dont iReconditionné) | 2-3 | Façades de blanchiment, chacune avec son plafond. |
+| Usine | 3 | Production de masse. |
+| Armurier | 3 | Armes : font monter la Heat, confiscables en fouille. |
+| Aéroport | 3 | Export / fin de partie. |
+
+### 3.4 Police (PNJ, logique serveur uniquement)
+- 2-3 patrouilles sur **waypoints** avec **cône de vision**.
+- Repèrent : une **vente**, un **joueur qui court**, une présence en **zone sensible**.
+- **Contrôle = fouille du sac** :
+  - marchandise trouvée → perte du sac + amende **ou** arrestation (quelques minutes hors jeu) ;
+  - sac propre → relâché.
+- **Heat du local** : monte avec le stock et les ventes, déclenche des **perquisitions**.
+- **Pot-de-vin** et **guetteur** réduisent le risque.
+
+### 3.5 Événements aléatoires
+Vol de stock, rival qui casse les prix, descente de police.
+
+### 3.6 Monde persistant
+Le monde continue quand un joueur est offline (cultures, dealers). À la reconnexion, le serveur calcule le temps écoulé (implémentation avec SQLite plus tard).
+
+## 4. Inventaire
+
+- **Sac par joueur** : 10 slots. **Stock commun du local** : 60 slots.
+- **Stack par type d'item**, avec une limite de stack propre à chaque item (`items.json`).
+- **Items** :
+
+| Item | Notes |
+|---|---|
+| Graines | Par variété. |
+| Plante fraîche | Récoltée, à sécher. |
+| Plante séchée | À mettre en pochons. |
+| Pochon | Unité de vente. |
+| Eau | Arrosage + soif. |
+| Nourriture | Faim. |
+| Argent sale | **Item physique**, occupe un slot, **confiscable** en fouille. |
+| Argent propre | **Compte** (pas un item), non confiscable. |
+
+- **Actions** : ramasser, poser, transférer sac ↔ stock, utiliser, vendre.
+- **UI** : aucune action ne dépend du drag-and-drop (tap pour sélectionner, bouton pour agir).
+
+## 5. Contraintes techniques de design
+
+- **Serveur autoritaire** : économie, inventaires, argent, police, timers. Le client envoie des intentions.
+- **Données** : tout l'équilibrage et tous les lieux dans `shared/data/*.json` (`economy.json`, `items.json`, `locations.json`, `config.json`). Changer un prix dans le JSON doit suffire.
+- **iPad** : < 200 draw calls, < 300k triangles, pas d'ombres temps réel, instancing des décors, 30 fps mini, qualité bas/moyen/haut (bas par défaut).
+- **Contrôles** : joystick virtuel à gauche, bouton d'action contextuel à droite ; clavier ZQSD/WASD + souris en bonus. Cibles tactiles ≥ 44 px.
+- **Réseau** : room privée de 3 joueurs max, code 4 lettres. Reconnexion automatique après arrière-plan.
+
+## 6. Jalons
+
+| Jalon | Contenu | Temps de jeu |
+|---|---|---|
+| **J1** | Actes I et II, zone 1 complète | 6 h |
+| **J2** | Acte III, zone 2 | 7 h |
+| **J3** | Acte IV, zone 3, El Jefe hostile, aéroport | 11 h |
+
+## 7. Roadmap
+
+### J1 — Actes I-II
+1. ✅ **Fondations** : monorepo, multi minimal (cubes synchronisés), reconnexion, JSON chargés et typés, test anti-téléportation.
+2. Blockout de la zone 1 depuis `locations.json` (bâtiments, ruelles, triggers de lieux, instancing).
+3. Inventaire (logique pure dans `shared/` + tests) : sac, stock commun, transferts, UI tactile.
+4. Faim/soif + épicerie.
+5. Production : plantation, arrosage, pousse, séchage, pochons (timers serveur).
+6. Vente aux PNJ + taxe El Jefe + caisse commune + argent sale.
+7. Police : patrouilles, cône de vision, fouille, Heat, perquisition.
+8. Acte I scripté (tuto, pacte El Jefe).
+9. XP / compétences, téléphone (messages, rendez-vous, GPS), premier dealer, nouvelles variétés.
+10. Persistance SQLite + calcul du temps écoulé hors-ligne.
+
+### J2 — Acte III
+Zone 2, laverie, banque (plafonds, prêts, gel), labo, iReconditionné, concessionnaire + voitures, événements aléatoires.
+
+### J3 — Acte IV
+Zone 3, usine, armurier, magasins de façade, réseau de dealers, El Jefe hostile (IA PvE), aéroport, fin de partie.
