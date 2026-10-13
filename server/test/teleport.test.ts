@@ -83,6 +83,31 @@ describe('NarcoRoom — mouvement autoritaire', () => {
   });
 });
 
+describe('NarcoRoom — collisions', () => {
+  it('refuse un mouvement qui traverse un bâtiment', async () => {
+    const { client, room } = await createRoomWith('player-dddd-0001');
+    // Immeuble "nw_angle" : x ∈ [-11, -7], z ∈ [-20, -10]. On part du trottoir à l'est.
+    const block = gameData.blocks.find((b) => b.id === 'nw_angle')!;
+    const wallX = block.position.x + block.size.w / 2;
+    const p = room.state.players.get('player-dddd-0001')!;
+    p.x = wallX + 0.6;
+    p.z = block.position.z;
+
+    client.send(ClientMsg.Move, { x: wallX - block.size.w - 0.6, z: p.z, rotY: 0, seq: 3 });
+    const correction = (await client.waitForMessage(ServerMsg.Correction)) as CorrectionMessage;
+
+    expect(p.x).toBeGreaterThanOrEqual(wallX + config.world.playerRadius - 1e-3);
+    expect(correction.x).toBeCloseTo(p.x, 3);
+  });
+
+  it('fait apparaître les joueurs hors des obstacles, près du carton', async () => {
+    const { room } = await createRoomWith('player-dddd-0002');
+    const p = room.state.players.get('player-dddd-0002')!;
+    const { spawn, spawnSpread } = config.players;
+    expect(Math.hypot(p.x - spawn.x, p.z - spawn.z)).toBeLessThanOrEqual(spawnSpread + 0.01);
+  });
+});
+
 describe('NarcoRoom — room par code et reconnexion', () => {
   it('utilise un code de 4 lettres comme identifiant de room', async () => {
     const { client, room } = await createRoomWith('player-bbbb-0001');

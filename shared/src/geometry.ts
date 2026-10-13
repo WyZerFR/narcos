@@ -40,6 +40,14 @@ export function rectContainsPoint(r: Rect, p: Vec2): boolean {
   return p.x >= r.minX && p.x <= r.maxX && p.z >= r.minZ && p.z <= r.maxZ;
 }
 
+/** Ramène un point dans des bornes. */
+export function clampToBounds(p: Vec2, b: Rect): Vec2 {
+  return {
+    x: Math.min(b.maxX, Math.max(b.minX, p.x)),
+    z: Math.min(b.maxZ, Math.max(b.minZ, p.z)),
+  };
+}
+
 export function distance(a: Vec2, b: Vec2): number {
   return Math.hypot(a.x - b.x, a.z - b.z);
 }

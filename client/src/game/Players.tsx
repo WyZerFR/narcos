@@ -2,7 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import type { Group } from 'three';
-import { ClientMsg, clampToBounds, gameData, type MoveMessage } from '@narco/shared';
+import {
+  ClientMsg,
+  gameData,
+  moveWithCollisions,
+  obstaclesFrom,
+  type MoveMessage,
+} from '@narco/shared';
 import { connection, type GameRoom, type PlayerView } from '../net/connection';
 import { readMoveIntent } from '../input/inputState';
 import { localPlayer } from './localPlayer';
@@ -10,6 +16,7 @@ import { screenToWorld } from './cameraState';
 
 const { movement, world } = gameData.config;
 const SIZE = world.playerSize;
+const OBSTACLES = obstaclesFrom(gameData);
 const SEND_INTERVAL = 1 / movement.clientSendRateHz;
 /** Raideur du lissage des joueurs distants (1/s). */
 const REMOTE_SMOOTHING = 12;
@@ -107,8 +114,12 @@ export function LocalPlayer({ room, info }: { room: GameRoom; info: PlayerInfo }
         : movement.walkSpeed * Math.min(1, intent.magnitude / 0.9);
       // Direction relative à la caméra : haut du joystick = haut de l'écran.
       const dir = screenToWorld(intent.x, intent.y);
-      const next = clampToBounds(
+      // Même fonction que le serveur : la prédiction glisse sur les murs comme la validation.
+      const next = moveWithCollisions(
+        localPlayer,
         { x: localPlayer.x + dir.x * speed * dt, z: localPlayer.z + dir.z * speed * dt },
+        world.playerRadius,
+        OBSTACLES,
         world.bounds,
       );
       localPlayer.x = next.x;

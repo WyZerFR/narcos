@@ -1,4 +1,5 @@
-import type { Vec2 } from './geometry';
+import { isBlocked, moveWithCollisions } from './collision';
+import { clampToBounds, type Rect, type Vec2 } from './geometry';
 import type { Bounds } from './schemas';
 
 export interface MoveRules {
@@ -9,6 +10,8 @@ export interface MoveRules {
   /** Plafond du crédit de déplacement accumulable (ms de course max d'un coup). */
   maxBurstMs: number;
   bounds: Bounds;
+  /** Collisions (cercle joueur contre rectangles) ; absent = terrain vide. */
+  collision?: { radius: number; obstacles: readonly Rect[] };
 }
 
 /** Crédit de déplacement d'un joueur, conservé par le serveur entre deux messages. */
@@ -24,13 +27,6 @@ export interface MoveResult {
   budget: MoveBudget;
   /** true si la position proposée a été refusée ou ajustée : le client doit se recaler. */
   corrected: boolean;
-}
-
-export function clampToBounds(p: Vec2, b: Bounds): Vec2 {
-  return {
-    x: Math.min(b.maxX, Math.max(b.minX, p.x)),
-    z: Math.min(b.maxZ, Math.max(b.minZ, p.z)),
-  };
 }
 
 export function maxBurstMeters(rules: MoveRules): number {
@@ -49,7 +45,8 @@ const EPSILON = 1e-6;
  * Modèle « seau à jetons » : le crédit de distance se recharge à `maxSpeed * toleranceFactor`
  * et plafonne à `maxBurstMs` de course, ce qui absorbe la gigue réseau (messages groupés)
  * sans autoriser de téléportation. Un déplacement trop long est raccourci dans sa direction ;
- * une position hors carte est ramenée dans les bornes ; une valeur non finie est refusée.
+ * une position hors carte est ramenée dans les bornes ; une valeur non finie est refusée ;
+ * avec `collision`, un trajet qui traverse ou finit dans un mur est arrêté contre ce mur.
  */
 export function validateMove(
   current: Vec2,
@@ -83,11 +80,24 @@ export function validateMove(
     corrected = true;
   }
 
-  const bounded = clampToBounds(next, rules.bounds);
-  if (bounded.x !== next.x || bounded.z !== next.z) corrected = true;
+  let final = clampToBounds(next, rules.bounds);
+  if (final.x !== next.x || final.z !== next.z) corrected = true;
+
+  if (rules.collision) {
+    // Le trajet est rejoué contre les murs. Si la position proposée est libre et que le trajet
+    // y arrive (à un rayon près : coins arrondis entre deux envois), on l'accepte telle quelle ;
+    // sinon le mouvement traverse un mur ou finit dedans → position du trajet + correction.
+    const { radius, obstacles } = rules.collision;
+    const swept = moveWithCollisions(current, final, radius, obstacles, rules.bounds);
+    const gap = Math.hypot(swept.x - final.x, swept.z - final.z);
+    if (gap > radius || isBlocked(final, radius, obstacles)) {
+      final = swept;
+      corrected = true;
+    }
+  }
 
   return {
-    pos: bounded,
+    pos: final,
     budget: { meters: Math.max(0, refilled - travelled), lastMs: nowMs },
     corrected,
   };

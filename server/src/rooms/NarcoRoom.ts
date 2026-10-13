@@ -5,6 +5,8 @@ import {
   freshBudget,
   gameData,
   generateRoomCode,
+  obstaclesFrom,
+  resolveCircle,
   sanitizeName,
   validateMove,
   type CorrectionMessage,
@@ -21,6 +23,7 @@ const MOVE_RULES: MoveRules = {
   toleranceFactor: config.movement.toleranceFactor,
   maxBurstMs: config.movement.maxBurstMs,
   bounds: config.world.bounds,
+  collision: { radius: config.world.playerRadius, obstacles: obstaclesFrom(gameData) },
 };
 
 const PLAYER_ID_RE = /^[A-Za-z0-9-]{8,64}$/;
@@ -124,8 +127,17 @@ export class NarcoRoom extends Room<GameState> {
     player.id = playerId;
     player.name = name || `Joueur ${index + 1}`;
     player.color = color;
-    player.x = spawn.x + Math.cos(angle) * config.players.spawnSpread;
-    player.z = spawn.z + Math.sin(angle) * config.players.spawnSpread;
+    // Autour du carton de départ, jamais dans un mur.
+    const pos = resolveCircle(
+      {
+        x: spawn.x + Math.cos(angle) * config.players.spawnSpread,
+        z: spawn.z + Math.sin(angle) * config.players.spawnSpread,
+      },
+      MOVE_RULES.collision!.radius,
+      MOVE_RULES.collision!.obstacles,
+    );
+    player.x = pos.x;
+    player.z = pos.z;
     return player;
   }
 
