@@ -1,9 +1,5 @@
+import type { Vec2 } from './geometry';
 import type { Bounds } from './schemas';
-
-export interface Vec2 {
-  x: number;
-  z: number;
-}
 
 export interface MoveRules {
   /** Vitesse max autorisée (m/s), en pratique la vitesse de course. */

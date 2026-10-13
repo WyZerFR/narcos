@@ -21,10 +21,19 @@ describe('données du jeu', () => {
     expect(gameData.economy.dealer.weeklyCost).toBe(100);
   });
 
-  it('ne contient que la zone 1 avec ses 6 lieux', () => {
+  it('ne contient que la zone 1 avec ses 8 lieux', () => {
     expect([...gameData.zones.keys()]).toEqual(['zone1']);
     expect([...gameData.locations.keys()].sort()).toEqual(
-      ['epicerie', 'local', 'point_relais', 'repaire_jefe', 'ruelles', 'shop'].sort(),
+      [
+        'epicerie',
+        'local',
+        'point_relais',
+        'repaire_jefe',
+        'ruelle_est',
+        'ruelle_nord',
+        'ruelle_sud',
+        'shop',
+      ].sort(),
     );
     for (const loc of gameData.locations.values()) expect(loc.zone).toBe('zone1');
   });
@@ -56,5 +65,35 @@ describe('données du jeu', () => {
     const locs = r.locations as { locations: { catalog: { id: string }[] }[] };
     locs.locations[1]!.catalog[0]!.id = 'caviar';
     expect(() => parseGameData(r)).toThrow(/item inconnu "caviar"/);
+  });
+
+  it('valide palette, carte et décor de config.json', () => {
+    expect(Object.keys(gameData.config.palette)).toHaveLength(6);
+    expect(gameData.config.map.roads.length).toBeGreaterThan(0);
+    expect(gameData.config.camera.type).toBe('perspective');
+    expect(gameData.blocks.length).toBeGreaterThan(0);
+  });
+
+  it('refuse deux bâtiments qui se chevauchent', () => {
+    const r = raw();
+    const locs = r.locations as { blocks: { position: { x: number; z: number } }[] };
+    locs.blocks[0]!.position = { x: -22.5, z: -15 }; // pile sur le local
+    expect(() => parseGameData(r)).toThrow(/chevauche "local"|"local" chevauche/);
+  });
+
+  it('refuse un bâtiment sur la route', () => {
+    const r = raw();
+    const locs = r.locations as { locations: { position: { x: number; z: number } }[] };
+    locs.locations[0]!.position = { x: -22.5, z: 0 };
+    expect(() => parseGameData(r)).toThrow(/empiète sur une route/);
+  });
+
+  it('refuse un point de départ dans un bâtiment', () => {
+    const r = raw();
+    (r.config as { players: { spawn: { x: number; z: number } } }).players.spawn = {
+      x: -22.5,
+      z: -15,
+    };
+    expect(() => parseGameData(r)).toThrow(/spawn est dans un bâtiment/);
   });
 });

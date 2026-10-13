@@ -117,7 +117,7 @@ export class NarcoRoom extends Room<GameState> {
     const used = new Set([...this.state.players.values()].map((p) => p.color));
     const color = config.players.colors.find((c) => !used.has(c)) ?? config.players.colors[0]!;
     const index = this.state.players.size;
-    const spawn = gameData.locations.get(config.players.spawnLocationId)!.position;
+    const spawn = config.players.spawn;
     const angle = (index / config.room.maxPlayers) * Math.PI * 2;
 
     const player = new Player();

@@ -10,6 +10,25 @@ export const BoundsSchema = z
   .object({ minX: z.number(), maxX: z.number(), minZ: z.number(), maxZ: z.number() })
   .refine((b) => b.minX < b.maxX && b.minZ < b.maxZ, 'bornes min/max inversées');
 
+const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'couleur #rrggbb attendue');
+
+export const Vec2Schema = z.object({ x: z.number(), z: z.number() });
+
+/** Rectangle aligné sur les axes : centre (x, z), largeur w (axe X), profondeur d (axe Z). */
+export const RectSchema = z.object({ x: z.number(), z: z.number(), w: pos, d: pos });
+
+export const PaletteKeySchema = z.enum(['sky', 'ground', 'street', 'wall', 'neon', 'vegetation']);
+
+/** Direction artistique : 6 couleurs de base, les nuances en sont dérivées. */
+export const PaletteSchema = z.object({
+  sky: hexColor,
+  ground: hexColor,
+  street: hexColor,
+  wall: hexColor,
+  neon: hexColor,
+  vegetation: hexColor,
+});
+
 // ---------- config.json ----------
 /** Bornes de réglage de la caméra (degrés), partagées par la validation et le panneau debug. */
 export const CAMERA_LIMITS = {
@@ -43,11 +62,36 @@ export const ConfigSchema = z.object({
     maxBurstMs: pos,
     clientSendRateHz: pos,
   }),
-  world: z.object({ bounds: BoundsSchema, playerSize: pos }),
+  world: z.object({ bounds: BoundsSchema, playerSize: pos, playerRadius: pos }),
   players: z.object({
-    colors: z.array(z.string().regex(/^#[0-9a-fA-F]{6}$/)).min(1),
-    spawnLocationId: z.string(),
+    colors: z.array(hexColor).min(1),
+    /** Point de départ : un carton dans la rue. */
+    spawn: Vec2Schema,
     spawnSpread: nonNeg,
+  }),
+  palette: PaletteSchema,
+  map: z.object({
+    roads: z.array(RectSchema.extend({ id: z.string().min(1) })).min(1),
+    sidewalkWidth: nonNeg,
+    crosswalks: z.array(
+      z.object({ x: z.number(), z: z.number(), axis: z.enum(['x', 'z']), length: pos, width: pos }),
+    ),
+  }),
+  decor: z.object({
+    /** Part des fenêtres allumées (0-1). */
+    windowLitRatio: z.number().min(0).max(1),
+    streetlights: z.object({ spacing: pos, inset: nonNeg }),
+    carSize: z.object({ length: pos, width: pos, height: pos }),
+    cars: z.array(
+      Vec2Schema.extend({
+        rotation: z.union([z.literal(0), z.literal(90)]),
+        color: PaletteKeySchema,
+      }),
+    ),
+    trees: z.array(Vec2Schema.extend({ scale: pos })),
+    bins: z.array(Vec2Schema),
+    crates: z.array(Vec2Schema),
+    cartons: z.array(Vec2Schema),
   }),
   /** Cadrage retenu. `zoom` = distance caméra → cible (m) ; en ortho, cadrage équivalent. */
   camera: CameraSchema,
@@ -183,20 +227,51 @@ export const ZoneSchema = z.object({
   bounds: BoundsSchema,
 });
 
+export const SilhouetteSchema = z.enum([
+  'warehouse',
+  'corner_shop',
+  'villa_tower',
+  'hardware',
+  'kiosk',
+  'alley',
+]);
+
+export const DoorSideSchema = z.enum(['north', 'south', 'east', 'west']);
+
 export const LocationSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   zone: z.string().min(1),
+  /** building = bâtiment solide ; area = zone au sol (ruelle), traversable. */
+  kind: z.enum(['building', 'area']),
   function: LocationFunctionSchema,
-  position: z.object({ x: z.number(), z: z.number() }),
+  silhouette: SilhouetteSchema,
+  position: Vec2Schema,
   size: z.object({ w: pos, d: pos }),
+  height: pos,
+  color: hexColor,
+  neonColor: hexColor,
+  /** Face portant la porte (obligatoire pour un bâtiment). Nord = -Z. */
+  door: DoorSideSchema.optional(),
   interactRadius: pos,
+  /** Réplique renvoyée par le serveur quand on entre. */
+  enterText: z.string().min(1),
   catalog: z.array(CatalogEntrySchema),
+});
+
+/** Immeuble de remplissage (sans fonction) : ferme les îlots, crée les ruelles. */
+export const BlockSchema = z.object({
+  id: z.string().min(1),
+  position: Vec2Schema,
+  size: z.object({ w: pos, d: pos }),
+  height: pos,
+  color: hexColor.optional(),
 });
 
 export const LocationsFileSchema = z.object({
   zones: z.array(ZoneSchema).min(1),
   locations: z.array(LocationSchema).min(1),
+  blocks: z.array(BlockSchema),
 });
 
 export type Bounds = z.infer<typeof BoundsSchema>;
@@ -209,4 +284,10 @@ export type Economy = z.infer<typeof EconomySchema>;
 export type CatalogEntry = z.infer<typeof CatalogEntrySchema>;
 export type Zone = z.infer<typeof ZoneSchema>;
 export type GameLocation = z.infer<typeof LocationSchema>;
+export type Block = z.infer<typeof BlockSchema>;
+export type Palette = z.infer<typeof PaletteSchema>;
+export type PaletteKey = z.infer<typeof PaletteKeySchema>;
+export type Silhouette = z.infer<typeof SilhouetteSchema>;
+export type DoorSide = z.infer<typeof DoorSideSchema>;
+export type Vec2Data = z.infer<typeof Vec2Schema>;
 export type LocationsFile = z.infer<typeof LocationsFileSchema>;
