@@ -4,7 +4,12 @@
       "id": "zone1",
       "name": "Le Quartier",
       "unlockAct": 1,
-      "bounds": { "minX": -45, "maxX": 45, "minZ": -45, "maxZ": 45 }
+      "bounds": {
+        "minX": -45,
+        "maxX": 45,
+        "minZ": -45,
+        "maxZ": 45
+      }
     }
   ],
   "locations": [
@@ -15,8 +20,14 @@
       "kind": "building",
       "function": "base",
       "silhouette": "warehouse",
-      "position": { "x": -22.5, "z": -15 },
-      "size": { "w": 15, "d": 10 },
+      "position": {
+        "x": -22.5,
+        "z": -15
+      },
+      "size": {
+        "w": 15,
+        "d": 10
+      },
       "height": 5,
       "color": "#5b5148",
       "neonColor": "#ff3e9a",
@@ -32,17 +43,31 @@
       "kind": "building",
       "function": "grocery",
       "silhouette": "corner_shop",
-      "position": { "x": 14, "z": -13 },
-      "size": { "w": 10, "d": 8 },
+      "position": {
+        "x": 14,
+        "z": -13
+      },
+      "size": {
+        "w": 10,
+        "d": 8
+      },
       "height": 7,
       "color": "#3f6e6a",
       "neonColor": "#3dff8f",
       "door": "south",
       "interactRadius": 3,
-      "enterText": "Momo lève un sourcil : « Tu payes, cette fois ? »",
+      "enterText": "Supérette Chez Momo. La clochette de la porte a vu des choses.",
       "catalog": [
-        { "kind": "item", "id": "water", "price": 3 },
-        { "kind": "item", "id": "food", "price": 5 }
+        {
+          "kind": "item",
+          "id": "water",
+          "price": 3
+        },
+        {
+          "kind": "item",
+          "id": "food",
+          "price": 5
+        }
       ]
     },
     {
@@ -52,8 +77,14 @@
       "kind": "building",
       "function": "supplier",
       "silhouette": "villa_tower",
-      "position": { "x": -26, "z": 24 },
-      "size": { "w": 14, "d": 14 },
+      "position": {
+        "x": -26,
+        "z": 24
+      },
+      "size": {
+        "w": 14,
+        "d": 14
+      },
       "height": 18,
       "color": "#2b2a3d",
       "neonColor": "#ffcc33",
@@ -61,8 +92,17 @@
       "interactRadius": 3,
       "enterText": "Un garde te fouille du regard. El Jefe n'aime pas les visites surprises.",
       "catalog": [
-        { "kind": "item", "id": "seed_base", "price": 15 },
-        { "kind": "item", "id": "seed_citron", "price": 40, "unlockAct": 2 }
+        {
+          "kind": "item",
+          "id": "seed_base",
+          "price": 15
+        },
+        {
+          "kind": "item",
+          "id": "seed_citron",
+          "price": 40,
+          "unlockAct": 2
+        }
       ]
     },
     {
@@ -72,8 +112,14 @@
       "kind": "building",
       "function": "shop",
       "silhouette": "hardware",
-      "position": { "x": 20, "z": 14 },
-      "size": { "w": 14, "d": 9 },
+      "position": {
+        "x": 20,
+        "z": 14
+      },
+      "size": {
+        "w": 14,
+        "d": 9
+      },
       "height": 7,
       "color": "#6b4f2d",
       "neonColor": "#ff8a1f",
@@ -81,10 +127,26 @@
       "interactRadius": 3,
       "enterText": "Bricoshop : tout pour le jardinage. Surtout pour le jardinage.",
       "catalog": [
-        { "kind": "upgrade", "id": "bag_12", "price": 150 },
-        { "kind": "item", "id": "pot", "price": 25 },
-        { "kind": "item", "id": "watering_can", "price": 30 },
-        { "kind": "service", "id": "lookout", "price": 80 }
+        {
+          "kind": "upgrade",
+          "id": "bag_12",
+          "price": 150
+        },
+        {
+          "kind": "item",
+          "id": "pot",
+          "price": 25
+        },
+        {
+          "kind": "item",
+          "id": "watering_can",
+          "price": 30
+        },
+        {
+          "kind": "service",
+          "id": "lookout",
+          "price": 80
+        }
       ]
     },
     {
@@ -94,8 +156,14 @@
       "kind": "building",
       "function": "relay",
       "silhouette": "kiosk",
-      "position": { "x": 38, "z": -11 },
-      "size": { "w": 6, "d": 5 },
+      "position": {
+        "x": 38,
+        "z": -11
+      },
+      "size": {
+        "w": 6,
+        "d": 5
+      },
       "height": 3.5,
       "color": "#2f4f7a",
       "neonColor": "#33d6ff",
@@ -111,8 +179,14 @@
       "kind": "area",
       "function": "street_sales",
       "silhouette": "alley",
-      "position": { "x": -13, "z": -15 },
-      "size": { "w": 4, "d": 10 },
+      "position": {
+        "x": -13,
+        "z": -15
+      },
+      "size": {
+        "w": 4,
+        "d": 10
+      },
       "height": 4,
       "color": "#2a2733",
       "neonColor": "#b45cff",
@@ -127,8 +201,14 @@
       "kind": "area",
       "function": "street_sales",
       "silhouette": "alley",
-      "position": { "x": 29, "z": 14 },
-      "size": { "w": 4, "d": 9 },
+      "position": {
+        "x": 29,
+        "z": 14
+      },
+      "size": {
+        "w": 4,
+        "d": 9
+      },
       "height": 4,
       "color": "#2a2733",
       "neonColor": "#33d6ff",
@@ -143,8 +223,14 @@
       "kind": "area",
       "function": "street_sales",
       "silhouette": "alley",
-      "position": { "x": -16, "z": 32 },
-      "size": { "w": 6, "d": 10 },
+      "position": {
+        "x": -16,
+        "z": 32
+      },
+      "size": {
+        "w": 6,
+        "d": 10
+      },
       "height": 4,
       "color": "#2a2733",
       "neonColor": "#ff3e9a",
@@ -156,57 +242,122 @@
   "blocks": [
     {
       "id": "nw_ouest",
-      "position": { "x": -39, "z": -15 },
-      "size": { "w": 8, "d": 10 },
+      "position": {
+        "x": -39,
+        "z": -15
+      },
+      "size": {
+        "w": 8,
+        "d": 10
+      },
       "height": 11
     },
     {
       "id": "nw_angle",
-      "position": { "x": -9, "z": -15 },
-      "size": { "w": 4, "d": 10 },
+      "position": {
+        "x": -9,
+        "z": -15
+      },
+      "size": {
+        "w": 4,
+        "d": 10
+      },
       "height": 13
     },
     {
       "id": "nw_fond",
-      "position": { "x": -26, "z": -35 },
-      "size": { "w": 30, "d": 12 },
+      "position": {
+        "x": -26,
+        "z": -35
+      },
+      "size": {
+        "w": 30,
+        "d": 12
+      },
       "height": 15
     },
     {
       "id": "ne_milieu",
-      "position": { "x": 26, "z": -13 },
-      "size": { "w": 8, "d": 10 },
+      "position": {
+        "x": 26,
+        "z": -13
+      },
+      "size": {
+        "w": 8,
+        "d": 10
+      },
       "height": 12
     },
     {
       "id": "ne_fond",
-      "position": { "x": 24, "z": -32 },
-      "size": { "w": 30, "d": 14 },
+      "position": {
+        "x": 24,
+        "z": -32
+      },
+      "size": {
+        "w": 30,
+        "d": 14
+      },
       "height": 16
     },
     {
       "id": "sw_angle",
-      "position": { "x": -10, "z": 14 },
-      "size": { "w": 6, "d": 12 },
+      "position": {
+        "x": -10,
+        "z": 14
+      },
+      "size": {
+        "w": 6,
+        "d": 12
+      },
       "height": 9
     },
     {
       "id": "sw_ouest",
-      "position": { "x": -40, "z": 14 },
-      "size": { "w": 8, "d": 12 },
+      "position": {
+        "x": -40,
+        "z": 14
+      },
+      "size": {
+        "w": 8,
+        "d": 12
+      },
       "height": 10
     },
     {
       "id": "sw_fond",
-      "position": { "x": -10, "z": 34 },
-      "size": { "w": 6, "d": 12 },
+      "position": {
+        "x": -10,
+        "z": 34
+      },
+      "size": {
+        "w": 6,
+        "d": 12
+      },
       "height": 11
     },
-    { "id": "se_est", "position": { "x": 36, "z": 14 }, "size": { "w": 10, "d": 9 }, "height": 12 },
+    {
+      "id": "se_est",
+      "position": {
+        "x": 36,
+        "z": 14
+      },
+      "size": {
+        "w": 10,
+        "d": 9
+      },
+      "height": 12
+    },
     {
       "id": "se_fond",
-      "position": { "x": 24, "z": 34 },
-      "size": { "w": 30, "d": 12 },
+      "position": {
+        "x": 24,
+        "z": 34
+      },
+      "size": {
+        "w": 30,
+        "d": 12
+      },
       "height": 14
     }
   ]

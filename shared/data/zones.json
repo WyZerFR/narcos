@@ -121,6 +121,192 @@
           "solid": false
         }
       ]
+    },
+    {
+      "id": "shop",
+      "name": "Bricoshop",
+      "entranceLocationId": "shop",
+      "size": {
+        "w": 10,
+        "d": 8
+      },
+      "wallHeight": 3.4,
+      "spawn": {
+        "x": 0,
+        "z": 2.8
+      },
+      "obstacles": [],
+      "stations": [
+        {
+          "id": "shelf_seeds",
+          "kind": "shelf",
+          "label": "Graines",
+          "position": {
+            "x": -3,
+            "z": -3.3
+          },
+          "size": {
+            "w": 2.2,
+            "d": 0.7
+          },
+          "interactRadius": 1.6,
+          "solid": true
+        },
+        {
+          "id": "shelf_pots",
+          "kind": "shelf",
+          "label": "Pots",
+          "position": {
+            "x": 0,
+            "z": -3.3
+          },
+          "size": {
+            "w": 2.2,
+            "d": 0.7
+          },
+          "interactRadius": 1.6,
+          "solid": true
+        },
+        {
+          "id": "shelf_tools",
+          "kind": "shelf",
+          "label": "Outils",
+          "position": {
+            "x": 3,
+            "z": -3.3
+          },
+          "size": {
+            "w": 2.2,
+            "d": 0.7
+          },
+          "interactRadius": 1.6,
+          "solid": true
+        },
+        {
+          "id": "counter",
+          "kind": "counter",
+          "label": "Caisse · Gérard",
+          "position": {
+            "x": 3,
+            "z": 1.3
+          },
+          "size": {
+            "w": 2.4,
+            "d": 0.8
+          },
+          "interactRadius": 1.7,
+          "solid": true,
+          "vendor": "Gérard"
+        },
+        {
+          "id": "exit",
+          "kind": "exit",
+          "label": "Sortie",
+          "position": {
+            "x": 0,
+            "z": 3.8
+          },
+          "size": {
+            "w": 1.6,
+            "d": 0.4
+          },
+          "interactRadius": 1.5,
+          "solid": false
+        }
+      ]
+    },
+    {
+      "id": "grocery",
+      "name": "Supérette Chez Momo",
+      "entranceLocationId": "epicerie",
+      "size": {
+        "w": 10,
+        "d": 8
+      },
+      "wallHeight": 3.4,
+      "spawn": {
+        "x": 0,
+        "z": 2.8
+      },
+      "obstacles": [],
+      "stations": [
+        {
+          "id": "shelf_water",
+          "kind": "shelf",
+          "label": "Eau",
+          "position": {
+            "x": -3,
+            "z": -3.3
+          },
+          "size": {
+            "w": 2.2,
+            "d": 0.7
+          },
+          "interactRadius": 1.6,
+          "solid": true
+        },
+        {
+          "id": "shelf_food",
+          "kind": "shelf",
+          "label": "Sandwichs",
+          "position": {
+            "x": 0,
+            "z": -3.3
+          },
+          "size": {
+            "w": 2.2,
+            "d": 0.7
+          },
+          "interactRadius": 1.6,
+          "solid": true
+        },
+        {
+          "id": "shelf_soda",
+          "kind": "shelf",
+          "label": "Sodas",
+          "position": {
+            "x": 3,
+            "z": -3.3
+          },
+          "size": {
+            "w": 2.2,
+            "d": 0.7
+          },
+          "interactRadius": 1.6,
+          "solid": true
+        },
+        {
+          "id": "counter",
+          "kind": "counter",
+          "label": "Caisse · Momo",
+          "position": {
+            "x": -3,
+            "z": 1.3
+          },
+          "size": {
+            "w": 2.4,
+            "d": 0.8
+          },
+          "interactRadius": 1.7,
+          "solid": true,
+          "vendor": "Momo"
+        },
+        {
+          "id": "exit",
+          "kind": "exit",
+          "label": "Sortie",
+          "position": {
+            "x": 0,
+            "z": 3.8
+          },
+          "size": {
+            "w": 1.6,
+            "d": 0.4
+          },
+          "interactRadius": 1.5,
+          "solid": false
+        }
+      ]
     }
   ]
 }

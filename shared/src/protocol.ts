@@ -66,6 +66,8 @@ export const STATION_ACTIONS = [
   'cut',
   'open',
   'exit',
+  'take',
+  'pay',
 ] as const;
 export type StationAction = (typeof STATION_ACTIONS)[number];
 

@@ -44,7 +44,9 @@ export function Interior({
     <>
       <mesh geometry={geometry.solid} material={materials.solid} />
       <mesh geometry={geometry.glow} material={materials.glow} />
-      <LabProps room={room} interior={interior} />
+      {interior.stations.some((st) => st.kind === 'pot' || st.kind === 'rack') && (
+        <LabProps room={room} interior={interior} />
+      )}
     </>
   );
 }

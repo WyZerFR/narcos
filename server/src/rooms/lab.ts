@@ -56,6 +56,8 @@ export const ACTIONS_BY_KIND: Record<Station['kind'], readonly StationAction[]> 
   table: ['cut'],
   stock: ['open'],
   exit: ['exit'],
+  shelf: ['take'],
+  counter: ['pay'],
 };
 
 const done = (text: string, open?: 'stock'): ActionResult =>
@@ -196,7 +198,9 @@ export function runStationAction(
       return done('Caisse ouverte.', 'stock');
 
     case 'exit':
-      return refuse('Sortie gérée ailleurs.');
+    case 'take':
+    case 'pay':
+      return refuse('Action gérée par la room.');
   }
 }
 

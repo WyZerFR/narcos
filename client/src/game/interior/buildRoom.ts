@@ -1,6 +1,6 @@
 import type { BufferGeometry } from 'three';
 import { gameData, type GameData, type Interior, type Station } from '@narco/shared';
-import { Batch, shade } from '../city/batch';
+import { Batch, seeded, shade } from '../city/batch';
 
 /** Épaisseur des murs (style de modélisation, hors des bornes de déplacement). */
 const WALL = 0.3;
@@ -140,6 +140,34 @@ function buildStation(st: Station, solid: Batch, glow: Batch, data: GameData, ne
       for (const sx of [-0.3, 0.3])
         solid.block(x + sx * w, 0, z, 0.08, 0.92, d + 0.04, shade(palette.sky, 0.8));
       return;
+    case 'shelf': {
+      // étagère murale : montants, fond, trois planches garnies de produits
+      const rng = seeded(st.id);
+      const shades = [palette.neon, palette.vegetation, neon, palette.ground];
+      for (const sx of [-1, 1]) solid.block(x + (sx * w) / 2, 0, z, 0.08, 2, d, wood);
+      solid.block(x, 0, z - d / 2 + 0.04, w, 2, 0.06, shade(palette.neon, 0.3));
+      for (const y of [0.15, 0.85, 1.55]) {
+        solid.block(x, y, z, w, 0.05, d, wood);
+        for (let px = -w / 2 + 0.2; px < w / 2 - 0.1; px += 0.28) {
+          const c = shades[Math.floor(rng() * shades.length)]!;
+          const ph = 0.22 + rng() * 0.2;
+          solid.block(x + px, y + 0.05, z + 0.05, 0.2, ph, 0.22, shade(c, 0.7 + rng() * 0.6));
+        }
+      }
+      return;
+    }
+    case 'counter': {
+      // comptoir, caisse enregistreuse à écran lumineux, vendeur derrière (côté mur)
+      solid.block(x, 0, z, w, 1, d, shade(palette.wall, 1.5));
+      solid.block(x, 1, z, w + 0.1, 0.06, d + 0.1, wood);
+      solid.block(x + w * 0.3, 1.06, z, 0.45, 0.25, 0.35, shade(palette.sky, 1.2));
+      glow.box(x + w * 0.3, 1.38, z + 0.05, 0.3, 0.16, 0.04, shade(palette.vegetation, 1.6));
+      const vz = z - d / 2 - 0.45;
+      solid.block(x - w * 0.15, 0, vz, 0.6, 1.4, 0.4, shade(neon, 0.7));
+      solid.block(x - w * 0.15, 1.4, vz, 0.42, 0.42, 0.42, shade(palette.ground, 2.3));
+      solid.block(x - w * 0.15, 1.82, vz, 0.46, 0.08, 0.46, shade(palette.sky, 0.6));
+      return;
+    }
     case 'exit':
       return;
   }

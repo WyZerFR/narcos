@@ -244,7 +244,16 @@ export const EconomySchema = z.object({
 });
 
 // ---------- zones.json (intérieurs) ----------
-export const StationKindSchema = z.enum(['pot', 'water', 'rack', 'table', 'stock', 'exit']);
+export const StationKindSchema = z.enum([
+  'pot',
+  'water',
+  'rack',
+  'table',
+  'stock',
+  'exit',
+  'shelf',
+  'counter',
+]);
 
 /** Poste physique d'un intérieur (coordonnées locales à la pièce, centre = origine). */
 export const StationSchema = z.object({
@@ -257,6 +266,8 @@ export const StationSchema = z.object({
   interactRadius: pos,
   /** Bloque le passage (devient un obstacle de collision). */
   solid: z.boolean(),
+  /** Comptoir : nom du vendeur affiché derrière. */
+  vendor: z.string().min(1).optional(),
 });
 
 /** Pièce intérieure : une « zone » où le joueur passe en franchissant la porte d'un lieu. */
