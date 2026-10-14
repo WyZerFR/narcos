@@ -12,7 +12,8 @@ import { connection, type GameRoom, type PlayerView } from '../net/connection';
 import { readMoveIntent } from '../input/inputState';
 import { localPlayer } from './localPlayer';
 import { screenToWorld } from './cameraState';
-import { setLabelAnchor } from './labels';
+import { isOccluded, setLabelAnchor } from './labels';
+import { getCutout } from './city/cutout';
 
 const { movement, world } = gameData.config;
 const SIZE = world.playerSize;
@@ -53,15 +54,27 @@ export function useRoomPlayers(room: GameRoom | null): PlayerInfo[] {
   return room ? players : [];
 }
 
-/** Ancre l'étiquette DOM du joueur au-dessus de son cube. */
-function usePlayerLabel(id: string, ref: RefObject<Group | null>) {
+/**
+ * Ancre l'étiquette DOM du joueur au-dessus de son cube, et son marqueur « caché » quand un
+ * bâtiment s'interpose. Le joueur local n'en a besoin que si la découpe est désactivée.
+ */
+function usePlayerLabel(id: string, ref: RefObject<Group | null>, isLocal: boolean) {
   useEffect(() => {
     setLabelAnchor(`player:${id}`, () => {
       const g = ref.current;
       return g ? { x: g.position.x, y: SIZE * 1.7, z: g.position.z } : null;
     });
-    return () => setLabelAnchor(`player:${id}`, null);
-  }, [id, ref]);
+    setLabelAnchor(`marker:${id}`, (camera) => {
+      const g = ref.current;
+      if (!g || (isLocal && getCutout().enabled)) return null;
+      const center = { x: g.position.x, y: SIZE / 2, z: g.position.z };
+      return isOccluded(camera, center) ? center : null;
+    });
+    return () => {
+      setLabelAnchor(`player:${id}`, null);
+      setLabelAnchor(`marker:${id}`, null);
+    };
+  }, [id, ref, isLocal]);
 }
 
 function Body({ color, ghost }: { color: string; ghost: boolean }) {
@@ -88,7 +101,7 @@ function Body({ color, ghost }: { color: string; ghost: boolean }) {
 
 export function LocalPlayer({ room, info }: { room: GameRoom; info: PlayerInfo }) {
   const ref = useRef<Group>(null);
-  usePlayerLabel(info.id, ref);
+  usePlayerLabel(info.id, ref, true);
   const sendTimer = useRef(0);
   const lastSent = useRef({ x: NaN, z: NaN, rotY: NaN });
 
@@ -168,7 +181,7 @@ function lerpAngle(a: number, b: number, t: number): number {
 
 export function RemotePlayer({ room, info }: { room: GameRoom; info: PlayerInfo }) {
   const ref = useRef<Group>(null);
-  usePlayerLabel(info.id, ref);
+  usePlayerLabel(info.id, ref, false);
   const placed = useRef(false);
 
   useFrame((_, rawDt) => {

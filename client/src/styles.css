@@ -635,3 +635,32 @@ input {
     transform: translate(-50%, 10px);
   }
 }
+
+/* ---------- marqueur d'un joueur caché derrière un bâtiment ---------- */
+.occluded-marker {
+  width: 30px;
+  height: 30px;
+  border: 3px solid;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 10px currentColor;
+  animation: marker-pulse 1.2s ease-in-out infinite;
+}
+.occluded-marker span {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+@keyframes marker-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+.cam-section {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid #4a443c;
+  font-weight: 700;
+  color: var(--muted);
+}

@@ -78,6 +78,11 @@ const tmpP = new Vector3();
  */
 export class Batch {
   private parts: BufferGeometry[] = [];
+  /**
+   * Les primitives ajoutées ensuite peuvent-elles être percées par la découpe (attribut `aCut`) ?
+   * Faux pour le sol et les trottoirs ; les planchers (`floor`) ne le sont jamais.
+   */
+  cuttable = true;
 
   /** Ajoute une géométrie quelconque (rendue non indexée pour pouvoir tout fusionner). */
   add(geo: BufferGeometry, color: Color, x: number, y: number, z: number, rx = 0, ry = 0, rz = 0) {
@@ -93,6 +98,7 @@ export class Batch {
     rx = 0,
     ry = 0,
     rz = 0,
+    cut = this.cuttable,
   ) {
     if (geo.index) {
       const flat = geo.toNonIndexed();
@@ -104,6 +110,10 @@ export class Batch {
     const colors = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) colors.set([color.r, color.g, color.b], i * 3);
     geo.setAttribute('color', new Float32BufferAttribute(colors, 3));
+    geo.setAttribute(
+      'aCut',
+      new Float32BufferAttribute(new Float32Array(count).fill(cut ? 1 : 0), 1),
+    );
     geo.deleteAttribute('uv');
     // Ordre YXZ : l'inclinaison (rx) se fait dans le repère de la façade, puis on l'oriente (ry).
     tmpQ.setFromEuler(tmpE.set(rx, ry, rz, 'YXZ'));
@@ -135,7 +145,17 @@ export class Batch {
   /** Rectangle horizontal (sol), légèrement surélevé de `y`. */
   floor(r: Rect, y: number, color: Color) {
     const geo = new PlaneGeometry(r.maxX - r.minX, r.maxZ - r.minZ);
-    this.push(geo, color, (r.minX + r.maxX) / 2, y, (r.minZ + r.maxZ) / 2, -Math.PI / 2);
+    this.push(
+      geo,
+      color,
+      (r.minX + r.maxX) / 2,
+      y,
+      (r.minZ + r.maxZ) / 2,
+      -Math.PI / 2,
+      0,
+      0,
+      false,
+    );
   }
 
   /** Panneau plaqué sur une façade (fenêtre, porte, enseigne plate). `u` = décalage le long. */

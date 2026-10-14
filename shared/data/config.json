@@ -269,6 +269,11 @@
     "near": 0.5,
     "far": 300
   },
+  "cutout": {
+    "enabled": true,
+    "radius": 2.2,
+    "softness": 0.6
+  },
   "net": {
     "reconnectBackoffMs": [500, 1000, 2000, 4000, 8000],
     "reconnectMaxDelayMs": 10000

@@ -51,3 +51,42 @@ export function clampToBounds(p: Vec2, b: Rect): Vec2 {
 export function distance(a: Vec2, b: Vec2): number {
   return Math.hypot(a.x - b.x, a.z - b.z);
 }
+
+export interface Vec3 {
+  x: number;
+  y: number;
+  z: number;
+}
+
+/** Boîte alignée : emprise au sol + hauteur (du sol à `height`). */
+export interface Box {
+  rect: Rect;
+  height: number;
+}
+
+/**
+ * Le segment [from, to] traverse-t-il la boîte avant d'atteindre `to` ? (méthode des plans)
+ * Sert à savoir si un bâtiment cache un joueur à la caméra.
+ */
+export function segmentHitsBox(from: Vec3, to: Vec3, box: Box): boolean {
+  const slabs: [number, number, number, number][] = [
+    [from.x, to.x - from.x, box.rect.minX, box.rect.maxX],
+    [from.y, to.y - from.y, 0, box.height],
+    [from.z, to.z - from.z, box.rect.minZ, box.rect.maxZ],
+  ];
+  let t0 = 0;
+  let t1 = 1;
+  for (const [o, dir, min, max] of slabs) {
+    if (Math.abs(dir) < 1e-9) {
+      if (o < min || o > max) return false;
+      continue;
+    }
+    let a = (min - o) / dir;
+    let b = (max - o) / dir;
+    if (a > b) [a, b] = [b, a];
+    t0 = Math.max(t0, a);
+    t1 = Math.min(t1, b);
+    if (t0 > t1) return false;
+  }
+  return t0 < 1;
+}

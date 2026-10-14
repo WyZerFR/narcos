@@ -275,6 +275,8 @@ declare global {
       three?: { gl: WebGLRenderer; scene: Scene; camera: Camera };
       /** Position prédite du joueur local (debug). */
       local?: { x: number; z: number; rotY: number; seq: number; initialized: boolean };
+      /** Exécute une frame complète à la demande (useFrame + rendu), utile hors écran. */
+      advance?: () => void;
     };
   }
 }

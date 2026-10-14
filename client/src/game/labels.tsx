@@ -1,6 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { Vector3 } from 'three';
-import { gameData } from '@narco/shared';
+import { footprint, gameData, segmentHitsBox, type Box } from '@narco/shared';
 import type { PlayerInfo } from './Players';
 
 /**
@@ -8,7 +8,9 @@ import type { PlayerInfo } from './Players';
  * par projection caméra. Aucun draw call, aucune racine React par étiquette.
  */
 
-type Anchor = () => { x: number; y: number; z: number } | null;
+type Point3 = { x: number; y: number; z: number };
+/** Renvoie la position monde à suivre, ou null pour masquer l'élément. Reçoit la caméra. */
+type Anchor = (camera: Point3) => Point3 | null;
 
 const anchors = new Map<string, Anchor>();
 const elements = new Map<string, HTMLElement>();
@@ -25,6 +27,21 @@ function bindElement(id: string) {
   };
 }
 
+// ---------------------------------------------------------------- occlusion
+
+/** Volumes opaques : bâtiments et immeubles (emprise + hauteur). Le décor bas ne cache personne. */
+const OCCLUDERS: Box[] = [
+  ...[...gameData.locations.values()]
+    .filter((l) => l.kind === 'building')
+    .map((l) => ({ rect: footprint(l), height: l.height })),
+  ...gameData.blocks.map((b) => ({ rect: footprint(b), height: b.height })),
+];
+
+/** Un bâtiment coupe-t-il la ligne de vue caméra → point ? */
+export function isOccluded(from: Point3, to: Point3): boolean {
+  return OCCLUDERS.some((box) => segmentHitsBox(from, to, box));
+}
+
 // Les lieux ne bougent pas : ancres posées une fois pour toutes.
 for (const loc of gameData.locations.values()) {
   const y = loc.height + (loc.kind === 'area' ? 1 : 2.2);
@@ -39,7 +56,7 @@ export function LabelProjector() {
   const size = useThree((s) => s.size);
   useFrame(() => {
     for (const [id, el] of elements) {
-      const p = anchors.get(id)?.();
+      const p = anchors.get(id)?.(camera.position);
       if (!p) {
         el.style.visibility = 'hidden';
         continue;
@@ -52,13 +69,17 @@ export function LabelProjector() {
       const x = ((v.x + 1) / 2) * size.width;
       const y = ((1 - v.y) / 2) * size.height;
       el.style.visibility = 'visible';
-      el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -100%)`;
+      const pin = el.dataset.pin === 'center' ? '-50%, -50%' : '-50%, -100%';
+      el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(${pin})`;
     }
   });
   return null;
 }
 
-/** Calque DOM des étiquettes (lieux + joueurs), à placer hors du Canvas. */
+/**
+ * Calque DOM des étiquettes (lieux + joueurs) et des marqueurs de joueurs cachés derrière un
+ * bâtiment, à placer hors du Canvas.
+ */
 export function LabelLayer({ players, myId }: { players: PlayerInfo[]; myId: string }) {
   return (
     <div className="label-layer">
@@ -70,6 +91,17 @@ export function LabelLayer({ players, myId }: { players: PlayerInfo[]; myId: str
           style={{ borderColor: loc.neonColor, color: loc.neonColor }}
         >
           {loc.name}
+        </div>
+      ))}
+      {players.map((p) => (
+        <div
+          key={`marker:${p.id}`}
+          ref={bindElement(`marker:${p.id}`)}
+          data-pin="center"
+          className="occluded-marker"
+          style={{ borderColor: p.color, color: p.color }}
+        >
+          <span style={{ background: p.color }} />
         </div>
       ))}
       {players.map((p) => (

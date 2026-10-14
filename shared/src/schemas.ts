@@ -47,6 +47,19 @@ export const CameraSchema = z.object({
   fov: range(CAMERA_LIMITS.fov),
 });
 
+/** Bornes de réglage de la découpe des bâtiments devant le joueur (mètres). */
+export const CUTOUT_LIMITS = {
+  radius: { min: 0.5, max: 6 },
+  softness: { min: 0, max: 2 },
+} as const;
+
+/** Trou percé dans les façades entre la caméra et le joueur local. */
+export const CutoutSchema = z.object({
+  enabled: z.boolean(),
+  radius: range(CUTOUT_LIMITS.radius),
+  softness: range(CUTOUT_LIMITS.softness),
+});
+
 export const ConfigSchema = z.object({
   room: z.object({
     maxPlayers: z.number().int().min(1).max(8),
@@ -102,6 +115,7 @@ export const ConfigSchema = z.object({
   /** Cadrage retenu. `zoom` = distance caméra → cible (m) ; en ortho, cadrage équivalent. */
   camera: CameraSchema,
   cameraRig: z.object({ followStiffness: pos, near: pos, far: pos }),
+  cutout: CutoutSchema,
   net: z.object({
     reconnectBackoffMs: z.array(pos).min(1),
     reconnectMaxDelayMs: pos,
@@ -283,6 +297,7 @@ export const LocationsFileSchema = z.object({
 export type Bounds = z.infer<typeof BoundsSchema>;
 export type GameConfig = z.infer<typeof ConfigSchema>;
 export type CameraConfig = z.infer<typeof CameraSchema>;
+export type CutoutConfig = z.infer<typeof CutoutSchema>;
 export type ItemCategory = z.infer<typeof ItemCategorySchema>;
 export type ItemDef = z.infer<typeof ItemDefSchema>;
 export type Strain = z.infer<typeof StrainSchema>;

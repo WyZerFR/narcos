@@ -1,13 +1,21 @@
 import { useState } from 'react';
-import { CAMERA_LIMITS, gameData, type CameraConfig } from '@narco/shared';
+import {
+  CAMERA_LIMITS,
+  CUTOUT_LIMITS,
+  gameData,
+  type CameraConfig,
+  type CutoutConfig,
+} from '@narco/shared';
 import { resetCamera, updateCamera, useCamera } from '../game/cameraState';
+import { resetCutout, updateCutout, useCutout } from '../game/city/cutout';
 
 /** Plage du zoom : large autour de la valeur de config.json. */
 const ZOOM_RANGE = { min: gameData.config.camera.zoom / 4, max: gameData.config.camera.zoom * 4 };
 
 const round1 = (v: number) => Math.round(v * 10) / 10;
 
-export function cameraJson(c: CameraConfig): string {
+/** JSON prêt à coller dans config.json (sections camera et cutout remplacées en entier). */
+export function cameraJson(c: CameraConfig, cut: CutoutConfig): string {
   return JSON.stringify({
     camera: {
       elevation: round1(c.elevation),
@@ -16,6 +24,7 @@ export function cameraJson(c: CameraConfig): string {
       type: c.type,
       fov: round1(c.fov),
     },
+    cutout: { enabled: cut.enabled, radius: round1(cut.radius), softness: round1(cut.softness) },
   });
 }
 
@@ -84,9 +93,10 @@ function Slider({ label, value, min, max, step, unit, disabled, onChange }: Slid
 /** Panneau temporaire de réglage caméra (uniquement avec ?debug=1). */
 export function CameraPanel() {
   const cam = useCamera();
+  const cut = useCutout();
   const [open, setOpen] = useState(true);
   const [copied, setCopied] = useState<{ json: string; ok: boolean } | null>(null);
-  const json = cameraJson(cam);
+  const json = cameraJson(cam, cut);
   const isOrtho = cam.type === 'ortho';
   // Le message « copié » ne vaut que pour les valeurs actuellement affichées.
   const copy = copied?.json === json ? (copied.ok ? 'ok' : 'fail') : 'idle';
@@ -143,9 +153,38 @@ export function CameraPanel() {
             onChange={(fov) => updateCamera({ fov })}
           />
 
+          <div className="cam-section">Découpe des bâtiments</div>
+          <button
+            type="button"
+            className="btn cam-type"
+            onClick={() => updateCutout({ enabled: !cut.enabled })}
+          >
+            <span className={cut.enabled ? 'on' : ''}>Activée</span> /{' '}
+            <span className={cut.enabled ? '' : 'on'}>Désactivée</span>
+          </button>
+          <Slider
+            label="Rayon"
+            unit=" m"
+            step={0.1}
+            {...CUTOUT_LIMITS.radius}
+            value={cut.radius}
+            disabled={!cut.enabled}
+            onChange={(radius) => updateCutout({ radius })}
+          />
+          <Slider
+            label="Adoucissement"
+            unit=" m"
+            step={0.1}
+            {...CUTOUT_LIMITS.softness}
+            value={cut.softness}
+            disabled={!cut.enabled}
+            onChange={(softness) => updateCutout({ softness })}
+          />
+
           <div className="cam-values">
             élév. {round1(cam.elevation)}° · rot. {round1(cam.rotation)}° · zoom {round1(cam.zoom)}{' '}
-            m · {isOrtho ? 'ortho' : 'perspective'} · FOV {round1(cam.fov)}°
+            m · {isOrtho ? 'ortho' : 'perspective'} · FOV {round1(cam.fov)}° · découpe{' '}
+            {cut.enabled ? `${round1(cut.radius)} m / ${round1(cut.softness)} m` : 'off'}
           </div>
 
           <div className="cam-actions">
@@ -156,7 +195,14 @@ export function CameraPanel() {
             >
               Copier les valeurs
             </button>
-            <button type="button" className="btn" onClick={resetCamera}>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                resetCamera();
+                resetCutout();
+              }}
+            >
               Défaut
             </button>
           </div>

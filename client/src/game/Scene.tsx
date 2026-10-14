@@ -57,19 +57,20 @@ function CameraRig() {
 
 /** Alimente l'overlay debug (FPS, draw calls, triangles) sans rendu React. */
 function DebugProbe() {
-  const { gl, scene, camera } = useThree();
+  const { gl, scene, camera, advance } = useThree();
   const acc = useRef({ frames: 0, time: 0 });
   // Accès console en mode debug : `narco.three.gl.info`, rendu manuel, etc.
   useEffect(() => {
     if (window.narco) {
       window.narco.three = { gl, scene, camera };
       window.narco.local = localPlayer;
+      window.narco.advance = () => advance(performance.now());
     }
     gl.info.autoReset = false;
     return () => {
       gl.info.autoReset = true;
     };
-  }, [gl, scene, camera]);
+  }, [gl, scene, camera, advance]);
   useFrame((_, dt) => {
     acc.current.frames++;
     acc.current.time += dt;

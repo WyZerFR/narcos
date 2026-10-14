@@ -175,6 +175,8 @@ function sidewalkStrips(road: Rect, others: Rect[], sw: number): Rect[] {
 function buildGround(ctx: Ctx) {
   const { palette, map, world } = ctx.data.config;
   const { solid } = ctx;
+  // Le sol (trottoirs compris) n'est jamais percé par la découpe.
+  solid.cuttable = false;
   solid.floor(expandRect(world.bounds, 30), -0.02, shade(palette.ground, 0.45));
   solid.floor(world.bounds, 0, shade(palette.ground, 0.7));
 
@@ -224,6 +226,7 @@ function buildGround(ctx: Ctx) {
       solid.floor(r, 0.035, stripe);
     }
   }
+  solid.cuttable = true;
 }
 
 // ---------------------------------------------------------------- lieux
