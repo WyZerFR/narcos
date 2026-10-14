@@ -1,4 +1,5 @@
 import { input, triggerAction } from './inputState';
+import { getPlacement } from '../ui/placementStore';
 
 /**
  * Clavier : on lit `event.code` (position physique de la touche), donc WASD sur QWERTY
@@ -24,6 +25,8 @@ function isTyping(target: EventTarget | null): boolean {
 export function bindKeyboard(): () => void {
   const onKey = (down: boolean) => (e: KeyboardEvent) => {
     if (isTyping(e.target)) return;
+    // Mode placement : les touches pilotent le fantôme (PlacementPanel), pas le personnage.
+    if (down && getPlacement()) return;
     const dir = MOVE_KEYS[e.code];
     if (dir) {
       input[dir] = down;

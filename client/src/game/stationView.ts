@@ -13,7 +13,6 @@ import {
 } from '@narco/shared';
 import type { GameRoom } from '../net/connection';
 import { readBag, readCut, readPot, readRack } from '../net/gameView';
-import { compatibleItem, itemNameFor } from './fixtureState';
 
 const { items, economy } = gameData;
 const LAB = economy.lab;
@@ -39,8 +38,8 @@ function hasCategory(bag: Inventory, category: ItemCategory): boolean {
 }
 
 /**
- * Vue d'un endroit d'intérieur : poste (fixe ou installé) ou emplacement vide à équiper.
- * `uninstall` : un emplacement installé et au repos peut être démonté (le serveur revérifie).
+ * Vue d'un endroit d'intérieur : poste fixe ou meuble posé. `furniture` : meuble posé
+ * (déplaçable) ; `idle` : au repos, donc reprenable (le serveur revérifie).
  */
 export function placeView(
   room: GameRoom,
@@ -48,20 +47,12 @@ export function placeView(
   myId: string,
   now: number,
   interiorId: string,
-): StationView & { install?: boolean; uninstall?: boolean } {
-  if (place.station) {
-    const view = stationView(room, place.station, myId, now, interiorId);
-    return place.fixture ? { ...view, uninstall: isIdle(room, place.id) } : view;
-  }
-  const fixture = place.fixture!;
-  const item = compatibleItem(readBag(room, myId), fixture);
-  const name = item ? (items.get(item)?.name ?? item) : itemNameFor(fixture);
-  return item
-    ? { label: `Installer : ${name}`, active: true, install: true, status: 'Emplacement libre' }
-    : { label: `Il faut : ${name} (Bricoshop)`, active: false, status: 'Emplacement libre' };
+): StationView & { furniture?: boolean; idle?: boolean } {
+  const view = stationView(room, place.station, myId, now, interiorId);
+  return place.fixture ? { ...view, furniture: true, idle: isIdle(room, place.id) } : view;
 }
 
-/** Un emplacement installé est au repos : pot vide, étendoir vide, table libre, lampe. */
+/** Un meuble posé est au repos : pot vide, étendoir vide, table libre, lampe. */
 function isIdle(room: GameRoom, id: string): boolean {
   const lab = room.state.lab;
   if (lab?.pots?.get(id)?.planted) return false;

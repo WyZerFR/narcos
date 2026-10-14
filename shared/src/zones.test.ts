@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { gameData } from './data';
-import { fixtureObstacles } from './fixtures';
+import { fixtureObstacles, furnitureFixtures } from './fixtures';
+import { generateLayout } from './placement';
+import type { FixtureType } from './schemas';
 import { cellIndex, createNavGrid, distancesFrom } from './navgrid';
 import { STREET, interiorForLocation, nearestStation, zoneArea } from './zones';
 
@@ -38,12 +40,25 @@ describe('zones', () => {
   });
 
   for (const interior of gameData.interiors.values()) {
-    it(`rend chaque poste de "${interior.id}" atteignable, même tout équipé`, () => {
-      const all = new Set(interior.fixtures.map((f) => f.id));
-      const area = zoneArea(gameData, interior.id, fixtureObstacles(interior, all))!;
+    it(`rend chaque poste de "${interior.id}" atteignable, même équipé (agencement debug)`, () => {
+      const kit = gameData.config.debug.equipKit;
+      const wanted = interior.furnishable
+        ? (Object.keys(kit) as FixtureType[]).map((type) => ({
+            itemId: [...gameData.items.values()].find((it) => it.placeable?.type === type)!.id,
+            count: kit[type],
+          }))
+        : [];
+      const layout = generateLayout(gameData, { interior, fixtures: [], players: [] }, wanted);
+      const fixtures = furnitureFixtures(
+        layout.map((f, i) => ({ ...f, id: `g${i}` })),
+        gameData.items,
+      );
+      if (interior.furnishable)
+        expect(fixtures).toHaveLength(Object.values(kit).reduce((a, b) => a + b, 0));
+      const area = zoneArea(gameData, interior.id, fixtureObstacles(fixtures))!;
       const grid = createNavGrid(area.bounds, area.obstacles, radius, 0.25);
       const dist = distancesFrom(grid, interior.spawn);
-      for (const st of [...interior.stations, ...interior.fixtures]) {
+      for (const st of [...interior.stations, ...fixtures]) {
         let reachable = false;
         for (let a = 0; a < 32 && !reachable; a++) {
           for (let r = 0.2; r <= st.interactRadius && !reachable; r += 0.2) {

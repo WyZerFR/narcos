@@ -5,7 +5,7 @@ import {
   nearestLocation,
   nearestPlace,
   STREET,
-  type FixtureMessage,
+  type FixturePickupMessage,
   type InteractMessage,
   type SaleOpenMessage,
   type Place,
@@ -17,9 +17,11 @@ import { ActionButton } from '../input/ActionButton';
 import { onAction } from '../input/inputState';
 import { gameNow } from '../net/gameView';
 import { placeView } from '../game/stationView';
-import { installedSet, placesOf } from '../game/fixtureState';
+import { fixturesFor, placesOf } from '../game/fixtureState';
+import { getPlacement, startPlacement, usePlacement } from './placementStore';
 import { npcSmoothed } from '../game/npcState';
 
+const getPlacementActive = () => getPlacement() !== null;
 const LOCATIONS = [...gameData.locations.values()];
 /** Fréquence de recherche de la cible proche (pas besoin de 60 Hz pour un libellé). */
 const PROBE_MS = 160;
@@ -40,28 +42,36 @@ interface Target {
   message:
     | { type: typeof ClientMsg.Interact; body: InteractMessage }
     | { type: typeof ClientMsg.Station; body: StationMessage }
-    | { type: typeof ClientMsg.Fixture; body: FixtureMessage }
     | { type: typeof ClientMsg.SaleOpen; body: SaleOpenMessage }
     | null;
-  /** Emplacement installé au repos : bouton secondaire « Démonter ». */
-  uninstall?: string;
+  /** Meuble posé à portée : boutons secondaires « Déplacer » et « Reprendre ». */
+  furniture?: { id: string; itemId: string; x: number; z: number; rot: number; idle: boolean };
 }
 
-/** Action proposée sur un poste ou un emplacement, selon son état et le sac du joueur. */
+/** Action proposée sur un poste fixe ou un meuble posé, selon son état et le sac du joueur. */
 function placeTarget(room: GameRoom, place: Place): Target {
   const view = placeView(room, place, connection.playerId, gameNow(), localPlayer.zone);
-  const action = view.install ? 'install' : view.action;
-  const message: Target['message'] = view.install
-    ? { type: ClientMsg.Fixture, body: { fixtureId: place.id, action: 'install' } }
-    : view.action
-      ? { type: ClientMsg.Station, body: { stationId: place.id, action: view.action } }
-      : null;
+  const message: Target['message'] = view.action
+    ? { type: ClientMsg.Station, body: { stationId: place.id, action: view.action } }
+    : null;
+  const f = place.fixture;
   return {
-    key: `${place.id}:${action ?? ''}:${view.uninstall ? 'u' : ''}`,
+    key: `${place.id}:${view.action ?? ''}:${f ? `${f.position.x},${f.position.z},${f.rot},${view.idle ? 'i' : ''}` : ''}`,
     label: view.label,
     active: view.active && Boolean(message),
     message,
-    ...(view.uninstall ? { uninstall: place.id } : {}),
+    ...(f
+      ? {
+          furniture: {
+            id: f.id,
+            itemId: f.itemId,
+            x: f.position.x,
+            z: f.position.z,
+            rot: f.rot,
+            idle: Boolean(view.idle),
+          },
+        }
+      : {}),
   };
 }
 
@@ -103,7 +113,8 @@ function findTarget(room: GameRoom): Target | null {
         }
       : null;
   }
-  const place = nearestPlace(localPlayer, placesOf(localPlayer.zone, installedSet(room)));
+  const zone = localPlayer.zone;
+  const place = nearestPlace(localPlayer, placesOf(zone, fixturesFor(room, zone)));
   return place ? placeTarget(room, place) : null;
 }
 
@@ -112,17 +123,14 @@ export function Interaction({ room }: { room: GameRoom }) {
   const [target, setTarget] = useState<Target | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
   const targetRef = useRef<Target | null>(null);
+  const placing = usePlacement() !== null;
+  const pickupId = useRef(1);
 
   useEffect(() => {
     const id = setInterval(() => {
       const next = findTarget(room);
       const prev = targetRef.current;
-      if (
-        next?.key !== prev?.key ||
-        next?.label !== prev?.label ||
-        next?.active !== prev?.active ||
-        next?.uninstall !== prev?.uninstall
-      ) {
+      if (next?.key !== prev?.key || next?.label !== prev?.label || next?.active !== prev?.active) {
         targetRef.current = next;
         setTarget(next);
       }
@@ -136,6 +144,7 @@ export function Interaction({ room }: { room: GameRoom }) {
       onAction(() => {
         const msg = targetRef.current?.message;
         if (!msg || !targetRef.current?.active || !room.connection.isOpen) return;
+        if (getPlacementActive()) return;
         room.send(msg.type, msg.body);
       }),
     [room],
@@ -157,19 +166,42 @@ export function Interaction({ room }: { room: GameRoom }) {
 
   return (
     <>
-      <ActionButton label={target?.label ?? 'ACTION'} active={Boolean(target?.active)} />
-      {target?.uninstall && (
-        <button
-          type="button"
-          className="secondary-action"
-          onClick={() => {
-            const fixtureId = target.uninstall;
-            if (fixtureId && room.connection.isOpen)
-              room.send(ClientMsg.Fixture, { fixtureId, action: 'uninstall' });
-          }}
-        >
-          Démonter
-        </button>
+      {!placing && (
+        <ActionButton label={target?.label ?? 'ACTION'} active={Boolean(target?.active)} />
+      )}
+      {!placing && target?.furniture && (
+        <>
+          <button
+            type="button"
+            className="secondary-action"
+            onClick={() => {
+              const f = target.furniture;
+              if (f)
+                startPlacement({
+                  mode: 'move',
+                  fixtureId: f.id,
+                  itemId: f.itemId,
+                  x: f.x,
+                  z: f.z,
+                  rot: f.rot,
+                });
+            }}
+          >
+            Déplacer
+          </button>
+          <button
+            type="button"
+            className="secondary-action second"
+            onClick={() => {
+              const f = target.furniture;
+              if (!f || !room.connection.isOpen) return;
+              const msg: FixturePickupMessage = { requestId: pickupId.current++, fixtureId: f.id };
+              room.send(ClientMsg.FixturePickup, msg);
+            }}
+          >
+            Reprendre
+          </button>
+        </>
       )}
       {toast && (
         <div key={toast.key} className={`toast${toast.ok ? '' : ' bad'}`}>

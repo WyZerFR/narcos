@@ -21,12 +21,13 @@ import {
  * ses joueurs (hors ligne), leurs sacs, le mobilier du labo et l'horloge de jeu.
  *
  * Chaque partie porte un `schemaVersion` : v1 = labo meublé, v2 = labo aménageable avec stock
- * commun, v3 = labo vide (robinet + sortie), sans stock commun. Aucune migration : une partie
- * d'une autre version est ignorée (log) et le code redonne une partie neuve.
+ * commun, v3 = labo vide (robinet + sortie), sans stock commun, v4 = meubles posés librement
+ * (position, rotation). Aucune migration : une partie d'une autre version est ignorée (log)
+ * et le code redonne une partie neuve.
  */
 
 /** Version courante du contenu d'une partie sauvegardée. */
-export const SNAPSHOT_SCHEMA_VERSION = 3;
+export const SNAPSHOT_SCHEMA_VERSION = 4;
 
 export const DEFAULT_SNAPSHOT_FILE = resolve(
   process.env.NARCO_DATA_DIR ?? resolve(dirname(fileURLToPath(import.meta.url)), '..', '.data'),
@@ -75,7 +76,18 @@ const StateJson = z.object({
   ),
   shelves: z.record(z.string(), z.object({ stock: z.number().int() })).default({}),
   lab: z.object({
-    fixtures: z.record(z.string(), z.object({ itemId: z.string() })).default({}),
+    fixtures: z
+      .record(
+        z.string(),
+        z.object({
+          itemId: z.string(),
+          x: z.number(),
+          z: z.number(),
+          rot: z.number().int().min(0).max(3),
+        }),
+      )
+      .default({}),
+    nextFixtureId: z.number().int().nonnegative().default(0),
     pots: z
       .record(
         z.string(),
@@ -147,6 +159,7 @@ export function hydrateState(state: GameState, snap: RoomSnapshot): void {
   for (const [key, shelf] of Object.entries(s.shelves))
     state.shelves.set(key, Object.assign(new ShelfState(), shelf));
   const lab = s.lab;
+  state.lab.nextFixtureId = lab.nextFixtureId;
   for (const [id, f] of Object.entries(lab.fixtures))
     state.lab.fixtures.set(id, Object.assign(new InstalledFixture(), f));
   for (const [id, pot] of Object.entries(lab.pots))

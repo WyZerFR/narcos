@@ -4,6 +4,7 @@ import { connection } from '../net/connection';
 import { gameScale, useRoomVersion } from '../net/gameView';
 
 const STORABLE = [...gameData.items.values()].filter((it) => it.storage === 'slot');
+const PLACEABLE = STORABLE.filter((it) => it.placeable);
 
 function send(msg: DebugMessage): void {
   const room = connection.getSnapshot().room;
@@ -67,6 +68,15 @@ export function DebugLabSection() {
         <button type="button" className="btn" onClick={() => send({ cmd: 'equipLab' })}>
           Équiper le labo
         </button>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => {
+            for (const it of PLACEABLE) send({ cmd: 'give', itemId: it.id, qty: 1 });
+          }}
+        >
+          +1 meuble de chaque
+        </button>
         <button type="button" className="btn danger" onClick={() => send({ cmd: 'clearLab' })}>
           Vider le labo
         </button>
@@ -92,9 +102,9 @@ export function DebugLabSection() {
         <button
           type="button"
           className="btn primary"
-          onClick={() => send({ cmd: 'money', amount: 100 })}
+          onClick={() => send({ cmd: 'money', amount: 1000 })}
         >
-          +100 $ sale
+          +1000 $ sale
         </button>
         <button type="button" className="btn" onClick={() => send({ cmd: 'restock' })}>
           Réappro.

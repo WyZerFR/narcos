@@ -9,10 +9,11 @@ import {
   Vector3,
   type InstancedMesh,
 } from 'three';
-import { gameData, potProgress, potStatus, type Interior } from '@narco/shared';
+import { gameData, potProgress, potStatus, rotateOffset, rotatedSize } from '@narco/shared';
 import type { GameRoom } from '../../net/connection';
 import { gameNow, readPot, readRack } from '../../net/gameView';
 import { Batch, mix, shade } from '../city/batch';
+import { labFixtures } from '../fixtureState';
 
 const { palette } = gameData.config;
 const { economy } = gameData;
@@ -25,17 +26,15 @@ const m = new Matrix4();
 const q = new Quaternion();
 const p = new Vector3();
 const s = new Vector3();
+const UP = new Vector3(0, 1, 0);
 
 /**
  * Éléments vivants du labo, lus dans l'état serveur : plantes des pots (taille = progression)
- * et bottes suspendues aux étendoirs installés (vert → brun en séchant). 2 draw calls au total.
+ * et bottes suspendues aux étendoirs posés (vert → brun en séchant), à la position réelle des
+ * meubles. 2 draw calls au total, instances dimensionnées par les plafonds de economy.json.
  */
-export function LabProps({ room, interior }: { room: GameRoom; interior: Interior }) {
-  const pots = useMemo(() => interior.fixtures.filter((f) => f.accepts === 'pot'), [interior]);
-  const racks = useMemo(
-    () => interior.fixtures.filter((f) => f.accepts === 'drying_rack'),
-    [interior],
-  );
+export function LabProps({ room }: { room: GameRoom }) {
+  const { maxPerType } = economy.lab.furniture;
   const capacity = economy.lab.rackCapacity;
 
   const plantRef = useRef<InstancedMesh>(null);
@@ -74,8 +73,17 @@ export function LabProps({ room, interior }: { room: GameRoom; interior: Interio
     const green = shade(palette.vegetation, 1.7);
     const ready = shade(palette.vegetation, 2.6);
 
+    const fixtures = labFixtures(room);
+    const pots = fixtures.filter((f) => f.accepts === 'pot').slice(0, maxPerType.pot);
+    const racks = fixtures
+      .filter((f) => f.accepts === 'drying_rack')
+      .slice(0, maxPerType.drying_rack);
     const plants = plantRef.current;
     if (plants) {
+      for (let i = pots.length; i < maxPerType.pot; i++) {
+        m.compose(p.set(0, -10, 0), q.identity(), s.set(0, 0, 0));
+        plants.setMatrixAt(i, m);
+      }
       pots.forEach((st, i) => {
         const pot = readPot(room, st.id);
         const strain = economy.strains.find((x) => x.id === pot?.strainId) ?? economy.strains[0]!;
@@ -97,17 +105,23 @@ export function LabProps({ room, interior }: { room: GameRoom; interior: Interio
     const bundles = bundleRef.current;
     if (bundles) {
       const dryMs = economy.strains[0]!.dryingSeconds * 1000;
+      for (let i = racks.length * capacity; i < maxPerType.drying_rack * capacity; i++) {
+        m.compose(p.set(0, -10, 0), q.identity(), s.set(0, 0, 0));
+        bundles.setMatrixAt(i, m);
+      }
       racks.forEach((rack, r) => {
+        const along = rotatedSize(rack.size, rack.rot).w; // longueur des fils, avant rotation
         const flat = readRack(room, rack.id).flatMap((e) =>
           Array.from({ length: e.qty }, () => e.readyAt),
         );
         for (let j = 0; j < capacity; j++) {
           const i = r * capacity + j;
           const readyAt = flat[j];
-          const step = rack.size.w / (capacity + 1);
-          const x = rack.position.x - rack.size.w / 2 + step * (j + 1);
+          const step = along / (capacity + 1);
+          const o = rotateOffset(-along / 2 + step * (j + 1), 0, rack.rot);
           const k = readyAt === undefined ? 0 : 1;
-          m.compose(p.set(x, 2, rack.position.z), q.identity(), s.set(k, k, k));
+          q.setFromAxisAngle(UP, (rack.rot * Math.PI) / 2);
+          m.compose(p.set(rack.position.x + o.x, 2, rack.position.z + o.z), q, s.set(k, k, k));
           bundles.setMatrixAt(i, m);
           const dried =
             readyAt === undefined ? 0 : Math.min(1, Math.max(0, 1 - (readyAt - now) / dryMs));
@@ -126,12 +140,12 @@ export function LabProps({ room, interior }: { room: GameRoom; interior: Interio
     <>
       <instancedMesh
         ref={plantRef}
-        args={[plantGeo, material, Math.max(1, pots.length)]}
+        args={[plantGeo, material, maxPerType.pot]}
         frustumCulled={false}
       />
       <instancedMesh
         ref={bundleRef}
-        args={[bundleGeo, material, Math.max(1, capacity * racks.length)]}
+        args={[bundleGeo, material, capacity * maxPerType.drying_rack]}
         frustumCulled={false}
       />
     </>

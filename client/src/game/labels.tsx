@@ -4,7 +4,7 @@ import { Vector3 } from 'three';
 import type { GameRoom } from '../net/connection';
 import { gameNow } from '../net/gameView';
 import { placeView } from './stationView';
-import { installedSet, placesOf } from './fixtureState';
+import { fixturesFor, placesOf, useFixtures } from './fixtureState';
 import { useNpcList } from './npcState';
 import { footprint, gameData, segmentHitsBox, STREET, type Box } from '@narco/shared';
 import type { PlayerInfo } from './Players';
@@ -50,10 +50,11 @@ export function isOccluded(from: Point3, to: Point3): boolean {
   return OCCLUDERS.some((box) => segmentHitsBox(from, to, box));
 }
 
-// Postes et emplacements des intérieurs : ancres fixes (coordonnées de la pièce).
+// Postes fixes des intérieurs : ancres fixes (coordonnées de la pièce). Les meubles posés ont
+// des ancres dynamiques (voir LabelLayer).
 for (const interior of gameData.interiors.values()) {
-  for (const st of [...interior.stations, ...interior.fixtures]) {
-    const y = 'kind' in st && st.kind === 'exit' ? 2.9 : 2.3;
+  for (const st of interior.stations) {
+    const y = st.kind === 'exit' ? 2.9 : 2.3;
     setLabelAnchor(`station:${interior.id}:${st.id}`, () => ({
       x: st.position.x,
       y,
@@ -112,6 +113,15 @@ export function LabelLayer({
   zone: string;
 }) {
   const npcs = useNpcList(room);
+  const fixtures = useFixtures(room, zone);
+  // Étiquettes des meubles : elles suivent leur position réelle (posé, déplacé).
+  useEffect(() => {
+    for (const f of fixtures)
+      setLabelAnchor(`station:${zone}:${f.id}`, () => ({ ...f.position, y: 2.3 }));
+    return () => {
+      for (const f of fixtures) setLabelAnchor(`station:${zone}:${f.id}`, null);
+    };
+  }, [fixtures, zone]);
   const statusRefs = useRef(
     new Map<
       string,
@@ -131,23 +141,14 @@ export function LabelLayer({
     if (!interior) return;
     const update = () => {
       const now = gameNow();
-      for (const place of placesOf(zone, installedSet(room))) {
+      for (const place of placesOf(zone, fixturesFor(room, zone))) {
         const els = statusRefs.current.get(place.id);
         if (!els) continue;
         const view = placeView(room, place, myId, now, zone);
-        // emplacement : nom de l'objet installé, ou libellé de l'emplacement vide (discret) ;
-        // une lampe installée n'a rien à dire
-        if (place.fixture) {
-          const itemId = room.state.lab?.fixtures?.get(place.id)?.itemId;
-          const name = itemId ? (gameData.items.get(itemId)?.name ?? itemId) : place.fixture.label;
-          if (els.name.textContent !== name) els.name.textContent = name;
-          els.root.classList.toggle('empty-slot', !itemId);
-          els.root.style.display = itemId && place.fixture.accepts === 'lamp' ? 'none' : '';
-          if (!itemId) {
-            els.status.textContent = '';
-            els.bar.style.display = 'none';
-            continue;
-          }
+        // une lampe posée n'a rien à dire
+        if (place.fixture?.accepts === 'lamp') {
+          els.root.style.display = 'none';
+          continue;
         }
         els.status.textContent = view.status ?? '';
         els.bar.style.display = view.progress === undefined ? 'none' : '';
@@ -173,10 +174,7 @@ export function LabelLayer({
             {loc.name}
           </div>
         ))}
-      {[
-        ...(gameData.interiors.get(zone)?.stations ?? []),
-        ...(gameData.interiors.get(zone)?.fixtures ?? []),
-      ].map((st) => (
+      {[...(gameData.interiors.get(zone)?.stations ?? []), ...fixtures].map((st) => (
         <div key={st.id} ref={bindElement(`station:${zone}:${st.id}`)} className="station-label">
           <span className="station-name">{st.label}</span>
           <span

@@ -46,7 +46,7 @@
           "solid": false
         }
       ],
-      "fixtures": []
+      "furnishable": true
     },
     {
       "id": "shop",
@@ -169,8 +169,7 @@
           "interactRadius": 1.5,
           "solid": false
         }
-      ],
-      "fixtures": []
+      ]
     },
     {
       "id": "grocery",
@@ -263,8 +262,7 @@
           "interactRadius": 1.5,
           "solid": false
         }
-      ],
-      "fixtures": []
+      ]
     }
   ]
 }

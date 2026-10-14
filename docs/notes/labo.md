@@ -1,13 +1,14 @@
 # Labo, production, inventaire
 
-- **Labo livré vide** (bloc 1 de 3) : seuls le robinet et la porte (`stations`), `fixtures: []` ; ni déco, ni caisse. Le stock commun est désactivé (plus de `lab.stock`, de `Transfer`, de `clearStock`) ; la logique pure (`transfer`, `moveStack`, `stockSlots`) reste dans `shared/` pour la future caisse posable.
-- **Tests** : les emplacements de l'ancien labo meublé vivent dans `shared/src/testing/labFixtures.json`, injectés par `installTestLabFixtures()` (tests shared et serveur).
-- **Postes fixes** dans `stations` de `zones.json` ; **mobilier** dans `fixtures` (type accepté `pot | drying_rack | cutting_table | lamp`). Un objet du sac avec `installs` (items.json) s'y installe (`ClientMsg.Fixture`, `server/src/rooms/fixtures.ts`).
-- État par emplacement : `lab.fixtures`, `lab.pots`, `lab.racks`, `lab.cuts` (clé = id d'emplacement). Un emplacement installé devient un poste (`fixtureStation`) et, sauf les lampes, un obstacle (`fixtureObstacles`, recalculé serveur et client via `zoneArea(..., extra)`).
-- Démontage refusé si pot planté, étendoir chargé, découpe en cours ; installation refusée si un joueur est sur l'emplacement.
+- **Labo livré vide** : seuls le robinet et la porte (`stations`), intérieur `furnishable: true`. Stock commun désactivé (plus de `lab.stock`, de `Transfer`, de `clearStock`) ; la logique pure (`transfer`, `moveStack`, `stockSlots`) reste dans `shared/` pour la future caisse posable.
+- **Placement libre** : objet avec `placeable` (type, `w`/`d`/`height`, `mount` floor|ceiling, `interactRadius`) et `use: { action: 'place' }` dans items.json. Règle unique `checkPlacement` (`shared/src/placement.ts`) : pièce, porte + `doorClearance`, postes solides, autres meubles de la même couche, joueurs dessus, `maxPerType` (economy.lab.furniture). Les lampes (plafond) ne gênent que les lampes.
+- Serveur `server/src/rooms/furniture.ts` : `fixture.place` / `fixture.move` / `fixture.pickup` → `fixture.result` (+ notice). Déplacer refusé si un autre joueur est à portée du poste ou y découpe ; reprendre refusé si pot planté, étendoir chargé, découpe en cours. `spawnFurniture` (tests), `equipLab` (debug, `generateLayout` + `config.debug.equipKit`).
+- État : `lab.fixtures` (id `fN` → itemId, x, z, rot en quarts de tour), `lab.nextFixtureId`, `lab.pots/racks/cuts` sous l'id du meuble (l'état suit un déplacement). `furnitureFixture` résout empreinte tournée et poste ; obstacles via `fixtureObstacles` (serveur et client).
+- Client : `placementStore` + `PlacementPanel` (flèches relatives caméra, maintien = répétition, Pivoter/Annuler/Valider, clavier), `PlacementGhost` (vert/rouge, `palette.ok/danger`), caméra `config.placement.camera`. Rendu instancié `FixtureProps` (pièces locales tournées), `LabProps`, étiquettes dynamiques.
+- Tests serveur : `TEST_LAYOUT` / `furnish()` dans `server/test/helpers.ts` (ancien labo, posé avec la même validation).
 - **Lampes** : vitesse de pousse par pot (`Pot.rate`, `lampRate`), changée par `rebankPot` (progression mise en banque : aucun saut). Réglages `economy.lab.lamp`, contrôle `maxLamps × réduction < 1`.
 - **Production** pure dans `shared/src/production.ts` : pot (arrosage requis), étendoir, découpe ; `completeCuts` dans la boucle serveur.
 - **Inventaire** positionnel (`ArraySchema<Slot>` de longueur fixe, slot vide = `itemId ''`), logique dans `shared/src/inventory.ts` (`add`, `remove`, `transfer`, `moveStack`). Glisser dans le sac seul : appui long `config.ui.longPressMs`, garde anti-concurrence par `itemId` attendu.
 - **Fin de découpe sac plein** : la découpe ne se termine pas, les pochons attendent sur la table, un seul message (`ok: false`) ; livraison automatique dès qu'un slot se libère.
 - Client : `stationView.ts` / `placeView` (libellés ACTION, statuts), `fixtureState.ts` (collisions, endroits).
-- Persistance : `schemaVersion` 3, sans migration : une partie v1/v2 est ignorée au chargement (log `[narco] partie … ignorée, partie neuve`).
+- Persistance : `schemaVersion` 4, sans migration : une partie d'une autre version est ignorée au chargement (log `[narco] partie … ignorée, partie neuve`).

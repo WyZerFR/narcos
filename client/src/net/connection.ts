@@ -8,6 +8,7 @@ import {
   type CorrectionMessage,
   type NoticeMessage,
   type MoveResultMessage,
+  type FixtureResultMessage,
   type SaleClosedMessage,
   type SaleOfferMessage,
   type JoinOptions,
@@ -86,8 +87,8 @@ export interface StateView {
   code: string;
   players: Map<string, PlayerView>;
   lab: {
-    /** Emplacements installés (clé = id d'emplacement) et leur état. */
-    fixtures: Map<string, { itemId: string }>;
+    /** Meubles posés (clé = id du meuble) : objet, position, rotation (quarts de tour). */
+    fixtures: Map<string, { itemId: string; x: number; z: number; rot: number }>;
     pots: Map<string, PotView>;
     racks: Map<string, { entries: RackEntryView[] }>;
     cuts: Map<string, CutJobView>;
@@ -135,6 +136,7 @@ function isFatal(err: unknown): boolean {
 type CorrectionListener = (c: CorrectionMessage) => void;
 type NoticeListener = (n: NoticeMessage) => void;
 type MoveResultListener = (r: MoveResultMessage) => void;
+type FixtureResultListener = (r: FixtureResultMessage) => void;
 type SaleListener = (e: { offer: SaleOfferMessage } | { closed: SaleClosedMessage }) => void;
 
 class Connection {
@@ -143,6 +145,7 @@ class Connection {
   private correctionListeners = new Set<CorrectionListener>();
   private noticeListeners = new Set<NoticeListener>();
   private moveResultListeners = new Set<MoveResultListener>();
+  private fixtureResultListeners = new Set<FixtureResultListener>();
   private saleListeners = new Set<SaleListener>();
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private hiddenAt: number | null = null;
@@ -183,6 +186,12 @@ class Connection {
   onMoveResult(fn: MoveResultListener): () => void {
     this.moveResultListeners.add(fn);
     return () => this.moveResultListeners.delete(fn);
+  }
+
+  /** Réponse du serveur à une pose / un déplacement / une reprise de meuble. */
+  onFixtureResult(fn: FixtureResultListener): () => void {
+    this.fixtureResultListeners.add(fn);
+    return () => this.fixtureResultListeners.delete(fn);
   }
 
   onNotice(fn: NoticeListener): () => void {
@@ -256,6 +265,9 @@ class Connection {
     room.onStateChange(() => syncClock(room));
     room.onMessage(ServerMsg.MoveResult, (r: MoveResultMessage) => {
       for (const fn of this.moveResultListeners) fn(r);
+    });
+    room.onMessage(ServerMsg.FixtureResult, (r: FixtureResultMessage) => {
+      for (const fn of this.fixtureResultListeners) fn(r);
     });
     room.onMessage(ServerMsg.SaleOffer, (offer: SaleOfferMessage) => {
       for (const fn of this.saleListeners) fn({ offer });

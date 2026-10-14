@@ -15,20 +15,19 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { NarcoRoom } from '../src/rooms/NarcoRoom';
 import type { GameState } from '../src/rooms/schema';
 import { readInventory, writeInventory } from '../src/rooms/stateSync';
-import { equipAll } from '../src/rooms/fixtures';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join as joinPath } from 'node:path';
-import { installTestLabFixtures } from '@narco/shared/src/testing/labFixtures';
 import { RoomSnapshotSchema, SNAPSHOT_SCHEMA_VERSION, readSnapshotFile } from '../src/persistence';
-import { bootOn } from './helpers';
+import { bootOn, frontOf, furnish } from './helpers';
 
-const lab = gameData.interiors.get('lab')!;
-/** Le labo du jeu est vide : les tests de production utilisent l'ancien labo meublé. */
-installTestLabFixtures();
-const station = (id: string) => [...lab.stations, ...lab.fixtures].find((s) => s.id === id)!;
-/** Équipe tout le labo (comme la commande debug). */
-const equip = (room: NarcoRoom) => equipAll(room.state, lab, room.now());
+/** Alias de l'agencement de test → id réel du meuble posé (les postes fixes gardent le leur). */
+let ids: Record<string, string> = {};
+const sid = (name: string) => ids[name] ?? name;
+/** Pose l'agencement de test (ou une partie), avec la validation des joueurs. */
+const equip = (room: NarcoRoom, names?: Parameters<typeof furnish>[1]) => {
+  ids = furnish(room, names);
+};
 const strain = gameData.economy.strains.find((s) => s.id === 'base')!;
 
 let colyseus: ColyseusTestServer;
@@ -58,10 +57,10 @@ async function join(room: NarcoRoom, playerId: string) {
 /** Place un joueur dans le labo, juste devant un poste (positionnement direct, côté serveur). */
 function goTo(room: NarcoRoom, playerId: string, stationId: string) {
   const p = room.state.players.get(playerId)!;
-  const st = station(stationId);
+  const at = frontOf(stationId);
   p.zone = 'lab';
-  p.x = st.position.x;
-  p.z = st.position.z + st.size.d / 2 + 0.5;
+  p.x = at.x;
+  p.z = at.z;
 }
 
 async function act(
@@ -69,7 +68,7 @@ async function act(
   stationId: string,
   action: StationAction,
 ): Promise<NoticeMessage> {
-  client.send(ClientMsg.Station, { stationId, action });
+  client.send(ClientMsg.Station, { stationId: sid(stationId), action });
   return (await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage;
 }
 
@@ -101,12 +100,13 @@ describe('labo — validation des actions', () => {
     expect((await act(client, 'pot_1', 'plant')).ok).toBe(false); // dans la rue
     const p = room.state.players.get('lab-player-0002')!;
     p.zone = 'lab';
+    goTo(room, 'lab-player-0002', 'pot_1');
+    expect((await act(client, 'pot_1', 'plant')).text).toMatch(/pas ici/); // rien de posé
+    equip(room);
     p.x = 6;
     p.z = 4;
     expect((await act(client, 'pot_1', 'plant')).text).toMatch(/Trop loin/);
     goTo(room, 'lab-player-0002', 'pot_1');
-    expect((await act(client, 'pot_1', 'plant')).text).toMatch(/Rien n'est installé/);
-    equip(room);
     expect((await act(client, 'pot_1', 'plant')).text).toMatch(/graine/);
     expect((await act(client, 'pot_1', 'cut')).ok).toBe(false); // mauvaise action pour ce poste
   });
@@ -117,7 +117,7 @@ describe('labo — validation des actions', () => {
     const p = room.state.players.get('lab-player-0003')!;
     const full = Array.from({ length: p.bag.length }, () => ({ itemId: 'food', qty: 1 }));
     writeInventory(p.bag, full);
-    const cut = room.state.lab.cuts.get('table_1')!;
+    const cut = room.state.lab.cuts.get(sid('table_1'))!;
     Object.assign(cut, { playerId: p.id, strainId: 'base', qty: 2, readyAt: room.now() });
     const refused = (await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage;
     expect(refused.ok).toBe(false);
@@ -141,7 +141,7 @@ describe('labo — production', () => {
     const { client: a, room } = await newGame('lab-player-0006');
     const b = await join(room, 'lab-player-0007');
     equip(room);
-    const pot = room.state.lab.pots.get('pot_1')!;
+    const pot = room.state.lab.pots.get(sid('pot_1'))!;
     // pot prêt : planté et arrosé suffisamment longtemps dans le passé
     const now = room.now();
     Object.assign(pot, {
@@ -153,8 +153,8 @@ describe('labo — production', () => {
     });
     goTo(room, 'lab-player-0006', 'pot_1');
     goTo(room, 'lab-player-0007', 'pot_1');
-    a.send(ClientMsg.Station, { stationId: 'pot_1', action: 'harvest' });
-    b.send(ClientMsg.Station, { stationId: 'pot_1', action: 'harvest' });
+    a.send(ClientMsg.Station, { stationId: sid('pot_1'), action: 'harvest' });
+    b.send(ClientMsg.Station, { stationId: sid('pot_1'), action: 'harvest' });
     const [na, nb] = (await Promise.all([
       a.waitForMessage(ServerMsg.Notice),
       b.waitForMessage(ServerMsg.Notice),
@@ -176,10 +176,13 @@ describe('labo — production', () => {
     goTo(room, 'lab-player-0008', 'water');
     a.send(ClientMsg.Debug, { cmd: 'equipLab' });
     expect(((await a.waitForMessage(ServerMsg.Notice)) as NoticeMessage).ok).toBe(true);
-    expect(room.state.lab.fixtures.size).toBe(lab.fixtures.length);
-    // sans lampes pour ce test : vitesse de pousse normale, arrosages comptés comme avant
-    for (const f of lab.fixtures) if (f.accepts === 'lamp') room.state.lab.fixtures.delete(f.id);
-    for (const pot of room.state.lab.pots.values()) pot.rate = 1;
+    const kit = Object.values(gameData.config.debug.equipKit).reduce((a, b) => a + b, 0);
+    expect(room.state.lab.fixtures.size).toBe(kit);
+    // puis agencement connu, sans lampes : vitesse de pousse normale, arrosages comptés
+    a.send(ClientMsg.Debug, { cmd: 'clearLab' });
+    expect(((await a.waitForMessage(ServerMsg.Notice)) as NoticeMessage).ok).toBe(true);
+    expect(room.state.lab.fixtures.size).toBe(0);
+    equip(room, ['pot_1', 'rack_2', 'table_1']);
 
     // A prend une graine (debug) et plante
     a.send(ClientMsg.Debug, { cmd: 'give', itemId: 'seed_base', qty: 1 });
@@ -237,7 +240,7 @@ describe('sauvegarde', () => {
     const p0 = room.state.players.get('lab-player-0010')!;
     writeInventory(p0.bag, [{ itemId: 'water', qty: 2 }, ...readInventory(p0.bag).slice(1)]);
     equip(room);
-    room.state.lab.pots.get('pot_3')!.planted = true;
+    room.state.lab.pots.get(sid('pot_3'))!.planted = true;
     const snap = RoomSnapshotSchema.parse(JSON.parse(JSON.stringify(room.snapshot())));
     expect(snap.schemaVersion).toBe(SNAPSHOT_SCHEMA_VERSION);
     const code = room.roomId;
@@ -253,10 +256,11 @@ describe('sauvegarde', () => {
     expect(p.connected).toBe(false);
     expect(p.zone).toBe('lab');
     expect(count(readInventory(p.bag), 'water')).toBe(2);
-    expect([...again.state.lab.fixtures.keys()].sort()).toEqual(
-      [...room.state.lab.fixtures.keys()].sort(),
-    );
-    expect(again.state.lab.pots.get('pot_3')!.planted).toBe(true);
+    // meubles restaurés à l'identique : ids, objets, positions, rotations, compteur d'ids
+    expect(again.state.lab.toJSON().fixtures).toEqual(room.state.lab.toJSON().fixtures);
+    expect(again.state.lab.nextFixtureId).toBe(room.state.lab.nextFixtureId);
+    expect(again.state.lab.fixtures.size).toBe(11);
+    expect(again.state.lab.pots.get(sid('pot_3'))!.planted).toBe(true);
 
     // le joueur revient avec son playerId et retrouve tout
     await colyseus.sdk.joinById(code, { playerId: 'lab-player-0010', name: 'Chimiste' });

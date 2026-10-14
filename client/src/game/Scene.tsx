@@ -18,8 +18,10 @@ import { cameraOffset, getCamera, orthoViewHeight, setCameraKind, useCamera } fr
 import { Interior } from './interior/Interior';
 import { LocalPlayer, RemotePlayer, useRoomPlayers } from './Players';
 import { Npcs } from './Npcs';
+import { getPlacement } from '../ui/placementStore';
 
 const { cameraRig } = gameData.config;
+const placementCamera = gameData.config.placement.camera;
 
 /** Caméra 3/4 vue de dessus : suit le joueur local, réglages lus à chaque frame (live). */
 function CameraRig() {
@@ -37,10 +39,13 @@ function CameraRig() {
       setCameraKind(localPlayer.zone === STREET ? 'street' : 'interior');
       target.current.set(localPlayer.x, 0, localPlayer.z);
     }
-    const c = getCamera();
+    // Mode placement : vue haute (config.placement.camera) centrée sur le fantôme.
+    const placing = getPlacement();
+    const c = placing ? { ...getCamera(), ...placementCamera } : getCamera();
+    const follow = placing ?? localPlayer;
     const t = 1 - Math.exp(-cameraRig.followStiffness * Math.min(dt, 0.1));
-    target.current.x += (localPlayer.x - target.current.x) * t;
-    target.current.z += (localPlayer.z - target.current.z) * t;
+    target.current.x += (follow.x - target.current.x) * t;
+    target.current.z += (follow.z - target.current.z) * t;
     const o = cameraOffset(c);
     camera.position.set(target.current.x + o.x, o.y, target.current.z + o.z);
     camera.lookAt(target.current);

@@ -1094,3 +1094,77 @@ input {
   color: #ff8a8a;
   font-size: 13px;
 }
+
+/* ---------- mode placement des meubles ---------- */
+.place-status {
+  position: fixed;
+  top: calc(12px + var(--safe-t));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 2px solid var(--ok);
+  background: rgba(20, 16, 30, 0.85);
+  pointer-events: none;
+}
+.place-status.bad {
+  border-color: var(--danger);
+}
+.place-arrows {
+  position: fixed;
+  left: calc(24px + var(--safe-l));
+  bottom: calc(24px + var(--safe-b));
+  z-index: 30;
+  display: grid;
+  grid-template-areas: '. up .' 'left . right' '. down .';
+  grid-template-columns: repeat(3, 60px);
+  grid-template-rows: repeat(3, 60px);
+  gap: 4px;
+}
+.place-arrow {
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
+  border: 2px solid #4a443c;
+  background: rgba(33, 29, 25, 0.9);
+  color: var(--text);
+  font-size: 22px;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.place-arrow:active {
+  border-color: var(--accent);
+}
+.place-actions {
+  position: fixed;
+  right: calc(24px + var(--safe-r));
+  bottom: calc(24px + var(--safe-b));
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.place-actions .btn {
+  min-width: 140px;
+}
+.place-actions .btn:disabled {
+  opacity: 0.45;
+}
+.inv-use {
+  min-height: var(--touch);
+}
+.inv-use-hint {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.secondary-action.second {
+  bottom: calc(196px + var(--safe-b));
+}

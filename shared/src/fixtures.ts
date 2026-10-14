@@ -1,13 +1,41 @@
 import { distance, rectFromCenter, type Rect, type Vec2 } from './geometry';
-import type { Economy, Fixture, FixtureType, Interior, Station } from './schemas';
+import type { Economy, FixtureType, Interior, ItemDef, Placeable, Station } from './schemas';
 
 /**
- * Emplacements aménageables du labo : vides au départ, on y installe du mobilier acheté au
- * Bricoshop. Un emplacement installé se comporte comme un poste (pot, étendoir, table) ; une
- * lampe n'a pas d'action mais accélère les pots à sa portée.
+ * Meubles posés librement dans le labo (achetés au Bricoshop) : un meuble posé se comporte
+ * comme un poste (pot, étendoir, table) ; une lampe n'a pas d'action mais accélère les pots
+ * à sa portée. L'état serveur ne garde que { id, objet, position, rotation } : tout le reste
+ * (empreinte, portée, type) vient de `items.json`.
  */
 
-/** Type de poste équivalent à un emplacement installé. */
+/** Meuble tel qu'enregistré (état serveur, snapshot). `rot` = quarts de tour (0..3). */
+export interface Furniture {
+  id: string;
+  itemId: string;
+  x: number;
+  z: number;
+  rot: number;
+}
+
+/** Meuble posé, résolu avec sa fiche `placeable`. `size` = empreinte au sol après rotation. */
+export interface Fixture {
+  id: string;
+  itemId: string;
+  accepts: FixtureType;
+  label: string;
+  position: Vec2;
+  size: { w: number; d: number };
+  rot: number;
+  interactRadius: number;
+  mount: Placeable['mount'];
+  height: number;
+}
+
+export interface ItemSource {
+  get(id: string): ItemDef | undefined;
+}
+
+/** Type de poste équivalent à un meuble posé. */
 export const FIXTURE_STATION_KIND: Record<FixtureType, Station['kind']> = {
   pot: 'pot',
   drying_rack: 'rack',
@@ -15,15 +43,69 @@ export const FIXTURE_STATION_KIND: Record<FixtureType, Station['kind']> = {
   lamp: 'lamp',
 };
 
-/** Les lampes pendent au plafond : elles ne bloquent pas le passage. */
-export const isSolidFixture = (f: Fixture) => f.accepts !== 'lamp';
+/** Quart de tour normalisé (0..3). */
+export const normRot = (rot: number) => ((Math.round(rot) % 4) + 4) % 4;
 
-/** Poste correspondant à un emplacement installé. */
-export function fixtureStation(f: Fixture, label = f.label): Station {
+/** Empreinte au sol d'une fiche après `rot` quarts de tour (largeur et profondeur échangées). */
+export function rotatedSize(p: Pick<Placeable, 'w' | 'd'>, rot: number): { w: number; d: number } {
+  return normRot(rot) % 2 === 0 ? { w: p.w, d: p.d } : { w: p.d, d: p.w };
+}
+
+/** Décalage local (x, z) d'un meuble tourné de `rot` quarts de tour (rotation Y de three.js). */
+export function rotateOffset(x: number, z: number, rot: number): Vec2 {
+  switch (normRot(rot)) {
+    case 1:
+      return { x: z, z: -x };
+    case 2:
+      return { x: -x, z: -z };
+    case 3:
+      return { x: -z, z: x };
+    default:
+      return { x, z };
+  }
+}
+
+/** Meuble résolu (null si l'objet n'est pas posable). */
+export function furnitureFixture(f: Furniture, items: ItemSource): Fixture | null {
+  const def = items.get(f.itemId);
+  const p = def?.placeable;
+  if (!def || !p) return null;
+  return {
+    id: f.id,
+    itemId: f.itemId,
+    accepts: p.type,
+    label: def.name,
+    position: { x: f.x, z: f.z },
+    size: rotatedSize(p, f.rot),
+    rot: normRot(f.rot),
+    interactRadius: p.interactRadius,
+    mount: p.mount,
+    height: p.height,
+  };
+}
+
+export function furnitureFixtures(list: Iterable<Furniture>, items: ItemSource): Fixture[] {
+  const out: Fixture[] = [];
+  for (const f of list) {
+    const fx = furnitureFixture(f, items);
+    if (fx) out.push(fx);
+  }
+  return out;
+}
+
+/** Les lampes pendent au plafond : elles ne bloquent pas le passage. */
+export const isSolidFixture = (f: Pick<Fixture, 'mount'>) => f.mount === 'floor';
+
+/** Rectangle au sol d'un meuble. */
+export const fixtureRect = (f: Pick<Fixture, 'position' | 'size'>): Rect =>
+  rectFromCenter(f.position, f.size);
+
+/** Poste correspondant à un meuble posé. */
+export function fixtureStation(f: Fixture): Station {
   return {
     id: f.id,
     kind: FIXTURE_STATION_KIND[f.accepts],
-    label,
+    label: f.label,
     position: f.position,
     size: f.size,
     interactRadius: f.interactRadius,
@@ -31,15 +113,13 @@ export function fixtureStation(f: Fixture, label = f.label): Station {
   };
 }
 
-/** Obstacles ajoutés par les emplacements installés (hors lampes). */
-export function fixtureObstacles(interior: Interior, installed: ReadonlySet<string>): Rect[] {
-  return interior.fixtures
-    .filter((f) => installed.has(f.id) && isSolidFixture(f))
-    .map((f) => rectFromCenter(f.position, f.size));
+/** Obstacles ajoutés par les meubles posés (hors lampes). */
+export function fixtureObstacles(fixtures: readonly Fixture[]): Rect[] {
+  return fixtures.filter(isSolidFixture).map(fixtureRect);
 }
 
 /**
- * Vitesse de pousse d'un pot selon les lampes installées à portée : la durée est multipliée
+ * Vitesse de pousse d'un pot selon les lampes posées à portée : la durée est multipliée
  * par `1 − min(n, max) × réduction`, donc la vitesse par l'inverse.
  */
 export function lampRate(pot: Vec2, lamps: readonly Vec2[], rules: Economy['lab']['lamp']): number {
@@ -47,19 +127,18 @@ export function lampRate(pot: Vec2, lamps: readonly Vec2[], rules: Economy['lab'
   return 1 / (1 - n * rules.growReductionPerLamp);
 }
 
-/** Un endroit avec lequel interagir dans un intérieur : poste fixe ou emplacement. */
+/** Un endroit avec lequel interagir dans un intérieur : poste fixe ou meuble posé. */
 export interface Place {
   id: string;
   position: Vec2;
   interactRadius: number;
-  /** Présent si c'est un emplacement aménageable. */
+  station: Station;
+  /** Présent si c'est un meuble posé (déplaçable, reprenable). */
   fixture?: Fixture;
-  /** Poste actif : poste fixe, ou emplacement installé. */
-  station?: Station;
 }
 
-/** Postes fixes + emplacements (installés → poste, vides → emplacement à équiper). */
-export function interiorPlaces(interior: Interior, installed: ReadonlySet<string>): Place[] {
+/** Postes fixes de l'intérieur + meubles posés. */
+export function interiorPlaces(interior: Interior, fixtures: readonly Fixture[]): Place[] {
   return [
     ...interior.stations.map((st) => ({
       id: st.id,
@@ -67,12 +146,12 @@ export function interiorPlaces(interior: Interior, installed: ReadonlySet<string
       interactRadius: st.interactRadius,
       station: st,
     })),
-    ...interior.fixtures.map((f) => ({
+    ...fixtures.map((f) => ({
       id: f.id,
       position: f.position,
       interactRadius: f.interactRadius,
+      station: fixtureStation(f),
       fixture: f,
-      ...(installed.has(f.id) ? { station: fixtureStation(f) } : {}),
     })),
   ];
 }

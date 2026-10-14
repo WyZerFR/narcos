@@ -9,6 +9,8 @@ import {
   count,
   emptyInventory,
   gameData,
+  type FixturePlaceMessage,
+  type FixtureResultMessage,
   type NoticeMessage,
   type StationAction,
 } from '@narco/shared';
@@ -16,11 +18,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { NarcoRoom } from '../src/rooms/NarcoRoom';
 import type { GameState } from '../src/rooms/schema';
 import { readInventory, writeInventory } from '../src/rooms/stateSync';
-import { installTestLabFixtures } from '@narco/shared/src/testing/labFixtures';
 import { bootOn } from './helpers';
-
-/** Le labo du jeu est vide : on installe sur les emplacements de l'ancien labo meublé. */
-installTestLabFixtures();
 
 type SdkRoom = ClientRoom<GameState>;
 
@@ -46,14 +44,19 @@ async function newGame(playerId: string) {
   return { client, room };
 }
 
-/** Place un joueur dans un intérieur, devant un poste ou un emplacement (côté serveur). */
+/** Place un joueur dans un intérieur, devant un poste fixe ou un meuble posé (côté serveur). */
 function goTo(room: NarcoRoom, playerId: string, interiorId: string, stationId: string) {
   const p = room.state.players.get(playerId)!;
   const interior = gameData.interiors.get(interiorId)!;
-  const st = [...interior.stations, ...interior.fixtures].find((s) => s.id === stationId)!;
+  const furniture = room.state.lab.fixtures.get(stationId);
+  const def = furniture && gameData.items.get(furniture.itemId)!.placeable!;
+  const st = interior.stations.find((s) => s.id === stationId);
+  const at = furniture
+    ? { x: furniture.x, z: furniture.z + def!.d / 2 + 0.5 }
+    : { x: st!.position.x, z: st!.position.z + st!.size.d / 2 + 0.5 };
   p.zone = interiorId;
-  p.x = st.position.x;
-  p.z = st.position.z + st.size.d / 2 + 0.5;
+  p.x = at.x;
+  p.z = at.z;
 }
 
 async function act(
@@ -167,11 +170,12 @@ describe('shop — panier et paiement', () => {
 });
 
 describe('shop → labo', () => {
-  it('labo vide équipé depuis zéro avec l’argent de départ : achat, installation, pochons', async () => {
+  it('partie neuve, 1000 $ : achat au Bricoshop, placement libre, cycle jusqu’aux pochons', async () => {
     const { client, room } = await newGame('shop-player-0007');
     client.send(ClientMsg.Debug, { cmd: 'timeScale', scale: 60 });
     await client.waitForMessage(ServerMsg.Notice);
     expect(room.state.lab.fixtures.size).toBe(0);
+    expect(count(bagOf(room, 'shop-player-0007'), 'cash_dirty')).toBe(1000);
     // kit minimal, payé avec l'argent sale de départ uniquement
     for (const shelf of ['shelf_seeds', 'shelf_pots', 'shelf_racks', 'shelf_tables']) {
       goTo(room, 'shop-player-0007', 'shop', shelf);
@@ -183,19 +187,24 @@ describe('shop → labo', () => {
     for (const id of ['seed_base', 'pot', 'drying_rack', 'cutting_table'])
       expect(count(bag, id)).toBe(1);
 
-    const install = async (fixtureId: string) => {
-      goTo(room, 'shop-player-0007', 'lab', fixtureId);
-      // devant l'emplacement, hors de son emprise
-      const p = room.state.players.get('shop-player-0007')!;
-      p.z += 0.5;
-      client.send(ClientMsg.Fixture, { fixtureId, action: 'install' });
-      const n = (await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage;
-      expect(n.ok, n.text).toBe(true);
+    // dans le labo, le joueur pose chaque meuble où il veut (près du robinet)
+    goTo(room, 'shop-player-0007', 'lab', 'water');
+    let requestId = 1;
+    const place = async (itemId: string, x: number, z: number, rot = 0) => {
+      const msg: FixturePlaceMessage = { requestId: requestId++, itemId, x, z, rot };
+      client.send(ClientMsg.FixturePlace, msg);
+      const r = (await client.waitForMessage(ServerMsg.FixtureResult)) as FixtureResultMessage;
+      expect(r.ok, r.text).toBe(true);
+      expect(r.requestId).toBe(msg.requestId);
+      return r.fixtureId!;
     };
-    await install('pot_1');
-    await install('rack_1');
-    await install('table_1');
-    expect([...room.state.lab.fixtures.keys()].sort()).toEqual(['pot_1', 'rack_1', 'table_1']);
+    const pot = await place('pot', -3, -2);
+    const rack = await place('drying_rack', 1.8, -3.4);
+    const table = await place('cutting_table', 4.4, 0.4, 1);
+    expect(room.state.lab.fixtures.size).toBe(3);
+    expect(room.state.lab.fixtures.get(table)!.rot).toBe(1);
+    const left = bagOf(room, 'shop-player-0007');
+    for (const id of ['pot', 'drying_rack', 'cutting_table']) expect(count(left, id)).toBe(0);
 
     const retry = async (stationId: string, action: StationAction) => {
       let n = await act(client, stationId, action);
@@ -204,20 +213,20 @@ describe('shop → labo', () => {
         n = await act(client, stationId, action);
       }
     };
-    goTo(room, 'shop-player-0007', 'lab', 'pot_1');
-    expect((await act(client, 'pot_1', 'plant')).ok).toBe(true);
+    goTo(room, 'shop-player-0007', 'lab', pot);
+    expect((await act(client, pot, 'plant')).ok).toBe(true);
     for (let i = 0; i < Math.ceil(strain.growSeconds / strain.waterEverySeconds); i++) {
       goTo(room, 'shop-player-0007', 'lab', 'water');
       await act(client, 'water', 'fill');
-      goTo(room, 'shop-player-0007', 'lab', 'pot_1');
-      await retry('pot_1', 'water');
+      goTo(room, 'shop-player-0007', 'lab', pot);
+      await retry(pot, 'water');
     }
-    await retry('pot_1', 'harvest');
-    goTo(room, 'shop-player-0007', 'lab', 'rack_1');
-    await retry('rack_1', 'hang');
-    await retry('rack_1', 'collect');
-    goTo(room, 'shop-player-0007', 'lab', 'table_1');
-    await retry('table_1', 'cut');
+    await retry(pot, 'harvest');
+    goTo(room, 'shop-player-0007', 'lab', rack);
+    await retry(rack, 'hang');
+    await retry(rack, 'collect');
+    goTo(room, 'shop-player-0007', 'lab', table);
+    await retry(table, 'cut');
     await client.waitForMessage(ServerMsg.Notice);
     expect(count(bagOf(room, 'shop-player-0007'), 'pouch_base')).toBe(
       strain.freshPerPlant * strain.pouchesPerDried,

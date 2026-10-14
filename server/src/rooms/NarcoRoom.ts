@@ -16,16 +16,13 @@ import {
   interactionPoint,
   interiorForLocation,
   interiorPlaces,
-  isBlocked,
-  isSolidFixture,
-  rectFromCenter,
   resolveCircle,
   sanitizeName,
   setClockScale,
   validateMove,
   zoneArea,
   type CorrectionMessage,
-  type Fixture,
+  type FixtureResultMessage,
   type GameClock,
   type JoinOptions,
   type MoveBudget,
@@ -38,14 +35,16 @@ import {
 import type { RoomSnapshot } from '../persistence';
 import { hydrateState, SNAPSHOT_SCHEMA_VERSION } from '../persistence';
 import {
-  clearAll,
-  equipAll,
-  installedIds,
-  installedObstacles,
-  installFixture,
+  clearLab,
+  equipLab,
+  fixturesIn,
+  furnitureObstacles,
+  moveFurniture,
+  pickupFurniture,
+  placeFurniture,
   refreshPotRates,
-  uninstallFixture,
-} from './fixtures';
+  type FurnitureResult,
+} from './furniture';
 import { completeCuts, runStationAction } from './lab';
 import {
   consume,
@@ -163,7 +162,15 @@ export class NarcoRoom extends Room<GameState> {
     this.onMessage(ClientMsg.InventoryMove, (client, msg: unknown) =>
       this.handleInventoryMove(client, msg),
     );
-    this.onMessage(ClientMsg.Fixture, (client, msg: unknown) => this.handleFixture(client, msg));
+    this.onMessage(ClientMsg.FixturePlace, (client, msg: unknown) =>
+      this.handleFurniture(client, msg, 'place'),
+    );
+    this.onMessage(ClientMsg.FixtureMove, (client, msg: unknown) =>
+      this.handleFurniture(client, msg, 'move'),
+    );
+    this.onMessage(ClientMsg.FixturePickup, (client, msg: unknown) =>
+      this.handleFurniture(client, msg, 'pickup'),
+    );
     this.onMessage(ClientMsg.CartRemove, (client, msg: unknown) =>
       this.handleCartRemove(client, msg),
     );
@@ -351,7 +358,7 @@ export class NarcoRoom extends Room<GameState> {
   private zoneRules(zoneId: string): MoveRules {
     const rules = rulesFor(zoneId);
     const interior = gameData.interiors.get(zoneId);
-    const extra = interior ? installedObstacles(this.state, interior) : [];
+    const extra = interior ? furnitureObstacles(this.state, interior) : [];
     if (extra.length === 0 || !rules.collision) return rules;
     return {
       ...rules,
@@ -421,13 +428,14 @@ export class NarcoRoom extends Room<GameState> {
     if (!STATION_ACTIONS.includes(action)) return this.notify(client, false, 'Action inconnue.');
     const interior = gameData.interiors.get(player.zone);
     const place = interior
-      ? interiorPlaces(interior, installedIds(this.state)).find((p) => p.id === msg.stationId)
+      ? interiorPlaces(interior, fixturesIn(this.state, interior)).find(
+          (p) => p.id === msg.stationId,
+        )
       : undefined;
     if (!interior || !place) return this.notify(client, false, "Ce poste n'est pas ici.");
-    const label = place.station?.label ?? place.fixture?.label ?? place.id;
-    if (!this.isNear(player, place)) return this.notify(client, false, `Trop loin : ${label}`);
     const station = place.station;
-    if (!station) return this.notify(client, false, "Rien n'est installé ici.");
+    if (!this.isNear(player, place))
+      return this.notify(client, false, `Trop loin : ${station.label}`);
 
     if (station.kind === 'exit') {
       if (action !== 'exit') return this.notify(client, false, `Impossible ici : ${station.label}`);
@@ -451,37 +459,32 @@ export class NarcoRoom extends Room<GameState> {
     this.notify(client, result.ok, result.text);
   }
 
-  /** Installer / démonter du mobilier : zone, emplacement, distance, puis règles du labo. */
-  private handleFixture(client: Client, msg: unknown): void {
+  /**
+   * Meubles du labo : poser (objet du sac), déplacer, reprendre. Règles et validation dans
+   * `furniture.ts` ; réponse dédiée (le mode placement du client se ferme si ok) + notice.
+   * Les messages sont traités un par un : deux poses au même endroit, la seconde est refusée.
+   */
+  private handleFurniture(client: Client, msg: unknown, kind: 'place' | 'move' | 'pickup'): void {
     const who = this.playerOf(client);
     if (!who || !isObject(msg)) return;
     const { player } = who;
-    const interior = gameData.interiors.get(player.zone);
-    const fixture = interior?.fixtures.find((f) => f.id === msg.fixtureId);
-    if (!interior || !fixture) return this.notify(client, false, "Cet emplacement n'est pas ici.");
-    if (!this.isNear(player, fixture))
-      return this.notify(client, false, `Trop loin : ${fixture.label}`);
     const now = this.now();
-    if (msg.action === 'install') {
-      const blocker = this.standingOn(interior.id, fixture);
-      if (blocker) return this.notify(client, false, `${blocker} est dans le passage.`);
-      const r = installFixture(this.state, player, interior, fixture, now);
-      return this.notify(client, r.ok, r.text);
-    }
-    if (msg.action === 'uninstall') {
-      const r = uninstallFixture(this.state, player, interior, fixture, now);
-      return this.notify(client, r.ok, r.text);
-    }
-    this.notify(client, false, 'Action inconnue.');
-  }
-
-  /** Nom d'un joueur debout sur l'emplacement (on n'installe pas un meuble sur quelqu'un). */
-  private standingOn(zoneId: string, fixture: Fixture): string | null {
-    if (!isSolidFixture(fixture)) return null;
-    const rect = rectFromCenter(fixture.position, fixture.size);
-    for (const p of this.state.players.values())
-      if (p.zone === zoneId && isBlocked(p, config.world.playerRadius, [rect])) return p.name;
-    return null;
+    const pos = { x: Number(msg.x), z: Number(msg.z), rot: Number(msg.rot) };
+    const fixtureId = String(msg.fixtureId ?? '');
+    const r: FurnitureResult =
+      kind === 'place'
+        ? placeFurniture(this.state, player, { itemId: String(msg.itemId ?? ''), ...pos }, now)
+        : kind === 'move'
+          ? moveFurniture(this.state, player, { fixtureId, ...pos }, now)
+          : pickupFurniture(this.state, player, fixtureId, now);
+    const res: FixtureResultMessage = {
+      requestId: Number(msg.requestId) || 0,
+      ok: r.ok,
+      text: r.text,
+      ...(r.fixtureId ? { fixtureId: r.fixtureId } : {}),
+    };
+    client.send(ServerMsg.FixtureResult, res);
+    this.notify(client, r.ok, r.text);
   }
 
   // ---------------------------------------------------------------- survie
@@ -713,16 +716,14 @@ export class NarcoRoom extends Room<GameState> {
       case 'equipLab':
       case 'clearLab': {
         const interior = gameData.interiors.get(player.zone);
-        if (!interior?.fixtures.length)
-          return this.notify(client, false, '[debug] aucun emplacement ici');
-        if (msg.cmd === 'equipLab') equipAll(this.state, interior, this.now());
-        else clearAll(this.state, interior);
-        refreshPotRates(this.state, interior, this.now());
-        return this.notify(
-          client,
-          true,
-          `[debug] labo ${msg.cmd === 'equipLab' ? 'équipé' : 'vidé'}`,
-        );
+        if (!interior?.furnishable) return this.notify(client, false, '[debug] va dans le labo');
+        if (msg.cmd === 'clearLab') {
+          clearLab(this.state);
+          refreshPotRates(this.state, this.now());
+          return this.notify(client, true, '[debug] labo vidé');
+        }
+        const n = equipLab(this.state, interior, this.now());
+        return this.notify(client, true, `[debug] labo équipé (${n} meuble(s) posé(s))`);
       }
       case 'spawnBuyer': {
         if (player.zone !== STREET) return this.notify(client, false, '[debug] va dans la rue');

@@ -38,7 +38,9 @@
     "street": "#222029",
     "wall": "#4b4562",
     "neon": "#ffc56b",
-    "vegetation": "#2f7d5b"
+    "vegetation": "#2f7d5b",
+    "ok": "#5be37d",
+    "danger": "#ff4d5e"
   },
   "map": {
     "roads": [
@@ -290,12 +292,13 @@
   },
   "debug": {
     "commands": true,
-    "timeScales": [1, 10, 60]
-  },
-  "ui": {
-    "longPressMs": 350,
-    "dragCancelPx": 8,
-    "moveTimeoutMs": 3000
+    "timeScales": [1, 10, 60],
+    "equipKit": {
+      "pot": 4,
+      "drying_rack": 2,
+      "cutting_table": 1,
+      "lamp": 4
+    }
   },
   "npc": {
     "count": 8,
@@ -307,5 +310,19 @@
     "cooldownSeconds": [60, 150],
     "navCellSize": 0.5,
     "debugSpawnDistance": 1.2
+  },
+  "placement": {
+    "stepM": 0.2,
+    "repeatDelayMs": 300,
+    "repeatMs": 90,
+    "camera": {
+      "elevation": 80,
+      "zoom": 15
+    }
+  },
+  "ui": {
+    "longPressMs": 350,
+    "dragCancelPx": 8,
+    "moveTimeoutMs": 3000
   }
 }

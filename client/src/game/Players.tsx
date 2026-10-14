@@ -16,7 +16,7 @@ import { localPlayer } from './localPlayer';
 import { screenToWorld } from './cameraState';
 import { isOccluded, setLabelAnchor } from './labels';
 import { getCutout } from './city/cutout';
-import { areaFor, installedSet } from './fixtureState';
+import { areaFor, fixturesFor } from './fixtureState';
 
 const { movement, world } = gameData.config;
 const SIZE = world.playerSize;
@@ -143,7 +143,7 @@ export function LocalPlayer({ room, info }: { room: GameRoom; info: PlayerInfo }
     }
 
     // bornes + obstacles de la zone, mobilier installé compris : même calcul que le serveur
-    const area = areaFor(localPlayer.zone, installedSet(room));
+    const area = areaFor(localPlayer.zone, fixturesFor(room, localPlayer.zone));
     const intent = readMoveIntent();
     if (area && intent.magnitude > 0.05 && room.connection.isOpen) {
       // Même ralentissement que le serveur quand la faim ou la soif passe sous le seuil bas.

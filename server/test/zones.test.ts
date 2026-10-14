@@ -9,12 +9,12 @@ import {
   type NoticeMessage,
 } from '@narco/shared';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { installTestLabFixtures } from '@narco/shared/src/testing/labFixtures';
+import type { Room as ServerRoom } from '@colyseus/core';
+import type { NarcoRoom } from '../src/rooms/NarcoRoom';
 import type { GameState } from '../src/rooms/schema';
+import { furnish, TEST_LAYOUT } from './helpers';
 
 const lab = gameData.interiors.get('lab')!;
-/** Le labo du jeu est vide : les collisions de mobilier sont testées sur l'ancien labo meublé. */
-installTestLabFixtures();
 const local = gameData.locations.get('local')!;
 const exit = lab.stations.find((s) => s.kind === 'exit')!;
 
@@ -98,18 +98,19 @@ describe('zones — rue ↔ labo', () => {
     const { client, p } = await roomAtLocalDoor('player-zone-0006');
     client.send(ClientMsg.Interact, { locationId: 'local' });
     await client.waitForMessage(ServerMsg.Notice);
-    const pot = lab.fixtures.find((s) => s.id === 'pot_1')!;
-    // emplacement vide : on passe à travers
+    const pot = { position: TEST_LAYOUT.pot_1, size: gameData.items.get('pot')!.placeable! };
+    // rien de posé : on passe à travers
     p.x = pot.position.x;
     p.z = pot.position.z + pot.size.d / 2 + 0.6;
     client.send(ClientMsg.Move, { zone: 'lab', x: p.x, z: pot.position.z, rotY: 0, seq: 1 });
     await new Promise((r) => setTimeout(r, 100));
     expect(p.z).toBeCloseTo(pot.position.z, 3);
-    // pot installé : il bloque
-    client.send(ClientMsg.Debug, { cmd: 'equipLab' });
-    await client.waitForMessage(ServerMsg.Notice);
-    p.x = pot.position.x;
+    // pot posé : il bloque, à sa position réelle
     p.z = pot.position.z + pot.size.d / 2 + 0.6;
+    const room = colyseus.getRoomById<GameState>(
+      client.roomId,
+    ) as ServerRoom<GameState> as NarcoRoom;
+    furnish(room, ['pot_1']);
     client.send(ClientMsg.Move, { zone: 'lab', x: p.x, z: pot.position.z - 1.5, rotY: 0, seq: 2 });
     await client.waitForMessage(ServerMsg.Correction);
     expect(p.z).toBeGreaterThan(pot.position.z + pot.size.d / 2);

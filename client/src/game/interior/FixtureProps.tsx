@@ -11,8 +11,8 @@ import {
 import { gameData, type Interior } from '@narco/shared';
 import type { GameRoom } from '../../net/connection';
 import { subscribeState } from '../../net/gameView';
-import { installedSet } from '../fixtureState';
-import { emptyParts, installedParts, maxParts, type PartBox } from './fixtureParts';
+import { labFixtures } from '../fixtureState';
+import { installedParts, maxParts, type PartBox } from './fixtureParts';
 
 const m = new Matrix4();
 const q = new Quaternion();
@@ -20,9 +20,10 @@ const p = new Vector3();
 const s = new Vector3();
 
 /**
- * Mobilier installé du labo (pots, étendoirs, table, lampes) et repères des emplacements
- * vides : 2 draw calls au total (cubes unitaires instanciés, opaques + lumineux), mis à jour
- * seulement quand la liste des emplacements installés change. Jamais percés par la découpe.
+ * Meubles posés du labo (pots, étendoirs, tables, lampes), à leur position et rotation réelles :
+ * 2 draw calls au total (cubes unitaires instanciés, opaques + lumineux), quel que soit le
+ * nombre de meubles, mis à jour seulement quand un meuble est posé, déplacé ou repris.
+ * Jamais percés par la découpe.
  */
 export function FixtureProps({
   room,
@@ -34,7 +35,7 @@ export function FixtureProps({
   glowBoost: number;
 }) {
   const neon = gameData.locations.get(interior.entranceLocationId)!.neonColor;
-  const capacity = useMemo(() => maxParts(interior.fixtures, neon), [interior, neon]);
+  const capacity = useMemo(() => maxParts(neon), [neon]);
   const solidRef = useRef<InstancedMesh>(null);
   const glowRef = useRef<InstancedMesh>(null);
 
@@ -61,7 +62,7 @@ export function FixtureProps({
   );
 
   useEffect(() => {
-    let signature: string | null = null;
+    let last: unknown = null;
     const write = (mesh: InstancedMesh | null, parts: PartBox[]) => {
       if (!mesh) return;
       parts.forEach((b, i) => {
@@ -74,23 +75,22 @@ export function FixtureProps({
       if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     };
     const refresh = () => {
-      const installed = installedSet(room);
-      const next = [...installed].sort().join(',');
-      if (next === signature) return;
-      signature = next;
+      const fixtures = labFixtures(room); // même tableau tant que rien ne bouge
+      if (fixtures === last) return;
+      last = fixtures;
       const solid: PartBox[] = [];
       const glow: PartBox[] = [];
-      for (const f of interior.fixtures) {
-        const parts = installed.has(f.id) ? installedParts(f, neon) : emptyParts(f);
-        solid.push(...parts.solid);
-        glow.push(...parts.glow);
+      for (const f of fixtures) {
+        const parts = installedParts(f, neon);
+        solid.push(...parts.solid.slice(0, capacity.solid - solid.length));
+        glow.push(...parts.glow.slice(0, capacity.glow - glow.length));
       }
       write(solidRef.current, solid);
       write(glowRef.current, glow);
     };
     refresh();
     return subscribeState(room, refresh);
-  }, [room, interior, neon]);
+  }, [room, neon, capacity]);
 
   return (
     <>

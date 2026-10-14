@@ -68,9 +68,12 @@ export class CutJob extends Schema {
   @type('float64') readyAt = 0;
 }
 
-/** Emplacement installé (présent dans la map = installé) : objet qui l'occupe. */
+/** Meuble posé dans le labo : objet, position (m, repère de la pièce), rotation (quarts de tour). */
 export class InstalledFixture extends Schema {
   @type('string') itemId = '';
+  @type('float64') x = 0;
+  @type('float64') z = 0;
+  @type('uint8') rot = 0;
 }
 
 /** Contenu d'un étendoir installé. */
@@ -79,9 +82,11 @@ export class RackState extends Schema {
 }
 
 export class LabState extends Schema {
-  /** Emplacements installés, clé = id d'emplacement (`pot_1`, `rack_2`, `lamp_3`…). */
+  /** Meubles posés, clé = id généré (`f1`, `f2`…). */
   @type({ map: InstalledFixture }) fixtures = new MapSchema<InstalledFixture>();
-  /** État par emplacement installé : pots, étendoirs, tables de découpe. */
+  /** Compteur des ids de meubles (jamais réutilisés dans une partie). */
+  @type('uint32') nextFixtureId = 0;
+  /** État de production par meuble posé : pots, étendoirs, tables de découpe. */
   @type({ map: Pot }) pots = new MapSchema<Pot>();
   @type({ map: RackState }) racks = new MapSchema<RackState>();
   @type({ map: CutJob }) cuts = new MapSchema<CutJob>();

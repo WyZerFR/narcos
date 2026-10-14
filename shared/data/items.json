@@ -134,7 +134,18 @@
       "confiscable": false,
       "description": "Un pot de terre cuite et un sac de terreau. Le début d’un empire, ou d’un balcon.",
       "icon": "🪴",
-      "installs": "pot"
+      "placeable": {
+        "type": "pot",
+        "w": 1.2,
+        "d": 1.2,
+        "height": 0.7,
+        "mount": "floor",
+        "interactRadius": 1.7
+      },
+      "use": {
+        "action": "place",
+        "label": "Placer"
+      }
     },
     {
       "id": "drying_rack",
@@ -144,9 +155,20 @@
       "stackMax": 1,
       "contraband": false,
       "confiscable": false,
-      "installs": "drying_rack",
       "description": "Vendu pour les chaussettes. Personne ne t’a demandé ce que tu comptais y pendre.",
-      "icon": "🧺"
+      "icon": "🧺",
+      "placeable": {
+        "type": "drying_rack",
+        "w": 3.2,
+        "d": 0.8,
+        "height": 2.1,
+        "mount": "floor",
+        "interactRadius": 1.9
+      },
+      "use": {
+        "action": "place",
+        "label": "Placer"
+      }
     },
     {
       "id": "cutting_table",
@@ -156,9 +178,20 @@
       "stackMax": 1,
       "contraband": false,
       "confiscable": false,
-      "installs": "cutting_table",
       "description": "Un vieux bureau Ikéa reconverti. Le tiroir coince, la balance aussi.",
-      "icon": "🪚"
+      "icon": "🪚",
+      "placeable": {
+        "type": "cutting_table",
+        "w": 2.4,
+        "d": 1.2,
+        "height": 1.5,
+        "mount": "floor",
+        "interactRadius": 1.9
+      },
+      "use": {
+        "action": "place",
+        "label": "Placer"
+      }
     },
     {
       "id": "grow_lamp",
@@ -168,9 +201,20 @@
       "stackMax": 1,
       "contraband": false,
       "confiscable": false,
-      "installs": "lamp",
       "description": "Une lampe rose qui accélère la pousse. Ta facture d’électricité va adorer.",
-      "icon": "💡"
+      "icon": "💡",
+      "placeable": {
+        "type": "lamp",
+        "w": 0.6,
+        "d": 0.6,
+        "height": 2.1,
+        "mount": "ceiling",
+        "interactRadius": 1.3
+      },
+      "use": {
+        "action": "place",
+        "label": "Placer"
+      }
     },
     {
       "id": "watering_can",

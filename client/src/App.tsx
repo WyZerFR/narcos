@@ -9,10 +9,13 @@ import { Hud } from './ui/Hud';
 import { DebugOverlay } from './ui/DebugOverlay';
 import { useSettings } from './ui/settings';
 import { CameraPanel } from './ui/CameraPanel';
+import { PlacementPanel } from './ui/PlacementPanel';
+import { usePlacement } from './ui/placementStore';
 
 export function App() {
   const snapshot = useSyncExternalStore(connection.subscribe, connection.getSnapshot);
   const { debug } = useSettings();
+  const placing = usePlacement() !== null;
 
   // Pendant une reconnexion on garde la dernière room affichée (figée) sous le bandeau.
   const lastRoom = useRef<GameRoom | null>(null);
@@ -29,8 +32,10 @@ export function App() {
         <>
           <Scene room={room} />
           <Hud snapshot={snapshot} room={room} />
-          <Joystick />
+          {/* mode placement : flèches et boutons à la place du joystick et d'ACTION */}
+          {!placing && <Joystick />}
           <Interaction room={room} />
+          {placing && <PlacementPanel room={room} />}
           {debug && <CameraPanel />}
         </>
       ) : snapshot.status === 'reconnecting' ? (

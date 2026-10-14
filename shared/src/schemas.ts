@@ -4,6 +4,9 @@ import { z } from 'zod';
 
 const nonNeg = z.number().nonnegative();
 const pos = z.number().positive();
+/** Une valeur par type de meuble posable (pot, étendoir, table, lampe). */
+const perFixtureType = <T extends z.ZodType>(s: T) =>
+  z.object({ pot: s, drying_rack: s, cutting_table: s, lamp: s });
 const act = z.number().int().min(1).max(4);
 
 export const BoundsSchema = z
@@ -19,7 +22,10 @@ export const RectSchema = z.object({ x: z.number(), z: z.number(), w: pos, d: po
 
 export const PaletteKeySchema = z.enum(['sky', 'ground', 'street', 'wall', 'neon', 'vegetation']);
 
-/** Direction artistique : 6 couleurs de base, les nuances en sont dérivées. */
+/**
+ * Direction artistique : 6 couleurs de base, les nuances en sont dérivées ; `ok` / `danger`
+ * servent aux retours d'interface (fantôme de placement valide / invalide).
+ */
 export const PaletteSchema = z.object({
   sky: hexColor,
   ground: hexColor,
@@ -27,6 +33,8 @@ export const PaletteSchema = z.object({
   wall: hexColor,
   neon: hexColor,
   vegetation: hexColor,
+  ok: hexColor,
+  danger: hexColor,
 });
 
 /** Faim, soif, santé (0..max). */
@@ -137,6 +145,18 @@ export const ConfigSchema = z.object({
     /** Le serveur accepte-t-il les commandes debug (donner, vider, accélérer) ? */
     commands: z.boolean(),
     timeScales: z.array(pos).min(1),
+    /** « Équiper le labo » : nombre de meubles de chaque type placés automatiquement. */
+    equipKit: perFixtureType(z.number().int().nonnegative()),
+  }),
+  /** Mode placement des meubles (labo). */
+  placement: z.object({
+    /** Pas d'un appui sur une flèche (m). */
+    stepM: pos,
+    /** Bouton maintenu : délai avant répétition, puis intervalle (ms). */
+    repeatDelayMs: pos,
+    repeatMs: pos,
+    /** Caméra haute pendant le placement (le reste du réglage intérieur est conservé). */
+    camera: z.object({ elevation: z.number().min(10).max(89.9), zoom: pos }),
   }),
   net: z.object({
     reconnectBackoffMs: z.array(pos).min(1),
@@ -209,8 +229,26 @@ export const ItemCategorySchema = z.enum([
   'cash_clean',
 ]);
 
-/** Types d'emplacement aménageable (labo) et objet qui s'y installe. */
+/** Types de meuble posable dans le labo. */
 export const FixtureTypeSchema = z.enum(['pot', 'drying_rack', 'cutting_table', 'lamp']);
+
+/** Meuble posable : type, empreinte (avant rotation), hauteur, pose au sol ou au plafond. */
+export const PlaceableSchema = z.object({
+  type: FixtureTypeSchema,
+  w: pos,
+  d: pos,
+  height: pos,
+  /** `ceiling` : suspendu, ne bloque pas le sol (lampes). */
+  mount: z.enum(['floor', 'ceiling']),
+  /** Distance d'interaction mesurée depuis le centre du meuble. */
+  interactRadius: pos,
+});
+
+/** Bouton d'usage dans le détail de l'inventaire (les consommables gardent le leur). */
+export const ItemUseSchema = z.object({
+  action: z.enum(['place']),
+  label: z.string().min(1),
+});
 
 export const ItemDefSchema = z.object({
   id: z.string().min(1),
@@ -224,8 +262,9 @@ export const ItemDefSchema = z.object({
   /** Saisie par la police en fouille. */
   confiscable: z.boolean(),
   strain: z.string().optional(),
-  /** Mobilier : type d'emplacement où l'objet s'installe. */
-  installs: FixtureTypeSchema.optional(),
+  /** Mobilier posable librement dans le labo. */
+  placeable: PlaceableSchema.optional(),
+  use: ItemUseSchema.optional(),
   /** Texte affiché dans le détail de l'inventaire. */
   description: z.string().min(1),
   /** Pictogramme (emoji) affiché dans l'inventaire. */
@@ -321,6 +360,11 @@ export const EconomySchema = z.object({
       range: pos,
       maxLamps: z.number().int().nonnegative(),
     }),
+    /** Placement libre : plafond par type, dégagement autour de la porte (m). */
+    furniture: z.object({
+      maxPerType: perFixtureType(z.number().int().positive()),
+      doorClearance: nonNeg,
+    }),
   }),
   upgrades: z.record(
     z.string(),
@@ -357,16 +401,6 @@ export const StationSchema = z.object({
   vendor: z.string().min(1).optional(),
 });
 
-/** Emplacement aménageable : vide au départ, on y installe un objet compatible du sac. */
-export const FixtureSchema = z.object({
-  id: z.string().min(1),
-  accepts: FixtureTypeSchema,
-  label: z.string().min(1),
-  position: Vec2Schema,
-  size: z.object({ w: pos, d: pos }),
-  interactRadius: pos,
-});
-
 /** Pièce intérieure : une « zone » où le joueur passe en franchissant la porte d'un lieu. */
 export const InteriorSchema = z.object({
   id: z.string().min(1),
@@ -379,7 +413,8 @@ export const InteriorSchema = z.object({
   spawn: Vec2Schema,
   obstacles: z.array(RectSchema),
   stations: z.array(StationSchema).min(1),
-  fixtures: z.array(FixtureSchema).default([]),
+  /** On peut y poser librement des meubles (labo). */
+  furnishable: z.boolean().default(false),
 });
 
 export const ZonesFileSchema = z.object({ interiors: z.array(InteriorSchema) });
@@ -500,8 +535,8 @@ export type Vec2Data = z.infer<typeof Vec2Schema>;
 export type StationKind = z.infer<typeof StationKindSchema>;
 export type Station = z.infer<typeof StationSchema>;
 export type Interior = z.infer<typeof InteriorSchema>;
-export type Fixture = z.infer<typeof FixtureSchema>;
 export type FixtureType = z.infer<typeof FixtureTypeSchema>;
+export type Placeable = z.infer<typeof PlaceableSchema>;
 export type Shelf = z.infer<typeof ShelfSchema>;
 export type NpcProfile = z.infer<typeof NpcProfileSchema>;
 export type NpcsFile = z.infer<typeof NpcsFileSchema>;

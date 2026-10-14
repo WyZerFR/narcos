@@ -1,11 +1,20 @@
 import type { Color } from 'three';
-import { gameData, type Fixture } from '@narco/shared';
+import {
+  FixtureTypeSchema,
+  furnitureFixture,
+  gameData,
+  rotateOffset,
+  rotatedSize,
+  type Fixture,
+  type FixtureType,
+} from '@narco/shared';
 import { shade } from '../city/batch';
 
 /**
- * Mobilier du labo décrit en boîtes (centre, taille, couleur) : tout le mobilier installé est
- * rendu par 2 `InstancedMesh` de cubes unitaires (opaque + lumineux), quel que soit le nombre
- * d'emplacements équipés. Couleurs dérivées de la palette uniquement.
+ * Mobilier du labo décrit en boîtes (centre, taille, couleur) : tous les meubles posés sont
+ * rendus par 2 `InstancedMesh` de cubes unitaires (opaque + lumineux), quel que soit leur
+ * nombre. Boîtes décrites dans le repère du meuble, puis tournées (quarts de tour) et placées.
+ * Couleurs dérivées de la palette uniquement.
  */
 
 export interface PartBox {
@@ -51,15 +60,33 @@ function box(
   out.push({ x, y, z, sx, sy, sz, color });
 }
 
-/** Meuble installé sur un emplacement. `neon` : couleur néon du lieu (lampes). */
+/** Meuble posé. `neon` : couleur néon du lieu (lampes). */
 export function installedParts(f: Fixture, neon: string): FixtureParts {
+  const local = localParts(f.accepts, rotatedSize(f.size, f.rot), neon);
+  const place = (b: PartBox): PartBox => {
+    const o = rotateOffset(b.x, b.z, f.rot);
+    const odd = f.rot % 2 === 1;
+    return {
+      ...b,
+      x: f.position.x + o.x,
+      z: f.position.z + o.z,
+      sx: odd ? b.sz : b.sx,
+      sz: odd ? b.sx : b.sz,
+    };
+  };
+  return { solid: local.solid.map(place), glow: local.glow.map(place) };
+}
+
+/** Boîtes d'un meuble dans son repère (centre en 0, empreinte `w` × `d` avant rotation). */
+function localParts(type: FixtureType, size: { w: number; d: number }, neon: string): FixtureParts {
   const { palette } = gameData.config;
-  const { x, z } = f.position;
-  const { w, d } = f.size;
+  const x = 0;
+  const z = 0;
+  const { w, d } = size;
   const wood = shade(palette.neon, 0.42);
   const solid: PartBox[] = [];
   const glow: PartBox[] = [];
-  switch (f.accepts) {
+  switch (type) {
     case 'pot':
       // pot en terre cuite, rebord, terreau
       block(solid, x, 0, z, w * 0.8, 0.55, d * 0.8, shade(palette.neon, 0.5));
@@ -103,34 +130,21 @@ export function installedParts(f: Fixture, neon: string): FixtureParts {
   return { solid, glow };
 }
 
-/** Repère au sol d'un emplacement vide : contour lumineux discret aux couleurs du type. */
-export function emptyParts(f: Fixture): FixtureParts {
-  const { palette } = gameData.config;
-  const { x, z } = f.position;
-  const { w, d } = f.size;
-  const c = shade(f.accepts === 'lamp' ? palette.neon : palette.vegetation, 0.55);
-  const t = 0.05;
-  const y = 0.02;
-  const glow: PartBox[] = [];
-  box(glow, x, y, z - d / 2, w, 0.02, t, c);
-  box(glow, x, y, z + d / 2, w, 0.02, t, c);
-  box(glow, x - w / 2, y, z, t, 0.02, d, c);
-  box(glow, x + w / 2, y, z, t, 0.02, d, c);
-  return { solid: [], glow };
+/** Pièces d'un objet posable à une position donnée (fantôme du mode placement). */
+export function partsFor(itemId: string, x: number, z: number, rot: number, neon: string) {
+  const f = furnitureFixture({ id: 'ghost', itemId, x, z, rot }, gameData.items);
+  return f ? installedParts(f, neon) : { solid: [], glow: [] };
 }
 
-/** Nombre maximal de boîtes (tout installé ou tout vide), pour dimensionner les instances. */
-export function maxParts(
-  fixtures: readonly Fixture[],
-  neon: string,
-): { solid: number; glow: number } {
+/** Nombre maximal de boîtes : plafond de chaque type × boîtes d'un meuble de ce type. */
+export function maxParts(neon: string): { solid: number; glow: number } {
+  const { maxPerType } = gameData.economy.lab.furniture;
   let solid = 0;
   let glow = 0;
-  for (const f of fixtures) {
-    const a = installedParts(f, neon);
-    const b = emptyParts(f);
-    solid += Math.max(a.solid.length, b.solid.length);
-    glow += Math.max(a.glow.length, b.glow.length);
+  for (const type of FixtureTypeSchema.options) {
+    const parts = localParts(type, { w: 1, d: 1 }, neon);
+    solid += parts.solid.length * maxPerType[type];
+    glow += parts.glow.length * maxPerType[type];
   }
   return { solid: Math.max(1, solid), glow: Math.max(1, glow) };
 }

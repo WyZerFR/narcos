@@ -125,6 +125,15 @@
       "growReductionPerLamp": 0.2,
       "range": 2.2,
       "maxLamps": 2
+    },
+    "furniture": {
+      "maxPerType": {
+        "pot": 12,
+        "drying_rack": 4,
+        "cutting_table": 2,
+        "lamp": 8
+      },
+      "doorClearance": 1.2
     }
   }
 }

@@ -9,6 +9,7 @@ import {
 import { connection, type GameRoom } from '../net/connection';
 import { readBag, useRoomVersion } from '../net/gameView';
 import { closeInventory } from './uiStore';
+import { startPlacingItem } from './placementStore';
 import { useInventoryDrag } from './useInventoryDrag';
 
 type Drag = ReturnType<typeof useInventoryDrag>;
@@ -105,6 +106,8 @@ export function InventoryPanel({ room }: { room: GameRoom }) {
     return () => clearTimeout(t);
   }, [dragError]);
   const bag = readBag(room, connection.playerId);
+  const myZone = room.state.players?.get(connection.playerId)?.zone ?? '';
+  const inLab = gameData.interiors.get(myZone)?.furnishable ?? false;
   const stack = selection ? bag[selection.slot] : null;
   const def = stack ? gameData.items.get(stack.itemId) : undefined;
 
@@ -148,6 +151,22 @@ export function InventoryPanel({ room }: { room: GameRoom }) {
                 </strong>
                 <p>{def.description}</p>
               </div>
+              {def.use?.action === 'place' && (
+                <div className="inv-actions">
+                  <button
+                    type="button"
+                    className="btn primary inv-use"
+                    disabled={!inLab}
+                    onClick={() => {
+                      closeInventory();
+                      startPlacingItem(stack.itemId);
+                    }}
+                  >
+                    {def.use.label}
+                  </button>
+                  {!inLab && <p className="inv-use-hint">À poser dans ton labo</p>}
+                </div>
+              )}
               {def.restores && (
                 <div className="inv-actions">
                   <button type="button" className="btn primary" onClick={useItem}>

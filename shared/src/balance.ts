@@ -61,7 +61,7 @@ export function starterKitCost(data: Pick<GameData, 'economy' | 'shops' | 'items
   const priceOf = (installs: string) => {
     for (const shop of data.shops.values())
       for (const shelf of shop.shelves)
-        if (data.items.get(shelf.itemId)?.installs === installs) return shelf.price;
+        if (data.items.get(shelf.itemId)?.placeable?.type === installs) return shelf.price;
     return Infinity;
   };
   const base = data.economy.strains[0]!.id;

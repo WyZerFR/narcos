@@ -24,8 +24,10 @@ export const ClientMsg = {
   Use: 'use',
   /** Glisser-déposer d'une pile dans le sac. */
   InventoryMove: 'inventory.move',
-  /** Installer / démonter du mobilier sur un emplacement du labo. */
-  Fixture: 'fixture',
+  /** Meubles du labo : poser un objet du sac, déplacer, reprendre dans le sac. */
+  FixturePlace: 'fixture.place',
+  FixtureMove: 'fixture.move',
+  FixturePickup: 'fixture.pickup',
   /** Vente de rue : demander une offre à un PNJ, l'accepter (quantité) ou la refuser. */
   SaleOpen: 'sale.open',
   SaleAccept: 'sale.accept',
@@ -39,6 +41,8 @@ export const ServerMsg = {
   Notice: 'notice',
   /** Réponse à un glisser-déposer d'inventaire. */
   MoveResult: 'inventory.moveResult',
+  /** Réponse à une intention sur un meuble (le mode placement se ferme si ok). */
+  FixtureResult: 'fixture.result',
   /** Offre d'un PNJ réservée pour ce joueur (panneau de vente). */
   SaleOffer: 'sale.offer',
   /** Fin d'une offre (vente faite, refus, patience épuisée, joueur parti). */
@@ -119,9 +123,33 @@ export interface MoveResultMessage {
   text?: string;
 }
 
-export interface FixtureMessage {
+/** Poser un objet posable du sac (position en m dans la pièce, rotation en quarts de tour). */
+export interface FixturePlaceMessage {
+  requestId: number;
+  itemId: string;
+  x: number;
+  z: number;
+  rot: number;
+}
+
+export interface FixtureMoveMessage {
+  requestId: number;
   fixtureId: string;
-  action: 'install' | 'uninstall';
+  x: number;
+  z: number;
+  rot: number;
+}
+
+export interface FixturePickupMessage {
+  requestId: number;
+  fixtureId: string;
+}
+
+export interface FixtureResultMessage {
+  requestId: number;
+  ok: boolean;
+  text: string;
+  fixtureId?: string;
 }
 
 export interface SaleOpenMessage {

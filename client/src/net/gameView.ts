@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { CutJob, Inventory, PotState, RackEntry } from '@narco/shared';
+import type { CutJob, Furniture, Inventory, PotState, RackEntry } from '@narco/shared';
 import type { GameRoom, SlotView } from './connection';
 
 /**
@@ -76,10 +76,12 @@ export function readCut(room: GameRoom, fixtureId: string): CutJob | null {
     : null;
 }
 
-/** Emplacements installés : id d'emplacement → objet installé. */
-export function readFixtures(room: GameRoom): Map<string, string> {
-  const out = new Map<string, string>();
-  room.state.lab?.fixtures?.forEach((f, id) => out.set(id, f.itemId));
+/** Meubles posés dans le labo (id, objet, position, rotation). */
+export function readFurniture(room: GameRoom): Furniture[] {
+  const out: Furniture[] = [];
+  room.state.lab?.fixtures?.forEach((f, id) =>
+    out.push({ id, itemId: f.itemId, x: f.x, z: f.z, rot: f.rot }),
+  );
   return out;
 }
 

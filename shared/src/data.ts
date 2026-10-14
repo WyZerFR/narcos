@@ -9,6 +9,7 @@ import npcsJson from '../data/npcs.json';
 import {
   ConfigSchema,
   EconomySchema,
+  FixtureTypeSchema,
   ItemsFileSchema,
   LocationsFileSchema,
   ZonesFileSchema,
@@ -34,7 +35,7 @@ import {
 } from './geometry';
 import { footprint, interactionPoint } from './locations';
 import { interiorBounds, interiorObstacles } from './zones';
-import { fixtureObstacles } from './fixtures';
+
 import { obstaclesFrom } from './collision';
 
 export interface GameData {
@@ -183,6 +184,16 @@ export function parseGameData(raw: RawGameData): GameData {
       errors.push(`items.json : "${item.id}" référence la variété inconnue "${item.strain}"`);
     if (item.storage === 'slot' && item.stackMax < 1)
       errors.push(`items.json : "${item.id}" stocké en slot doit avoir stackMax >= 1`);
+    if (Boolean(item.placeable) !== (item.use?.action === 'place'))
+      errors.push(`items.json : "${item.id}" : "placeable" et use.action "place" vont ensemble`);
+    if (item.placeable && item.storage !== 'slot')
+      errors.push(`items.json : "${item.id}" posable mais pas rangeable dans le sac`);
+  }
+  for (const type of FixtureTypeSchema.options) {
+    if (![...items.values()].some((it) => it.placeable?.type === type))
+      errors.push(`items.json : aucun objet posable de type "${type}"`);
+    if (config.debug.equipKit[type] > economy.lab.furniture.maxPerType[type])
+      errors.push(`config.json : debug.equipKit.${type} dépasse le plafond du labo`);
   }
   for (const loc of locations.values()) {
     if (!zones.has(loc.zone))
@@ -226,27 +237,15 @@ export function parseGameData(raw: RawGameData): GameData {
   }
 
   for (const interior of zonesFile.interiors) {
-    const bounds = interiorBounds(interior);
-    const ids = new Set(interior.stations.map((st) => st.id));
-    for (const f of interior.fixtures) {
-      if (ids.has(f.id)) errors.push(`zones.json : id d'emplacement en double "${f.id}"`);
-      ids.add(f.id);
-      if (!rectContainsRect(bounds, rectFromCenter(f.position, f.size)))
-        errors.push(`zones.json : l'emplacement "${f.id}" sort de la pièce`);
-      if (![...items.values()].some((it) => it.installs === f.accepts))
-        errors.push(`zones.json : aucun objet ne s'installe sur "${f.id}" (${f.accepts})`);
+    const ids = new Set<string>();
+    for (const st of interior.stations) {
+      if (ids.has(st.id)) errors.push(`zones.json : "${interior.id}" : poste en double "${st.id}"`);
+      ids.add(st.id);
     }
-    // tout équipé, les meubles ne se chevauchent pas et ne bouchent pas l'apparition
-    const solids = [
-      ...interiorObstacles(interior),
-      ...fixtureObstacles(interior, new Set(interior.fixtures.map((f) => f.id))),
-    ];
-    for (const [i, a] of solids.entries())
-      for (const b of solids.slice(i + 1))
-        if (rectsOverlap(a, b))
-          errors.push(`zones.json : "${interior.id}" : deux meubles installés se chevauchent`);
-    if (solids.some((r) => rectContainsPoint(r, interior.spawn)))
-      errors.push(`zones.json : "${interior.id}" : un emplacement couvre le point d'apparition`);
+    if (interiorObstacles(interior).some((r) => rectContainsPoint(r, interior.spawn)))
+      errors.push(`zones.json : "${interior.id}" : un poste couvre le point d'apparition`);
+    if (interior.furnishable && !interior.stations.some((s) => s.kind === 'exit'))
+      errors.push(`zones.json : "${interior.id}" aménageable sans porte de sortie`);
   }
   const lamp = economy.lab.lamp;
   if (lamp.maxLamps * lamp.growReductionPerLamp >= 1)

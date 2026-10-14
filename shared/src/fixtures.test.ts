@@ -1,102 +1,66 @@
 import { describe, expect, it } from 'vitest';
-import configJson from '../data/config.json';
-import economyJson from '../data/economy.json';
-import itemsJson from '../data/items.json';
-import locationsJson from '../data/locations.json';
-import shopsJson from '../data/shops.json';
-import npcsJson from '../data/npcs.json';
-import zonesJson from '../data/zones.json';
-import { gameData, parseGameData, type RawGameData } from './data';
+import { gameData } from './data';
 import {
   fixtureObstacles,
   fixtureStation,
+  furnitureFixture,
   interiorPlaces,
   lampRate,
   nearestPlace,
+  rotateOffset,
 } from './fixtures';
 import { plantPot, potGrowMs, potReadyAt, rebankPot, waterPot } from './production';
-import { zoneArea } from './zones';
-import { TEST_LAB_FIXTURES, installTestLabFixtures } from './testing/labFixtures';
-
-const raw = (): RawGameData =>
-  structuredClone({
-    config: configJson,
-    economy: economyJson,
-    items: itemsJson,
-    locations: locationsJson,
-    zones: zonesJson,
-    shops: shopsJson,
-    npcs: npcsJson,
-  });
 
 const lab = gameData.interiors.get('lab')!;
-/** Le labo du jeu est vide : on teste sur les emplacements de l'ancien labo meublé. */
-const gameLabFixtures = lab.fixtures.length;
-installTestLabFixtures();
 const LAMP = gameData.economy.lab.lamp;
 const strain = gameData.economy.strains.find((s) => s.id === 'base')!;
 const S = 1000;
+const { items } = gameData;
 
 function must<T>(r: { ok: true; value: T } | { ok: false; message: string }): T {
   if (!r.ok) throw new Error(r.message);
   return r.value;
 }
 
-describe('emplacements du labo', () => {
-  it('le labo du jeu est livré vide : robinet et porte seulement, aucun emplacement', () => {
-    expect(gameLabFixtures).toBe(0);
+describe('meubles posés', () => {
+  it('le labo du jeu est livré vide et aménageable : robinet et porte seulement', () => {
+    expect(lab.furnishable).toBe(true);
     expect(lab.stations.map((s) => s.kind).sort()).toEqual(['exit', 'water']);
+    expect(gameData.interiors.get('shop')!.furnishable).toBe(false);
   });
 
-  it('emplacements de test : 4 pots, 2 étendoirs, 1 table, 4 lampes', () => {
-    const by = (t: string) => lab.fixtures.filter((f) => f.accepts === t).length;
-    expect([by('pot'), by('drying_rack'), by('cutting_table'), by('lamp')]).toEqual([4, 2, 1, 4]);
+  it('résout un meuble depuis items.json : type, empreinte tournée, portée, poste', () => {
+    const rack = items.get('drying_rack')!.placeable!;
+    const f = furnitureFixture({ id: 'f1', itemId: 'drying_rack', x: 1, z: 2, rot: 1 }, items)!;
+    expect(f).toMatchObject({ accepts: 'drying_rack', rot: 1, mount: 'floor' });
+    expect(f.size).toEqual({ w: rack.d, d: rack.w });
+    expect(f.interactRadius).toBe(rack.interactRadius);
+    expect(fixtureStation(f)).toMatchObject({ id: 'f1', kind: 'rack', solid: true });
+    expect(furnitureFixture({ id: 'x', itemId: 'water', x: 0, z: 0, rot: 0 }, items)).toBeNull();
+    expect(furnitureFixture({ id: 'r', itemId: 'pot', x: 0, z: 0, rot: 5 }, items)!.rot).toBe(1);
   });
 
-  it('un emplacement installé devient un poste ; les lampes ne bloquent pas', () => {
-    const pot = lab.fixtures.find((f) => f.id === 'pot_1')!;
-    expect(fixtureStation(pot)).toMatchObject({ id: 'pot_1', kind: 'pot', solid: true });
-    const all = new Set(lab.fixtures.map((f) => f.id));
-    expect(fixtureObstacles(lab, all)).toHaveLength(lab.fixtures.length - 4);
-    expect(fixtureObstacles(lab, new Set())).toHaveLength(0);
-    const base = zoneArea(gameData, 'lab')!.obstacles.length;
-    expect(zoneArea(gameData, 'lab', fixtureObstacles(lab, all))!.obstacles.length).toBe(base + 7);
+  it('les lampes au plafond ne bloquent pas le sol', () => {
+    const pot = furnitureFixture({ id: 'p', itemId: 'pot', x: 0, z: 0, rot: 0 }, items)!;
+    const lamp = furnitureFixture({ id: 'l', itemId: 'grow_lamp', x: 0, z: 0, rot: 0 }, items)!;
+    expect(fixtureObstacles([pot, lamp])).toHaveLength(1);
+    expect(fixtureStation(lamp).solid).toBe(false);
   });
 
-  it('endroit le plus proche : emplacement vide sans poste, installé avec poste', () => {
-    const pot = lab.fixtures.find((f) => f.id === 'pot_1')!;
-    const near = { x: pot.position.x, z: pot.position.z + 1 };
-    const empty = nearestPlace(near, interiorPlaces(lab, new Set()));
-    expect(empty?.id).toBe('pot_1');
-    expect(empty?.station).toBeUndefined();
-    const installed = nearestPlace(near, interiorPlaces(lab, new Set(['pot_1'])));
-    expect(installed?.station?.kind).toBe('pot');
-    expect(nearestPlace({ x: 100, z: 100 }, interiorPlaces(lab, new Set()))).toBeNull();
+  it('rotation des décalages locaux par quart de tour', () => {
+    expect(rotateOffset(1, 0, 0)).toEqual({ x: 1, z: 0 });
+    expect(rotateOffset(1, 0, 1)).toEqual({ x: 0, z: -1 });
+    expect(rotateOffset(1, 0, 2)).toEqual({ x: -1, z: -0 });
+    expect(rotateOffset(1, 0, 3)).toEqual({ x: -0, z: 1 });
   });
 
-  it('refuse un emplacement qui chevauche un poste ou que rien ne peut équiper', () => {
-    const r = raw();
-    const z = r.zones as {
-      interiors: { id: string; fixtures: { id: string; position: object }[] }[];
-    };
-    const labRaw = z.interiors.find((i) => i.id === 'lab')!;
-    labRaw.fixtures = structuredClone([...TEST_LAB_FIXTURES]);
-    expect(() => parseGameData(r)).not.toThrow();
-    labRaw.fixtures[1]!.position = { ...labRaw.fixtures[0]!.position };
-    expect(() => parseGameData(r)).toThrow(/se chevauchent/);
-    const r2 = raw();
-    (r2.zones as typeof z).interiors.find((i) => i.id === 'lab')!.fixtures = structuredClone([
-      ...TEST_LAB_FIXTURES,
-    ]);
-    const items = r2.items as { items: { id: string; installs?: string }[] };
-    delete items.items.find((i) => i.id === 'grow_lamp')!.installs;
-    expect(() => parseGameData(r2)).toThrow(/aucun objet ne s'installe/);
-  });
-
-  it('refuse des lampes qui annuleraient la durée de pousse', () => {
-    const r = raw();
-    (r.economy as { lab: { lamp: { maxLamps: number } } }).lab.lamp.maxLamps = 5;
-    expect(() => parseGameData(r)).toThrow(/maxLamps/);
+  it('endroit le plus proche : poste fixe ou meuble posé à sa position réelle', () => {
+    const pot = furnitureFixture({ id: 'f7', itemId: 'pot', x: 3, z: -2, rot: 0 }, items)!;
+    const places = interiorPlaces(lab, [pot]);
+    expect(nearestPlace({ x: 3, z: -1 }, places)?.station.kind).toBe('pot');
+    expect(nearestPlace({ x: 3, z: -1 }, places)?.fixture?.id).toBe('f7');
+    expect(nearestPlace({ x: -6.3, z: 1.6 }, places)?.id).toBe('water');
+    expect(nearestPlace({ x: 100, z: 100 }, places)).toBeNull();
   });
 });
 
@@ -156,11 +120,11 @@ describe('kit de départ', () => {
     expect(gameData.economy.startingMoney.dirty).toBeGreaterThanOrEqual(kit);
   });
 
-  it('chaque type d’emplacement a un objet vendu au Bricoshop', () => {
+  it('chaque type de meuble a un objet posable vendu au Bricoshop', () => {
     const sold = new Set(gameData.shops.get('shop')!.shelves.map((s) => s.itemId));
     for (const type of ['pot', 'drying_rack', 'cutting_table', 'lamp'])
       expect(
-        [...gameData.items.values()].some((it) => it.installs === type && sold.has(it.id)),
+        [...gameData.items.values()].some((it) => it.placeable?.type === type && sold.has(it.id)),
       ).toBe(true);
   });
 });

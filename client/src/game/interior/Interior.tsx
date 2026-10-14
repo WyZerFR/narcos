@@ -5,6 +5,7 @@ import { applyCutout } from '../city/cutout';
 import { buildRoom } from './buildRoom';
 import { FixtureProps } from './FixtureProps';
 import { LabProps } from './LabProps';
+import { PlacementGhost } from './PlacementGhost';
 import type { GameRoom } from '../../net/connection';
 
 /** Rendu d'un intérieur (`zones.json`) : pièce fusionnée, découpe des murs devant le joueur. */
@@ -45,10 +46,11 @@ export function Interior({
     <>
       <mesh geometry={geometry.solid} material={materials.solid} />
       <mesh geometry={geometry.glow} material={materials.glow} />
-      {interior.fixtures.length > 0 && (
+      {interior.furnishable && (
         <>
           <FixtureProps room={room} interior={interior} glowBoost={glowBoost} />
-          <LabProps room={room} interior={interior} />
+          <LabProps room={room} />
+          <PlacementGhost room={room} interior={interior} />
         </>
       )}
     </>

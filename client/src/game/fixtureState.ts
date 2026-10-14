@@ -1,61 +1,71 @@
 import {
   fixtureObstacles,
+  furnitureFixtures,
   gameData,
   interiorPlaces,
   STREET,
   zoneArea,
   type Fixture,
+  type Furniture,
   type Place,
   type ZoneArea,
 } from '@narco/shared';
+import { useEffect, useState } from 'react';
 import type { GameRoom } from '../net/connection';
-import { readFixtures } from '../net/gameView';
+import { readFurniture, subscribeState } from '../net/gameView';
 
 /**
- * Mobilier installé du labo vu par le client : ensemble des emplacements équipés, zone de
- * collisions correspondante (même calcul que le serveur) et endroits interactifs.
+ * Meubles du labo vus par le client : liste résolue (même calcul que le serveur), zone de
+ * collisions correspondante et endroits interactifs. Tout est mis en cache par « signature »
+ * (ids + positions + rotations) : recalculé seulement quand un meuble bouge.
  */
 
-export function installedSet(room: GameRoom): Set<string> {
-  return new Set(readFixtures(room).keys());
+export const furnitureSignature = (list: readonly Furniture[]) =>
+  list.map((f) => `${f.id}:${f.itemId}:${f.x}:${f.z}:${f.rot}`).join('|');
+
+let cache: { signature: string; fixtures: Fixture[] } = { signature: '', fixtures: [] };
+
+/** Meubles posés du labo (résolus depuis items.json). */
+export function labFixtures(room: GameRoom): Fixture[] {
+  const list = readFurniture(room);
+  const signature = furnitureSignature(list);
+  if (signature !== cache.signature)
+    cache = { signature, fixtures: furnitureFixtures(list, gameData.items) };
+  return cache.fixtures;
 }
 
-const keyOf = (installed: ReadonlySet<string>) => [...installed].sort().join(',');
+/** Meubles d'une zone (seul un intérieur aménageable en a). */
+export function fixturesFor(room: GameRoom, zoneId: string): Fixture[] {
+  return gameData.interiors.get(zoneId)?.furnishable ? labFixtures(room) : [];
+}
 
-const areaCache = new Map<string, ZoneArea>();
+const areaCache = new Map<string, { fixtures: readonly Fixture[]; area: ZoneArea | null }>();
 
-/** Bornes + obstacles de la zone, mobilier installé compris (mis en cache par configuration). */
-export function areaFor(zoneId: string, installed: ReadonlySet<string>): ZoneArea | null {
-  const interior = gameData.interiors.get(zoneId);
-  const key = `${zoneId}|${interior?.fixtures.length ? keyOf(installed) : ''}`;
-  const cached = areaCache.get(key);
-  if (cached) return cached;
+/** Bornes + obstacles de la zone, meubles posés compris (recalculé quand ils bougent). */
+export function areaFor(zoneId: string, fixtures: readonly Fixture[]): ZoneArea | null {
+  const cached = areaCache.get(zoneId);
+  if (cached && cached.fixtures === fixtures) return cached.area;
   const area =
-    zoneId === STREET || !interior
+    zoneId === STREET || fixtures.length === 0
       ? zoneArea(gameData, zoneId)
-      : zoneArea(gameData, zoneId, fixtureObstacles(interior, installed));
-  if (area) areaCache.set(key, area);
+      : zoneArea(gameData, zoneId, fixtureObstacles(fixtures));
+  areaCache.set(zoneId, { fixtures, area });
   return area;
 }
 
-/** Postes fixes + emplacements de l'intérieur, avec leur état installé. */
-export function placesOf(zoneId: string, installed: ReadonlySet<string>): Place[] {
+/** Postes fixes + meubles posés de l'intérieur. */
+export function placesOf(zoneId: string, fixtures: readonly Fixture[]): Place[] {
   const interior = gameData.interiors.get(zoneId);
-  return interior ? interiorPlaces(interior, installed) : [];
+  return interior ? interiorPlaces(interior, fixtures) : [];
 }
 
-/** Objet du sac compatible avec un emplacement (premier trouvé). */
-export function compatibleItem(
-  bag: readonly ({ itemId: string } | null)[],
-  fixture: Fixture,
-): string | null {
-  for (const s of bag)
-    if (s && gameData.items.get(s.itemId)?.installs === fixture.accepts) return s.itemId;
-  return null;
-}
-
-/** Objet vendu au Bricoshop pour un type d'emplacement (pour le libellé d'aide). */
-export function itemNameFor(fixture: Fixture): string {
-  const item = [...gameData.items.values()].find((it) => it.installs === fixture.accepts);
-  return item?.name ?? fixture.accepts;
+/** Meubles de la zone pour un composant React : re-rendu seulement quand un meuble change. */
+export function useFixtures(room: GameRoom, zoneId: string): Fixture[] {
+  const [fixtures, setFixtures] = useState(() => fixturesFor(room, zoneId));
+  useEffect(() => {
+    const refresh = () => setFixtures(fixturesFor(room, zoneId));
+    refresh();
+    return subscribeState(room, refresh);
+  }, [room, zoneId]);
+  return fixtures;
 }
