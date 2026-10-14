@@ -30,6 +30,7 @@ import {
   type NoticeMessage,
   type MoveResultMessage,
   moveStack,
+  sortInventory,
   type StationAction,
 } from '@narco/shared';
 import type { RoomSnapshot } from '../persistence';
@@ -162,6 +163,10 @@ export class NarcoRoom extends Room<GameState> {
     this.onMessage(ClientMsg.InventoryMove, (client, msg: unknown) =>
       this.handleInventoryMove(client, msg),
     );
+    this.onMessage(ClientMsg.InventorySort, (client) => {
+      const who = this.playerOf(client);
+      if (who) writeInventory(who.player.bag, sortInventory(readInventory(who.player.bag), items));
+    });
     this.onMessage(ClientMsg.FixturePlace, (client, msg: unknown) =>
       this.handleFurniture(client, msg, 'place'),
     );
@@ -284,15 +289,15 @@ export class NarcoRoom extends Room<GameState> {
     player.id = playerId;
     player.name = name || `Joueur ${index + 1}`;
     player.color = color;
-    player.bag = makeSlots(economy.inventory.bagSlots);
+    player.bag = makeSlots(config.inventory.bagSlots);
     // Argent de départ : sale dans le sac (physique, confiscable), propre sur le compte.
     const start = add(
-      emptyInventory(economy.inventory.bagSlots),
+      emptyInventory(config.inventory.bagSlots),
       'cash_dirty',
       economy.startingMoney.dirty,
       items,
     );
-    writeInventory(player.bag, start.ok ? start.inv : emptyInventory(economy.inventory.bagSlots));
+    writeInventory(player.bag, start.ok ? start.inv : emptyInventory(config.inventory.bagSlots));
     player.cleanMoney = economy.startingMoney.clean;
     Object.assign(player, SURVIVAL.start);
     // Autour du carton de départ, jamais dans un mur.

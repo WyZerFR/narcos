@@ -9,6 +9,7 @@ export * from './roomCode';
 export * from './protocol';
 export * from './zones';
 export * from './inventory';
+export * from './inventoryPrediction';
 export * from './clock';
 export * from './production';
 export * from './shop';

@@ -76,10 +76,13 @@ function Grid({
               aria-label={def ? `${def.name} × ${stack!.qty}` : 'Slot vide'}
             >
               {def && (
-                <>
+                <span
+                  className="inv-content"
+                  style={drag.hiddenSlot === slot ? { visibility: 'hidden' } : undefined}
+                >
                   <span className="inv-icon">{def.icon}</span>
                   <span className="inv-qty">{stack!.qty}</span>
-                </>
+                </span>
               )}
             </button>
           );
@@ -99,13 +102,13 @@ export function InventoryPanel({ room }: { room: GameRoom }) {
   const [selection, setSelection] = useState<Selection | null>(null);
   const [dragError, setDragError] = useState<string | null>(null);
   const onRefused = useCallback((text: string) => setDragError(text), []);
-  const drag = useInventoryDrag(room, onRefused);
+  const drag = useInventoryDrag(room, onRefused, () => readBag(room, connection.playerId));
   useEffect(() => {
     if (!dragError) return;
     const t = setTimeout(() => setDragError(null), ERROR_MS);
     return () => clearTimeout(t);
   }, [dragError]);
-  const bag = readBag(room, connection.playerId);
+  const bag = drag.view(readBag(room, connection.playerId));
   const myZone = room.state.players?.get(connection.playerId)?.zone ?? '';
   const inLab = gameData.interiors.get(myZone)?.furnishable ?? false;
   const stack = selection ? bag[selection.slot] : null;
@@ -123,6 +126,13 @@ export function InventoryPanel({ room }: { room: GameRoom }) {
       <div className="inv-panel">
         <header className="inv-header">
           <h2>Mon sac</h2>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => room.connection.isOpen && room.send(ClientMsg.InventorySort)}
+          >
+            Trier
+          </button>
           <button type="button" className="btn" onClick={closeInventory}>
             Fermer
           </button>

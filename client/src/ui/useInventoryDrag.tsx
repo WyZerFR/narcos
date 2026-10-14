@@ -1,10 +1,27 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
-import { ClientMsg, gameData, type InventoryKind, type InventoryMoveMessage } from '@narco/shared';
+import {
+  bagSignature,
+  ClientMsg,
+  gameData,
+  predictedBag,
+  pruneMoves,
+  settleMove,
+  type Inventory,
+  type InventoryKind,
+  type InventoryMoveMessage,
+  type PredictedMove,
+} from '@narco/shared';
 import { connection, type GameRoom } from '../net/connection';
 
 const { longPressMs, dragCancelPx, moveTimeoutMs } = gameData.config.ui;
 /** Durée du retour du fantôme vers son slot après un refus ou une annulation (style). */
 const RETURN_MS = 220;
+/** Durée de la pose du fantôme dans le slot cible (style). */
+const LAND_MS = 150;
+/** Objet soulevé : léger agrandissement (style). */
+const LIFT_SCALE = 1.12;
+/** Part du trajet vers la case de départ que fait l'objet qui s'écarte (aperçu d'échange). */
+const SWAP_PREVIEW = 0.55;
 
 export interface SlotRef {
   inv: InventoryKind;
@@ -15,8 +32,10 @@ interface Ghost {
   itemId: string;
   qty: number;
   from: SlotRef;
-  /** Le fantôme repart vers son slot (annulation ou refus serveur). */
-  returning: boolean;
+  /** drag : suit le doigt ; landing : se pose dans la case cible ; returning : retour. */
+  phase: 'drag' | 'landing' | 'returning';
+  /** Case masquée pendant le trajet du fantôme (l'objet y arrive). */
+  hiddenSlot: number | null;
 }
 
 /** Slot sous un point de l'écran (les cases portent `data-inv` et `data-slot`). */
@@ -26,13 +45,16 @@ function slotAt(x: number, y: number): SlotRef | null {
   return { inv: el.dataset.inv as InventoryKind, slot: Number(el.dataset.slot) };
 }
 
-function slotRect(ref: SlotRef): DOMRect | null {
-  return (
-    document
-      .querySelector<HTMLElement>(`[data-inv="${ref.inv}"][data-slot="${ref.slot}"]`)
-      ?.getBoundingClientRect() ?? null
-  );
+function slotEl(ref: SlotRef): HTMLElement | null {
+  return document.querySelector<HTMLElement>(`[data-inv="${ref.inv}"][data-slot="${ref.slot}"]`);
 }
+
+function slotRect(ref: SlotRef): DOMRect | null {
+  return slotEl(ref)?.getBoundingClientRect() ?? null;
+}
+
+const centerOf = (r: DOMRect) => ({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+const sameSlot = (a: SlotRef, b: SlotRef) => a.inv === b.inv && a.slot === b.slot;
 
 /** Bloque le défilement iOS pendant un glisser (écouteur non passif). */
 const blockScroll = (e: TouchEvent) => e.preventDefault();
@@ -41,11 +63,28 @@ const blockScroll = (e: TouchEvent) => e.preventDefault();
  * Glisser-déposer par appui long, sans dépendance : Pointer Events + `setPointerCapture`.
  * - appui court : rien ici, le clic garde son rôle (sélection) ;
  * - mouvement > `dragCancelPx` avant `longPressMs` : appui annulé, la grille défile ;
- * - appui long : un fantôme suit le doigt ; au lâcher sur un slot → message `inventory.move`
- *   (le serveur décide) ; hors grille ou refus → le fantôme revient à son slot.
+ * - appui long : l'objet se soulève (agrandi, ombre, vibration) et suit le doigt par transform,
+ *   sans re-rendu React ; la case visée est surlignée et l'objet qui s'y trouve s'écarte vers
+ *   la case de départ (aperçu d'échange) ;
+ * - lâcher sur un slot : pose animée, déplacement prédit tout de suite (`predictedBag`), message
+ *   `inventory.move` ; refus (ou pas de réponse en `moveTimeoutMs`) → rollback et retour animé ;
+ * - lâcher hors grille : retour animé à la case d'origine.
+ * `serverBag` lit le sac de l'état serveur ; `view()` renvoie le sac à afficher (prédit).
  */
-export function useInventoryDrag(room: GameRoom, onRefused: (text: string) => void) {
+export function useInventoryDrag(
+  room: GameRoom,
+  onRefused: (text: string) => void,
+  serverBag: () => Inventory,
+) {
   const [ghost, setGhost] = useState<Ghost | null>(null);
+  /** Coups en attente de confirmation (prédiction) ; `bump` re-rend quand la liste change. */
+  const moves = useRef<PredictedMove[]>([]);
+  const [, setMovesVersion] = useState(0);
+  const bump = () => setMovesVersion((v) => v + 1);
+  /** Dernier sac affiché (pour savoir ce qu'il y a sous le doigt). */
+  const shown = useRef<Inventory>([]);
+  /** Case survolée pendant le glisser (classes posées directement sur le DOM). */
+  const hover = useRef<HTMLElement | null>(null);
   const ghostEl = useRef<HTMLDivElement>(null);
   const press = useRef<{
     id: number;
@@ -63,21 +102,91 @@ export function useInventoryDrag(room: GameRoom, onRefused: (text: string) => vo
   const pending = useRef<number | null>(null);
   /** Filet de sécurité : une réponse perdue (reconnexion…) ne doit pas bloquer tout glisser. */
   const pendingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  /** Slot d'origine du dernier dépôt envoyé (pour y renvoyer le fantôme en cas de refus). */
+  /** Dernier dépôt envoyé : origine et cible (pour le retour animé en cas de refus). */
   const dropFrom = useRef<SlotRef | null>(null);
+  const dropTo = useRef<SlotRef | null>(null);
   const requestId = useRef(1);
 
-  const placeGhost = (x: number, y: number) => {
+  /** Position du fantôme (transform seulement : aucun re-rendu React pendant le glisser). */
+  const placeGhost = (x: number, y: number, scale: number, ms = 0) => {
     const el = ghostEl.current;
-    if (el) el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+    if (!el) return;
+    el.style.transitionDuration = `${ms}ms`;
+    el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${scale})`;
   };
 
-  /** Renvoie le fantôme vers son slot d'origine puis le retire. */
-  const returnGhost = (from: SlotRef) => {
-    const r = slotRect(from);
-    setGhost((g) => (g ? { ...g, returning: true } : g));
-    if (r) placeGhost(r.left + r.width / 2, r.top + r.height / 2);
-    setTimeout(() => setGhost(null), RETURN_MS);
+  /** Surligne la case visée ; l'objet qui l'occupe s'écarte vers la case de départ. */
+  const setHover = (to: SlotRef | null, from: SlotRef | null, itemId: string) => {
+    const el = to && from && !sameSlot(to, from) ? slotEl(to) : null;
+    if (el === hover.current) return;
+    const prev = hover.current;
+    if (prev) {
+      prev.classList.remove('drop-target', 'drop-merge', 'drop-swap');
+      const content = prev.querySelector<HTMLElement>('.inv-content');
+      if (content) content.style.transform = '';
+    }
+    hover.current = el;
+    if (!el || !to || !from) return;
+    const there = shown.current[to.slot];
+    el.classList.add('drop-target');
+    if (!there) return;
+    if (there.itemId === itemId) {
+      el.classList.add('drop-merge');
+      return;
+    }
+    el.classList.add('drop-swap');
+    const a = slotRect(to);
+    const b = slotRect(from);
+    const content = el.querySelector<HTMLElement>('.inv-content');
+    if (a && b && content) {
+      const dx = (b.left - a.left) * SWAP_PREVIEW;
+      const dy = (b.top - a.top) * SWAP_PREVIEW;
+      content.style.transform = `translate(${dx}px, ${dy}px)`;
+    }
+  };
+
+  /** Pose animée : le fantôme rejoint la case cible, où l'objet (prédit) apparaît ensuite. */
+  const landGhost = (to: SlotRef) => {
+    const r = slotRect(to);
+    setGhost((g) => (g ? { ...g, phase: 'landing', hiddenSlot: to.slot } : g));
+    if (r) placeGhost(centerOf(r).x, centerOf(r).y, 1, LAND_MS);
+    setTimeout(() => setGhost((g) => (g?.phase === 'landing' ? null : g)), LAND_MS);
+  };
+
+  /**
+   * Retour animé vers la case d'origine : depuis la position actuelle du fantôme, ou depuis la
+   * case `startAt` (refus serveur après la pose : l'objet repart de là où on l'avait posé).
+   */
+  const returnGhost = (
+    from: SlotRef,
+    startAt?: SlotRef,
+    item?: { itemId: string; qty: number },
+  ) => {
+    const end = slotRect(from);
+    const start = startAt ? slotRect(startAt) : null;
+    setGhost((g) => {
+      const base = g ?? (item ? { ...item, from } : null);
+      return base ? { ...base, from, phase: 'returning', hiddenSlot: from.slot } : null;
+    });
+    requestAnimationFrame(() => {
+      if (start) placeGhost(centerOf(start).x, centerOf(start).y, 1);
+      ghostEl.current?.getBoundingClientRect(); // fige la position de départ avant la transition
+      if (end) placeGhost(centerOf(end).x, centerOf(end).y, 1, RETURN_MS);
+    });
+    setTimeout(() => setGhost((g) => (g?.phase === 'returning' ? null : g)), RETURN_MS);
+  };
+
+  /** Refus ou absence de réponse : rollback de la prédiction et retour animé. */
+  const rollback = (id: number, text: string | null) => {
+    const m = moves.current.find((x) => x.requestId === id);
+    moves.current = settleMove(moves.current, id, false);
+    bump();
+    if (dropFrom.current && m)
+      returnGhost(dropFrom.current, dropTo.current ?? undefined, {
+        itemId: m.itemId,
+        qty: serverBag()[m.fromSlot]?.qty ?? 1,
+      });
+    if (text) onRefused(text);
   };
 
   const endDrag = () => {
@@ -93,13 +202,11 @@ export function useInventoryDrag(room: GameRoom, onRefused: (text: string) => vo
         pending.current = null;
         if (pendingTimer.current) clearTimeout(pendingTimer.current);
         if (res.ok) {
-          setGhost(null);
-        } else {
-          if (dropFrom.current) returnGhost(dropFrom.current);
-          onRefused(res.text ?? 'Déplacement refusé.');
-        }
+          moves.current = settleMove(moves.current, res.requestId, true);
+          bump();
+        } else rollback(res.requestId, res.text ?? 'Déplacement refusé.');
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- returnGhost ne dépend que de refs
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- rollback ne dépend que de refs
     [onRefused],
   );
 
@@ -132,8 +239,8 @@ export function useInventoryDrag(room: GameRoom, onRefused: (text: string) => vo
       }
       document.addEventListener('touchmove', blockScroll, { passive: false });
       navigator.vibrate?.(10);
-      setGhost({ itemId: p.itemId, qty: p.qty, from: p.from, returning: false });
-      requestAnimationFrame(() => placeGhost(p.x, p.y));
+      setGhost({ itemId: p.itemId, qty: p.qty, from: p.from, phase: 'drag', hiddenSlot: null });
+      requestAnimationFrame(() => placeGhost(p.x, p.y, LIFT_SCALE));
     }, longPressMs);
     press.current = { id, x: e.clientX, y: e.clientY, from, itemId, qty, target, timer };
   };
@@ -151,7 +258,8 @@ export function useInventoryDrag(room: GameRoom, onRefused: (text: string) => vo
     }
     p.x = e.clientX;
     p.y = e.clientY;
-    placeGhost(e.clientX, e.clientY);
+    placeGhost(e.clientX, e.clientY, LIFT_SCALE);
+    setHover(slotAt(e.clientX, e.clientY), p.from, p.itemId);
   };
 
   const onPointerUp = (e: ReactPointerEvent<HTMLElement>) => {
@@ -161,9 +269,10 @@ export function useInventoryDrag(room: GameRoom, onRefused: (text: string) => vo
     press.current = null;
     if (!dragging.current) return; // appui court : le clic fera la sélection
     endDrag();
+    setHover(null, null, '');
     swallowClick.current = true;
     const to = slotAt(e.clientX, e.clientY);
-    if (!to || (to.inv === p.from.inv && to.slot === p.from.slot)) {
+    if (!to || sameSlot(to, p.from)) {
       returnGhost(p.from); // lâché hors grille ou sur place : annulation
       return;
     }
@@ -173,14 +282,28 @@ export function useInventoryDrag(room: GameRoom, onRefused: (text: string) => vo
       to,
       itemId: p.itemId,
     };
+    // Prédiction : le sac affiché change tout de suite, le serveur confirme ou annule.
+    moves.current = [
+      ...moves.current,
+      {
+        requestId: msg.requestId,
+        fromSlot: p.from.slot,
+        toSlot: to.slot,
+        itemId: p.itemId,
+        base: bagSignature(serverBag()),
+        confirmed: false,
+      },
+    ];
+    bump();
+    landGhost(to);
     pending.current = msg.requestId;
     dropFrom.current = p.from;
+    dropTo.current = to;
     room.send(ClientMsg.InventoryMove, msg);
-    const from = p.from;
     pendingTimer.current = setTimeout(() => {
       if (pending.current !== msg.requestId) return;
       pending.current = null;
-      returnGhost(from);
+      rollback(msg.requestId, 'Pas de réponse du serveur.');
     }, moveTimeoutMs);
   };
 
@@ -191,6 +314,7 @@ export function useInventoryDrag(room: GameRoom, onRefused: (text: string) => vo
     press.current = null;
     if (dragging.current) {
       endDrag();
+      setHover(null, null, '');
       returnGhost(p.from);
     }
   };
@@ -202,13 +326,16 @@ export function useInventoryDrag(room: GameRoom, onRefused: (text: string) => vo
     return false;
   };
 
+  /** Sac à afficher : état serveur + coups prédits (les coups appliqués par le serveur sortent). */
+  const view = (server: Inventory): Inventory => {
+    moves.current = pruneMoves(server, moves.current);
+    shown.current = predictedBag(server, moves.current, gameData.items);
+    return shown.current;
+  };
+
   const def = ghost ? gameData.items.get(ghost.itemId) : undefined;
   const ghostNode = ghost ? (
-    <div
-      ref={ghostEl}
-      className={`inv-ghost${ghost.returning ? ' returning' : ''}`}
-      style={{ transitionDuration: ghost.returning ? `${RETURN_MS}ms` : '0ms' }}
-    >
+    <div ref={ghostEl} className={`inv-ghost ${ghost.phase}`}>
       <span className="inv-icon">{def?.icon}</span>
       <span className="inv-qty">{ghost.qty}</span>
     </div>
@@ -216,7 +343,9 @@ export function useInventoryDrag(room: GameRoom, onRefused: (text: string) => vo
 
   return {
     ghostNode,
-    draggingFrom: ghost?.from ?? null,
+    draggingFrom: ghost?.phase === 'drag' ? ghost.from : null,
+    hiddenSlot: ghost?.hiddenSlot ?? null,
+    view,
     slotHandlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel },
     consumeClick,
   };

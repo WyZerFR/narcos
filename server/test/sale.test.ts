@@ -48,7 +48,7 @@ async function notice(client: SdkRoom): Promise<NoticeMessage> {
 
 /** Sac : argent de départ + `pouches` pochons de base. */
 function setBag(room: NarcoRoom, playerId: string, pouches: number) {
-  let inv = emptyInventory(gameData.economy.inventory.bagSlots);
+  let inv = emptyInventory(gameData.config.inventory.bagSlots);
   const r = add(inv, 'pouch_base', pouches, gameData.items);
   if (r.ok) inv = r.inv;
   writeInventory(room.state.players.get(playerId)!.bag, inv);
@@ -143,7 +143,7 @@ describe('vente de rue', () => {
       expect((await notice(client)).text).toMatch(/Pas assez/);
     }
     // sac plein : 5 pochons (il en restera), le reste rempli de ciseaux, pas de place pour l'argent
-    let inv = emptyInventory(gameData.economy.inventory.bagSlots);
+    let inv = emptyInventory(gameData.config.inventory.bagSlots);
     const r1 = add(inv, 'pouch_base', 5, gameData.items);
     if (r1.ok) inv = r1.inv;
     const r2 = add(inv, 'scissors', inv.length - 1, gameData.items);
@@ -237,7 +237,7 @@ describe('PNJ — simulation (hors réseau, hasard maîtrisé)', () => {
     const player = new Player();
     player.id = 'p';
     player.zone = 'street';
-    player.bag = makeSlots(gameData.economy.inventory.bagSlots);
+    player.bag = makeSlots(gameData.config.inventory.bagSlots);
     player.x = 30;
     player.z = 5.25;
     player.rotY = Math.PI / 2;

@@ -73,7 +73,7 @@ const stockOf = (room: NarcoRoom, key: string) => room.state.shelves.get(key)!.s
 
 function setCash(room: NarcoRoom, id: string, cash: number) {
   const r = add(
-    emptyInventory(gameData.economy.inventory.bagSlots),
+    emptyInventory(gameData.config.inventory.bagSlots),
     'cash_dirty',
     cash,
     gameData.items,

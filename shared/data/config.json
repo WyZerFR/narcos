@@ -311,6 +311,10 @@
     "navCellSize": 0.5,
     "debugSpawnDistance": 1.2
   },
+  "inventory": {
+    "bagSlots": 10,
+    "stockSlots": 60
+  },
   "placement": {
     "stepM": 0.2,
     "repeatDelayMs": 300,

@@ -23,7 +23,7 @@ describe('données du jeu', () => {
   it('charge et indexe les 4 fichiers JSON', () => {
     expect(gameData.items.get('pouch_base')?.contraband).toBe(true);
     expect(gameData.items.get('cash_clean')?.storage).toBe('account');
-    expect(gameData.economy.inventory).toEqual({ bagSlots: 10, stockSlots: 60 });
+    expect(gameData.config.inventory).toEqual({ bagSlots: 10, stockSlots: 60 });
     expect(gameData.economy.dealer.weeklyCost).toBe(100);
   });
 
@@ -62,8 +62,8 @@ describe('données du jeu', () => {
 
   it('refuse un JSON invalide avec un message lisible', () => {
     const r = raw();
-    (r.economy as { inventory: { bagSlots: unknown } }).inventory.bagSlots = 'dix';
-    expect(() => parseGameData(r)).toThrow(/economy\.json invalide[\s\S]*inventory\.bagSlots/);
+    (r.config as { inventory: { bagSlots: unknown } }).inventory.bagSlots = 'dix';
+    expect(() => parseGameData(r)).toThrow(/config\.json invalide[\s\S]*inventory\.bagSlots/);
   });
 
   it('refuse une référence croisée cassée', () => {

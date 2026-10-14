@@ -1,8 +1,4 @@
 {
-  "inventory": {
-    "bagSlots": 10,
-    "stockSlots": 60
-  },
   "calendar": {
     "realMinutesPerGameDay": 20,
     "gameDaysPerWeek": 7

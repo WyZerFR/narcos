@@ -136,3 +136,18 @@ describe('glisser-déposer côté serveur', () => {
     expect(bag[9]).toBeNull();
   });
 });
+
+describe('Trier côté serveur', () => {
+  it('regroupe et range le sac du joueur', async () => {
+    const { client, room } = await newGame('inv-player-0005');
+    setBag(room, 'inv-player-0005', [null, ['water', 1], ['seed_base', 2], ['water', 2]]);
+    client.send(ClientMsg.InventorySort);
+    await room.waitForNextMessage();
+    const bag = readInventory(room.state.players.get('inv-player-0005')!.bag);
+    expect(bag.slice(0, 3)).toEqual([
+      { itemId: 'seed_base', qty: 2 },
+      { itemId: 'water', qty: 3 },
+      null,
+    ]);
+  });
+});

@@ -1168,3 +1168,27 @@ input {
 .secondary-action.second {
   bottom: calc(196px + var(--safe-b));
 }
+
+/* ---------- inventaire fluide ---------- */
+.inv-content {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  transition: transform 120ms ease-out;
+  pointer-events: none;
+}
+.inv-slot.drop-target {
+  border-color: var(--accent);
+  background: #3a3226;
+}
+.inv-slot.drop-merge {
+  border-color: var(--ok);
+}
+.inv-ghost.drag {
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.6);
+}
+.inv-ghost.landing,
+.inv-ghost.returning {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}

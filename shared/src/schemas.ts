@@ -148,6 +148,11 @@ export const ConfigSchema = z.object({
     /** « Équiper le labo » : nombre de meubles de chaque type placés automatiquement. */
     equipKit: perFixtureType(z.number().int().nonnegative()),
   }),
+  /** Taille du sac d'un joueur et du futur stock commun (nombre de slots). */
+  inventory: z.object({
+    bagSlots: z.number().int().positive(),
+    stockSlots: z.number().int().positive(),
+  }),
   /** Mode placement des meubles (labo). */
   placement: z.object({
     /** Pas d'un appui sur une flèche (m). */
@@ -291,10 +296,6 @@ export const StrainSchema = z.object({
 const SkillSchema = z.object({ maxRank: z.number().int().positive(), effectPerRank: z.number() });
 
 export const EconomySchema = z.object({
-  inventory: z.object({
-    bagSlots: z.number().int().positive(),
-    stockSlots: z.number().int().positive(),
-  }),
   calendar: z.object({ realMinutesPerGameDay: pos, gameDaysPerWeek: z.number().int().positive() }),
   /** Argent de départ par joueur ; `_comment` documente une valeur provisoire. */
   startingMoney: z.object({ _comment: z.string().optional(), dirty: nonNeg, clean: nonNeg }),

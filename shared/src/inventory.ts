@@ -1,4 +1,4 @@
-import type { ItemDef } from './schemas';
+import { ItemCategorySchema, type ItemDef } from './schemas';
 
 /**
  * Inventaire à slots (sac d'un joueur, stock commun du labo). Logique pure et immuable :
@@ -167,4 +167,34 @@ export function moveStack(
     a[fromSlot] = { ...dst };
   }
   return { ok: true, from: a, to: same ? a : b };
+}
+
+/**
+ * Bouton « Trier » : regroupe les piles d'un même objet (jusqu'à la limite de pile) et range par
+ * catégorie (ordre de `ItemCategorySchema`) puis par nom, cases vides à la fin. Même nombre de
+ * slots, mêmes quantités : rien n'est perdu.
+ */
+export function sortInventory(inv: Inventory, items: ItemLookup): Inventory {
+  const totals = new Map<string, number>();
+  for (const s of inv) if (s) totals.set(s.itemId, (totals.get(s.itemId) ?? 0) + s.qty);
+  const order = ItemCategorySchema.options;
+  const ids = [...totals.keys()].sort((a, b) => {
+    const da = items.get(a);
+    const db = items.get(b);
+    const ca = da ? order.indexOf(da.category) : order.length;
+    const cb = db ? order.indexOf(db.category) : order.length;
+    return ca - cb || (da?.name ?? a).localeCompare(db?.name ?? b, 'fr');
+  });
+  const out: (Stack | null)[] = [];
+  for (const id of ids) {
+    let left = totals.get(id)!;
+    const max = Math.max(1, items.get(id)?.stackMax ?? left);
+    while (left > 0) {
+      const qty = Math.min(max, left);
+      out.push({ itemId: id, qty });
+      left -= qty;
+    }
+  }
+  while (out.length < inv.length) out.push(null);
+  return out;
 }

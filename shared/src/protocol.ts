@@ -24,6 +24,8 @@ export const ClientMsg = {
   Use: 'use',
   /** Glisser-déposer d'une pile dans le sac. */
   InventoryMove: 'inventory.move',
+  /** Bouton « Trier » : regroupe et range le sac. */
+  InventorySort: 'inventory.sort',
   /** Meubles du labo : poser un objet du sac, déplacer, reprendre dans le sac. */
   FixturePlace: 'fixture.place',
   FixtureMove: 'fixture.move',

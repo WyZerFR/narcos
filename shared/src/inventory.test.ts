@@ -6,6 +6,7 @@ import {
   count,
   emptyInventory,
   moveStack,
+  sortInventory,
   remove,
   transfer,
   type Inventory,
@@ -175,5 +176,24 @@ describe('inventaire — glisser-déposer (moveStack)', () => {
     expect(moveStack(bag, 0, null, 9, items)).toMatchObject({ error: 'bad_slot' });
     moveStack(bag, 0, null, 1, items);
     expect(JSON.stringify(bag)).toBe(snapshot);
+  });
+});
+
+describe('inventaire — Trier', () => {
+  const inv = (...stacks: ([string, number] | null)[]): Inventory =>
+    stacks.map((s) => (s ? { itemId: s[0], qty: s[1] } : null));
+
+  it('regroupe les piles, range par catégorie, cases vides à la fin, rien de perdu', () => {
+    const bag = inv(null, ['water', 2], ['cash_dirty', 30], ['seed_base', 3], ['water', 1], null);
+    const sorted = sortInventory(bag, items);
+    expect(sorted).toHaveLength(bag.length);
+    expect(sorted).toEqual(
+      inv(['seed_base', 3], ['water', 3], ['cash_dirty', 30], null, null, null),
+    );
+  });
+
+  it('respecte la limite de pile en regroupant', () => {
+    const sorted = sortInventory(inv(['water', waterMax], ['water', 3], null), items);
+    expect(sorted).toEqual(inv(['water', waterMax], ['water', 3], null));
   });
 });
