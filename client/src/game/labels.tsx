@@ -42,6 +42,18 @@ export function isOccluded(from: Point3, to: Point3): boolean {
   return OCCLUDERS.some((box) => segmentHitsBox(from, to, box));
 }
 
+// Postes des intérieurs : ancres fixes (coordonnées de la pièce).
+for (const interior of gameData.interiors.values()) {
+  for (const st of interior.stations) {
+    const y = st.kind === 'exit' ? 2.9 : 2.3;
+    setLabelAnchor(`station:${interior.id}:${st.id}`, () => ({
+      x: st.position.x,
+      y,
+      z: st.position.z,
+    }));
+  }
+}
+
 // Les lieux ne bougent pas : ancres posées une fois pour toutes.
 for (const loc of gameData.locations.values()) {
   const y = loc.height + (loc.kind === 'area' ? 1 : 2.2);
@@ -102,6 +114,11 @@ export function LabelLayer({
             {loc.name}
           </div>
         ))}
+      {gameData.interiors.get(zone)?.stations.map((st) => (
+        <div key={st.id} ref={bindElement(`station:${zone}:${st.id}`)} className="station-label">
+          {st.label}
+        </div>
+      ))}
       {players.map((p) => (
         <div
           key={`marker:${p.id}`}

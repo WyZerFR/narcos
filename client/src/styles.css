@@ -664,3 +664,15 @@ input {
   font-weight: 700;
   color: var(--muted);
 }
+
+/* ---------- étiquettes des postes d'intérieur ---------- */
+.station-label {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(10, 8, 20, 0.72);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
