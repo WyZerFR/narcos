@@ -10,14 +10,15 @@
   "scripts": {
     "dev": "concurrently -k -n server,client -c magenta,cyan \"npm:dev -w server\" \"npm:dev -w client\"",
     "dev:https": "concurrently -k -n server,client -c magenta,cyan \"npm:dev -w server\" \"npm:dev:https -w client\"",
-    "build": "npm run build -w client",
+    "build": "npm run -s build -w client",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint .",
-    "typecheck": "npm run typecheck -w shared -w server -w client",
+    "lint": "eslint . --quiet",
+    "typecheck": "npm run -s typecheck -w shared -w server -w client",
     "format": "prettier --write .",
     "icons": "node scripts/make-icons.mjs",
-    "balance": "tsx scripts/balance.ts"
+    "balance": "tsx scripts/balance.ts",
+    "check": "node scripts/check.mjs"
   },
   "engines": {
     "node": ">=20"
