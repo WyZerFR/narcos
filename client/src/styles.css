@@ -812,6 +812,27 @@ input {
   font-size: 11px;
   font-weight: 600;
 }
+.station-label.empty-slot {
+  opacity: 0.55;
+  border-style: dashed;
+}
+.secondary-action {
+  position: fixed;
+  right: calc(36px + var(--safe-r));
+  bottom: calc(144px + var(--safe-b));
+  min-width: 96px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 22px;
+  border: 2px solid rgba(244, 196, 48, 0.8);
+  background: rgba(10, 8, 20, 0.8);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 14px;
+  /* au-dessus du panneau caméra (debug), qui peut descendre jusqu'ici */
+  z-index: 26;
+  touch-action: manipulation;
+}
 .station-status:empty {
   display: none;
 }

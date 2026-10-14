@@ -25,6 +25,8 @@ export const ClientMsg = {
   Use: 'use',
   /** Glisser-déposer d'une pile (sac / stock). */
   InventoryMove: 'inventory.move',
+  /** Installer / démonter du mobilier sur un emplacement du labo. */
+  Fixture: 'fixture',
 } as const;
 
 export const ServerMsg = {
@@ -106,6 +108,11 @@ export interface MoveResultMessage {
   text?: string;
 }
 
+export interface FixtureMessage {
+  fixtureId: string;
+  action: 'install' | 'uninstall';
+}
+
 export interface UseMessage {
   slot: number;
 }
@@ -121,7 +128,9 @@ export type DebugMessage =
   | { cmd: 'restock' }
   | { cmd: 'money'; amount: number }
   | { cmd: 'vitals'; mode: 'fill' | 'empty' }
-  | { cmd: 'survivalScale'; scale: number };
+  | { cmd: 'survivalScale'; scale: number }
+  | { cmd: 'equipLab' }
+  | { cmd: 'clearLab' };
 
 export const MAX_NAME_LENGTH = 16;
 

@@ -3,11 +3,11 @@ import {
   ClientMsg,
   gameData,
   nearestLocation,
-  nearestStation,
+  nearestPlace,
   STREET,
+  type FixtureMessage,
   type InteractMessage,
-  type Station,
-  type StationAction,
+  type Place,
   type StationMessage,
 } from '@narco/shared';
 import { connection, type GameRoom } from '../net/connection';
@@ -15,7 +15,8 @@ import { localPlayer } from '../game/localPlayer';
 import { ActionButton } from '../input/ActionButton';
 import { onAction } from '../input/inputState';
 import { gameNow } from '../net/gameView';
-import { stationView } from '../game/stationView';
+import { placeView } from '../game/stationView';
+import { installedSet, placesOf } from '../game/fixtureState';
 import { openInventory } from './uiStore';
 
 const LOCATIONS = [...gameData.locations.values()];
@@ -38,18 +39,27 @@ interface Target {
   message:
     | { type: typeof ClientMsg.Interact; body: InteractMessage }
     | { type: typeof ClientMsg.Station; body: StationMessage }
+    | { type: typeof ClientMsg.Fixture; body: FixtureMessage }
     | null;
+  /** Emplacement installé au repos : bouton secondaire « Démonter ». */
+  uninstall?: string;
 }
 
-/** Action proposée sur un poste, selon son état de production et le sac du joueur. */
-function stationTarget(room: GameRoom, station: Station): Target {
-  const view = stationView(room, station, connection.playerId, gameNow(), localPlayer.zone);
-  const action: StationAction | undefined = view.action;
+/** Action proposée sur un poste ou un emplacement, selon son état et le sac du joueur. */
+function placeTarget(room: GameRoom, place: Place): Target {
+  const view = placeView(room, place, connection.playerId, gameNow(), localPlayer.zone);
+  const action = view.install ? 'install' : view.action;
+  const message: Target['message'] = view.install
+    ? { type: ClientMsg.Fixture, body: { fixtureId: place.id, action: 'install' } }
+    : view.action
+      ? { type: ClientMsg.Station, body: { stationId: place.id, action: view.action } }
+      : null;
   return {
-    key: `${station.id}:${action ?? ''}`,
+    key: `${place.id}:${action ?? ''}:${view.uninstall ? 'u' : ''}`,
     label: view.label,
-    active: view.active && Boolean(action),
-    message: action ? { type: ClientMsg.Station, body: { stationId: station.id, action } } : null,
+    active: view.active && Boolean(message),
+    message,
+    ...(view.uninstall ? { uninstall: place.id } : {}),
   };
 }
 
@@ -66,9 +76,8 @@ function findTarget(room: GameRoom): Target | null {
         }
       : null;
   }
-  const interior = gameData.interiors.get(localPlayer.zone);
-  const station = interior ? nearestStation(localPlayer, interior) : null;
-  return station ? stationTarget(room, station) : null;
+  const place = nearestPlace(localPlayer, placesOf(localPlayer.zone, installedSet(room)));
+  return place ? placeTarget(room, place) : null;
 }
 
 /** Bouton ACTION contextuel (porte d'un lieu, poste d'intérieur) + toast de la réponse serveur. */
@@ -81,7 +90,12 @@ export function Interaction({ room }: { room: GameRoom }) {
     const id = setInterval(() => {
       const next = findTarget(room);
       const prev = targetRef.current;
-      if (next?.key !== prev?.key || next?.label !== prev?.label || next?.active !== prev?.active) {
+      if (
+        next?.key !== prev?.key ||
+        next?.label !== prev?.label ||
+        next?.active !== prev?.active ||
+        next?.uninstall !== prev?.uninstall
+      ) {
         targetRef.current = next;
         setTarget(next);
       }
@@ -118,6 +132,19 @@ export function Interaction({ room }: { room: GameRoom }) {
   return (
     <>
       <ActionButton label={target?.label ?? 'ACTION'} active={Boolean(target?.active)} />
+      {target?.uninstall && (
+        <button
+          type="button"
+          className="secondary-action"
+          onClick={() => {
+            const fixtureId = target.uninstall;
+            if (fixtureId && room.connection.isOpen)
+              room.send(ClientMsg.Fixture, { fixtureId, action: 'uninstall' });
+          }}
+        >
+          Démonter
+        </button>
+      )}
       {toast && (
         <div key={toast.key} className={`toast${toast.ok ? '' : ' bad'}`}>
           {toast.text}

@@ -33,12 +33,14 @@ export interface PotState {
   growMsDone: number;
   bankedAt: number;
   wateredUntil: number;
+  /** Vitesse de pousse (1 = normale ; > 1 avec des lampes à portée). */
+  rate: number;
 }
 
 export type PotStatus = 'empty' | 'needs_water' | 'growing' | 'ready';
 
 export function emptyPot(): PotState {
-  return { planted: false, strainId: '', growMsDone: 0, bankedAt: 0, wateredUntil: 0 };
+  return { planted: false, strainId: '', growMsDone: 0, bankedAt: 0, wateredUntil: 0, rate: 1 };
 }
 
 const growTotal = (strain: Strain) => strain.growSeconds * 1000;
@@ -47,7 +49,7 @@ const growTotal = (strain: Strain) => strain.growSeconds * 1000;
 export function potGrowMs(pot: PotState, now: number, strain: Strain): number {
   if (!pot.planted) return 0;
   const wet = Math.max(0, Math.min(now, pot.wateredUntil) - pot.bankedAt);
-  return Math.min(growTotal(strain), pot.growMsDone + wet);
+  return Math.min(growTotal(strain), pot.growMsDone + wet * (pot.rate || 1));
 }
 
 export function potStatus(pot: PotState, now: number, strain: Strain): PotStatus {
@@ -63,13 +65,27 @@ export function potProgress(pot: PotState, now: number, strain: Strain): number 
 /** Instant où le pot sera prêt si l'arrosage en cours suffit, sinon null. */
 export function potReadyAt(pot: PotState, now: number, strain: Strain): number | null {
   if (potStatus(pot, now, strain) !== 'growing') return null;
-  const at = now + (growTotal(strain) - potGrowMs(pot, now, strain));
+  const at = now + (growTotal(strain) - potGrowMs(pot, now, strain)) / (pot.rate || 1);
   return at <= pot.wateredUntil ? at : null;
 }
 
-export function plantPot(pot: PotState, strainId: string, now: number): Outcome<PotState> {
+export function plantPot(
+  pot: PotState,
+  strainId: string,
+  now: number,
+  rate = pot.rate || 1,
+): Outcome<PotState> {
   if (pot.planted) return no('Ce pot est déjà occupé.');
-  return ok({ planted: true, strainId, growMsDone: 0, bankedAt: now, wateredUntil: now });
+  return ok({ planted: true, strainId, growMsDone: 0, bankedAt: now, wateredUntil: now, rate });
+}
+
+/**
+ * Change la vitesse de pousse (lampe posée ou retirée) : la pousse acquise est d'abord « mise
+ * en banque » à l'ancienne vitesse, la suite se fera à la nouvelle. Aucun saut de progression.
+ */
+export function rebankPot(pot: PotState, now: number, strain: Strain, rate: number): PotState {
+  if (!pot.planted) return { ...pot, rate };
+  return { ...pot, growMsDone: potGrowMs(pot, now, strain), bankedAt: now, rate };
 }
 
 export function waterPot(pot: PotState, now: number, strain: Strain): Outcome<PotState> {

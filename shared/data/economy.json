@@ -8,7 +8,7 @@
     "gameDaysPerWeek": 7
   },
   "startingMoney": {
-    "dirty": 50,
+    "dirty": 100,
     "clean": 0
   },
   "survival": {
@@ -111,21 +111,22 @@
     }
   },
   "lab": {
-    "startPots": 2,
     "startingStock": [
       {
-        "itemId": "seed_base",
-        "qty": 4
-      },
-      {
         "itemId": "water",
-        "qty": 4
+        "qty": 2
       }
     ],
     "waterPerWatering": 1,
     "waterPerTap": 1,
     "rackCapacity": 6,
     "cuttingSeconds": 6,
-    "tableBatchMax": 5
+    "tableBatchMax": 5,
+    "starterKitSeeds": 3,
+    "lamp": {
+      "growReductionPerLamp": 0.2,
+      "range": 2.2,
+      "maxLamps": 2
+    }
   }
 }

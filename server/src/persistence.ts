@@ -3,13 +3,38 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import type { GameState } from './rooms/schema';
-import { CartLine, Player, Pot, RackEntry, ShelfState, Slot } from './rooms/schema';
+import {
+  CartLine,
+  CutJob,
+  InstalledFixture,
+  Player,
+  Pot,
+  RackEntry,
+  RackState,
+  ShelfState,
+  Slot,
+} from './rooms/schema';
 
 /**
  * Sauvegarde JSON des parties (en attendant SQLite) : un fichier unique réécrit toutes les
  * `config.persistence.snapshotSeconds`. Au démarrage, chaque partie est recréée avec son code,
- * ses joueurs (hors ligne), leurs sacs, le stock, les pots, l'étendoir et l'horloge de jeu.
+ * ses joueurs (hors ligne), leurs sacs, le stock, le mobilier du labo et l'horloge de jeu.
+ *
+ * Chaque partie porte un `schemaVersion` : v1 = labo livré meublé (2 pots, un étendoir, une
+ * table), v2 = labo aménageable. Une partie v1 est migrée en installant les emplacements
+ * d'origine avec leur contenu (plantes, séchage, découpe) ; sacs et stock sont repris tels quels.
  */
+
+/** Version courante du contenu d'une partie sauvegardée. */
+export const SNAPSHOT_SCHEMA_VERSION = 2;
+
+/** Emplacements équipés par la migration v1 → v2 (le labo meublé d'avant). */
+export const V1_FIXTURES = {
+  pots: ['pot_1', 'pot_2'],
+  rack: 'rack_1',
+  table: 'table_1',
+  items: { pot: 'pot', rack: 'drying_rack', table: 'cutting_table' },
+} as const;
 
 export const DEFAULT_SNAPSHOT_FILE = resolve(
   process.env.NARCO_DATA_DIR ?? resolve(dirname(fileURLToPath(import.meta.url)), '..', '.data'),
@@ -17,6 +42,14 @@ export const DEFAULT_SNAPSHOT_FILE = resolve(
 );
 
 const SlotJson = z.object({ itemId: z.string(), qty: z.number().int().nonnegative() });
+
+const RackEntryJson = z.object({ strainId: z.string(), qty: z.number(), readyAt: z.number() });
+const CutJson = z.object({
+  playerId: z.string(),
+  strainId: z.string(),
+  qty: z.number(),
+  readyAt: z.number(),
+});
 
 const StateJson = z.object({
   code: z.string(),
@@ -51,28 +84,32 @@ const StateJson = z.object({
   shelves: z.record(z.string(), z.object({ stock: z.number().int() })).default({}),
   lab: z.object({
     stock: z.array(SlotJson).default([]),
-    pots: z.record(
-      z.string(),
-      z.object({
-        planted: z.boolean(),
-        strainId: z.string(),
-        growMsDone: z.number(),
-        bankedAt: z.number(),
-        wateredUntil: z.number(),
-      }),
-    ),
-    rack: z.array(z.object({ strainId: z.string(), qty: z.number(), readyAt: z.number() })),
-    cut: z.object({
-      playerId: z.string(),
-      strainId: z.string(),
-      qty: z.number(),
-      readyAt: z.number(),
-    }),
+    fixtures: z.record(z.string(), z.object({ itemId: z.string() })).default({}),
+    pots: z
+      .record(
+        z.string(),
+        z.object({
+          planted: z.boolean(),
+          strainId: z.string(),
+          growMsDone: z.number(),
+          bankedAt: z.number(),
+          wateredUntil: z.number(),
+          rate: z.number().positive().default(1),
+        }),
+      )
+      .default({}),
+    racks: z.record(z.string(), z.object({ entries: z.array(RackEntryJson) })).default({}),
+    cuts: z.record(z.string(), CutJson).default({}),
+    /** v1 : étendoir et table uniques. */
+    rack: z.array(RackEntryJson).optional(),
+    cut: CutJson.optional(),
   }),
 });
 
 export const RoomSnapshotSchema = z.object({
   code: z.string().min(1),
+  /** Absent dans les sauvegardes d'avant le labo aménageable (= 1). */
+  schemaVersion: z.number().int().positive().default(1),
   /** Horloge de jeu au moment de la sauvegarde : elle reprend de là (temps figé pendant l'arrêt). */
   clock: z.object({ now: z.number(), scale: z.number().positive() }),
   state: StateJson,
@@ -88,6 +125,26 @@ const FileSchema = z.object({
 
 function slotsFrom(list: { itemId: string; qty: number }[]): Slot[] {
   return list.map((s) => Object.assign(new Slot(), s));
+}
+
+type LabJson = RoomSnapshot['state']['lab'];
+
+/** Convertit un labo v1 (meublé d'office) en labo v2 : emplacements d'origine installés. */
+export function migrateLab(lab: LabJson, version: number): LabJson {
+  if (version >= 2) return lab;
+  const { rack, cut, ...rest } = lab;
+  const out: LabJson = { ...rest, fixtures: {}, pots: {}, racks: {}, cuts: {} };
+  for (const id of V1_FIXTURES.pots) {
+    const pot = lab.pots[id];
+    if (!pot) continue; // pot pas installé dans la partie v1
+    out.fixtures[id] = { itemId: V1_FIXTURES.items.pot };
+    out.pots[id] = { ...pot, rate: 1 };
+  }
+  out.fixtures[V1_FIXTURES.rack] = { itemId: V1_FIXTURES.items.rack };
+  out.racks[V1_FIXTURES.rack] = { entries: rack ?? [] };
+  out.fixtures[V1_FIXTURES.table] = { itemId: V1_FIXTURES.items.table };
+  out.cuts[V1_FIXTURES.table] = cut ?? { playerId: '', strainId: '', qty: 0, readyAt: 0 };
+  return out;
 }
 
 /** Remplit un état vierge depuis un snapshot. Les joueurs reviennent hors ligne. */
@@ -117,10 +174,18 @@ export function hydrateState(state: GameState, snap: RoomSnapshot): void {
     state.shelves.set(key, Object.assign(new ShelfState(), shelf));
   state.lab.stock.clear();
   state.lab.stock.push(...slotsFrom(s.lab.stock));
-  for (const [id, pot] of Object.entries(s.lab.pots))
+  const lab = migrateLab(s.lab, snap.schemaVersion);
+  for (const [id, f] of Object.entries(lab.fixtures))
+    state.lab.fixtures.set(id, Object.assign(new InstalledFixture(), f));
+  for (const [id, pot] of Object.entries(lab.pots))
     state.lab.pots.set(id, Object.assign(new Pot(), pot));
-  state.lab.rack.push(...s.lab.rack.map((e) => Object.assign(new RackEntry(), e)));
-  Object.assign(state.lab.cut, s.lab.cut);
+  for (const [id, rack] of Object.entries(lab.racks)) {
+    const r = new RackState();
+    r.entries.push(...rack.entries.map((e) => Object.assign(new RackEntry(), e)));
+    state.lab.racks.set(id, r);
+  }
+  for (const [id, cut] of Object.entries(lab.cuts))
+    state.lab.cuts.set(id, Object.assign(new CutJob(), cut));
   state.clock.now = snap.clock.now;
   state.clock.scale = snap.clock.scale;
 }

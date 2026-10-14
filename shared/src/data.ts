@@ -31,6 +31,7 @@ import {
 } from './geometry';
 import { footprint, interactionPoint } from './locations';
 import { interiorBounds, interiorObstacles } from './zones';
+import { fixtureObstacles } from './fixtures';
 
 export interface GameData {
   config: GameConfig;
@@ -222,13 +223,32 @@ export function parseGameData(raw: RawGameData): GameData {
         `economy.json : stock de départ, objet "${entry.itemId}" inconnu ou non rangeable`,
       );
   }
-  const potStations = zonesFile.interiors.flatMap((i) =>
-    i.stations.filter((st) => st.kind === 'pot'),
-  );
-  if (economy.lab.startPots > potStations.length)
-    errors.push(
-      `economy.json : ${economy.lab.startPots} pots au départ mais ${potStations.length} emplacements`,
-    );
+  for (const interior of zonesFile.interiors) {
+    const bounds = interiorBounds(interior);
+    const ids = new Set(interior.stations.map((st) => st.id));
+    for (const f of interior.fixtures) {
+      if (ids.has(f.id)) errors.push(`zones.json : id d'emplacement en double "${f.id}"`);
+      ids.add(f.id);
+      if (!rectContainsRect(bounds, rectFromCenter(f.position, f.size)))
+        errors.push(`zones.json : l'emplacement "${f.id}" sort de la pièce`);
+      if (![...items.values()].some((it) => it.installs === f.accepts))
+        errors.push(`zones.json : aucun objet ne s'installe sur "${f.id}" (${f.accepts})`);
+    }
+    // tout équipé, les meubles ne se chevauchent pas et ne bouchent pas l'apparition
+    const solids = [
+      ...interiorObstacles(interior),
+      ...fixtureObstacles(interior, new Set(interior.fixtures.map((f) => f.id))),
+    ];
+    for (const [i, a] of solids.entries())
+      for (const b of solids.slice(i + 1))
+        if (rectsOverlap(a, b))
+          errors.push(`zones.json : "${interior.id}" : deux meubles installés se chevauchent`);
+    if (solids.some((r) => rectContainsPoint(r, interior.spawn)))
+      errors.push(`zones.json : "${interior.id}" : un emplacement couvre le point d'apparition`);
+  }
+  const lamp = economy.lab.lamp;
+  if (lamp.maxLamps * lamp.growReductionPerLamp >= 1)
+    errors.push('economy.json : lab.lamp, maxLamps × growReductionPerLamp doit rester < 1');
   for (const strain of economy.strains)
     for (const category of ['seed', 'plant_fresh', 'plant_dried', 'pouch'] as const)
       if (![...items.values()].some((it) => it.category === category && it.strain === strain.id))

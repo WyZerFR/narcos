@@ -28,11 +28,14 @@ const s = new Vector3();
 
 /**
  * Éléments vivants du labo, lus dans l'état serveur : plantes des pots (taille = progression)
- * et bottes suspendues à l'étendoir (vert → brun en séchant). 2 draw calls au total.
+ * et bottes suspendues aux étendoirs installés (vert → brun en séchant). 2 draw calls au total.
  */
 export function LabProps({ room, interior }: { room: GameRoom; interior: Interior }) {
-  const pots = useMemo(() => interior.stations.filter((st) => st.kind === 'pot'), [interior]);
-  const rack = useMemo(() => interior.stations.find((st) => st.kind === 'rack'), [interior]);
+  const pots = useMemo(() => interior.fixtures.filter((f) => f.accepts === 'pot'), [interior]);
+  const racks = useMemo(
+    () => interior.fixtures.filter((f) => f.accepts === 'drying_rack'),
+    [interior],
+  );
   const capacity = economy.lab.rackCapacity;
 
   const plantRef = useRef<InstancedMesh>(null);
@@ -92,20 +95,28 @@ export function LabProps({ room, interior }: { room: GameRoom; interior: Interio
     }
 
     const bundles = bundleRef.current;
-    if (bundles && rack) {
+    if (bundles) {
       const dryMs = economy.strains[0]!.dryingSeconds * 1000;
-      const flat = readRack(room).flatMap((e) => Array.from({ length: e.qty }, () => e.readyAt));
-      for (let i = 0; i < capacity; i++) {
-        const readyAt = flat[i];
-        const step = rack.size.w / (capacity + 1);
-        const x = rack.position.x - rack.size.w / 2 + step * (i + 1);
-        const k = readyAt === undefined ? 0 : 1;
-        m.compose(p.set(x, 2, rack.position.z), q.identity(), s.set(k, k, k));
-        bundles.setMatrixAt(i, m);
-        const dried =
-          readyAt === undefined ? 0 : Math.min(1, Math.max(0, 1 - (readyAt - now) / dryMs));
-        bundles.setColorAt(i, new Color(palette.vegetation).lerp(shade(palette.neon, 0.45), dried));
-      }
+      racks.forEach((rack, r) => {
+        const flat = readRack(room, rack.id).flatMap((e) =>
+          Array.from({ length: e.qty }, () => e.readyAt),
+        );
+        for (let j = 0; j < capacity; j++) {
+          const i = r * capacity + j;
+          const readyAt = flat[j];
+          const step = rack.size.w / (capacity + 1);
+          const x = rack.position.x - rack.size.w / 2 + step * (j + 1);
+          const k = readyAt === undefined ? 0 : 1;
+          m.compose(p.set(x, 2, rack.position.z), q.identity(), s.set(k, k, k));
+          bundles.setMatrixAt(i, m);
+          const dried =
+            readyAt === undefined ? 0 : Math.min(1, Math.max(0, 1 - (readyAt - now) / dryMs));
+          bundles.setColorAt(
+            i,
+            new Color(palette.vegetation).lerp(shade(palette.neon, 0.45), dried),
+          );
+        }
+      });
       bundles.instanceMatrix.needsUpdate = true;
       if (bundles.instanceColor) bundles.instanceColor.needsUpdate = true;
     }
@@ -118,7 +129,11 @@ export function LabProps({ room, interior }: { room: GameRoom; interior: Interio
         args={[plantGeo, material, Math.max(1, pots.length)]}
         frustumCulled={false}
       />
-      <instancedMesh ref={bundleRef} args={[bundleGeo, material, capacity]} frustumCulled={false} />
+      <instancedMesh
+        ref={bundleRef}
+        args={[bundleGeo, material, Math.max(1, capacity * racks.length)]}
+        frustumCulled={false}
+      />
     </>
   );
 }

@@ -14,6 +14,10 @@ import {
   generateRoomCode,
   interactionPoint,
   interiorForLocation,
+  interiorPlaces,
+  isBlocked,
+  isSolidFixture,
+  rectFromCenter,
   resolveCircle,
   sanitizeName,
   setClockScale,
@@ -21,6 +25,7 @@ import {
   validateMove,
   zoneArea,
   type CorrectionMessage,
+  type Fixture,
   type GameClock,
   type Interior,
   type JoinOptions,
@@ -32,8 +37,17 @@ import {
   type StationAction,
 } from '@narco/shared';
 import type { RoomSnapshot } from '../persistence';
-import { hydrateState } from '../persistence';
-import { completeCut, runStationAction } from './lab';
+import { hydrateState, SNAPSHOT_SCHEMA_VERSION } from '../persistence';
+import {
+  clearAll,
+  equipAll,
+  installedIds,
+  installedObstacles,
+  installFixture,
+  refreshPotRates,
+  uninstallFixture,
+} from './fixtures';
+import { completeCuts, runStationAction } from './lab';
 import {
   consume,
   count,
@@ -44,13 +58,13 @@ import {
   speedFactor,
 } from '@narco/shared';
 import { pay, putBack, returnCart, stockShelves, takeItem } from './shop';
-import { GameState, Player, Pot } from './schema';
+import { GameState, Player } from './schema';
 import { makeSlots, readInventory, writeInventory } from './stateSync';
 
 const { config, economy, items } = gameData;
 const SURVIVAL = economy.survival;
 
-/** Règles de mouvement par zone (rue, intérieurs), calculées une fois. */
+/** Règles de mouvement par zone (rue, intérieurs), sans le mobilier installé, calculées une fois. */
 const MOVE_RULES = new Map<string, MoveRules>();
 for (const zoneId of [STREET, ...gameData.interiors.keys()]) {
   const area = zoneArea(gameData, zoneId)!;
@@ -144,6 +158,7 @@ export class NarcoRoom extends Room<GameState> {
     this.onMessage(ClientMsg.InventoryMove, (client, msg: unknown) =>
       this.handleInventoryMove(client, msg),
     );
+    this.onMessage(ClientMsg.Fixture, (client, msg: unknown) => this.handleFixture(client, msg));
     this.onMessage(ClientMsg.CartRemove, (client, msg: unknown) =>
       this.handleCartRemove(client, msg),
     );
@@ -182,7 +197,7 @@ export class NarcoRoom extends Room<GameState> {
     this.sessions.set(client.sessionId, playerId);
     // Hors ligne, les jauges sont figées : on repart de maintenant.
     player.survivalAt = this.now();
-    this.budgets.set(playerId, freshBudget(Date.now(), rulesFor(player.zone)));
+    this.budgets.set(playerId, freshBudget(Date.now(), this.zoneRules(player.zone)));
     this.cancelEmptyTimer();
     console.log(`[room ${this.roomId}] ${player.name} connecté (${this.sessions.size} session(s))`);
   }
@@ -222,20 +237,21 @@ export class NarcoRoom extends Room<GameState> {
   snapshot(): RoomSnapshot {
     return {
       code: this.roomId,
+      schemaVersion: SNAPSHOT_SCHEMA_VERSION,
       clock: { now: this.now(), scale: this.gameClock.scale },
       state: this.state.toJSON() as RoomSnapshot['state'],
     };
   }
 
-  /** Boucle serveur : termine la découpe en cours quand son heure est venue. */
+  /** Boucle serveur : termine les découpes dont l'heure est venue. */
   private tick(): void {
-    const result = completeCut(this.state, this.now());
-    if (result) this.notifyPlayer(result.playerId, true, result.text);
+    for (const result of completeCuts(this.state, this.now()))
+      this.notifyPlayer(result.playerId, true, result.text);
   }
 
   // ---------------------------------------------------------------- mise en place
 
-  /** Stock de départ et pots installés au départ (economy.lab). */
+  /** Stock de départ (economy.lab). Le labo est vide : on l'équipe au Bricoshop. */
   private setupLab(): void {
     const lab = this.state.lab;
     lab.stock = makeSlots(economy.inventory.stockSlots);
@@ -245,10 +261,6 @@ export class NarcoRoom extends Room<GameState> {
       if (r.ok) stock = r.inv;
     }
     writeInventory(lab.stock, stock);
-    const potStations = [...gameData.interiors.values()].flatMap((i) =>
-      i.stations.filter((s) => s.kind === 'pot'),
-    );
-    for (const st of potStations.slice(0, economy.lab.startPots)) lab.pots.set(st.id, new Pot());
   }
 
   private spawnPlayer(playerId: string, name: string): Player {
@@ -326,7 +338,19 @@ export class NarcoRoom extends Room<GameState> {
     player.zone = zoneId;
     player.x = at.x;
     player.z = at.z;
-    this.budgets.set(playerId, freshBudget(Date.now(), rulesFor(zoneId)));
+    this.budgets.set(playerId, freshBudget(Date.now(), this.zoneRules(zoneId)));
+  }
+
+  /** Règles de la zone + mobilier installé (obstacles dynamiques du labo). */
+  private zoneRules(zoneId: string): MoveRules {
+    const rules = rulesFor(zoneId);
+    const interior = gameData.interiors.get(zoneId);
+    const extra = interior ? installedObstacles(this.state, interior) : [];
+    if (extra.length === 0 || !rules.collision) return rules;
+    return {
+      ...rules,
+      collision: { ...rules.collision, obstacles: [...rules.collision.obstacles, ...extra] },
+    };
   }
 
   /** Le joueur est-il assez près de ce poste de son intérieur ? */
@@ -390,10 +414,14 @@ export class NarcoRoom extends Room<GameState> {
     const action = msg.action as StationAction;
     if (!STATION_ACTIONS.includes(action)) return this.notify(client, false, 'Action inconnue.');
     const interior = gameData.interiors.get(player.zone);
-    const station = interior?.stations.find((s) => s.id === msg.stationId);
-    if (!interior || !station) return this.notify(client, false, "Ce poste n'est pas ici.");
-    if (!this.isNear(player, station))
-      return this.notify(client, false, `Trop loin : ${station.label}`);
+    const place = interior
+      ? interiorPlaces(interior, installedIds(this.state)).find((p) => p.id === msg.stationId)
+      : undefined;
+    if (!interior || !place) return this.notify(client, false, "Ce poste n'est pas ici.");
+    const label = place.station?.label ?? place.fixture?.label ?? place.id;
+    if (!this.isNear(player, place)) return this.notify(client, false, `Trop loin : ${label}`);
+    const station = place.station;
+    if (!station) return this.notify(client, false, "Rien n'est installé ici.");
 
     if (station.kind === 'exit') {
       if (action !== 'exit') return this.notify(client, false, `Impossible ici : ${station.label}`);
@@ -417,11 +445,44 @@ export class NarcoRoom extends Room<GameState> {
     this.notify(client, result.ok, result.text, result.open ? { open: result.open } : {});
   }
 
+  /** Installer / démonter du mobilier : zone, emplacement, distance, puis règles du labo. */
+  private handleFixture(client: Client, msg: unknown): void {
+    const who = this.playerOf(client);
+    if (!who || !isObject(msg)) return;
+    const { player } = who;
+    const interior = gameData.interiors.get(player.zone);
+    const fixture = interior?.fixtures.find((f) => f.id === msg.fixtureId);
+    if (!interior || !fixture) return this.notify(client, false, "Cet emplacement n'est pas ici.");
+    if (!this.isNear(player, fixture))
+      return this.notify(client, false, `Trop loin : ${fixture.label}`);
+    const now = this.now();
+    if (msg.action === 'install') {
+      const blocker = this.standingOn(interior.id, fixture);
+      if (blocker) return this.notify(client, false, `${blocker} est dans le passage.`);
+      const r = installFixture(this.state, player, interior, fixture, now);
+      return this.notify(client, r.ok, r.text);
+    }
+    if (msg.action === 'uninstall') {
+      const r = uninstallFixture(this.state, player, interior, fixture, now);
+      return this.notify(client, r.ok, r.text);
+    }
+    this.notify(client, false, 'Action inconnue.');
+  }
+
+  /** Nom d'un joueur debout sur l'emplacement (on n'installe pas un meuble sur quelqu'un). */
+  private standingOn(zoneId: string, fixture: Fixture): string | null {
+    if (!isSolidFixture(fixture)) return null;
+    const rect = rectFromCenter(fixture.position, fixture.size);
+    for (const p of this.state.players.values())
+      if (p.zone === zoneId && isBlocked(p, config.world.playerRadius, [rect])) return p.name;
+    return null;
+  }
+
   // ---------------------------------------------------------------- survie
 
   /** Règles de mouvement de la zone, vitesse réduite si faim ou soif sous le seuil bas. */
   private rulesForPlayer(player: Player): MoveRules {
-    const rules = rulesFor(player.zone);
+    const rules = this.zoneRules(player.zone);
     const factor = speedFactor(player, SURVIVAL);
     return factor === 1 ? rules : { ...rules, maxSpeed: rules.maxSpeed * factor };
   }
@@ -618,6 +679,20 @@ export class NarcoRoom extends Room<GameState> {
       case 'clearStock':
         writeInventory(this.state.lab.stock, emptyInventory(this.state.lab.stock.length));
         return this.notify(client, true, '[debug] stock vidé');
+      case 'equipLab':
+      case 'clearLab': {
+        const interior = gameData.interiors.get(player.zone);
+        if (!interior?.fixtures.length)
+          return this.notify(client, false, '[debug] va dans le labo');
+        if (msg.cmd === 'equipLab') equipAll(this.state, interior, this.now());
+        else clearAll(this.state, interior);
+        refreshPotRates(this.state, interior, this.now());
+        return this.notify(
+          client,
+          true,
+          `[debug] labo ${msg.cmd === 'equipLab' ? 'équipé' : 'vidé'}`,
+        );
+      }
       case 'timeScale': {
         const scale = Number(msg.scale);
         if (!config.debug.timeScales.includes(scale))

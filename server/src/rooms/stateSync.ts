@@ -42,6 +42,7 @@ export function readPot(p: Pot): PotState {
     growMsDone: p.growMsDone,
     bankedAt: p.bankedAt,
     wateredUntil: p.wateredUntil,
+    rate: p.rate || 1,
   };
 }
 
@@ -51,6 +52,7 @@ export function writePot(p: Pot, s: PotState): void {
   p.growMsDone = s.growMsDone;
   p.bankedAt = s.bankedAt;
   p.wateredUntil = s.wateredUntil;
+  p.rate = s.rate;
 }
 
 export function readRack(arr: ArraySchema<RackEntry>): RackData[] {

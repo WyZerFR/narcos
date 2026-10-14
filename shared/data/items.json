@@ -126,14 +126,51 @@
     },
     {
       "id": "pot",
-      "name": "Pot de fleurs (volé à mamie)",
-      "category": "tool",
+      "name": "Pot de terre",
+      "category": "furniture",
       "storage": "slot",
-      "stackMax": 10,
+      "stackMax": 2,
       "contraband": false,
       "confiscable": false,
-      "description": "Un pot de fleurs emprunté sans demander. Mamie ne s’en rendra pas compte.",
-      "icon": "🪴"
+      "description": "Un pot de terre cuite et un sac de terreau. Le début d’un empire, ou d’un balcon.",
+      "icon": "🪴",
+      "installs": "pot"
+    },
+    {
+      "id": "drying_rack",
+      "name": "Étendoir à linge",
+      "category": "furniture",
+      "storage": "slot",
+      "stackMax": 1,
+      "contraband": false,
+      "confiscable": false,
+      "installs": "drying_rack",
+      "description": "Vendu pour les chaussettes. Personne ne t’a demandé ce que tu comptais y pendre.",
+      "icon": "🧺"
+    },
+    {
+      "id": "cutting_table",
+      "name": "Table de découpe",
+      "category": "furniture",
+      "storage": "slot",
+      "stackMax": 1,
+      "contraband": false,
+      "confiscable": false,
+      "installs": "cutting_table",
+      "description": "Un vieux bureau Ikéa reconverti. Le tiroir coince, la balance aussi.",
+      "icon": "🪚"
+    },
+    {
+      "id": "grow_lamp",
+      "name": "Lampe de culture",
+      "category": "furniture",
+      "storage": "slot",
+      "stackMax": 1,
+      "contraband": false,
+      "confiscable": false,
+      "installs": "lamp",
+      "description": "Une lampe rose qui accélère la pousse. Ta facture d’électricité va adorer.",
+      "icon": "💡"
     },
     {
       "id": "watering_can",

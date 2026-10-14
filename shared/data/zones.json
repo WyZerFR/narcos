@@ -16,36 +16,6 @@
       "obstacles": [],
       "stations": [
         {
-          "id": "pot_1",
-          "kind": "pot",
-          "label": "Pot n°1",
-          "position": {
-            "x": -5,
-            "z": -2.8
-          },
-          "size": {
-            "w": 1.2,
-            "d": 1.2
-          },
-          "interactRadius": 1.7,
-          "solid": true
-        },
-        {
-          "id": "pot_2",
-          "kind": "pot",
-          "label": "Pot n°2",
-          "position": {
-            "x": -2.6,
-            "z": -2.8
-          },
-          "size": {
-            "w": 1.2,
-            "d": 1.2
-          },
-          "interactRadius": 1.7,
-          "solid": true
-        },
-        {
           "id": "water",
           "kind": "water",
           "label": "Point d'eau",
@@ -58,36 +28,6 @@
             "d": 1.4
           },
           "interactRadius": 1.7,
-          "solid": true
-        },
-        {
-          "id": "rack",
-          "kind": "rack",
-          "label": "Étendoir",
-          "position": {
-            "x": 1.4,
-            "z": -4
-          },
-          "size": {
-            "w": 3.2,
-            "d": 0.8
-          },
-          "interactRadius": 1.9,
-          "solid": true
-        },
-        {
-          "id": "table",
-          "kind": "table",
-          "label": "Table de découpe",
-          "position": {
-            "x": 4.6,
-            "z": -0.6
-          },
-          "size": {
-            "w": 2.4,
-            "d": 1.2
-          },
-          "interactRadius": 1.9,
           "solid": true
         },
         {
@@ -119,6 +59,162 @@
           },
           "interactRadius": 1.5,
           "solid": false
+        }
+      ],
+      "fixtures": [
+        {
+          "id": "pot_1",
+          "accepts": "pot",
+          "label": "Emplacement pot n°1",
+          "position": {
+            "x": -5,
+            "z": -2.8
+          },
+          "size": {
+            "w": 1.2,
+            "d": 1.2
+          },
+          "interactRadius": 1.7
+        },
+        {
+          "id": "pot_2",
+          "accepts": "pot",
+          "label": "Emplacement pot n°2",
+          "position": {
+            "x": -2.6,
+            "z": -2.8
+          },
+          "size": {
+            "w": 1.2,
+            "d": 1.2
+          },
+          "interactRadius": 1.7
+        },
+        {
+          "id": "pot_3",
+          "accepts": "pot",
+          "label": "Emplacement pot n°3",
+          "position": {
+            "x": -5,
+            "z": -0.4
+          },
+          "size": {
+            "w": 1.2,
+            "d": 1.2
+          },
+          "interactRadius": 1.7
+        },
+        {
+          "id": "pot_4",
+          "accepts": "pot",
+          "label": "Emplacement pot n°4",
+          "position": {
+            "x": -2.6,
+            "z": -0.4
+          },
+          "size": {
+            "w": 1.2,
+            "d": 1.2
+          },
+          "interactRadius": 1.7
+        },
+        {
+          "id": "rack_1",
+          "accepts": "drying_rack",
+          "label": "Emplacement étendoir n°1",
+          "position": {
+            "x": 1.4,
+            "z": -4
+          },
+          "size": {
+            "w": 3.2,
+            "d": 0.8
+          },
+          "interactRadius": 1.9
+        },
+        {
+          "id": "rack_2",
+          "accepts": "drying_rack",
+          "label": "Emplacement étendoir n°2",
+          "position": {
+            "x": 1.4,
+            "z": -1.6
+          },
+          "size": {
+            "w": 3.2,
+            "d": 0.8
+          },
+          "interactRadius": 1.9
+        },
+        {
+          "id": "table_1",
+          "accepts": "cutting_table",
+          "label": "Emplacement table de découpe",
+          "position": {
+            "x": 4.6,
+            "z": -0.6
+          },
+          "size": {
+            "w": 2.4,
+            "d": 1.2
+          },
+          "interactRadius": 1.9
+        },
+        {
+          "id": "lamp_1",
+          "accepts": "lamp",
+          "label": "Emplacement lampe n°1",
+          "position": {
+            "x": -6.3,
+            "z": -2.8
+          },
+          "size": {
+            "w": 0.6,
+            "d": 0.6
+          },
+          "interactRadius": 1.3
+        },
+        {
+          "id": "lamp_2",
+          "accepts": "lamp",
+          "label": "Emplacement lampe n°2",
+          "position": {
+            "x": -3.8,
+            "z": -4.3
+          },
+          "size": {
+            "w": 0.6,
+            "d": 0.6
+          },
+          "interactRadius": 1.3
+        },
+        {
+          "id": "lamp_3",
+          "accepts": "lamp",
+          "label": "Emplacement lampe n°3",
+          "position": {
+            "x": -3.8,
+            "z": -1.6
+          },
+          "size": {
+            "w": 0.6,
+            "d": 0.6
+          },
+          "interactRadius": 1.3
+        },
+        {
+          "id": "lamp_4",
+          "accepts": "lamp",
+          "label": "Emplacement lampe n°4",
+          "position": {
+            "x": -1.3,
+            "z": -1.6
+          },
+          "size": {
+            "w": 0.6,
+            "d": 0.6
+          },
+          "interactRadius": 1.3
         }
       ]
     },
@@ -168,12 +264,42 @@
           "solid": true
         },
         {
-          "id": "shelf_tools",
+          "id": "shelf_racks",
           "kind": "shelf",
-          "label": "Outils",
+          "label": "Étendoirs",
           "position": {
             "x": 3,
             "z": -3.3
+          },
+          "size": {
+            "w": 2.2,
+            "d": 0.7
+          },
+          "interactRadius": 1.6,
+          "solid": true
+        },
+        {
+          "id": "shelf_tables",
+          "kind": "shelf",
+          "label": "Tables",
+          "position": {
+            "x": -3,
+            "z": -0.9
+          },
+          "size": {
+            "w": 2.2,
+            "d": 0.7
+          },
+          "interactRadius": 1.6,
+          "solid": true
+        },
+        {
+          "id": "shelf_lamps",
+          "kind": "shelf",
+          "label": "Lampes",
+          "position": {
+            "x": 0,
+            "z": -0.9
           },
           "size": {
             "w": 2.2,
@@ -213,7 +339,8 @@
           "interactRadius": 1.5,
           "solid": false
         }
-      ]
+      ],
+      "fixtures": []
     },
     {
       "id": "grocery",
@@ -306,7 +433,8 @@
           "interactRadius": 1.5,
           "solid": false
         }
-      ]
+      ],
+      "fixtures": []
     }
   ]
 }

@@ -3,6 +3,7 @@ import { MeshBasicMaterial, MeshLambertMaterial } from 'three';
 import { gameData } from '@narco/shared';
 import { applyCutout } from '../city/cutout';
 import { buildRoom } from './buildRoom';
+import { FixtureProps } from './FixtureProps';
 import { LabProps } from './LabProps';
 import type { GameRoom } from '../../net/connection';
 
@@ -44,8 +45,11 @@ export function Interior({
     <>
       <mesh geometry={geometry.solid} material={materials.solid} />
       <mesh geometry={geometry.glow} material={materials.glow} />
-      {interior.stations.some((st) => st.kind === 'pot' || st.kind === 'rack') && (
-        <LabProps room={room} interior={interior} />
+      {interior.fixtures.length > 0 && (
+        <>
+          <FixtureProps room={room} interior={interior} glowBoost={glowBoost} />
+          <LabProps room={room} interior={interior} />
+        </>
       )}
     </>
   );

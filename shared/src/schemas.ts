@@ -152,9 +152,13 @@ export const ItemCategorySchema = z.enum([
   'food',
   'drink',
   'tool',
+  'furniture',
   'cash_dirty',
   'cash_clean',
 ]);
+
+/** Types d'emplacement aménageable (labo) et objet qui s'y installe. */
+export const FixtureTypeSchema = z.enum(['pot', 'drying_rack', 'cutting_table', 'lamp']);
 
 export const ItemDefSchema = z.object({
   id: z.string().min(1),
@@ -168,6 +172,8 @@ export const ItemDefSchema = z.object({
   /** Saisie par la police en fouille. */
   confiscable: z.boolean(),
   strain: z.string().optional(),
+  /** Mobilier : type d'emplacement où l'objet s'installe. */
+  installs: FixtureTypeSchema.optional(),
   /** Texte affiché dans le détail de l'inventaire. */
   description: z.string().min(1),
   /** Pictogramme (emoji) affiché dans l'inventaire. */
@@ -245,7 +251,6 @@ export const EconomySchema = z.object({
   }),
   /** Labo : postes de production et stock commun. */
   lab: z.object({
-    startPots: z.number().int().nonnegative(),
     startingStock: z.array(
       z.object({ itemId: z.string().min(1), qty: z.number().int().positive() }),
     ),
@@ -254,6 +259,14 @@ export const EconomySchema = z.object({
     rackCapacity: z.number().int().positive(),
     cuttingSeconds: pos,
     tableBatchMax: z.number().int().positive(),
+    /** Graines prévues dans le kit de départ (pot + étendoir + table + graines), vérifié par test. */
+    starterKitSeeds: z.number().int().nonnegative(),
+    /** Lampes : chaque lampe à portée d'un pot réduit sa durée de pousse (cumul plafonné). */
+    lamp: z.object({
+      growReductionPerLamp: z.number().min(0).lt(1),
+      range: pos,
+      maxLamps: z.number().int().nonnegative(),
+    }),
   }),
   upgrades: z.record(
     z.string(),
@@ -272,6 +285,7 @@ export const StationKindSchema = z.enum([
   'exit',
   'shelf',
   'counter',
+  'lamp',
 ]);
 
 /** Poste physique d'un intérieur (coordonnées locales à la pièce, centre = origine). */
@@ -289,6 +303,16 @@ export const StationSchema = z.object({
   vendor: z.string().min(1).optional(),
 });
 
+/** Emplacement aménageable : vide au départ, on y installe un objet compatible du sac. */
+export const FixtureSchema = z.object({
+  id: z.string().min(1),
+  accepts: FixtureTypeSchema,
+  label: z.string().min(1),
+  position: Vec2Schema,
+  size: z.object({ w: pos, d: pos }),
+  interactRadius: pos,
+});
+
 /** Pièce intérieure : une « zone » où le joueur passe en franchissant la porte d'un lieu. */
 export const InteriorSchema = z.object({
   id: z.string().min(1),
@@ -301,6 +325,7 @@ export const InteriorSchema = z.object({
   spawn: Vec2Schema,
   obstacles: z.array(RectSchema),
   stations: z.array(StationSchema).min(1),
+  fixtures: z.array(FixtureSchema).default([]),
 });
 
 export const ZonesFileSchema = z.object({ interiors: z.array(InteriorSchema) });
@@ -421,6 +446,8 @@ export type Vec2Data = z.infer<typeof Vec2Schema>;
 export type StationKind = z.infer<typeof StationKindSchema>;
 export type Station = z.infer<typeof StationSchema>;
 export type Interior = z.infer<typeof InteriorSchema>;
+export type Fixture = z.infer<typeof FixtureSchema>;
+export type FixtureType = z.infer<typeof FixtureTypeSchema>;
 export type Shelf = z.infer<typeof ShelfSchema>;
 export type Shop = z.infer<typeof ShopSchema>;
 export type LocationsFile = z.infer<typeof LocationsFileSchema>;

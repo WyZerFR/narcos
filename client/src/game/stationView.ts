@@ -7,11 +7,13 @@ import {
   splitDried,
   type Inventory,
   type ItemCategory,
+  type Place,
   type Station,
   type StationAction,
 } from '@narco/shared';
 import type { GameRoom } from '../net/connection';
 import { readBag, readCut, readPot, readRack } from '../net/gameView';
+import { compatibleItem, itemNameFor } from './fixtureState';
 
 const { items, economy } = gameData;
 const LAB = economy.lab;
@@ -34,6 +36,38 @@ const pct = (p: number) => `${Math.floor(p * 100)} %`;
 
 function hasCategory(bag: Inventory, category: ItemCategory): boolean {
   return bag.some((s) => s !== null && items.get(s.itemId)?.category === category);
+}
+
+/**
+ * Vue d'un endroit d'intérieur : poste (fixe ou installé) ou emplacement vide à équiper.
+ * `uninstall` : un emplacement installé et au repos peut être démonté (le serveur revérifie).
+ */
+export function placeView(
+  room: GameRoom,
+  place: Place,
+  myId: string,
+  now: number,
+  interiorId: string,
+): StationView & { install?: boolean; uninstall?: boolean } {
+  if (place.station) {
+    const view = stationView(room, place.station, myId, now, interiorId);
+    return place.fixture ? { ...view, uninstall: isIdle(room, place.id) } : view;
+  }
+  const fixture = place.fixture!;
+  const item = compatibleItem(readBag(room, myId), fixture);
+  const name = item ? (items.get(item)?.name ?? item) : itemNameFor(fixture);
+  return item
+    ? { label: `Installer : ${name}`, active: true, install: true, status: 'Emplacement libre' }
+    : { label: `Il faut : ${name} (Bricoshop)`, active: false, status: 'Emplacement libre' };
+}
+
+/** Un emplacement installé est au repos : pot vide, étendoir vide, table libre, lampe. */
+function isIdle(room: GameRoom, id: string): boolean {
+  const lab = room.state.lab;
+  if (lab?.pots?.get(id)?.planted) return false;
+  if ((lab?.racks?.get(id)?.entries.length ?? 0) > 0) return false;
+  if (lab?.cuts?.get(id)?.playerId) return false;
+  return true;
 }
 
 export function stationView(
@@ -94,7 +128,7 @@ export function stationView(
     case 'water':
       return { action: 'fill', label: "Prendre de l'eau", active: true };
     case 'rack': {
-      const rack = readRack(room);
+      const rack = readRack(room, station.id);
       const load = rackLoad(rack);
       const { dried, remaining } = splitDried(rack, now);
       const next = remaining.reduce<number | null>(
@@ -122,7 +156,7 @@ export function stationView(
       };
     }
     case 'table': {
-      const job = readCut(room);
+      const job = readCut(room, station.id);
       if (job) {
         const total = LAB.cuttingSeconds * 1000;
         const progress = Math.min(1, Math.max(0, 1 - (job.readyAt - now) / total));
@@ -161,6 +195,8 @@ export function stationView(
         status,
       };
     }
+    case 'lamp':
+      return { label: 'Lampe allumée', active: false, status: 'Allumée' };
     case 'counter': {
       const total = room.state.players?.get(myId)?.cartTotal ?? 0;
       const lines = room.state.players?.get(myId)?.cart?.length ?? 0;

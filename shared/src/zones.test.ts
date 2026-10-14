@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { gameData } from './data';
+import { fixtureObstacles } from './fixtures';
 import { cellIndex, createNavGrid, distancesFrom } from './navgrid';
 import { STREET, interiorForLocation, nearestStation, zoneArea } from './zones';
 
@@ -12,7 +13,7 @@ describe('zones', () => {
     expect(interiorForLocation(gameData, 'local')?.id).toBe('lab');
     expect(interiorForLocation(gameData, 'repaire_jefe')).toBeUndefined();
     const kinds = lab.stations.map((s) => s.kind).sort();
-    expect(kinds).toEqual(['exit', 'pot', 'pot', 'rack', 'stock', 'table', 'water']);
+    expect(kinds).toEqual(['exit', 'stock', 'water']);
   });
 
   it('donne bornes et obstacles par zone', () => {
@@ -28,7 +29,7 @@ describe('zones', () => {
     expect(interiorForLocation(gameData, 'epicerie')?.id).toBe('grocery');
     for (const id of ['shop', 'grocery']) {
       const kinds = gameData.interiors.get(id)!.stations.map((st) => st.kind);
-      expect(kinds.filter((k) => k === 'shelf')).toHaveLength(3);
+      expect(kinds.filter((k) => k === 'shelf')).toHaveLength(id === 'shop' ? 5 : 3);
       expect(kinds.filter((k) => k === 'counter')).toHaveLength(1);
       expect(
         gameData.interiors.get(id)!.stations.find((st) => st.kind === 'counter')!.vendor,
@@ -37,11 +38,12 @@ describe('zones', () => {
   });
 
   for (const interior of gameData.interiors.values()) {
-    it(`rend chaque poste de "${interior.id}" atteignable depuis le point d’apparition`, () => {
-      const area = zoneArea(gameData, interior.id)!;
+    it(`rend chaque poste de "${interior.id}" atteignable, même tout équipé`, () => {
+      const all = new Set(interior.fixtures.map((f) => f.id));
+      const area = zoneArea(gameData, interior.id, fixtureObstacles(interior, all))!;
       const grid = createNavGrid(area.bounds, area.obstacles, radius, 0.25);
       const dist = distancesFrom(grid, interior.spawn);
-      for (const st of interior.stations) {
+      for (const st of [...interior.stations, ...interior.fixtures]) {
         let reachable = false;
         for (let a = 0; a < 32 && !reachable; a++) {
           for (let r = 0.2; r <= st.interactRadius && !reachable; r += 0.2) {
@@ -59,7 +61,7 @@ describe('zones', () => {
   }
 
   it('trouve le poste le plus proche dans son rayon', () => {
-    expect(nearestStation({ x: -5, z: -1.6 }, lab)?.id).toBe('pot_1');
+    expect(nearestStation({ x: -6.3, z: 1.6 }, lab)?.id).toBe('water');
     expect(nearestStation(lab.spawn, lab)?.id).toBe('exit');
     expect(nearestStation({ x: 0, z: 0 }, lab)).toBeNull();
   });

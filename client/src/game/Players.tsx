@@ -7,9 +7,7 @@ import {
   moveWithCollisions,
   speedFactor,
   STREET,
-  zoneArea,
   type MoveMessage,
-  type ZoneArea,
 } from '@narco/shared';
 import { connection, type GameRoom, type PlayerView } from '../net/connection';
 import { readMoveIntent } from '../input/inputState';
@@ -18,13 +16,10 @@ import { localPlayer } from './localPlayer';
 import { screenToWorld } from './cameraState';
 import { isOccluded, setLabelAnchor } from './labels';
 import { getCutout } from './city/cutout';
+import { areaFor, installedSet } from './fixtureState';
 
 const { movement, world } = gameData.config;
 const SIZE = world.playerSize;
-/** Bornes + obstacles par zone (rue, intérieurs) : même source que le serveur. */
-const AREAS = new Map<string, ZoneArea>(
-  [STREET, ...gameData.interiors.keys()].map((id) => [id, zoneArea(gameData, id)!]),
-);
 const SEND_INTERVAL = 1 / movement.clientSendRateHz;
 /** Raideur du lissage des joueurs distants (1/s). */
 const REMOTE_SMOOTHING = 12;
@@ -147,7 +142,8 @@ export function LocalPlayer({ room, info }: { room: GameRoom; info: PlayerInfo }
       lastSent.current = { x: me.x, z: me.z, rotY: me.rotY };
     }
 
-    const area = AREAS.get(localPlayer.zone);
+    // bornes + obstacles de la zone, mobilier installé compris : même calcul que le serveur
+    const area = areaFor(localPlayer.zone, installedSet(room));
     const intent = readMoveIntent();
     if (area && intent.magnitude > 0.05 && room.connection.isOpen) {
       // Même ralentissement que le serveur quand la faim ou la soif passe sous le seuil bas.

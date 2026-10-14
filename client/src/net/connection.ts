@@ -50,6 +50,7 @@ export interface PotView {
   growMsDone: number;
   bankedAt: number;
   wateredUntil: number;
+  rate: number;
 }
 
 export interface RackEntryView {
@@ -70,9 +71,11 @@ export interface StateView {
   players: Map<string, PlayerView>;
   lab: {
     stock: SlotView[];
+    /** Emplacements installés (clé = id d'emplacement) et leur état. */
+    fixtures: Map<string, { itemId: string }>;
     pots: Map<string, PotView>;
-    rack: RackEntryView[];
-    cut: CutJobView;
+    racks: Map<string, { entries: RackEntryView[] }>;
+    cuts: Map<string, CutJobView>;
   };
   clock: { now: number; scale: number; survivalScale: number };
   shelves: Map<string, { stock: number }>;

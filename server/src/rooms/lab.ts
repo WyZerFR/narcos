@@ -19,7 +19,7 @@ import {
   type StationAction,
   type Strain,
 } from '@narco/shared';
-import type { GameState, Player } from './schema';
+import type { CutJob, GameState, Player } from './schema';
 import {
   readCut,
   readInventory,
@@ -58,6 +58,7 @@ export const ACTIONS_BY_KIND: Record<Station['kind'], readonly StationAction[]> 
   exit: ['exit'],
   shelf: ['take'],
   counter: ['pay'],
+  lamp: [],
 };
 
 const done = (text: string, open?: 'stock'): ActionResult =>
@@ -142,23 +143,27 @@ export function runStationAction(
     }
 
     case 'hang': {
+      const rackState = state.lab.racks.get(station.id);
+      if (!rackState) return refuse("Cet étendoir n'est pas encore installé.");
       const fresh = firstOf(bag, 'plant_fresh');
       if (!fresh) return refuse('Pas de plante fraîche dans ton sac.');
       const strain = strainOf(fresh.strain)!;
-      const rack = readRack(state.lab.rack);
+      const rack = readRack(rackState.entries);
       const room = LAB.rackCapacity - rackLoad(rack);
       const qty = Math.min(count(bag, fresh.def.id), room);
       const hung = hangPlants(rack, strain, qty, now, LAB.rackCapacity);
       if (!hung.ok) return refuse(hung.message);
       const nextBag = remove(bag, fresh.def.id, qty, items);
       if (!nextBag.ok) return refuse(nextBag.message);
-      writeRack(state.lab.rack, hung.value);
+      writeRack(rackState.entries, hung.value);
       writeInventory(player.bag, nextBag.inv);
       return done(`${qty} plante(s) étendue(s). Séchage en cours.`);
     }
 
     case 'collect': {
-      const { dried, remaining } = splitDried(readRack(state.lab.rack), now);
+      const rackState = state.lab.racks.get(station.id);
+      if (!rackState) return refuse("Cet étendoir n'est pas encore installé.");
+      const { dried, remaining } = splitDried(readRack(rackState.entries), now);
       if (dried.length === 0) return refuse("Rien n'est encore sec.");
       let nextBag: Inventory = bag;
       let total = 0;
@@ -169,17 +174,19 @@ export function runStationAction(
         nextBag = r.inv;
         total += entry.qty;
       }
-      writeRack(state.lab.rack, remaining);
+      writeRack(rackState.entries, remaining);
       writeInventory(player.bag, nextBag);
       return done(`${total} plante(s) séchée(s) décrochée(s).`);
     }
 
     case 'cut': {
+      const cutState = state.lab.cuts.get(station.id);
+      if (!cutState) return refuse("Cette table n'est pas encore installée.");
       const dried = firstOf(bag, 'plant_dried');
       if (!dried) return refuse('Pas de plante séchée dans ton sac.');
       const qty = Math.min(count(bag, dried.def.id), LAB.tableBatchMax);
       const job = startCut(
-        readCut(state.lab.cut),
+        readCut(cutState),
         player.id,
         dried.strain,
         qty,
@@ -189,7 +196,7 @@ export function runStationAction(
       if (!job.ok) return refuse(job.message);
       const nextBag = remove(bag, dried.def.id, qty, items);
       if (!nextBag.ok) return refuse(nextBag.message);
-      writeCut(state.lab.cut, job.value);
+      writeCut(cutState, job.value);
       writeInventory(player.bag, nextBag.inv);
       return done(`Découpe de ${qty} plante(s) en cours…`);
     }
@@ -204,20 +211,31 @@ export function runStationAction(
   }
 }
 
+/** Termine les découpes prêtes de toutes les tables installées (messages par joueur). */
+export function completeCuts(state: GameState, now: number): { playerId: string; text: string }[] {
+  const out: { playerId: string; text: string }[] = [];
+  for (const cut of state.lab.cuts.values()) {
+    const r = completeCut(state, cut, now);
+    if (r) out.push(r);
+  }
+  return out;
+}
+
 /**
- * Termine la découpe si elle est prête : pochons dans le sac de celui qui l'a lancée,
+ * Termine une découpe si elle est prête : pochons dans le sac de celui qui l'a lancée,
  * ou dans le stock commun si son sac est plein. Renvoie le message pour ce joueur.
  */
-export function completeCut(
+function completeCut(
   state: GameState,
+  cut: CutJob,
   now: number,
 ): { playerId: string; text: string } | null {
-  const job = readCut(state.lab.cut);
+  const job = readCut(cut);
   if (!isCutDone(job, now)) return null;
   const strain = strainOf(job.strainId);
   const pouch = strain ? strainItem(items, 'pouch', strain.id) : undefined;
   if (!strain || !pouch) {
-    writeCut(state.lab.cut, null);
+    writeCut(cut, null);
     return null;
   }
   const qty = pouchesFor(job, strain);
@@ -226,14 +244,14 @@ export function completeCut(
     const r = add(readInventory(player.bag), pouch.id, qty, items);
     if (r.ok) {
       writeInventory(player.bag, r.inv);
-      writeCut(state.lab.cut, null);
+      writeCut(cut, null);
       return { playerId: job.playerId, text: `${qty} × ${pouch.name} dans ton sac.` };
     }
   }
   const r = add(readInventory(state.lab.stock), pouch.id, qty, items);
   if (!r.ok) return null; // tout est plein : la table reste occupée jusqu'à ce qu'on fasse de la place
   writeInventory(state.lab.stock, r.inv);
-  writeCut(state.lab.cut, null);
+  writeCut(cut, null);
   return {
     playerId: job.playerId,
     text: `Sac plein : ${qty} × ${pouch.name} posés dans la caisse.`,

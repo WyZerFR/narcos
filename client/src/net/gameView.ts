@@ -61,22 +61,30 @@ export function readPot(room: GameRoom, stationId: string): PotState | null {
         growMsDone: p.growMsDone,
         bankedAt: p.bankedAt,
         wateredUntil: p.wateredUntil,
+        rate: p.rate || 1,
       }
     : null;
 }
 
-export function readRack(room: GameRoom): RackEntry[] {
-  const rack = room.state.lab?.rack;
+export function readRack(room: GameRoom, fixtureId: string): RackEntry[] {
+  const rack = room.state.lab?.racks?.get(fixtureId)?.entries;
   return rack
     ? [...rack].map((e) => ({ strainId: e.strainId, qty: e.qty, readyAt: e.readyAt }))
     : [];
 }
 
-export function readCut(room: GameRoom): CutJob | null {
-  const c = room.state.lab?.cut;
+export function readCut(room: GameRoom, fixtureId: string): CutJob | null {
+  const c = room.state.lab?.cuts?.get(fixtureId);
   return c?.playerId
     ? { playerId: c.playerId, strainId: c.strainId, qty: c.qty, readyAt: c.readyAt }
     : null;
+}
+
+/** Emplacements installés : id d'emplacement → objet installé. */
+export function readFixtures(room: GameRoom): Map<string, string> {
+  const out = new Map<string, string>();
+  room.state.lab?.fixtures?.forEach((f, id) => out.set(id, f.itemId));
+  return out;
 }
 
 /** Re-rend le composant à chaque patch d'état (pour les panneaux d'inventaire). */

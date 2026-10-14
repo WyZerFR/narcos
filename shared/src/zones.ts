@@ -32,12 +32,14 @@ export interface ZoneArea {
 export function zoneArea(
   data: Pick<GameData, 'config' | 'locations' | 'blocks' | 'interiors'>,
   zoneId: string,
+  /** Obstacles dynamiques en plus (mobilier installé). */
+  extra: readonly Rect[] = [],
 ): ZoneArea | null {
   if (zoneId === STREET)
     return { bounds: data.config.world.bounds, obstacles: obstaclesFrom(data) };
   const interior = data.interiors.get(zoneId);
   return interior
-    ? { bounds: interiorBounds(interior), obstacles: interiorObstacles(interior) }
+    ? { bounds: interiorBounds(interior), obstacles: [...interiorObstacles(interior), ...extra] }
     : null;
 }
 

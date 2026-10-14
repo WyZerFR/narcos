@@ -6,20 +6,32 @@
         {
           "stationId": "shelf_seeds",
           "itemId": "seed_base",
-          "price": 15,
-          "stock": 12
+          "price": 8,
+          "stock": 20
         },
         {
           "stationId": "shelf_pots",
           "itemId": "pot",
-          "price": 25,
-          "stock": 4
+          "price": 15,
+          "stock": 6
         },
         {
-          "stationId": "shelf_tools",
-          "itemId": "scissors",
-          "price": 12,
-          "stock": 5
+          "stationId": "shelf_racks",
+          "itemId": "drying_rack",
+          "price": 25,
+          "stock": 3
+        },
+        {
+          "stationId": "shelf_tables",
+          "itemId": "cutting_table",
+          "price": 30,
+          "stock": 2
+        },
+        {
+          "stationId": "shelf_lamps",
+          "itemId": "grow_lamp",
+          "price": 40,
+          "stock": 4
         }
       ]
     },

@@ -50,6 +50,8 @@ export class Pot extends Schema {
   @type('float64') growMsDone = 0;
   @type('float64') bankedAt = 0;
   @type('float64') wateredUntil = 0;
+  /** Vitesse de pousse (lampes à portée). */
+  @type('float32') rate = 1;
 }
 
 export class RackEntry extends Schema {
@@ -66,12 +68,24 @@ export class CutJob extends Schema {
   @type('float64') readyAt = 0;
 }
 
+/** Emplacement installé (présent dans la map = installé) : objet qui l'occupe. */
+export class InstalledFixture extends Schema {
+  @type('string') itemId = '';
+}
+
+/** Contenu d'un étendoir installé. */
+export class RackState extends Schema {
+  @type([RackEntry]) entries = new ArraySchema<RackEntry>();
+}
+
 export class LabState extends Schema {
   @type([Slot]) stock = new ArraySchema<Slot>();
-  /** Indexé par id de poste (`pot_1`…). Les emplacements non installés n'ont pas d'entrée. */
+  /** Emplacements installés, clé = id d'emplacement (`pot_1`, `rack_2`, `lamp_3`…). */
+  @type({ map: InstalledFixture }) fixtures = new MapSchema<InstalledFixture>();
+  /** État par emplacement installé : pots, étendoirs, tables de découpe. */
   @type({ map: Pot }) pots = new MapSchema<Pot>();
-  @type([RackEntry]) rack = new ArraySchema<RackEntry>();
-  @type(CutJob) cut = new CutJob();
+  @type({ map: RackState }) racks = new MapSchema<RackState>();
+  @type({ map: CutJob }) cuts = new MapSchema<CutJob>();
 }
 
 /** Horloge de jeu diffusée : le client extrapole `now` avec `scale` entre deux mises à jour. */

@@ -54,6 +54,14 @@ export function DebugLabSection() {
           Vider le stock
         </button>
       </div>
+      <div className="cam-actions">
+        <button type="button" className="btn" onClick={() => send({ cmd: 'equipLab' })}>
+          Équiper le labo
+        </button>
+        <button type="button" className="btn danger" onClick={() => send({ cmd: 'clearLab' })}>
+          Vider le labo
+        </button>
+      </div>
       <div className="dbg-row">
         <span>Temps</span>
         <div className="segmented">

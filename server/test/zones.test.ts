@@ -95,10 +95,19 @@ describe('zones — rue ↔ labo', () => {
     const { client, p } = await roomAtLocalDoor('player-zone-0006');
     client.send(ClientMsg.Interact, { locationId: 'local' });
     await client.waitForMessage(ServerMsg.Notice);
-    const pot = lab.stations.find((s) => s.id === 'pot_1')!;
+    const pot = lab.fixtures.find((s) => s.id === 'pot_1')!;
+    // emplacement vide : on passe à travers
     p.x = pot.position.x;
     p.z = pot.position.z + pot.size.d / 2 + 0.6;
-    client.send(ClientMsg.Move, { zone: 'lab', x: p.x, z: pot.position.z - 1.5, rotY: 0, seq: 1 });
+    client.send(ClientMsg.Move, { zone: 'lab', x: p.x, z: pot.position.z, rotY: 0, seq: 1 });
+    await new Promise((r) => setTimeout(r, 100));
+    expect(p.z).toBeCloseTo(pot.position.z, 3);
+    // pot installé : il bloque
+    client.send(ClientMsg.Debug, { cmd: 'equipLab' });
+    await client.waitForMessage(ServerMsg.Notice);
+    p.x = pot.position.x;
+    p.z = pot.position.z + pot.size.d / 2 + 0.6;
+    client.send(ClientMsg.Move, { zone: 'lab', x: p.x, z: pot.position.z - 1.5, rotY: 0, seq: 2 });
     await client.waitForMessage(ServerMsg.Correction);
     expect(p.z).toBeGreaterThan(pot.position.z + pot.size.d / 2);
   });

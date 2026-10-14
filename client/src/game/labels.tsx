@@ -3,7 +3,8 @@ import { useEffect, useRef } from 'react';
 import { Vector3 } from 'three';
 import type { GameRoom } from '../net/connection';
 import { gameNow } from '../net/gameView';
-import { stationView } from './stationView';
+import { placeView } from './stationView';
+import { installedSet, placesOf } from './fixtureState';
 import { footprint, gameData, segmentHitsBox, STREET, type Box } from '@narco/shared';
 import type { PlayerInfo } from './Players';
 
@@ -48,10 +49,10 @@ export function isOccluded(from: Point3, to: Point3): boolean {
   return OCCLUDERS.some((box) => segmentHitsBox(from, to, box));
 }
 
-// Postes des intérieurs : ancres fixes (coordonnées de la pièce).
+// Postes et emplacements des intérieurs : ancres fixes (coordonnées de la pièce).
 for (const interior of gameData.interiors.values()) {
-  for (const st of interior.stations) {
-    const y = st.kind === 'exit' ? 2.9 : 2.3;
+  for (const st of [...interior.stations, ...interior.fixtures]) {
+    const y = 'kind' in st && st.kind === 'exit' ? 2.9 : 2.3;
     setLabelAnchor(`station:${interior.id}:${st.id}`, () => ({
       x: st.position.x,
       y,
@@ -110,7 +111,16 @@ export function LabelLayer({
   zone: string;
 }) {
   const statusRefs = useRef(
-    new Map<string, { status: HTMLElement; fill: HTMLElement; bar: HTMLElement }>(),
+    new Map<
+      string,
+      {
+        root: HTMLElement;
+        name: HTMLElement;
+        status: HTMLElement;
+        fill: HTMLElement;
+        bar: HTMLElement;
+      }
+    >(),
   );
 
   // État des postes (statut + barre), visible par tous : mis à jour en DOM, sans re-rendu React.
@@ -119,10 +129,24 @@ export function LabelLayer({
     if (!interior) return;
     const update = () => {
       const now = gameNow();
-      for (const st of interior.stations) {
-        const els = statusRefs.current.get(st.id);
+      for (const place of placesOf(zone, installedSet(room))) {
+        const els = statusRefs.current.get(place.id);
         if (!els) continue;
-        const view = stationView(room, st, myId, now, zone);
+        const view = placeView(room, place, myId, now, zone);
+        // emplacement : nom de l'objet installé, ou libellé de l'emplacement vide (discret) ;
+        // une lampe installée n'a rien à dire
+        if (place.fixture) {
+          const itemId = room.state.lab?.fixtures?.get(place.id)?.itemId;
+          const name = itemId ? (gameData.items.get(itemId)?.name ?? itemId) : place.fixture.label;
+          if (els.name.textContent !== name) els.name.textContent = name;
+          els.root.classList.toggle('empty-slot', !itemId);
+          els.root.style.display = itemId && place.fixture.accepts === 'lamp' ? 'none' : '';
+          if (!itemId) {
+            els.status.textContent = '';
+            els.bar.style.display = 'none';
+            continue;
+          }
+        }
         els.status.textContent = view.status ?? '';
         els.bar.style.display = view.progress === undefined ? 'none' : '';
         els.fill.style.width = `${Math.round((view.progress ?? 0) * 100)}%`;
@@ -147,7 +171,10 @@ export function LabelLayer({
             {loc.name}
           </div>
         ))}
-      {gameData.interiors.get(zone)?.stations.map((st) => (
+      {[
+        ...(gameData.interiors.get(zone)?.stations ?? []),
+        ...(gameData.interiors.get(zone)?.fixtures ?? []),
+      ].map((st) => (
         <div key={st.id} ref={bindElement(`station:${zone}:${st.id}`)} className="station-label">
           <span className="station-name">{st.label}</span>
           <span
@@ -155,7 +182,10 @@ export function LabelLayer({
             ref={(el) => {
               const bar = el?.nextElementSibling as HTMLElement | null;
               const fill = bar?.firstElementChild as HTMLElement | null;
-              if (el && bar && fill) statusRefs.current.set(st.id, { status: el, bar, fill });
+              const name = el?.previousElementSibling as HTMLElement | null;
+              const root = el?.parentElement ?? null;
+              if (el && bar && fill && name && root)
+                statusRefs.current.set(st.id, { root, name, status: el, bar, fill });
               else statusRefs.current.delete(st.id);
             }}
           />
