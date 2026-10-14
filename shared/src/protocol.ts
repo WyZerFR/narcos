@@ -21,6 +21,8 @@ export const ClientMsg = {
   Debug: 'debug',
   /** Reposer 1 article du panier en rayon. */
   CartRemove: 'cartRemove',
+  /** Manger / boire un objet du sac. */
+  Use: 'use',
 } as const;
 
 export const ServerMsg = {
@@ -84,6 +86,10 @@ export interface TransferMessage {
   qty: number;
 }
 
+export interface UseMessage {
+  slot: number;
+}
+
 export interface CartRemoveMessage {
   stationId: string;
 }
@@ -92,7 +98,10 @@ export type DebugMessage =
   | { cmd: 'give'; itemId: string; qty: number }
   | { cmd: 'clearStock' }
   | { cmd: 'timeScale'; scale: number }
-  | { cmd: 'restock' };
+  | { cmd: 'restock' }
+  | { cmd: 'money'; amount: number }
+  | { cmd: 'vitals'; mode: 'fill' | 'empty' }
+  | { cmd: 'survivalScale'; scale: number };
 
 export const MAX_NAME_LENGTH = 16;
 

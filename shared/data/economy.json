@@ -13,10 +13,22 @@
   },
   "survival": {
     "max": 100,
-    "hungerDecayPerMinute": 2,
-    "thirstDecayPerMinute": 3,
-    "foodRestore": 40,
-    "waterRestore": 50
+    "hungerPerMinute": 2,
+    "thirstPerMinute": 3,
+    "lowThreshold": 25,
+    "lowSpeedFactor": 0.65,
+    "healthLossPerMinuteAtZero": 10,
+    "start": {
+      "hunger": 100,
+      "thirst": 100,
+      "health": 100
+    },
+    "koRecovery": {
+      "hunger": 40,
+      "thirst": 40,
+      "health": 50
+    },
+    "koDirtyCashLossPercent": 20
   },
   "strains": [
     {

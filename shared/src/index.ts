@@ -12,3 +12,4 @@ export * from './inventory';
 export * from './clock';
 export * from './production';
 export * from './shop';
+export * from './survival';

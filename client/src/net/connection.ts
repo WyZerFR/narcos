@@ -23,6 +23,19 @@ export interface PlayerView {
   connected: boolean;
   zone: string;
   bag: SlotView[];
+  cleanMoney: number;
+  cart: CartLineView[];
+  cartTotal: number;
+  hunger: number;
+  thirst: number;
+  health: number;
+}
+
+export interface CartLineView {
+  stationId: string;
+  itemId: string;
+  qty: number;
+  unitPrice: number;
 }
 
 export interface SlotView {
@@ -60,7 +73,8 @@ export interface StateView {
     rack: RackEntryView[];
     cut: CutJobView;
   };
-  clock: { now: number; scale: number };
+  clock: { now: number; scale: number; survivalScale: number };
+  shelves: Map<string, { stock: number }>;
 }
 
 export type GameRoom = Room<StateView>;

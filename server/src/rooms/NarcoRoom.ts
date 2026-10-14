@@ -32,11 +32,21 @@ import {
 import type { RoomSnapshot } from '../persistence';
 import { hydrateState } from '../persistence';
 import { completeCut, runStationAction } from './lab';
+import {
+  consume,
+  count,
+  decayVitals,
+  DIRTY_CASH,
+  koCashLoss,
+  remove,
+  speedFactor,
+} from '@narco/shared';
 import { pay, putBack, returnCart, stockShelves, takeItem } from './shop';
 import { GameState, Player, Pot } from './schema';
 import { makeSlots, readInventory, writeInventory } from './stateSync';
 
 const { config, economy, items } = gameData;
+const SURVIVAL = economy.survival;
 
 /** Règles de mouvement par zone (rue, intérieurs), calculées une fois. */
 const MOVE_RULES = new Map<string, MoveRules>();
@@ -128,11 +138,13 @@ export class NarcoRoom extends Room<GameState> {
     this.onMessage(ClientMsg.Station, (client, msg: unknown) => this.handleStation(client, msg));
     this.onMessage(ClientMsg.Transfer, (client, msg: unknown) => this.handleTransfer(client, msg));
     this.onMessage(ClientMsg.Debug, (client, msg: unknown) => this.handleDebug(client, msg));
+    this.onMessage(ClientMsg.Use, (client, msg: unknown) => this.handleUse(client, msg));
     this.onMessage(ClientMsg.CartRemove, (client, msg: unknown) =>
       this.handleCartRemove(client, msg),
     );
     this.clock.setInterval(() => this.tick(), TICK_MS);
     this.clock.setInterval(() => this.publishClock(), CLOCK_BROADCAST_MS);
+    this.clock.setInterval(() => this.settleAllVitals(), CLOCK_BROADCAST_MS);
     liveRooms.add(this);
     this.armEmptyTimer();
   }
@@ -163,6 +175,8 @@ export class NarcoRoom extends Room<GameState> {
     }
 
     this.sessions.set(client.sessionId, playerId);
+    // Hors ligne, les jauges sont figées : on repart de maintenant.
+    player.survivalAt = this.now();
     this.budgets.set(playerId, freshBudget(Date.now(), rulesFor(player.zone)));
     this.cancelEmptyTimer();
     console.log(`[room ${this.roomId}] ${player.name} connecté (${this.sessions.size} session(s))`);
@@ -174,6 +188,7 @@ export class NarcoRoom extends Room<GameState> {
     if (playerId && ![...this.sessions.values()].includes(playerId)) {
       const player = this.state.players.get(playerId);
       if (player) {
+        this.settleVitals(playerId, player);
         player.connected = false;
         this.emptyCart(player);
         console.log(`[room ${this.roomId}] ${player.name} déconnecté`);
@@ -252,6 +267,7 @@ export class NarcoRoom extends Room<GameState> {
     );
     writeInventory(player.bag, start.ok ? start.inv : emptyInventory(economy.inventory.bagSlots));
     player.cleanMoney = economy.startingMoney.clean;
+    Object.assign(player, SURVIVAL.start);
     // Autour du carton de départ, jamais dans un mur.
     const pos = resolveCircle(
       {
@@ -333,7 +349,7 @@ export class NarcoRoom extends Room<GameState> {
     const seq = Number(msg.seq) || 0;
     const rotY = Number(msg.rotY);
 
-    const result = validateMove(player, proposed, budget, Date.now(), rulesFor(player.zone));
+    const result = validateMove(player, proposed, budget, Date.now(), this.rulesForPlayer(player));
     this.budgets.set(playerId, result.budget);
     player.x = result.pos.x;
     player.z = result.pos.z;
@@ -396,6 +412,77 @@ export class NarcoRoom extends Room<GameState> {
     this.notify(client, result.ok, result.text, result.open ? { open: result.open } : {});
   }
 
+  // ---------------------------------------------------------------- survie
+
+  /** Règles de mouvement de la zone, vitesse réduite si faim ou soif sous le seuil bas. */
+  private rulesForPlayer(player: Player): MoveRules {
+    const rules = rulesFor(player.zone);
+    const factor = speedFactor(player, SURVIVAL);
+    return factor === 1 ? rules : { ...rules, maxSpeed: rules.maxSpeed * factor };
+  }
+
+  /** Fait baisser les jauges depuis `survivalAt` (temps de jeu × multiplicateur debug). */
+  private settleVitals(playerId: string, player: Player): void {
+    const now = this.now();
+    const elapsed = (now - player.survivalAt) * this.state.clock.survivalScale;
+    player.survivalAt = now;
+    if (elapsed <= 0) return;
+    const { vitals, ko } = decayVitals(player, elapsed, SURVIVAL);
+    Object.assign(player, vitals);
+    if (ko) this.knockOut(playerId, player);
+  }
+
+  /** Seuls les joueurs connectés s'affament : un joueur hors ligne ne perd rien. */
+  private settleAllVitals(): void {
+    const online = new Set(this.sessions.values());
+    for (const [id, player] of this.state.players)
+      if (online.has(id)) this.settleVitals(id, player);
+  }
+
+  /** KO : panier rendu, argent sale perdu en partie, réapparition au carton, jauges de reprise. */
+  private knockOut(playerId: string, player: Player): void {
+    this.emptyCart(player);
+    const bag = readInventory(player.bag);
+    const lost = koCashLoss(count(bag, DIRTY_CASH), SURVIVAL);
+    if (lost > 0) {
+      const r = remove(bag, DIRTY_CASH, lost, items);
+      if (r.ok) writeInventory(player.bag, r.inv);
+    }
+    Object.assign(player, SURVIVAL.koRecovery);
+    player.survivalAt = this.now();
+    const spawn = resolveCircle(
+      config.players.spawn,
+      STREET_RULES.collision!.radius,
+      STREET_RULES.collision!.obstacles,
+    );
+    this.moveToZone(playerId, player, STREET, spawn);
+    this.notifyPlayer(
+      playerId,
+      false,
+      `KO ! Tu te réveilles sur ton carton, délesté de ${lost} $. Mange et bois, bon sang.`,
+    );
+  }
+
+  /** Manger / boire un consommable du sac. */
+  private handleUse(client: Client, msg: unknown): void {
+    const who = this.playerOf(client);
+    if (!who || !isObject(msg)) return;
+    const { playerId, player } = who;
+    this.settleVitals(playerId, player);
+    const slot = Number(msg.slot);
+    const bag = readInventory(player.bag);
+    const stack = Number.isInteger(slot) ? bag[slot] : null;
+    const def = stack ? items.get(stack.itemId) : undefined;
+    if (!stack || !def) return this.notify(client, false, 'Rien à consommer ici.');
+    const next = consume(player, def, SURVIVAL);
+    if (!next) return this.notify(client, false, `${def.name} ne se mange pas. Ni ne se boit.`);
+    const r = remove(bag, def.id, 1, items);
+    if (!r.ok) return this.notify(client, false, r.message);
+    writeInventory(player.bag, r.inv);
+    Object.assign(player, next);
+    this.notify(client, true, `${def.name} : ça va mieux.`);
+  }
+
   /** Panier rendu au rayon (sortie du magasin, déconnexion, KO). */
   private emptyCart(player: Player): void {
     if (player.cart.length > 0 && gameData.shops.has(player.zone))
@@ -452,6 +539,32 @@ export class NarcoRoom extends Room<GameState> {
         if (!r.ok) return this.notify(client, false, r.message);
         writeInventory(player.bag, r.inv);
         return this.notify(client, true, `[debug] ${String(msg.qty)} × ${String(msg.itemId)}`);
+      }
+      case 'money': {
+        const r = add(readInventory(player.bag), DIRTY_CASH, Number(msg.amount), items);
+        if (!r.ok) return this.notify(client, false, r.message);
+        writeInventory(player.bag, r.inv);
+        return this.notify(client, true, `[debug] +${Number(msg.amount)} $`);
+      }
+      case 'vitals': {
+        const value = msg.mode === 'empty' ? 0 : SURVIVAL.max;
+        player.hunger = value;
+        player.thirst = value;
+        if (msg.mode !== 'empty') player.health = SURVIVAL.max;
+        player.survivalAt = this.now();
+        return this.notify(
+          client,
+          true,
+          `[debug] jauges ${msg.mode === 'empty' ? 'vides' : 'pleines'}`,
+        );
+      }
+      case 'survivalScale': {
+        const scale = Number(msg.scale);
+        if (!config.debug.timeScales.includes(scale))
+          return this.notify(client, false, '[debug] vitesse non autorisée');
+        this.settleAllVitals();
+        this.state.clock.survivalScale = scale;
+        return this.notify(client, true, `[debug] survie x${scale}`);
       }
       case 'restock':
         stockShelves(this.state);

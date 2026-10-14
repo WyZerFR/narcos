@@ -105,7 +105,10 @@
       "contraband": false,
       "confiscable": false,
       "description": "Eau du robinet en bouteille réutilisée. Pour les plantes, et pour toi si tu insistes.",
-      "icon": "💧"
+      "icon": "💧",
+      "restores": {
+        "thirst": 35
+      }
     },
     {
       "id": "food",
@@ -116,7 +119,10 @@
       "contraband": false,
       "confiscable": false,
       "description": "Un sandwich triangle d’une date de péremption philosophique.",
-      "icon": "🥪"
+      "icon": "🥪",
+      "restores": {
+        "hunger": 40
+      }
     },
     {
       "id": "pot",
@@ -149,7 +155,11 @@
       "contraband": false,
       "confiscable": false,
       "description": "Sucré, pétillant, vaguement radioactif. Désaltère et cale un peu.",
-      "icon": "🥤"
+      "icon": "🥤",
+      "restores": {
+        "thirst": 20,
+        "hunger": 8
+      }
     },
     {
       "id": "scissors",

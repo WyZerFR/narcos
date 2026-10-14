@@ -43,6 +43,9 @@ const StateJson = z.object({
         )
         .default([]),
       cartTotal: z.number().nonnegative().default(0),
+      hunger: z.number().default(100),
+      thirst: z.number().default(100),
+      health: z.number().default(100),
     }),
   ),
   shelves: z.record(z.string(), z.object({ stock: z.number().int() })).default({}),
@@ -107,6 +110,7 @@ export function hydrateState(state: GameState, snap: RoomSnapshot): void {
     player.bag.push(...slotsFrom(p.bag));
     player.cart.push(...p.cart.map((l) => Object.assign(new CartLine(), l)));
     player.cartTotal = p.cartTotal;
+    Object.assign(player, { hunger: p.hunger, thirst: p.thirst, health: p.health });
     state.players.set(id, player);
   }
   for (const [key, shelf] of Object.entries(s.shelves))

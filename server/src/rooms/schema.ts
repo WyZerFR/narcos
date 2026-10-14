@@ -35,6 +35,12 @@ export class Player extends Schema {
   /** Panier dans le magasin courant (réservé en rayon), total calculé par le serveur. */
   @type([CartLine]) cart = new ArraySchema<CartLine>();
   @type('uint32') cartTotal = 0;
+  /** Jauges de survie (0..max), mises à jour par le serveur pour les joueurs connectés. */
+  @type('float32') hunger = 100;
+  @type('float32') thirst = 100;
+  @type('float32') health = 100;
+  /** Temps de jeu de la dernière mise à jour des jauges. */
+  @type('float64') survivalAt = 0;
 }
 
 /** Pot du labo (timestamps en temps de jeu, ms : float64 obligatoire). */
@@ -72,6 +78,8 @@ export class LabState extends Schema {
 export class ClockState extends Schema {
   @type('float64') now = 0;
   @type('float32') scale = 1;
+  /** Multiplicateur debug de la survie seule (faim/soif). */
+  @type('float32') survivalScale = 1;
 }
 
 export class GameState extends Schema {

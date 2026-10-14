@@ -5,6 +5,7 @@ import {
   ClientMsg,
   gameData,
   moveWithCollisions,
+  speedFactor,
   STREET,
   zoneArea,
   type MoveMessage,
@@ -149,9 +150,11 @@ export function LocalPlayer({ room, info }: { room: GameRoom; info: PlayerInfo }
     const area = AREAS.get(localPlayer.zone);
     const intent = readMoveIntent();
     if (area && intent.magnitude > 0.05 && room.connection.isOpen) {
-      const speed = intent.run
-        ? movement.runSpeed
-        : movement.walkSpeed * Math.min(1, intent.magnitude / 0.9);
+      // Même ralentissement que le serveur quand la faim ou la soif passe sous le seuil bas.
+      const slow = speedFactor(me, gameData.economy.survival);
+      const speed =
+        slow *
+        (intent.run ? movement.runSpeed : movement.walkSpeed * Math.min(1, intent.magnitude / 0.9));
       // Direction relative à la caméra : haut du joystick = haut de l'écran.
       const dir = screenToWorld(intent.x, intent.y);
       // Même fonction que le serveur : la prédiction glisse sur les murs comme la validation.

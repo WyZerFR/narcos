@@ -29,6 +29,9 @@ export const PaletteSchema = z.object({
   vegetation: hexColor,
 });
 
+/** Faim, soif, santé (0..max). */
+export const VitalsSchema = z.object({ hunger: nonNeg, thirst: nonNeg, health: nonNeg });
+
 // ---------- config.json ----------
 /** Bornes de réglage de la caméra (degrés), partagées par la validation et le panneau debug. */
 export const CAMERA_LIMITS = {
@@ -163,6 +166,8 @@ export const ItemDefSchema = z.object({
   description: z.string().min(1),
   /** Pictogramme (emoji) affiché dans l'inventaire. */
   icon: z.string().min(1),
+  /** Consommable : points de faim/soif rendus (plafonnés au max). */
+  restores: z.object({ hunger: nonNeg.optional(), thirst: nonNeg.optional() }).optional(),
 });
 
 export const ItemsFileSchema = z.object({ items: z.array(ItemDefSchema).min(1) });
@@ -191,10 +196,17 @@ export const EconomySchema = z.object({
   startingMoney: z.object({ dirty: nonNeg, clean: nonNeg }),
   survival: z.object({
     max: pos,
-    hungerDecayPerMinute: nonNeg,
-    thirstDecayPerMinute: nonNeg,
-    foodRestore: nonNeg,
-    waterRestore: nonNeg,
+    hungerPerMinute: nonNeg,
+    thirstPerMinute: nonNeg,
+    /** Sous ce seuil (faim ou soif) : vitesse réduite et jauge qui clignote. */
+    lowThreshold: nonNeg,
+    lowSpeedFactor: z.number().gt(0).max(1),
+    /** Perte de santé par minute tant que la faim ou la soif est à 0. */
+    healthLossPerMinuteAtZero: nonNeg,
+    start: VitalsSchema,
+    /** Jauges après un KO (réapparition au carton). */
+    koRecovery: VitalsSchema,
+    koDirtyCashLossPercent: z.number().min(0).max(100),
   }),
   strains: z.array(StrainSchema).min(1),
   elJefe: z.object({ salesTaxRate: z.number().min(0).max(1), starterSeeds: nonNeg }),
@@ -389,6 +401,8 @@ export type ItemCategory = z.infer<typeof ItemCategorySchema>;
 export type ItemDef = z.infer<typeof ItemDefSchema>;
 export type Strain = z.infer<typeof StrainSchema>;
 export type Economy = z.infer<typeof EconomySchema>;
+export type Vitals = z.infer<typeof VitalsSchema>;
+export type SurvivalRules = Economy['survival'];
 export type CatalogEntry = z.infer<typeof CatalogEntrySchema>;
 export type Zone = z.infer<typeof ZoneSchema>;
 export type GameLocation = z.infer<typeof LocationSchema>;
