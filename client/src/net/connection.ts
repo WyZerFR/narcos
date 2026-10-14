@@ -8,6 +8,8 @@ import {
   type CorrectionMessage,
   type NoticeMessage,
   type MoveResultMessage,
+  type SaleClosedMessage,
+  type SaleOfferMessage,
   type JoinOptions,
 } from '@narco/shared';
 import { syncClock } from './gameView';
@@ -66,6 +68,20 @@ export interface CutJobView {
   readyAt: number;
 }
 
+export interface NpcView {
+  id: string;
+  name: string;
+  profileId: string;
+  x: number;
+  z: number;
+  rotY: number;
+  interested: boolean;
+  strainId: string;
+  qty: number;
+  unitPrice: number;
+  busyWith: string;
+}
+
 export interface StateView {
   code: string;
   players: Map<string, PlayerView>;
@@ -79,6 +95,7 @@ export interface StateView {
   };
   clock: { now: number; scale: number; survivalScale: number };
   shelves: Map<string, { stock: number }>;
+  npcs: Map<string, NpcView>;
 }
 
 export type GameRoom = Room<StateView>;
@@ -119,6 +136,7 @@ function isFatal(err: unknown): boolean {
 type CorrectionListener = (c: CorrectionMessage) => void;
 type NoticeListener = (n: NoticeMessage) => void;
 type MoveResultListener = (r: MoveResultMessage) => void;
+type SaleListener = (e: { offer: SaleOfferMessage } | { closed: SaleClosedMessage }) => void;
 
 class Connection {
   private client = new Client(endpoint());
@@ -126,6 +144,7 @@ class Connection {
   private correctionListeners = new Set<CorrectionListener>();
   private noticeListeners = new Set<NoticeListener>();
   private moveResultListeners = new Set<MoveResultListener>();
+  private saleListeners = new Set<SaleListener>();
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private hiddenAt: number | null = null;
   private joining = false;
@@ -154,6 +173,12 @@ class Connection {
   private set(patch: Partial<Snapshot>): void {
     this.snapshot = { ...this.snapshot, ...patch };
     for (const fn of this.listeners) fn();
+  }
+
+  /** Offres de vente : ouverture (panneau) et fermeture (vente, refus, patience épuisée). */
+  onSale(fn: SaleListener): () => void {
+    this.saleListeners.add(fn);
+    return () => this.saleListeners.delete(fn);
   }
 
   onMoveResult(fn: MoveResultListener): () => void {
@@ -232,6 +257,12 @@ class Connection {
     room.onStateChange(() => syncClock(room));
     room.onMessage(ServerMsg.MoveResult, (r: MoveResultMessage) => {
       for (const fn of this.moveResultListeners) fn(r);
+    });
+    room.onMessage(ServerMsg.SaleOffer, (offer: SaleOfferMessage) => {
+      for (const fn of this.saleListeners) fn({ offer });
+    });
+    room.onMessage(ServerMsg.SaleClosed, (closed: SaleClosedMessage) => {
+      for (const fn of this.saleListeners) fn({ closed });
     });
     room.onMessage(ServerMsg.Notice, (n: NoticeMessage) => {
       for (const fn of this.noticeListeners) fn(n);

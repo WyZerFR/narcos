@@ -17,6 +17,7 @@ import { Bloom, EffectComposer } from '@react-three/postprocessing';
 import { cameraOffset, getCamera, orthoViewHeight, setCameraKind, useCamera } from './cameraState';
 import { Interior } from './interior/Interior';
 import { LocalPlayer, RemotePlayer, useRoomPlayers } from './Players';
+import { Npcs } from './Npcs';
 
 const { cameraRig } = gameData.config;
 
@@ -108,6 +109,7 @@ function World({ room, glowBoost }: { room: GameRoom; glowBoost: number }) {
       <group visible={inStreet}>
         <City glowBoost={glowBoost} />
       </group>
+      {inStreet && <Npcs room={room} />}
       {!inStreet && gameData.interiors.has(myZone) && (
         <Interior key={myZone} room={room} zoneId={myZone} glowBoost={glowBoost} />
       )}

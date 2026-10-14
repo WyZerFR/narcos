@@ -143,3 +143,70 @@ class MinHeap {
     [this.prio[a], this.prio[b]] = [this.prio[b]!, this.prio[a]!];
   }
 }
+
+/** Centre de la case `idx`. */
+export function cellCenter(grid: NavGrid, idx: number): Vec2 {
+  const col = idx % grid.cols;
+  const row = (idx - col) / grid.cols;
+  return {
+    x: grid.bounds.minX + (col + 0.5) * grid.cellSize,
+    z: grid.bounds.minZ + (row + 0.5) * grid.cellSize,
+  };
+}
+
+/** Le segment a → b ne traverse-t-il que des cases libres (échantillonné à la demi-case) ? */
+export function isSegmentFree(grid: NavGrid, a: Vec2, b: Vec2): boolean {
+  const len = Math.hypot(b.x - a.x, b.z - a.z);
+  const steps = Math.max(1, Math.ceil(len / (grid.cellSize / 2)));
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    if (!isFreeAt(grid, { x: a.x + (b.x - a.x) * t, z: a.z + (b.z - a.z) * t })) return false;
+  }
+  return true;
+}
+
+/**
+ * Plus court chemin de `from` vers `to` : descente du champ de distances calculé depuis `to`
+ * (réutilisable pour plusieurs départs vers la même cible), puis lissage en lignes droites.
+ * Renvoie les points de passage (sans `from`, `to` en dernier), ou null si inaccessible.
+ */
+export function findPath(
+  grid: NavGrid,
+  from: Vec2,
+  to: Vec2,
+  field: Float64Array = distancesFrom(grid, to),
+): Vec2[] | null {
+  let idx = cellIndex(grid, from);
+  if (idx < 0 || !Number.isFinite(field[idx]!)) return null;
+  const raw: Vec2[] = [];
+  const { cols, rows } = grid;
+  while (field[idx]! > 0) {
+    const col = idx % cols;
+    const row = (idx - col) / cols;
+    let best = idx;
+    for (let dc = -1; dc <= 1; dc++)
+      for (let dr = -1; dr <= 1; dr++) {
+        const c = col + dc;
+        const r = row + dr;
+        if (c < 0 || r < 0 || c >= cols || r >= rows) continue;
+        const n = r * cols + c;
+        if (field[n]! < field[best]!) best = n;
+      }
+    if (best === idx) return null;
+    idx = best;
+    raw.push(cellCenter(grid, idx));
+  }
+  raw.push(to);
+  // lissage : depuis chaque point, on saute au plus lointain visible en ligne droite
+  const path: Vec2[] = [];
+  let anchor = from;
+  let i = 0;
+  while (i < raw.length) {
+    let j = raw.length - 1;
+    while (j > i && !isSegmentFree(grid, anchor, raw[j]!)) j--;
+    path.push(raw[j]!);
+    anchor = raw[j]!;
+    i = j + 1;
+  }
+  return path;
+}

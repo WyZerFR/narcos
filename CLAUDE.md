@@ -4,7 +4,7 @@ Jeu web 3D coopératif 3 joueurs (iPad Safari PWA + PC), ton arcade / humour noi
 
 ## État actuel
 
-Jalon J1, étapes 1 à 4B terminées, 4C en cours : multi (3 joueurs, code 4 lettres, reconnexion auto) ; quartier de la zone 1 (8 lieux, collisions, mini-carte, découpe des murs) ; inventaire réorganisable (appui long + glisser) ; labo **vide à équiper** (emplacements, mobilier du Bricoshop, lampes) et jouable (cycle graine → pochon) ; **argent** (sale = objet du sac, propre = compte) ; **shop et supérette** en intérieurs (étagères, panier serveur, paiement au comptoir) ; **survie** (faim, soif, santé, KO) ; sauvegarde JSON ; commandes debug. **Pas encore** : vente de rue, police, téléphone, SQLite.
+Jalon J1, étapes 1 à 4C terminées : multi (3 joueurs, code 4 lettres, reconnexion auto) ; quartier de la zone 1 (8 lieux, collisions, mini-carte, découpe des murs) ; inventaire réorganisable (appui long + glisser) ; labo **vide à équiper** (emplacements, mobilier du Bricoshop, lampes) et jouable (cycle graine → pochon) ; **argent** (sale = objet du sac, propre = compte) ; **shop et supérette** en intérieurs (étagères, panier serveur, paiement au comptoir) ; **survie** (faim, soif, santé, KO) ; **vente de rue** à des PNJ acheteurs (offre, verrou, argent sale) ; sauvegarde JSON ; commandes debug. **Pas encore** : taxe d'El Jefe, police, téléphone, laverie, SQLite.
 
 ## Stack
 
@@ -25,6 +25,7 @@ npm test             # Vitest shared + server
 npm run lint
 npm run typecheck
 npm run format
+npm run balance      # rentabilité d'un cycle et débouché de la rue, calculés depuis les JSON
 ```
 
 Le client parle au serveur via le proxy Vite (`/colyseus` → `localhost:2567`) : une seule origine, LAN et HTTPS sans config.
@@ -33,7 +34,7 @@ Le client parle au serveur via le proxy Vite (`/colyseus` → `localhost:2567`) 
 
 ```
 shared/data/        economy.json, items.json, locations.json, zones.json (intérieurs), shops.json,
-                    config.json
+                    npcs.json (prénoms, profils d'acheteurs, points de passage), config.json
                     ← TOUT l'équilibrage
 shared/src/         schemas.ts (zod → types), data.ts (chargement + cohérence de la carte),
                     geometry.ts, locations.ts (portes, lieu proche), collision.ts (cercle/rectangles),
@@ -41,18 +42,21 @@ shared/src/         schemas.ts (zod → types), data.ts (chargement + cohérence
                     protocol.ts (messages client↔serveur), zones.ts (rue/intérieurs), inventory.ts,
                     production.ts (pot, étendoir, découpe), clock.ts (horloge de jeu),
                     shop.ts (panier, paiement), survival.ts (faim, soif, santé),
-                    fixtures.ts (emplacements du labo : postes installés, obstacles, lampes), *.test.ts
+                    fixtures.ts (emplacements du labo : postes installés, obstacles, lampes),
+                    sale.ts (demande des PNJ, prix, vente), balance.ts (rentabilité d'un cycle), *.test.ts
 server/src/         index.ts (bootstrap + restauration), persistence.ts (snapshot JSON),
                     rooms/NarcoRoom.ts, rooms/schema.ts (state Colyseus), rooms/lab.ts (actions des postes),
                     rooms/shop.ts (étagères, panier), rooms/fixtures.ts (installer / démonter, vitesse
-                    des pots), rooms/stateSync.ts (state Colyseus ↔ logique pure)
+                    des pots), rooms/npcs.ts (PNJ de la rue : marche, offres, verrou),
+                    rooms/stateSync.ts (state Colyseus ↔ logique pure)
 server/test/        tests d'intégration de room
 client/src/net/     connexion, reconnexion, gameView.ts (lecture de l'état + horloge de jeu)
 client/src/game/    scène R3F : city/ (ville), interior/ (pièces, mobilier instancié, plantes), joueurs, caméra,
                     fixtureState.ts (mobilier installé : collisions et endroits interactifs),
+                    Npcs.tsx + npcState.ts (PNJ instanciés, positions lissées),
                     labels.tsx (étiquettes, barres de progression), stationView.ts (état des postes)
 client/src/input/   joystick, bouton action, clavier
-client/src/ui/      lobby, HUD, mini-carte, interaction (ACTION + toast), inventaire, options,
+client/src/ui/      lobby, HUD, mini-carte, interaction (ACTION + toast), inventaire, offre de vente, options,
                     panneau caméra + debug labo
 client/public/      manifest PWA, service worker, icônes
 ```
@@ -74,8 +78,9 @@ client/public/      manifest PWA, service worker, icônes
 13. **Timers** : uniquement des timestamps en **temps de jeu** (`readyAt`, `wateredUntil`…, `float64` dans le schéma), jamais de compteurs décrémentés. L'horloge (`shared/src/clock.ts`) peut être accélérée en debug ; le client l'extrapole depuis `state.clock`.
 14. **Argent et prix** : l'argent sale est un objet (`cash_dirty`) du sac, l'argent propre un compte (`Player.cleanMoney`). Les prix ne vivent que dans `shops.json` et ne sont calculés que par le serveur (`Player.cart`, `cartTotal`) ; le client affiche, ne calcule pas.
 15. **Labo aménageable** : les postes fixes (eau, caisse, porte) sont dans `stations`, le mobilier dans `fixtures` (`zones.json`, type accepté `pot | drying_rack | cutting_table | lamp`). Un objet du sac avec `installs` (items.json) s'y installe ; l'état vit par emplacement (`lab.fixtures`, `lab.pots`, `lab.racks`, `lab.cuts`, clé = id d'emplacement). Un emplacement installé est un poste (`fixtureStation`) et, sauf les lampes, un obstacle (collisions recalculées côté serveur et client). Les lampes changent la vitesse des pots (`Pot.rate`) via `rebankPot` : jamais de saut de progression. Rendu : tout le mobilier tient en 2 `InstancedMesh` de cubes (`FixtureProps`), jamais découpés.
-16. **Survie** : jauges mises à jour par le serveur à partir de `survivalAt` (temps de jeu × `clock.survivalScale` en debug), **uniquement pour les joueurs connectés** ; aucune logique de survie côté client (il ne fait qu'afficher et appliquer le même ralentissement à sa prédiction).
-17. **Abonnements Colyseus côté client** : toujours `subscribeState(room, cb)` (`net/gameView.ts`). Ne jamais appeler `.clear()` sur le retour de `room.onStateChange` : il supprime tous les abonnés.
+16. **Vente de rue** : PNJ simulés par le serveur (`rooms/npcs.ts`), positions écrites à `config.npc.broadcastHz`, interpolées et rendues en 2 `InstancedMesh` côté client. Demande tirée à l'apparition (`rollDemand`, profils de `npcs.json`), prix = `pouchSellPrice` × (1 ± `economy.sale.priceVariance`). `sale.open` réserve le PNJ pour un seul joueur (verrou jusqu'à la fin de sa patience) ; `sale.accept` / `sale.decline` ; le verrou saute si le joueur change de zone, se déconnecte ou tombe KO. Chaque vente émet `sale_completed` sur `room.events` (pour le Heat et la police plus tard). Les PNJ ne sont pas sauvegardés.
+17. **Survie** : jauges mises à jour par le serveur à partir de `survivalAt` (temps de jeu × `clock.survivalScale` en debug), **uniquement pour les joueurs connectés** ; aucune logique de survie côté client (il ne fait qu'afficher et appliquer le même ralentissement à sa prédiction).
+18. **Abonnements Colyseus côté client** : toujours `subscribeState(room, cb)` (`net/gameView.ts`). Ne jamais appeler `.clear()` sur le retour de `room.onStateChange` : il supprime tous les abonnés.
 
 ## Réseau
 
@@ -91,6 +96,6 @@ client/public/      manifest PWA, service worker, icônes
 - `?debug=1` / `?debug=0` : mode debug **mémorisé** (localStorage), aussi dans Options. Active l'overlay FPS / draw calls / triangles et le panneau caméra ; `window.narco.three` expose `{gl, scene, camera}`, `window.narco.local` la position prédite.
 - Captures de rendu (dev) : `POST /__shot?name=x` avec une data URL d'image → `.shots/x.jpg` (ignoré par git).
 - Console : `narco.dropSocket()` simule une coupure réseau ; `narco.advance()` calcule et dessine une frame à la demande.
-- Panneau debug, sections « Debug labo » et « Debug argent, survie, magasins » : donner un objet, vider le stock, équiper / vider le labo, vitesse du temps x1/x10/x60, +100 $ d'argent sale, jauges pleines / vides, survie x1/x10/x60, réapprovisionner les étagères (tout est refusé par le serveur si `config.debug.commands` est faux).
+- Panneau debug, sections « Debug labo » et « Debug argent, survie, magasins » : donner un objet, vider le stock, équiper / vider le labo, vitesse du temps x1/x10/x60, acheteur à côté du joueur, +5 pochons, +100 $ d'argent sale, jauges pleines / vides, survie x1/x10/x60, réapprovisionner les étagères (tout est refusé par le serveur si `config.debug.commands` est faux).
 - Tests serveur : chaque fichier démarre son serveur sur un port dédié (`server/test/helpers.ts`, `bootOn`), les fichiers tournent en parallèle.
 - Variables d'env : `NARCO_SERVER_PORT` (défaut 2567), `NARCO_SERVER_HOST` (défaut 0.0.0.0). Ne pas utiliser `PORT` (souvent injecté par les outils).

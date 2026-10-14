@@ -4,6 +4,7 @@ import economyJson from '../data/economy.json';
 import itemsJson from '../data/items.json';
 import locationsJson from '../data/locations.json';
 import shopsJson from '../data/shops.json';
+import npcsJson from '../data/npcs.json';
 import zonesJson from '../data/zones.json';
 import { gameData, parseGameData, type RawGameData } from './data';
 import {
@@ -24,6 +25,7 @@ const raw = (): RawGameData =>
     locations: locationsJson,
     zones: zonesJson,
     shops: shopsJson,
+    npcs: npcsJson,
   });
 
 const lab = gameData.interiors.get('lab')!;

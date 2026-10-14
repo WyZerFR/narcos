@@ -1,0 +1,172 @@
+{
+  "names": [
+    "Kévin",
+    "Jessy",
+    "Mamadou",
+    "Lucie",
+    "Tonton Jo",
+    "Sabrina",
+    "Rachid",
+    "Mémé Ginette",
+    "Dylan",
+    "Inès",
+    "Le Prof",
+    "Bastien",
+    "Yasmine",
+    "Gégé",
+    "Clara",
+    "Momo le Rouquin",
+    "Sofiane",
+    "Brenda",
+    "Monsieur Paul",
+    "Zoé"
+  ],
+  "profiles": [
+    {
+      "id": "etudiant",
+      "label": "Étudiant fauché",
+      "weight": 3,
+      "interestChance": 0.6,
+      "strains": ["base"],
+      "qty": [1, 2],
+      "budget": [20, 45],
+      "patienceSeconds": [20, 40],
+      "color": "vegetation",
+      "shade": 1.6
+    },
+    {
+      "id": "fetard",
+      "label": "Fêtard",
+      "weight": 2,
+      "interestChance": 0.75,
+      "strains": ["base"],
+      "qty": [2, 3],
+      "budget": [45, 80],
+      "patienceSeconds": [15, 30],
+      "color": "neon",
+      "shade": 1.2
+    },
+    {
+      "id": "cadre",
+      "label": "Cadre stressé",
+      "weight": 1,
+      "interestChance": 0.5,
+      "strains": ["base"],
+      "qty": [1, 3],
+      "budget": [60, 100],
+      "patienceSeconds": [10, 20],
+      "color": "sky",
+      "shade": 2.4
+    },
+    {
+      "id": "passant",
+      "label": "Simple passant",
+      "weight": 3,
+      "interestChance": 0,
+      "strains": ["base"],
+      "qty": [1, 1],
+      "budget": [10, 20],
+      "patienceSeconds": [10, 10],
+      "color": "wall",
+      "shade": 1.8
+    }
+  ],
+  "waypoints": [
+    {
+      "x": -38,
+      "z": -5.25
+    },
+    {
+      "x": -38,
+      "z": 5.25
+    },
+    {
+      "x": -26,
+      "z": -5.25
+    },
+    {
+      "x": -26,
+      "z": 5.25
+    },
+    {
+      "x": -14,
+      "z": -5.25
+    },
+    {
+      "x": -14,
+      "z": 5.25
+    },
+    {
+      "x": 14,
+      "z": -5.25
+    },
+    {
+      "x": 14,
+      "z": 5.25
+    },
+    {
+      "x": 26,
+      "z": -5.25
+    },
+    {
+      "x": 26,
+      "z": 5.25
+    },
+    {
+      "x": 38,
+      "z": -5.25
+    },
+    {
+      "x": 38,
+      "z": 5.25
+    },
+    {
+      "x": -5.25,
+      "z": -38
+    },
+    {
+      "x": 5.25,
+      "z": -38
+    },
+    {
+      "x": -5.25,
+      "z": -26
+    },
+    {
+      "x": 5.25,
+      "z": -26
+    },
+    {
+      "x": -5.25,
+      "z": -14
+    },
+    {
+      "x": 5.25,
+      "z": -14
+    },
+    {
+      "x": -5.25,
+      "z": 14
+    },
+    {
+      "x": 5.25,
+      "z": 14
+    },
+    {
+      "x": -5.25,
+      "z": 26
+    },
+    {
+      "x": 5.25,
+      "z": 26
+    },
+    {
+      "x": -5.25,
+      "z": 38
+    },
+    {
+      "x": 5.25,
+      "z": 38
+    }
+  ]
+}

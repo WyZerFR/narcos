@@ -7,6 +7,7 @@ import {
   STREET,
   type FixtureMessage,
   type InteractMessage,
+  type SaleOpenMessage,
   type Place,
   type StationMessage,
 } from '@narco/shared';
@@ -17,6 +18,7 @@ import { onAction } from '../input/inputState';
 import { gameNow } from '../net/gameView';
 import { placeView } from '../game/stationView';
 import { installedSet, placesOf } from '../game/fixtureState';
+import { npcSmoothed } from '../game/npcState';
 import { openInventory } from './uiStore';
 
 const LOCATIONS = [...gameData.locations.values()];
@@ -40,6 +42,7 @@ interface Target {
     | { type: typeof ClientMsg.Interact; body: InteractMessage }
     | { type: typeof ClientMsg.Station; body: StationMessage }
     | { type: typeof ClientMsg.Fixture; body: FixtureMessage }
+    | { type: typeof ClientMsg.SaleOpen; body: SaleOpenMessage }
     | null;
   /** Emplacement installé au repos : bouton secondaire « Démonter ». */
   uninstall?: string;
@@ -63,9 +66,34 @@ function placeTarget(room: GameRoom, place: Place): Target {
   };
 }
 
+/** PNJ acheteur le plus proche à portée de vente (positions lissées, comme à l'écran). */
+function npcTarget(room: GameRoom): Target | null {
+  const { saleRadius } = gameData.config.npc;
+  let best: Target | null = null;
+  let bestD = saleRadius;
+  room.state.npcs?.forEach((n) => {
+    if (!n.interested) return;
+    const pos = npcSmoothed.get(n.id) ?? n;
+    const d = Math.hypot(pos.x - localPlayer.x, pos.z - localPlayer.z);
+    if (d > bestD) return;
+    bestD = d;
+    const busy = Boolean(n.busyWith) && n.busyWith !== connection.playerId;
+    best = {
+      key: `npc:${n.id}:${busy ? 'busy' : ''}`,
+      label: busy ? `${n.name} est occupé` : `Vendre à ${n.name}`,
+      active: !busy,
+      message: busy ? null : { type: ClientMsg.SaleOpen, body: { npcId: n.id } },
+    };
+  });
+  return best;
+}
+
 function findTarget(room: GameRoom): Target | null {
   if (!localPlayer.initialized) return null;
   if (localPlayer.zone === STREET) {
+    // un acheteur à portée passe avant la porte d'un lieu
+    const buyer = npcTarget(room);
+    if (buyer) return buyer;
     const loc = nearestLocation(localPlayer, LOCATIONS);
     return loc
       ? {

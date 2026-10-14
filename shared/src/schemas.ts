@@ -140,6 +140,56 @@ export const ConfigSchema = z.object({
     reconnectBackoffMs: z.array(pos).min(1),
     reconnectMaxDelayMs: pos,
   }),
+  /** PNJ de la rue (acheteurs) : simulés par le serveur, diffusés à cadence réduite. */
+  npc: z.object({
+    count: z.number().int().min(6).max(10),
+    /** Vitesse de marche (m/s, temps réel). */
+    speed: pos,
+    radius: pos,
+    /** Fréquence d'écriture des positions dans l'état diffusé (Hz). */
+    broadcastHz: pos,
+    /** Pause entre deux trajets (s, temps réel). */
+    pauseSeconds: z.tuple([nonNeg, nonNeg]),
+    /** Distance max joueur ↔ PNJ pour lui vendre (m). */
+    saleRadius: pos,
+    /** Après une vente ou un refus, le PNJ s'en va puis revient avec une nouvelle demande (s de jeu). */
+    cooldownSeconds: z.tuple([pos, pos]),
+    /** Pas de la grille de navigation des PNJ (m). */
+    navCellSize: pos,
+    /** Acheteur de debug : distance d'apparition devant le joueur (m). */
+    debugSpawnDistance: pos,
+  }),
+});
+
+// ---------- npcs.json ----------
+const minMax = (schema: z.ZodNumber) =>
+  z.tuple([schema, schema]).refine(([a, b]) => a <= b, 'intervalle [min, max] inversé');
+
+/** Profil d'acheteur : chance d'être intéressé, demande, budget, patience, apparence. */
+export const NpcProfileSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1),
+  /** Poids du tirage du profil. */
+  weight: pos,
+  interestChance: z.number().min(0).max(1),
+  /** Variétés de pochon demandées. */
+  strains: z.array(z.string().min(1)).min(1),
+  /** Pochons voulus (1 à 3). */
+  qty: minMax(z.number().int().min(1).max(3)),
+  /** Argent sur lui ($) : borne la quantité qu'il peut payer. */
+  budget: minMax(pos),
+  /** Temps qu'il attend devant une offre ouverte (s de jeu). */
+  patienceSeconds: minMax(pos),
+  /** Teinte du corps : couleur de la palette × facteur. */
+  color: PaletteKeySchema,
+  shade: pos,
+});
+
+export const NpcsFileSchema = z.object({
+  names: z.array(z.string().min(1)).min(10),
+  profiles: z.array(NpcProfileSchema).min(1),
+  /** Points de passage sur les trottoirs (rue). */
+  waypoints: z.array(Vec2Schema).min(4),
 });
 
 // ---------- items.json ----------
@@ -250,6 +300,10 @@ export const EconomySchema = z.object({
     lookoutRiskReduction: z.number().min(0).max(1),
   }),
   /** Labo : postes de production et stock commun. */
+  /** Vente de rue : prix = pouchSellPrice × (1 ± priceVariance), arrondi au dollar. */
+  sale: z.object({
+    priceVariance: z.number().min(0).lt(1),
+  }),
   lab: z.object({
     startingStock: z.array(
       z.object({ itemId: z.string().min(1), qty: z.number().int().positive() }),
@@ -449,5 +503,7 @@ export type Interior = z.infer<typeof InteriorSchema>;
 export type Fixture = z.infer<typeof FixtureSchema>;
 export type FixtureType = z.infer<typeof FixtureTypeSchema>;
 export type Shelf = z.infer<typeof ShelfSchema>;
+export type NpcProfile = z.infer<typeof NpcProfileSchema>;
+export type NpcsFile = z.infer<typeof NpcsFileSchema>;
 export type Shop = z.infer<typeof ShopSchema>;
 export type LocationsFile = z.infer<typeof LocationsFileSchema>;

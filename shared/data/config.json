@@ -295,5 +295,16 @@
   "ui": {
     "longPressMs": 350,
     "dragCancelPx": 8
+  },
+  "npc": {
+    "count": 8,
+    "speed": 1.4,
+    "radius": 0.4,
+    "broadcastHz": 4,
+    "pauseSeconds": [1, 5],
+    "saleRadius": 2,
+    "cooldownSeconds": [60, 150],
+    "navCellSize": 0.5,
+    "debugSpawnDistance": 1.2
   }
 }

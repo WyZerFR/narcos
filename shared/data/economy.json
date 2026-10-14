@@ -110,6 +110,9 @@
       "durationMinutes": 30
     }
   },
+  "sale": {
+    "priceVariance": 0.2
+  },
   "lab": {
     "startingStock": [
       {

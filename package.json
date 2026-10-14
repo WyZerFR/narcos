@@ -16,7 +16,8 @@
     "lint": "eslint .",
     "typecheck": "npm run typecheck -w shared -w server -w client",
     "format": "prettier --write .",
-    "icons": "node scripts/make-icons.mjs"
+    "icons": "node scripts/make-icons.mjs",
+    "balance": "tsx scripts/balance.ts"
   },
   "engines": {
     "node": ">=20"

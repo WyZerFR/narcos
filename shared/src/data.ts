@@ -5,6 +5,7 @@ import itemsJson from '../data/items.json';
 import locationsJson from '../data/locations.json';
 import zonesJson from '../data/zones.json';
 import shopsJson from '../data/shops.json';
+import npcsJson from '../data/npcs.json';
 import {
   ConfigSchema,
   EconomySchema,
@@ -12,6 +13,8 @@ import {
   LocationsFileSchema,
   ZonesFileSchema,
   ShopsFileSchema,
+  NpcsFileSchema,
+  type NpcsFile,
   type Shop,
   type Interior,
   type Block,
@@ -32,6 +35,7 @@ import {
 import { footprint, interactionPoint } from './locations';
 import { interiorBounds, interiorObstacles } from './zones';
 import { fixtureObstacles } from './fixtures';
+import { obstaclesFrom } from './collision';
 
 export interface GameData {
   config: GameConfig;
@@ -45,6 +49,8 @@ export interface GameData {
   interiors: ReadonlyMap<string, Interior>;
   /** Magasins (`shops.json`), indexés par id d'intérieur. */
   shops: ReadonlyMap<string, Shop>;
+  /** PNJ de la rue (`npcs.json`). */
+  npcs: NpcsFile;
 }
 
 export interface RawGameData {
@@ -54,6 +60,7 @@ export interface RawGameData {
   locations: unknown;
   zones: unknown;
   shops: unknown;
+  npcs: unknown;
 }
 
 function parse<T>(file: string, schema: z.ZodType<T>, raw: unknown): T {
@@ -161,6 +168,7 @@ export function parseGameData(raw: RawGameData): GameData {
   const locFile = parse('locations.json', LocationsFileSchema, raw.locations);
   const zonesFile = parse('zones.json', ZonesFileSchema, raw.zones);
   const shopsFile = parse('shops.json', ShopsFileSchema, raw.shops);
+  const npcs = parse('npcs.json', NpcsFileSchema, raw.npcs);
 
   const items = indexById('items.json', itemsFile.items);
   const zones = indexById('locations.json (zones)', locFile.zones);
@@ -253,13 +261,39 @@ export function parseGameData(raw: RawGameData): GameData {
     for (const category of ['seed', 'plant_fresh', 'plant_dried', 'pouch'] as const)
       if (![...items.values()].some((it) => it.category === category && it.strain === strain.id))
         errors.push(`items.json : pas de "${category}" pour la variété "${strain.id}"`);
+  indexById('npcs.json (profiles)', npcs.profiles);
+  for (const profile of npcs.profiles)
+    for (const id of profile.strains)
+      if (!strains.has(id))
+        errors.push(`npcs.json : "${profile.id}" veut la variété inconnue "${id}"`);
+  if (!npcs.profiles.some((p) => p.interestChance > 0))
+    errors.push("npcs.json : aucun profil n'achète jamais rien");
+  const streetObstacles = obstaclesFrom({ config, locations, blocks: locFile.blocks }).map((r) =>
+    expandRect(r, config.npc.radius),
+  );
+  for (const [i, wp] of npcs.waypoints.entries())
+    if (
+      !rectContainsPoint(config.world.bounds, wp) ||
+      streetObstacles.some((r) => rectContainsPoint(r, wp))
+    )
+      errors.push(`npcs.json : point de passage n°${i} hors carte ou dans un bâtiment`);
   if (config.players.colors.length < config.room.maxPlayers)
     errors.push('config.json : il faut au moins autant de couleurs que de joueurs max');
   if (config.movement.runSpeed < config.movement.walkSpeed)
     errors.push('config.json : runSpeed doit être >= walkSpeed');
   if (errors.length > 0) throw new Error(`[data] incohérences :\n  - ${errors.join('\n  - ')}`);
 
-  return { config, economy, items, zones, locations, blocks: locFile.blocks, interiors, shops };
+  return {
+    config,
+    economy,
+    items,
+    zones,
+    locations,
+    blocks: locFile.blocks,
+    interiors,
+    shops,
+    npcs,
+  };
 }
 
 /** Données du jeu chargées depuis `shared/data/*.json` au démarrage. */
@@ -270,4 +304,5 @@ export const gameData: GameData = parseGameData({
   locations: locationsJson,
   zones: zonesJson,
   shops: shopsJson,
+  npcs: npcsJson,
 });

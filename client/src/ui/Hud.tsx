@@ -9,6 +9,7 @@ import { Minimap } from './Minimap';
 import { StatusPanel } from './StatusPanel';
 import { CartPanel } from './CartPanel';
 import { InventoryPanel } from './InventoryPanel';
+import { SalePanel } from './SalePanel';
 import { openInventory, useInventoryMode } from './uiStore';
 
 export function Hud({ snapshot, room }: { snapshot: Snapshot; room: GameRoom }) {
@@ -68,6 +69,7 @@ export function Hud({ snapshot, room }: { snapshot: Snapshot; room: GameRoom }) 
 
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
       {inventory && <InventoryPanel room={room} mode={inventory} />}
+      <SalePanel room={room} />
     </>
   );
 }

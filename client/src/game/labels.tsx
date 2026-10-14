@@ -5,6 +5,7 @@ import type { GameRoom } from '../net/connection';
 import { gameNow } from '../net/gameView';
 import { placeView } from './stationView';
 import { installedSet, placesOf } from './fixtureState';
+import { useNpcList } from './npcState';
 import { footprint, gameData, segmentHitsBox, STREET, type Box } from '@narco/shared';
 import type { PlayerInfo } from './Players';
 
@@ -110,6 +111,7 @@ export function LabelLayer({
   myId: string;
   zone: string;
 }) {
+  const npcs = useNpcList(room);
   const statusRefs = useRef(
     new Map<
       string,
@@ -194,6 +196,18 @@ export function LabelLayer({
           </span>
         </div>
       ))}
+      {zone === STREET &&
+        npcs
+          .filter((n) => n.interested)
+          .map((n) => (
+            <div
+              key={`npc:${n.id}`}
+              ref={bindElement(`npc:${n.id}`)}
+              className={`npc-label${n.busyWith && n.busyWith !== myId ? ' busy' : ''}`}
+            >
+              {n.busyWith && n.busyWith !== myId ? '⏳' : '💬'} {n.name}
+            </div>
+          ))}
       {players.map((p) => (
         <div
           key={`marker:${p.id}`}

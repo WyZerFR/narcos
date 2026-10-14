@@ -27,6 +27,10 @@ export const ClientMsg = {
   InventoryMove: 'inventory.move',
   /** Installer / démonter du mobilier sur un emplacement du labo. */
   Fixture: 'fixture',
+  /** Vente de rue : demander une offre à un PNJ, l'accepter (quantité) ou la refuser. */
+  SaleOpen: 'sale.open',
+  SaleAccept: 'sale.accept',
+  SaleDecline: 'sale.decline',
 } as const;
 
 export const ServerMsg = {
@@ -36,7 +40,23 @@ export const ServerMsg = {
   Notice: 'notice',
   /** Réponse à un glisser-déposer d'inventaire. */
   MoveResult: 'inventory.moveResult',
+  /** Offre d'un PNJ réservée pour ce joueur (panneau de vente). */
+  SaleOffer: 'sale.offer',
+  /** Fin d'une offre (vente faite, refus, patience épuisée, joueur parti). */
+  SaleClosed: 'sale.closed',
 } as const;
+
+/** Nom de l'événement serveur émis à chaque vente (pour le Heat et la police plus tard). */
+export const SALE_COMPLETED = 'sale_completed';
+
+export interface SaleCompletedEvent {
+  playerId: string;
+  npcId: string;
+  qty: number;
+  amount: number;
+  x: number;
+  z: number;
+}
 
 export interface MoveMessage {
   /** Zone dans laquelle la position a été calculée (les messages d'une ancienne zone sont ignorés). */
@@ -113,6 +133,30 @@ export interface FixtureMessage {
   action: 'install' | 'uninstall';
 }
 
+export interface SaleOpenMessage {
+  npcId: string;
+}
+
+export interface SaleAcceptMessage {
+  npcId: string;
+  qty: number;
+}
+
+export interface SaleOfferMessage {
+  npcId: string;
+  name: string;
+  pouchId: string;
+  /** Pochons qu'il veut (au plus). */
+  maxQty: number;
+  unitPrice: number;
+  /** Fin de sa patience (temps de jeu, ms). */
+  expiresAt: number;
+}
+
+export interface SaleClosedMessage {
+  npcId: string;
+}
+
 export interface UseMessage {
   slot: number;
 }
@@ -130,7 +174,8 @@ export type DebugMessage =
   | { cmd: 'vitals'; mode: 'fill' | 'empty' }
   | { cmd: 'survivalScale'; scale: number }
   | { cmd: 'equipLab' }
-  | { cmd: 'clearLab' };
+  | { cmd: 'clearLab' }
+  | { cmd: 'spawnBuyer' };
 
 export const MAX_NAME_LENGTH = 16;
 

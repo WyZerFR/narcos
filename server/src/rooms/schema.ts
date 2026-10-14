@@ -88,6 +88,25 @@ export class LabState extends Schema {
   @type({ map: CutJob }) cuts = new MapSchema<CutJob>();
 }
 
+/**
+ * PNJ de la rue. Position écrite à cadence réduite (`config.npc.broadcastHz`), interpolée par
+ * le client. L'offre (quantité max, prix) n'est visible que si le PNJ est intéressé.
+ */
+export class Npc extends Schema {
+  @type('string') id = '';
+  @type('string') name = '';
+  @type('string') profileId = '';
+  @type('float32') x = 0;
+  @type('float32') z = 0;
+  @type('float32') rotY = 0;
+  @type('boolean') interested = false;
+  @type('string') strainId = '';
+  @type('uint8') qty = 0;
+  @type('uint16') unitPrice = 0;
+  /** Joueur avec qui une offre est ouverte ('' = libre). */
+  @type('string') busyWith = '';
+}
+
 /** Horloge de jeu diffusée : le client extrapole `now` avec `scale` entre deux mises à jour. */
 export class ClockState extends Schema {
   @type('float64') now = 0;
@@ -104,4 +123,6 @@ export class GameState extends Schema {
   @type(ClockState) clock = new ClockState();
   /** Stock des étagères, clé `intérieur:poste`. */
   @type({ map: ShelfState }) shelves = new MapSchema<ShelfState>();
+  /** PNJ de la rue (non sauvegardés : régénérés au démarrage). */
+  @type({ map: Npc }) npcs = new MapSchema<Npc>();
 }

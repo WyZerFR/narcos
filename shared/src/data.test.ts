@@ -5,6 +5,7 @@ import itemsJson from '../data/items.json';
 import locationsJson from '../data/locations.json';
 import zonesJson from '../data/zones.json';
 import shopsJson from '../data/shops.json';
+import npcsJson from '../data/npcs.json';
 import { gameData, parseGameData, type RawGameData } from './data';
 
 const raw = (): RawGameData =>
@@ -15,6 +16,7 @@ const raw = (): RawGameData =>
     locations: locationsJson,
     zones: zonesJson,
     shops: shopsJson,
+    npcs: npcsJson,
   });
 
 describe('données du jeu', () => {

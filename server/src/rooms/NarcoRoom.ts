@@ -1,3 +1,4 @@
+import { EventEmitter } from 'node:events';
 import { matchMaker, Room, ServerError, type Client, type Delayed } from '@colyseus/core';
 import {
   ClientMsg,
@@ -58,6 +59,8 @@ import {
   speedFactor,
 } from '@narco/shared';
 import { pay, putBack, returnCart, stockShelves, takeItem } from './shop';
+import { StreetNpcs } from './npcs';
+import { SALE_COMPLETED, type SaleClosedMessage, type SaleCompletedEvent } from '@narco/shared';
 import { GameState, Player } from './schema';
 import { makeSlots, readInventory, writeInventory } from './stateSync';
 
@@ -127,6 +130,11 @@ export class NarcoRoom extends Room<GameState> {
   private budgets = new Map<string, MoveBudget>();
   private emptyTimer: Delayed | undefined;
   private gameClock: GameClock = createClock(Date.now());
+  /** PNJ acheteurs de la rue. */
+  readonly npcs = new StreetNpcs(this.state);
+  /** Événements de jeu côté serveur (`sale_completed`…), pour le Heat et la police plus tard. */
+  readonly events = new EventEmitter();
+  private npcTickAt = Date.now();
 
   override async onCreate(options: NarcoRoomOptions = {}): Promise<void> {
     if (options.restore) {
@@ -165,6 +173,15 @@ export class NarcoRoom extends Room<GameState> {
     this.clock.setInterval(() => this.tick(), TICK_MS);
     this.clock.setInterval(() => this.publishClock(), CLOCK_BROADCAST_MS);
     this.clock.setInterval(() => this.settleAllVitals(), CLOCK_BROADCAST_MS);
+    this.npcs.spawnAll(Date.now());
+    this.clock.setInterval(() => this.npcTick(), 1000 / config.npc.broadcastHz);
+    this.onMessage(ClientMsg.SaleOpen, (client, msg: unknown) => this.handleSaleOpen(client, msg));
+    this.onMessage(ClientMsg.SaleAccept, (client, msg: unknown) =>
+      this.handleSaleAccept(client, msg),
+    );
+    this.onMessage(ClientMsg.SaleDecline, (client, msg: unknown) =>
+      this.handleSaleDecline(client, msg),
+    );
     liveRooms.add(this);
     this.armEmptyTimer();
   }
@@ -211,6 +228,7 @@ export class NarcoRoom extends Room<GameState> {
         this.settleVitals(playerId, player);
         player.connected = false;
         this.emptyCart(player);
+        this.releaseSales(playerId);
         console.log(`[room ${this.roomId}] ${player.name} déconnecté`);
       }
     }
@@ -334,7 +352,10 @@ export class NarcoRoom extends Room<GameState> {
     zoneId: string,
     at: { x: number; z: number },
   ) {
-    if (zoneId !== player.zone) this.emptyCart(player);
+    if (zoneId !== player.zone) {
+      this.emptyCart(player);
+      this.releaseSales(playerId);
+    }
     player.zone = zoneId;
     player.x = at.x;
     player.z = at.z;
@@ -508,6 +529,7 @@ export class NarcoRoom extends Room<GameState> {
   /** KO : panier rendu, argent sale perdu en partie, réapparition au carton, jauges de reprise. */
   private knockOut(playerId: string, player: Player): void {
     this.emptyCart(player);
+    this.releaseSales(playerId);
     const bag = readInventory(player.bag);
     const lost = koCashLoss(count(bag, DIRTY_CASH), SURVIVAL);
     if (lost > 0) {
@@ -547,6 +569,73 @@ export class NarcoRoom extends Room<GameState> {
     writeInventory(player.bag, r.inv);
     Object.assign(player, next);
     this.notify(client, true, `${def.name} : ça va mieux.`);
+  }
+
+  // ---------------------------------------------------------------- vente de rue
+
+  /** PNJ : simulation + diffusion des positions à cadence réduite ; offres expirées. */
+  private npcTick(): void {
+    const realNow = Date.now();
+    const dt = Math.min(1000, realNow - this.npcTickAt);
+    this.npcTickAt = realNow;
+    for (const { playerId, npcId } of this.npcs.update(dt, realNow, this.now())) {
+      const name = this.state.npcs.get(npcId)?.name ?? 'Le client';
+      this.sendToPlayer(playerId, ServerMsg.SaleClosed, { npcId } satisfies SaleClosedMessage);
+      this.notifyPlayer(playerId, false, `${name} en a eu marre d'attendre.`);
+    }
+    this.npcs.publish();
+  }
+
+  private sendToPlayer(playerId: string, type: string, payload: unknown): void {
+    for (const [sessionId, pid] of this.sessions)
+      if (pid === playerId) this.clients.getById(sessionId)?.send(type, payload);
+  }
+
+  /** Lâche les offres d'un joueur (déconnexion, changement de zone, KO). */
+  private releaseSales(playerId: string): void {
+    for (const npcId of this.npcs.releasePlayer(playerId, this.now()))
+      this.sendToPlayer(playerId, ServerMsg.SaleClosed, { npcId } satisfies SaleClosedMessage);
+  }
+
+  /** « Vendre à <PNJ> » : réserve le PNJ pour ce joueur et lui envoie l'offre. */
+  private handleSaleOpen(client: Client, msg: unknown): void {
+    const who = this.playerOf(client);
+    if (!who || !isObject(msg)) return;
+    const r = this.npcs.open(who.playerId, who.player, String(msg.npcId ?? ''), this.now());
+    if (r.ok && r.offer) client.send(ServerMsg.SaleOffer, r.offer);
+    else this.notify(client, r.ok, r.text);
+  }
+
+  /** « Accepter » : pochons contre argent sale ; événement `sale_completed`. */
+  private handleSaleAccept(client: Client, msg: unknown): void {
+    const who = this.playerOf(client);
+    if (!who || !isObject(msg)) return;
+    const { playerId, player } = who;
+    const npcId = String(msg.npcId ?? '');
+    const r = this.npcs.accept(playerId, player, npcId, Number(msg.qty), this.now());
+    this.notify(client, r.ok, r.text);
+    if (!r.ok) return;
+    client.send(ServerMsg.SaleClosed, { npcId } satisfies SaleClosedMessage);
+    const event: SaleCompletedEvent = {
+      playerId,
+      npcId,
+      qty: r.qty ?? 0,
+      amount: r.amount ?? 0,
+      x: player.x,
+      z: player.z,
+    };
+    this.events.emit(SALE_COMPLETED, event);
+  }
+
+  private handleSaleDecline(client: Client, msg: unknown): void {
+    const who = this.playerOf(client);
+    if (!who || !isObject(msg)) return;
+    const npcId = String(msg.npcId ?? '');
+    if (this.npcs.decline(who.playerId, npcId, this.now())) {
+      client.send(ServerMsg.SaleClosed, { npcId } satisfies SaleClosedMessage);
+      const name = this.state.npcs.get(npcId)?.name ?? 'Le client';
+      this.notify(client, true, `${name} hausse les épaules et s'en va.`);
+    }
   }
 
   /** Panier rendu au rayon (sortie du magasin, déconnexion, KO). */
@@ -691,6 +780,16 @@ export class NarcoRoom extends Room<GameState> {
           client,
           true,
           `[debug] labo ${msg.cmd === 'equipLab' ? 'équipé' : 'vidé'}`,
+        );
+      }
+      case 'spawnBuyer': {
+        if (player.zone !== STREET) return this.notify(client, false, '[debug] va dans la rue');
+        const id = this.npcs.spawnBuyerNear(player);
+        const name = id ? this.state.npcs.get(id)?.name : null;
+        return this.notify(
+          client,
+          Boolean(id),
+          name ? `[debug] ${name} veut acheter` : '[debug] pas de place ici',
         );
       }
       case 'timeScale': {

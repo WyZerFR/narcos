@@ -55,6 +55,18 @@ export function DebugLabSection() {
         </button>
       </div>
       <div className="cam-actions">
+        <button type="button" className="btn" onClick={() => send({ cmd: 'spawnBuyer' })}>
+          Acheteur ici
+        </button>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => send({ cmd: 'give', itemId: 'pouch_base', qty: 5 })}
+        >
+          +5 pochons
+        </button>
+      </div>
+      <div className="cam-actions">
         <button type="button" className="btn" onClick={() => send({ cmd: 'equipLab' })}>
           Équiper le labo
         </button>
