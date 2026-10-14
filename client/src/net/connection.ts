@@ -7,6 +7,7 @@ import {
   normalizeRoomCode,
   type CorrectionMessage,
   type NoticeMessage,
+  type MoveResultMessage,
   type JoinOptions,
 } from '@narco/shared';
 import { syncClock } from './gameView';
@@ -114,12 +115,14 @@ function isFatal(err: unknown): boolean {
 
 type CorrectionListener = (c: CorrectionMessage) => void;
 type NoticeListener = (n: NoticeMessage) => void;
+type MoveResultListener = (r: MoveResultMessage) => void;
 
 class Connection {
   private client = new Client(endpoint());
   private listeners = new Set<() => void>();
   private correctionListeners = new Set<CorrectionListener>();
   private noticeListeners = new Set<NoticeListener>();
+  private moveResultListeners = new Set<MoveResultListener>();
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private hiddenAt: number | null = null;
   private joining = false;
@@ -148,6 +151,11 @@ class Connection {
   private set(patch: Partial<Snapshot>): void {
     this.snapshot = { ...this.snapshot, ...patch };
     for (const fn of this.listeners) fn();
+  }
+
+  onMoveResult(fn: MoveResultListener): () => void {
+    this.moveResultListeners.add(fn);
+    return () => this.moveResultListeners.delete(fn);
   }
 
   onNotice(fn: NoticeListener): () => void {
@@ -219,6 +227,9 @@ class Connection {
     saveRoomCode(room.roomId);
 
     room.onStateChange(() => syncClock(room));
+    room.onMessage(ServerMsg.MoveResult, (r: MoveResultMessage) => {
+      for (const fn of this.moveResultListeners) fn(r);
+    });
     room.onMessage(ServerMsg.Notice, (n: NoticeMessage) => {
       for (const fn of this.noticeListeners) fn(n);
     });

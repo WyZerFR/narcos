@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ClientMsg,
   gameData,
@@ -9,6 +9,11 @@ import {
 import { connection, type GameRoom } from '../net/connection';
 import { readBag, readStock, useRoomVersion } from '../net/gameView';
 import { closeInventory, type InventoryMode } from './uiStore';
+import { useInventoryDrag } from './useInventoryDrag';
+
+type Drag = ReturnType<typeof useInventoryDrag>;
+/** Durée d'affichage d'un refus de déplacement (style). */
+const ERROR_MS = 2500;
 
 type Side = 'bag' | 'stock';
 
@@ -24,6 +29,7 @@ function Grid({
   selection,
   onSelect,
   columns,
+  drag,
 }: {
   title: string;
   inv: Inventory;
@@ -31,6 +37,7 @@ function Grid({
   selection: Selection | null;
   onSelect: (s: Selection) => void;
   columns: number;
+  drag: Drag;
 }) {
   const used = inv.filter(Boolean).length;
   return (
@@ -49,8 +56,22 @@ function Grid({
             <button
               key={slot}
               type="button"
-              className={`inv-slot${stack ? '' : ' empty'}${selected ? ' selected' : ''}`}
-              onClick={() => onSelect({ side, slot })}
+              data-inv={side}
+              data-slot={slot}
+              className={`inv-slot${stack ? '' : ' empty'}${selected ? ' selected' : ''}${
+                drag.draggingFrom?.inv === side && drag.draggingFrom.slot === slot ? ' lifted' : ''
+              }`}
+              onClick={() => {
+                if (drag.consumeClick()) onSelect({ side, slot });
+              }}
+              onContextMenu={(e) => e.preventDefault()}
+              onPointerDown={(e) => {
+                if (stack)
+                  drag.slotHandlers.onPointerDown(e, { inv: side, slot }, stack.itemId, stack.qty);
+              }}
+              onPointerMove={drag.slotHandlers.onPointerMove}
+              onPointerUp={drag.slotHandlers.onPointerUp}
+              onPointerCancel={drag.slotHandlers.onPointerCancel}
               aria-label={def ? `${def.name} × ${stack!.qty}` : 'Slot vide'}
             >
               {def && (
@@ -69,7 +90,8 @@ function Grid({
 
 /**
  * Inventaire plein écran : grille du sac ; à la caisse du labo, sac et stock côte à côte.
- * Tap pour sélectionner, puis boutons de transfert : jamais de glisser-déposer.
+ * Tap pour sélectionner (détail, boutons de transfert) ; appui long pour glisser une pile
+ * vers un autre slot (déplacement, fusion, échange, transfert sac ↔ stock à la caisse).
  */
 export function InventoryPanel({
   room,
@@ -80,6 +102,14 @@ export function InventoryPanel({
 }) {
   useRoomVersion(room); // re-rendu à chaque patch : le stock peut changer sous nos yeux
   const [selection, setSelection] = useState<Selection | null>(null);
+  const [dragError, setDragError] = useState<string | null>(null);
+  const onRefused = useCallback((text: string) => setDragError(text), []);
+  const drag = useInventoryDrag(room, onRefused);
+  useEffect(() => {
+    if (!dragError) return;
+    const t = setTimeout(() => setDragError(null), ERROR_MS);
+    return () => clearTimeout(t);
+  }, [dragError]);
   const bag = readBag(room, connection.playerId);
   const stock = readStock(room);
   const showStock = mode === 'stock';
@@ -119,6 +149,7 @@ export function InventoryPanel({
             selection={selection}
             onSelect={setSelection}
             columns={5}
+            drag={drag}
           />
           {showStock && (
             <Grid
@@ -128,10 +159,13 @@ export function InventoryPanel({
               selection={selection}
               onSelect={setSelection}
               columns={10}
+              drag={drag}
             />
           )}
         </div>
 
+        {dragError && <div className="inv-error">{dragError}</div>}
+        {drag.ghostNode}
         <footer className="inv-detail">
           {def && stack ? (
             <>

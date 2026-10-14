@@ -121,6 +121,12 @@ export const ConfigSchema = z.object({
   cameraInterior: CameraSchema,
   cameraRig: z.object({ followStiffness: pos, near: pos, far: pos }),
   cutout: CutoutSchema,
+  ui: z.object({
+    /** Appui long avant de détacher un objet de l'inventaire (ms). */
+    longPressMs: pos,
+    /** Mouvement toléré avant la fin de l'appui long ; au-delà, c'est un défilement. */
+    dragCancelPx: pos,
+  }),
   persistence: z.object({
     /** Fréquence des sauvegardes JSON des parties (s). */
     snapshotSeconds: pos,

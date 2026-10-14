@@ -23,6 +23,8 @@ export const ClientMsg = {
   CartRemove: 'cartRemove',
   /** Manger / boire un objet du sac. */
   Use: 'use',
+  /** Glisser-déposer d'une pile (sac / stock). */
+  InventoryMove: 'inventory.move',
 } as const;
 
 export const ServerMsg = {
@@ -30,6 +32,8 @@ export const ServerMsg = {
   Correction: 'correction',
   /** Message court affiché au joueur (réponse à une interaction). */
   Notice: 'notice',
+  /** Réponse à un glisser-déposer d'inventaire. */
+  MoveResult: 'inventory.moveResult',
 } as const;
 
 export interface MoveMessage {
@@ -84,6 +88,22 @@ export interface TransferMessage {
   from: 'bag' | 'stock';
   slot: number;
   qty: number;
+}
+
+export type InventoryKind = 'bag' | 'stock';
+
+export interface InventoryMoveMessage {
+  requestId: number;
+  from: { inv: InventoryKind; slot: number };
+  to: { inv: InventoryKind; slot: number };
+  /** Objet attendu dans le slot de départ : si le slot a changé entre-temps, refus. */
+  itemId: string;
+}
+
+export interface MoveResultMessage {
+  requestId: number;
+  ok: boolean;
+  text?: string;
 }
 
 export interface UseMessage {

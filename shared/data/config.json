@@ -291,5 +291,9 @@
   "debug": {
     "commands": true,
     "timeScales": [1, 10, 60]
+  },
+  "ui": {
+    "longPressMs": 350,
+    "dragCancelPx": 8
   }
 }

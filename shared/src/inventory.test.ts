@@ -5,6 +5,7 @@ import {
   capacityFor,
   count,
   emptyInventory,
+  moveStack,
   remove,
   transfer,
   type Inventory,
@@ -107,5 +108,47 @@ describe('inventaire — transferts sac ↔ stock', () => {
     const bag = must(add(emptyInventory(2), 'water', 2, items));
     expect(transfer(bag, 1, emptyInventory(2), 1, items)).toMatchObject({ error: 'empty_slot' });
     expect(transfer(bag, 0, emptyInventory(2), 3, items)).toMatchObject({ error: 'insufficient' });
+  });
+});
+
+describe('inventaire — glisser-déposer (moveStack)', () => {
+  const inv = (...stacks: ([string, number] | null)[]): Inventory =>
+    stacks.map((s) => (s ? { itemId: s[0], qty: s[1] } : null));
+
+  it('déplace une pile vers un slot vide du même inventaire', () => {
+    const r = moveStack(inv(['water', 3], null, null), 0, null, 2, items);
+    expect(r.ok && r.from).toEqual(inv(null, null, ['water', 3]));
+  });
+
+  it('fusionne deux piles du même objet, le surplus reste à la source', () => {
+    const r = moveStack(inv(['water', 4], ['water', waterMax - 1]), 0, null, 1, items);
+    expect(r.ok && r.from).toEqual(inv(['water', 3], ['water', waterMax]));
+    const full = moveStack(inv(['water', 1], ['water', waterMax]), 0, null, 1, items);
+    expect(full).toMatchObject({ ok: false, error: 'full' });
+  });
+
+  it('échange deux objets différents', () => {
+    const r = moveStack(inv(['water', 2], ['seed_base', 5]), 0, null, 1, items);
+    expect(r.ok && r.from).toEqual(inv(['seed_base', 5], ['water', 2]));
+  });
+
+  it('passe d\x27un inventaire à l\x27autre (sac → stock), fusion et échange compris', () => {
+    const bag = inv(['seed_base', 3], ['water', 1]);
+    const stock = inv(['seed_base', seedMax - 1], ['food', 2]);
+    const merged = moveStack(bag, 0, stock, 0, items);
+    expect(merged.ok && merged.from[0]).toEqual({ itemId: 'seed_base', qty: 2 });
+    expect(merged.ok && merged.to[0]).toEqual({ itemId: 'seed_base', qty: seedMax });
+    const swapped = moveStack(bag, 1, stock, 1, items);
+    expect(swapped.ok && swapped.from[1]).toEqual({ itemId: 'food', qty: 2 });
+    expect(swapped.ok && swapped.to[1]).toEqual({ itemId: 'water', qty: 1 });
+  });
+
+  it('refuse un slot vide ou hors limites, et ne modifie jamais l\x27original', () => {
+    const bag = inv(['water', 2], null);
+    const snapshot = JSON.stringify(bag);
+    expect(moveStack(bag, 1, null, 0, items)).toMatchObject({ error: 'empty_slot' });
+    expect(moveStack(bag, 0, null, 9, items)).toMatchObject({ error: 'bad_slot' });
+    moveStack(bag, 0, null, 1, items);
+    expect(JSON.stringify(bag)).toBe(snapshot);
   });
 });

@@ -16,7 +16,7 @@ export type Inventory = readonly (Stack | null)[];
 export type ItemLookup = ReadonlyMap<string, ItemDef>;
 
 export type InvError =
-  'unknown_item' | 'not_storable' | 'bad_qty' | 'full' | 'insufficient' | 'empty_slot';
+  'unknown_item' | 'not_storable' | 'bad_qty' | 'full' | 'insufficient' | 'empty_slot' | 'bad_slot';
 
 export type InvResult =
   { ok: true; inv: Inventory } | { ok: false; error: InvError; message: string };
@@ -124,4 +124,47 @@ export function transfer(
     i === slot ? (stack.qty === qty ? null : { ...stack, qty: stack.qty - qty }) : s,
   );
   return { ok: true, from: nextFrom, to: added.inv };
+}
+
+/**
+ * Glisser-déposer d'une pile entière vers un slot précis (même inventaire si `to` est null) :
+ * slot vide → déplacement ; même objet → fusion jusqu'à la limite de pile, le reste reste à la
+ * source ; objet différent → échange. Pur, ne modifie rien.
+ */
+export function moveStack(
+  from: Inventory,
+  fromSlot: number,
+  to: Inventory | null,
+  toSlot: number,
+  items: ItemLookup,
+): TransferResult {
+  const same = to === null;
+  const target = to ?? from;
+  if (!Number.isInteger(fromSlot) || fromSlot < 0 || fromSlot >= from.length)
+    return fail('bad_slot', 'Slot de départ invalide.');
+  if (!Number.isInteger(toSlot) || toSlot < 0 || toSlot >= target.length)
+    return fail('bad_slot', "Slot d'arrivée invalide.");
+  const src = from[fromSlot];
+  if (!src) return fail('empty_slot', 'Ce slot est vide.');
+  if (same && fromSlot === toSlot) return { ok: true, from, to: from };
+
+  const a = from.map((x) => (x ? { ...x } : null));
+  const b = same ? a : target.map((x) => (x ? { ...x } : null));
+  const dst = b[toSlot] ?? null;
+
+  if (!dst) {
+    b[toSlot] = { ...src };
+    a[fromSlot] = null;
+  } else if (dst.itemId === src.itemId) {
+    const def = items.get(src.itemId);
+    const room = (def?.stackMax ?? 0) - dst.qty;
+    if (room <= 0) return fail('full', 'Cette pile est déjà pleine.');
+    const moved = Math.min(room, src.qty);
+    b[toSlot] = { ...dst, qty: dst.qty + moved };
+    a[fromSlot] = src.qty - moved > 0 ? { ...src, qty: src.qty - moved } : null;
+  } else {
+    b[toSlot] = { ...src };
+    a[fromSlot] = { ...dst };
+  }
+  return { ok: true, from: a, to: same ? a : b };
 }

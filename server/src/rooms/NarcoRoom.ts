@@ -27,6 +27,8 @@ import {
   type MoveBudget,
   type MoveRules,
   type NoticeMessage,
+  type MoveResultMessage,
+  moveStack,
   type StationAction,
 } from '@narco/shared';
 import type { RoomSnapshot } from '../persistence';
@@ -139,6 +141,9 @@ export class NarcoRoom extends Room<GameState> {
     this.onMessage(ClientMsg.Transfer, (client, msg: unknown) => this.handleTransfer(client, msg));
     this.onMessage(ClientMsg.Debug, (client, msg: unknown) => this.handleDebug(client, msg));
     this.onMessage(ClientMsg.Use, (client, msg: unknown) => this.handleUse(client, msg));
+    this.onMessage(ClientMsg.InventoryMove, (client, msg: unknown) =>
+      this.handleInventoryMove(client, msg),
+    );
     this.onMessage(ClientMsg.CartRemove, (client, msg: unknown) =>
       this.handleCartRemove(client, msg),
     );
@@ -508,6 +513,47 @@ export class NarcoRoom extends Room<GameState> {
   }
 
   /** Transfert sac ↔ stock commun, seulement à portée de la caisse. */
+  /**
+   * Glisser-déposer : déplacement / fusion / échange d'une pile entière. Sac ↔ sac partout ;
+   * tout ce qui touche le stock commun exige d'être près de la caisse. L'objet attendu protège
+   * des mouvements concurrents : si le slot a changé entre-temps, le second est refusé.
+   */
+  private handleInventoryMove(client: Client, msg: unknown): void {
+    const who = this.playerOf(client);
+    if (!who || !isObject(msg)) return;
+    const { player } = who;
+    const requestId = Number(msg.requestId) || 0;
+    const reply = (ok: boolean, text?: string) => {
+      const res: MoveResultMessage = text ? { requestId, ok, text } : { requestId, ok };
+      client.send(ServerMsg.MoveResult, res);
+    };
+    const from = isObject(msg.from) ? msg.from : null;
+    const to = isObject(msg.to) ? msg.to : null;
+    const kinds = ['bag', 'stock'];
+    if (!from || !to || !kinds.includes(String(from.inv)) || !kinds.includes(String(to.inv)))
+      return reply(false, 'Déplacement invalide.');
+    if ((from.inv === 'stock' || to.inv === 'stock') && !this.stockInReach(player))
+      return reply(false, 'Approche-toi de la caisse pour toucher au stock.');
+    const slotsOf = (inv: unknown) => (inv === 'bag' ? player.bag : this.state.lab.stock);
+    const source = slotsOf(from.inv);
+    const target = slotsOf(to.inv);
+    const fromSlot = Number(from.slot);
+    if (source[fromSlot]?.itemId !== String(msg.itemId ?? ''))
+      return reply(false, "L'objet a déjà bougé.");
+    const same = from.inv === to.inv;
+    const r = moveStack(
+      readInventory(source),
+      fromSlot,
+      same ? null : readInventory(target),
+      Number(to.slot),
+      items,
+    );
+    if (!r.ok) return reply(false, r.message);
+    writeInventory(source, r.from);
+    if (!same) writeInventory(target, r.to);
+    reply(true);
+  }
+
   private handleTransfer(client: Client, msg: unknown): void {
     const who = this.playerOf(client);
     if (!who || !isObject(msg)) return;
