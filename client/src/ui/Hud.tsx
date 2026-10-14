@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { STREET } from '@narco/shared';
 import type { GameRoom, Snapshot } from '../net/connection';
 import { connection } from '../net/connection';
 import { useRoomPlayers } from '../game/Players';
@@ -10,10 +11,11 @@ export function Hud({ snapshot, room }: { snapshot: Snapshot; room: GameRoom }) 
   const players = useRoomPlayers(room);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const me = connection.playerId;
+  const myZone = players.find((p) => p.id === me)?.zone ?? STREET;
 
   return (
     <>
-      <LabelLayer players={players} myId={me} />
+      <LabelLayer players={players} myId={me} zone={myZone} />
       <div className="hud-top">
         <div className="hud-left">
           <div className="hud-card">
@@ -31,7 +33,7 @@ export function Hud({ snapshot, room }: { snapshot: Snapshot; room: GameRoom }) 
               ))}
             </ul>
           </div>
-          <Minimap room={room} />
+          {myZone === STREET && <Minimap room={room} />}
         </div>
         <button
           type="button"

@@ -1,4 +1,5 @@
-import { boot, type ColyseusTestServer } from '@colyseus/testing';
+import type { ColyseusTestServer } from '@colyseus/testing';
+import { bootOn } from './helpers';
 import {
   ClientMsg,
   ROOM_NAME,
@@ -11,7 +12,6 @@ import {
   type NoticeMessage,
 } from '@narco/shared';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { createGameServer } from '../src/app';
 import type { GameState } from '../src/rooms/schema';
 
 const { config } = gameData;
@@ -25,7 +25,7 @@ const burst = maxBurstMeters({
 let colyseus: ColyseusTestServer;
 
 beforeAll(async () => {
-  colyseus = await boot(createGameServer());
+  colyseus = await bootOn(2570);
 });
 afterAll(async () => {
   await colyseus.shutdown();
@@ -45,7 +45,13 @@ describe('NarcoRoom — mouvement autoritaire', () => {
     const { client, room } = await createRoomWith('player-aaaa-0001');
     const before = { ...room.state.players.get('player-aaaa-0001')! };
 
-    const teleport: MoveMessage = { x: before.x + 40, z: before.z + 30, rotY: 0, seq: 1 };
+    const teleport: MoveMessage = {
+      zone: 'street',
+      x: before.x + 40,
+      z: before.z + 30,
+      rotY: 0,
+      seq: 1,
+    };
     client.send(ClientMsg.Move, teleport);
     const correction = (await client.waitForMessage(ServerMsg.Correction)) as CorrectionMessage;
 
@@ -65,7 +71,13 @@ describe('NarcoRoom — mouvement autoritaire', () => {
     let corrected = false;
     client.onMessage(ServerMsg.Correction, () => (corrected = true));
 
-    client.send(ClientMsg.Move, { x: before.x + 0.3, z: before.z, rotY: 1, seq: 1 });
+    client.send(ClientMsg.Move, {
+      zone: 'street',
+      x: before.x + 0.3,
+      z: before.z,
+      rotY: 1,
+      seq: 1,
+    });
     await room.waitForNextMessage();
 
     const after = room.state.players.get('player-aaaa-0002')!;
@@ -79,7 +91,13 @@ describe('NarcoRoom — mouvement autoritaire', () => {
     const p = room.state.players.get('player-aaaa-0003')!;
     p.x = config.world.bounds.maxX - 0.1;
 
-    client.send(ClientMsg.Move, { x: config.world.bounds.maxX + 1, z: p.z, rotY: 0, seq: 2 });
+    client.send(ClientMsg.Move, {
+      zone: 'street',
+      x: config.world.bounds.maxX + 1,
+      z: p.z,
+      rotY: 0,
+      seq: 2,
+    });
     await client.waitForMessage(ServerMsg.Correction);
     expect(p.x).toBe(config.world.bounds.maxX);
   });
@@ -95,7 +113,13 @@ describe('NarcoRoom — collisions', () => {
     p.x = wallX + 0.6;
     p.z = block.position.z;
 
-    client.send(ClientMsg.Move, { x: wallX - block.size.w - 0.6, z: p.z, rotY: 0, seq: 3 });
+    client.send(ClientMsg.Move, {
+      zone: 'street',
+      x: wallX - block.size.w - 0.6,
+      z: p.z,
+      rotY: 0,
+      seq: 3,
+    });
     const correction = (await client.waitForMessage(ServerMsg.Correction)) as CorrectionMessage;
 
     expect(p.x).toBeGreaterThanOrEqual(wallX + config.world.playerRadius - 1e-3);
@@ -144,7 +168,7 @@ describe('NarcoRoom — room par code et reconnexion', () => {
     const { client, room } = await createRoomWith('player-bbbb-0002');
     const p = room.state.players.get('player-bbbb-0002')!;
     const { color } = p;
-    client.send(ClientMsg.Move, { x: p.x + 0.3, z: p.z, rotY: 0, seq: 1 });
+    client.send(ClientMsg.Move, { zone: 'street', x: p.x + 0.3, z: p.z, rotY: 0, seq: 1 });
     await room.waitForNextMessage();
     const x = p.x;
 

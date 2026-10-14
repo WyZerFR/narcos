@@ -264,6 +264,13 @@
     "zoom": 20,
     "fov": 50
   },
+  "cameraInterior": {
+    "type": "perspective",
+    "elevation": 62,
+    "rotation": 0,
+    "zoom": 13,
+    "fov": 50
+  },
   "cameraRig": {
     "followStiffness": 6,
     "near": 0.5,

@@ -20,6 +20,7 @@ export interface PlayerView {
   z: number;
   rotY: number;
   connected: boolean;
+  zone: string;
 }
 
 export interface StateView {

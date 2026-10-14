@@ -5,8 +5,10 @@ import {
   ClientMsg,
   gameData,
   moveWithCollisions,
-  obstaclesFrom,
+  STREET,
+  zoneArea,
   type MoveMessage,
+  type ZoneArea,
 } from '@narco/shared';
 import { connection, type GameRoom, type PlayerView } from '../net/connection';
 import { readMoveIntent } from '../input/inputState';
@@ -17,7 +19,10 @@ import { getCutout } from './city/cutout';
 
 const { movement, world } = gameData.config;
 const SIZE = world.playerSize;
-const OBSTACLES = obstaclesFrom(gameData);
+/** Bornes + obstacles par zone (rue, intérieurs) : même source que le serveur. */
+const AREAS = new Map<string, ZoneArea>(
+  [STREET, ...gameData.interiors.keys()].map((id) => [id, zoneArea(gameData, id)!]),
+);
 const SEND_INTERVAL = 1 / movement.clientSendRateHz;
 /** Raideur du lissage des joueurs distants (1/s). */
 const REMOTE_SMOOTHING = 12;
@@ -28,6 +33,8 @@ export interface PlayerInfo {
   name: string;
   color: string;
   connected: boolean;
+  /** Zone du joueur (rue ou intérieur) : on ne voit que les joueurs de sa propre zone. */
+  zone: string;
 }
 
 /** Liste des joueurs pour React : ne change que si un joueur arrive/part/change de statut. */
@@ -39,9 +46,17 @@ export function useRoomPlayers(room: GameRoom | null): PlayerInfo[] {
     const refresh = () => {
       const list: PlayerInfo[] = [];
       room.state.players?.forEach((p: PlayerView) =>
-        list.push({ id: p.id, name: p.name, color: p.color, connected: p.connected }),
+        list.push({
+          id: p.id,
+          name: p.name,
+          color: p.color,
+          connected: p.connected,
+          zone: p.zone,
+        }),
       );
-      const next = list.map((p) => `${p.id}|${p.name}|${p.color}|${p.connected}`).join(';');
+      const next = list
+        .map((p) => `${p.id}|${p.name}|${p.color}|${p.connected}|${p.zone}`)
+        .join(';');
       if (next !== signature) {
         signature = next;
         setPlayers(list);
@@ -66,7 +81,8 @@ function usePlayerLabel(id: string, ref: RefObject<Group | null>, isLocal: boole
     });
     setLabelAnchor(`marker:${id}`, (camera) => {
       const g = ref.current;
-      if (!g || (isLocal && getCutout().enabled)) return null;
+      // Occlusion calculée contre les bâtiments de la rue uniquement.
+      if (!g || localPlayer.zone !== STREET || (isLocal && getCutout().enabled)) return null;
       const center = { x: g.position.x, y: SIZE / 2, z: g.position.z };
       return isOccluded(camera, center) ? center : null;
     });
@@ -118,13 +134,21 @@ export function LocalPlayer({ room, info }: { room: GameRoom; info: PlayerInfo }
     const dt = Math.min(rawDt, MAX_FRAME_DT);
     const me = room.state.players?.get(info.id);
     if (!me) return;
-    if (!localPlayer.initialized) {
-      Object.assign(localPlayer, { initialized: true, x: me.x, z: me.z, rotY: me.rotY });
+    // (Re)connexion ou changement de zone : on repart de la position du serveur.
+    if (!localPlayer.initialized || localPlayer.zone !== me.zone) {
+      Object.assign(localPlayer, {
+        initialized: true,
+        zone: me.zone,
+        x: me.x,
+        z: me.z,
+        rotY: me.rotY,
+      });
       lastSent.current = { x: me.x, z: me.z, rotY: me.rotY };
     }
 
+    const area = AREAS.get(localPlayer.zone);
     const intent = readMoveIntent();
-    if (intent.magnitude > 0.05 && room.connection.isOpen) {
+    if (area && intent.magnitude > 0.05 && room.connection.isOpen) {
       const speed = intent.run
         ? movement.runSpeed
         : movement.walkSpeed * Math.min(1, intent.magnitude / 0.9);
@@ -135,8 +159,8 @@ export function LocalPlayer({ room, info }: { room: GameRoom; info: PlayerInfo }
         localPlayer,
         { x: localPlayer.x + dir.x * speed * dt, z: localPlayer.z + dir.z * speed * dt },
         world.playerRadius,
-        OBSTACLES,
-        world.bounds,
+        area.obstacles,
+        area.bounds,
       );
       localPlayer.x = next.x;
       localPlayer.z = next.z;
@@ -151,6 +175,7 @@ export function LocalPlayer({ room, info }: { room: GameRoom; info: PlayerInfo }
       sendTimer.current = 0;
       localPlayer.seq++;
       const msg: MoveMessage = {
+        zone: localPlayer.zone,
         x: localPlayer.x,
         z: localPlayer.z,
         rotY: localPlayer.rotY,

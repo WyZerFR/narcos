@@ -13,13 +13,15 @@ const { palette, world } = gameData.config;
 const SKY_LIGHT = shade(palette.wall, 10);
 const GROUND_LIGHT = shade(palette.ground, 6);
 const MOON = shade(palette.wall, 9);
+/** Fond derrière les murs d'un intérieur : le ciel, très assombri. */
+const INTERIOR_VOID = shade(palette.sky, 0.4);
 
-/** Ambiance de nuit : 2 lumières seulement (hémisphère + lune), brouillard couleur ciel. */
-export function NightAmbience() {
+/** Ambiance de nuit : 2 lumières seulement (hémisphère + lune) ; brouillard dans la rue seulement. */
+export function NightAmbience({ interior = false }: { interior?: boolean }) {
   return (
     <>
-      <color attach="background" args={[palette.sky]} />
-      <fog attach="fog" args={[palette.sky, 35, 95]} />
+      <color attach="background" args={[interior ? INTERIOR_VOID : palette.sky]} />
+      {!interior && <fog attach="fog" args={[palette.sky, 35, 95]} />}
       {/* Couleurs de lumière = teintes de la palette éclaircies (nuit bleutée, pas de noir pur). */}
       <hemisphereLight args={[SKY_LIGHT, GROUND_LIGHT, 1.1]} />
       <directionalLight position={[-12, 25, 10]} intensity={1.3} color={MOON} />

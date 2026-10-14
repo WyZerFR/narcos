@@ -3,6 +3,7 @@ import configJson from '../data/config.json';
 import economyJson from '../data/economy.json';
 import itemsJson from '../data/items.json';
 import locationsJson from '../data/locations.json';
+import zonesJson from '../data/zones.json';
 import { gameData, parseGameData, type RawGameData } from './data';
 
 const raw = (): RawGameData =>
@@ -11,6 +12,7 @@ const raw = (): RawGameData =>
     economy: economyJson,
     items: itemsJson,
     locations: locationsJson,
+    zones: zonesJson,
   });
 
 describe('données du jeu', () => {

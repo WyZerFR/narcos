@@ -1,0 +1,126 @@
+{
+  "interiors": [
+    {
+      "id": "lab",
+      "name": "Le Labo",
+      "entranceLocationId": "local",
+      "size": {
+        "w": 14,
+        "d": 10
+      },
+      "wallHeight": 3.6,
+      "spawn": {
+        "x": 0,
+        "z": 3.4
+      },
+      "obstacles": [],
+      "stations": [
+        {
+          "id": "pot_1",
+          "kind": "pot",
+          "label": "Pot n°1",
+          "position": {
+            "x": -5,
+            "z": -2.8
+          },
+          "size": {
+            "w": 1.2,
+            "d": 1.2
+          },
+          "interactRadius": 1.7,
+          "solid": true
+        },
+        {
+          "id": "pot_2",
+          "kind": "pot",
+          "label": "Pot n°2",
+          "position": {
+            "x": -2.6,
+            "z": -2.8
+          },
+          "size": {
+            "w": 1.2,
+            "d": 1.2
+          },
+          "interactRadius": 1.7,
+          "solid": true
+        },
+        {
+          "id": "water",
+          "kind": "water",
+          "label": "Point d'eau",
+          "position": {
+            "x": -6.3,
+            "z": 1.2
+          },
+          "size": {
+            "w": 0.8,
+            "d": 1.4
+          },
+          "interactRadius": 1.7,
+          "solid": true
+        },
+        {
+          "id": "rack",
+          "kind": "rack",
+          "label": "Étendoir",
+          "position": {
+            "x": 1.4,
+            "z": -4
+          },
+          "size": {
+            "w": 3.2,
+            "d": 0.8
+          },
+          "interactRadius": 1.9,
+          "solid": true
+        },
+        {
+          "id": "table",
+          "kind": "table",
+          "label": "Table de découpe",
+          "position": {
+            "x": 4.6,
+            "z": -0.6
+          },
+          "size": {
+            "w": 2.4,
+            "d": 1.2
+          },
+          "interactRadius": 1.9,
+          "solid": true
+        },
+        {
+          "id": "stock",
+          "kind": "stock",
+          "label": "Caisse du stock",
+          "position": {
+            "x": 5.8,
+            "z": 3.4
+          },
+          "size": {
+            "w": 1.6,
+            "d": 1.1
+          },
+          "interactRadius": 1.8,
+          "solid": true
+        },
+        {
+          "id": "exit",
+          "kind": "exit",
+          "label": "Sortie",
+          "position": {
+            "x": 0,
+            "z": 4.6
+          },
+          "size": {
+            "w": 1.6,
+            "d": 0.4
+          },
+          "interactRadius": 1.5,
+          "solid": false
+        }
+      ]
+    }
+  ]
+}

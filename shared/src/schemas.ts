@@ -114,6 +114,8 @@ export const ConfigSchema = z.object({
   }),
   /** Cadrage retenu. `zoom` = distance caméra → cible (m) ; en ortho, cadrage équivalent. */
   camera: CameraSchema,
+  /** Caméra dans les intérieurs (pièces plus petites, vue plus plongeante). */
+  cameraInterior: CameraSchema,
   cameraRig: z.object({ followStiffness: pos, near: pos, far: pos }),
   cutout: CutoutSchema,
   net: z.object({
@@ -216,6 +218,38 @@ export const EconomySchema = z.object({
   services: z.record(z.string(), z.object({ name: z.string(), durationMinutes: pos })),
 });
 
+// ---------- zones.json (intérieurs) ----------
+export const StationKindSchema = z.enum(['pot', 'water', 'rack', 'table', 'stock', 'exit']);
+
+/** Poste physique d'un intérieur (coordonnées locales à la pièce, centre = origine). */
+export const StationSchema = z.object({
+  id: z.string().min(1),
+  kind: StationKindSchema,
+  label: z.string().min(1),
+  position: Vec2Schema,
+  size: z.object({ w: pos, d: pos }),
+  /** Distance d'interaction, mesurée depuis le centre du poste. */
+  interactRadius: pos,
+  /** Bloque le passage (devient un obstacle de collision). */
+  solid: z.boolean(),
+});
+
+/** Pièce intérieure : une « zone » où le joueur passe en franchissant la porte d'un lieu. */
+export const InteriorSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  /** Lieu de la rue dont la porte mène ici (retour devant cette porte en sortant). */
+  entranceLocationId: z.string().min(1),
+  /** Dimensions intérieures ; la pièce est centrée sur l'origine. */
+  size: z.object({ w: pos, d: pos }),
+  wallHeight: pos,
+  spawn: Vec2Schema,
+  obstacles: z.array(RectSchema),
+  stations: z.array(StationSchema).min(1),
+});
+
+export const ZonesFileSchema = z.object({ interiors: z.array(InteriorSchema) });
+
 // ---------- locations.json ----------
 export const LocationFunctionSchema = z.enum([
   'base',
@@ -311,4 +345,7 @@ export type PaletteKey = z.infer<typeof PaletteKeySchema>;
 export type Silhouette = z.infer<typeof SilhouetteSchema>;
 export type DoorSide = z.infer<typeof DoorSideSchema>;
 export type Vec2Data = z.infer<typeof Vec2Schema>;
+export type StationKind = z.infer<typeof StationKindSchema>;
+export type Station = z.infer<typeof StationSchema>;
+export type Interior = z.infer<typeof InteriorSchema>;
 export type LocationsFile = z.infer<typeof LocationsFileSchema>;

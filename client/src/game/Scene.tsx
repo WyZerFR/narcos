@@ -6,7 +6,7 @@ import {
   PerspectiveCamera as PerspectiveCameraImpl,
   Vector3,
 } from 'three';
-import { gameData } from '@narco/shared';
+import { gameData, STREET } from '@narco/shared';
 import { connection, type GameRoom } from '../net/connection';
 import { QUALITY_PRESETS, useSettings } from '../ui/settings';
 import { debugStats } from '../ui/DebugOverlay';
@@ -14,7 +14,8 @@ import { localPlayer, resetLocalPlayer } from './localPlayer';
 import { City, NightAmbience } from './city/City';
 import { LabelProjector } from './labels';
 import { Bloom, EffectComposer } from '@react-three/postprocessing';
-import { cameraOffset, getCamera, orthoViewHeight, useCamera } from './cameraState';
+import { cameraOffset, getCamera, orthoViewHeight, setCameraKind, useCamera } from './cameraState';
+import { Interior } from './interior/Interior';
 import { LocalPlayer, RemotePlayer, useRoomPlayers } from './Players';
 
 const { cameraRig } = gameData.config;
@@ -25,9 +26,16 @@ function CameraRig() {
   const camera = useThree((s) => s.camera);
   const height = useThree((s) => s.size.height);
   const target = useRef(new Vector3());
+  const zone = useRef('');
 
   useFrame((_, dt) => {
     if (!localPlayer.initialized) return;
+    // Changement de zone : jeu de réglages adapté et caméra recalée d'un coup (pas de travelling).
+    if (zone.current !== localPlayer.zone) {
+      zone.current = localPlayer.zone;
+      setCameraKind(localPlayer.zone === STREET ? 'street' : 'interior');
+      target.current.set(localPlayer.x, 0, localPlayer.z);
+    }
     const c = getCamera();
     const t = 1 - Math.exp(-cameraRig.followStiffness * Math.min(dt, 0.1));
     target.current.x += (localPlayer.x - target.current.x) * t;
@@ -89,19 +97,29 @@ function DebugProbe() {
 function World({ room, glowBoost }: { room: GameRoom; glowBoost: number }) {
   const players = useRoomPlayers(room);
   const myId = connection.playerId;
+  const myZone = players.find((p) => p.id === myId)?.zone ?? STREET;
+  const inStreet = myZone === STREET;
   // Nouvelle room (connexion ou reconnexion) : on repart de la position autoritaire du serveur.
   useEffect(() => resetLocalPlayer(), [room]);
   return (
     <>
-      <NightAmbience />
-      <City glowBoost={glowBoost} />
-      {players.map((p) =>
-        p.id === myId ? (
-          <LocalPlayer key={p.id} room={room} info={p} />
-        ) : (
-          <RemotePlayer key={p.id} room={room} info={p} />
-        ),
+      <NightAmbience interior={!inStreet} />
+      {/* La ville reste montée (pas de reconstruction) mais n'est pas dessinée à l'intérieur. */}
+      <group visible={inStreet}>
+        <City glowBoost={glowBoost} />
+      </group>
+      {!inStreet && gameData.interiors.has(myZone) && (
+        <Interior key={myZone} zoneId={myZone} glowBoost={glowBoost} />
       )}
+      {players
+        .filter((p) => p.zone === myZone)
+        .map((p) =>
+          p.id === myId ? (
+            <LocalPlayer key={p.id} room={room} info={p} />
+          ) : (
+            <RemotePlayer key={p.id} room={room} info={p} />
+          ),
+        )}
       <CameraRig />
       <LabelProjector />
     </>

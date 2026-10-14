@@ -8,6 +8,8 @@ export class Player extends Schema {
   @type('float32') z = 0;
   @type('float32') rotY = 0;
   @type('boolean') connected = true;
+  /** Zone courante : 'street' ou l'id d'un intérieur (zones.json). */
+  @type('string') zone = 'street';
 }
 
 export class GameState extends Schema {

@@ -7,3 +7,4 @@ export * from './navgrid';
 export * from './movement';
 export * from './roomCode';
 export * from './protocol';
+export * from './zones';

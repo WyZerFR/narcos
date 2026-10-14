@@ -13,6 +13,8 @@ export const ClientMsg = {
   Move: 'move',
   /** Le joueur veut entrer dans un lieu (bouton ACTION). */
   Interact: 'interact',
+  /** Action sur un poste d'intérieur (planter, arroser, sortir…). */
+  Station: 'station',
 } as const;
 
 export const ServerMsg = {
@@ -23,6 +25,8 @@ export const ServerMsg = {
 } as const;
 
 export interface MoveMessage {
+  /** Zone dans laquelle la position a été calculée (les messages d'une ancienne zone sont ignorés). */
+  zone: string;
   x: number;
   z: number;
   rotY: number;
@@ -43,6 +47,25 @@ export interface NoticeMessage {
   ok: boolean;
   text: string;
   locationId?: string;
+}
+
+/** Actions possibles sur un poste ; le serveur vérifie qu'elle correspond au type de poste. */
+export const STATION_ACTIONS = [
+  'plant',
+  'water',
+  'harvest',
+  'fill',
+  'hang',
+  'collect',
+  'cut',
+  'open',
+  'exit',
+] as const;
+export type StationAction = (typeof STATION_ACTIONS)[number];
+
+export interface StationMessage {
+  stationId: string;
+  action: StationAction;
 }
 
 export const MAX_NAME_LENGTH = 16;

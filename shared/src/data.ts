@@ -3,11 +3,14 @@ import configJson from '../data/config.json';
 import economyJson from '../data/economy.json';
 import itemsJson from '../data/items.json';
 import locationsJson from '../data/locations.json';
+import zonesJson from '../data/zones.json';
 import {
   ConfigSchema,
   EconomySchema,
   ItemsFileSchema,
   LocationsFileSchema,
+  ZonesFileSchema,
+  type Interior,
   type Block,
   type Economy,
   type GameConfig,
@@ -24,6 +27,7 @@ import {
   type Rect,
 } from './geometry';
 import { footprint, interactionPoint } from './locations';
+import { interiorBounds, interiorObstacles } from './zones';
 
 export interface GameData {
   config: GameConfig;
@@ -33,6 +37,8 @@ export interface GameData {
   locations: ReadonlyMap<string, GameLocation>;
   /** Immeubles de remplissage (sans fonction). */
   blocks: readonly Block[];
+  /** Intérieurs (`zones.json`), indexés par id de zone. */
+  interiors: ReadonlyMap<string, Interior>;
 }
 
 export interface RawGameData {
@@ -40,6 +46,7 @@ export interface RawGameData {
   economy: unknown;
   items: unknown;
   locations: unknown;
+  zones: unknown;
 }
 
 function parse<T>(file: string, schema: z.ZodType<T>, raw: unknown): T {
@@ -105,17 +112,53 @@ function checkMap(
   return errors;
 }
 
+/** Cohérence des intérieurs : porte d'entrée, postes dans la pièce, sortie, point d'apparition libre. */
+function checkInteriors(
+  interiors: Interior[],
+  locations: ReadonlyMap<string, GameLocation>,
+): string[] {
+  const errors: string[] = [];
+  for (const interior of interiors) {
+    const where = `zones.json : "${interior.id}"`;
+    const entrance = locations.get(interior.entranceLocationId);
+    if (!entrance || entrance.kind !== 'building')
+      errors.push(`${where} : entrée "${interior.entranceLocationId}" inconnue ou sans porte`);
+    const bounds = interiorBounds(interior);
+    const ids = new Set<string>();
+    for (const st of interior.stations) {
+      if (ids.has(st.id)) errors.push(`${where} : poste en double "${st.id}"`);
+      ids.add(st.id);
+      if (!rectContainsRect(bounds, rectFromCenter(st.position, st.size)))
+        errors.push(`${where} : le poste "${st.id}" sort de la pièce`);
+    }
+    if (interior.stations.filter((st) => st.kind === 'exit').length !== 1)
+      errors.push(`${where} : il faut exactement une sortie`);
+    const solids = interiorObstacles(interior);
+    for (const [i, a] of solids.entries())
+      for (const b of solids.slice(i + 1))
+        if (rectsOverlap(a, b)) errors.push(`${where} : deux obstacles se chevauchent`);
+    if (
+      !rectContainsPoint(bounds, interior.spawn) ||
+      solids.some((r) => rectContainsPoint(r, interior.spawn))
+    )
+      errors.push(`${where} : point d'apparition hors pièce ou dans un obstacle`);
+  }
+  return errors;
+}
+
 /** Valide et indexe des données brutes (pure, testable). Lève une erreur lisible si incohérent. */
 export function parseGameData(raw: RawGameData): GameData {
   const config = parse('config.json', ConfigSchema, raw.config);
   const economy = parse('economy.json', EconomySchema, raw.economy);
   const itemsFile = parse('items.json', ItemsFileSchema, raw.items);
   const locFile = parse('locations.json', LocationsFileSchema, raw.locations);
+  const zonesFile = parse('zones.json', ZonesFileSchema, raw.zones);
 
   const items = indexById('items.json', itemsFile.items);
   const zones = indexById('locations.json (zones)', locFile.zones);
   const locations = indexById('locations.json', locFile.locations);
   const strains = indexById('economy.json (strains)', economy.strains);
+  const interiors = indexById('zones.json', zonesFile.interiors);
 
   const errors: string[] = [];
   for (const item of items.values()) {
@@ -139,13 +182,14 @@ export function parseGameData(raw: RawGameData): GameData {
     }
   }
   errors.push(...checkMap(config, locFile.locations, locFile.blocks, zones));
+  errors.push(...checkInteriors(zonesFile.interiors, locations));
   if (config.players.colors.length < config.room.maxPlayers)
     errors.push('config.json : il faut au moins autant de couleurs que de joueurs max');
   if (config.movement.runSpeed < config.movement.walkSpeed)
     errors.push('config.json : runSpeed doit être >= walkSpeed');
   if (errors.length > 0) throw new Error(`[data] incohérences :\n  - ${errors.join('\n  - ')}`);
 
-  return { config, economy, items, zones, locations, blocks: locFile.blocks };
+  return { config, economy, items, zones, locations, blocks: locFile.blocks, interiors };
 }
 
 /** Données du jeu chargées depuis `shared/data/*.json` au démarrage. */
@@ -154,4 +198,5 @@ export const gameData: GameData = parseGameData({
   economy: economyJson,
   items: itemsJson,
   locations: locationsJson,
+  zones: zonesJson,
 });

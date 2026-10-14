@@ -6,7 +6,14 @@ import {
   type CameraConfig,
   type CutoutConfig,
 } from '@narco/shared';
-import { resetCamera, updateCamera, useCamera } from '../game/cameraState';
+import {
+  getCameraConfigs,
+  getCameraKind,
+  resetCamera,
+  updateCamera,
+  useCamera,
+  type CameraKind,
+} from '../game/cameraState';
 import { resetCutout, updateCutout, useCutout } from '../game/city/cutout';
 
 /** Plage du zoom : large autour de la valeur de config.json. */
@@ -14,16 +21,19 @@ const ZOOM_RANGE = { min: gameData.config.camera.zoom / 4, max: gameData.config.
 
 const round1 = (v: number) => Math.round(v * 10) / 10;
 
-/** JSON prêt à coller dans config.json (sections camera et cutout remplacées en entier). */
-export function cameraJson(c: CameraConfig, cut: CutoutConfig): string {
+const camJson = (c: CameraConfig) => ({
+  elevation: round1(c.elevation),
+  rotation: round1(c.rotation),
+  zoom: round1(c.zoom),
+  type: c.type,
+  fov: round1(c.fov),
+});
+
+/** JSON prêt à coller dans config.json (sections camera, cameraInterior et cutout). */
+export function cameraJson(cams: Record<CameraKind, CameraConfig>, cut: CutoutConfig): string {
   return JSON.stringify({
-    camera: {
-      elevation: round1(c.elevation),
-      rotation: round1(c.rotation),
-      zoom: round1(c.zoom),
-      type: c.type,
-      fov: round1(c.fov),
-    },
+    camera: camJson(cams.street),
+    cameraInterior: camJson(cams.interior),
     cutout: { enabled: cut.enabled, radius: round1(cut.radius), softness: round1(cut.softness) },
   });
 }
@@ -96,7 +106,9 @@ export function CameraPanel() {
   const cut = useCutout();
   const [open, setOpen] = useState(true);
   const [copied, setCopied] = useState<{ json: string; ok: boolean } | null>(null);
-  const json = cameraJson(cam, cut);
+  // `cam` (via useCamera) fait re-rendre le panneau à chaque changement, de zone compris.
+  const json = cameraJson(getCameraConfigs(), cut);
+  const where = getCameraKind() === 'street' ? 'rue' : 'intérieur';
   const isOrtho = cam.type === 'ortho';
   // Le message « copié » ne vaut que pour les valeurs actuellement affichées.
   const copy = copied?.json === json ? (copied.ok ? 'ok' : 'fail') : 'idle';
@@ -104,7 +116,7 @@ export function CameraPanel() {
   return (
     <div className={`camera-panel${open ? '' : ' collapsed'}`}>
       <button type="button" className="cam-toggle" onClick={() => setOpen((o) => !o)}>
-        📷 Caméra {open ? '▴' : '▾'}
+        📷 Caméra ({where}) {open ? '▴' : '▾'}
       </button>
 
       {open && (

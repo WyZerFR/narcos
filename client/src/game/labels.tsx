@@ -1,6 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { Vector3 } from 'three';
-import { footprint, gameData, segmentHitsBox, type Box } from '@narco/shared';
+import { footprint, gameData, segmentHitsBox, STREET, type Box } from '@narco/shared';
 import type { PlayerInfo } from './Players';
 
 /**
@@ -80,19 +80,28 @@ export function LabelProjector() {
  * Calque DOM des étiquettes (lieux + joueurs) et des marqueurs de joueurs cachés derrière un
  * bâtiment, à placer hors du Canvas.
  */
-export function LabelLayer({ players, myId }: { players: PlayerInfo[]; myId: string }) {
+export function LabelLayer({
+  players,
+  myId,
+  zone,
+}: {
+  players: PlayerInfo[];
+  myId: string;
+  zone: string;
+}) {
   return (
     <div className="label-layer">
-      {[...gameData.locations.values()].map((loc) => (
-        <div
-          key={loc.id}
-          ref={bindElement(`place:${loc.id}`)}
-          className="place-label"
-          style={{ borderColor: loc.neonColor, color: loc.neonColor }}
-        >
-          {loc.name}
-        </div>
-      ))}
+      {zone === STREET &&
+        [...gameData.locations.values()].map((loc) => (
+          <div
+            key={loc.id}
+            ref={bindElement(`place:${loc.id}`)}
+            className="place-label"
+            style={{ borderColor: loc.neonColor, color: loc.neonColor }}
+          >
+            {loc.name}
+          </div>
+        ))}
       {players.map((p) => (
         <div
           key={`marker:${p.id}`}
