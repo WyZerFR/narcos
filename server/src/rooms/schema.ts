@@ -79,7 +79,6 @@ export class RackState extends Schema {
 }
 
 export class LabState extends Schema {
-  @type([Slot]) stock = new ArraySchema<Slot>();
   /** Emplacements installés, clé = id d'emplacement (`pot_1`, `rack_2`, `lamp_3`…). */
   @type({ map: InstalledFixture }) fixtures = new MapSchema<InstalledFixture>();
   /** État par emplacement installé : pots, étendoirs, tables de découpe. */

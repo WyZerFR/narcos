@@ -22,13 +22,11 @@ import {
   resolveCircle,
   sanitizeName,
   setClockScale,
-  transfer,
   validateMove,
   zoneArea,
   type CorrectionMessage,
   type Fixture,
   type GameClock,
-  type Interior,
   type JoinOptions,
   type MoveBudget,
   type MoveRules,
@@ -150,7 +148,6 @@ export class NarcoRoom extends Room<GameState> {
     } else {
       this.roomId = await uniqueRoomCode();
       this.state.code = this.roomId;
-      this.setupLab();
       stockShelves(this.state);
     }
     this.publishClock();
@@ -160,7 +157,7 @@ export class NarcoRoom extends Room<GameState> {
     this.onMessage(ClientMsg.Move, (client, msg: unknown) => this.handleMove(client, msg));
     this.onMessage(ClientMsg.Interact, (client, msg: unknown) => this.handleInteract(client, msg));
     this.onMessage(ClientMsg.Station, (client, msg: unknown) => this.handleStation(client, msg));
-    this.onMessage(ClientMsg.Transfer, (client, msg: unknown) => this.handleTransfer(client, msg));
+
     this.onMessage(ClientMsg.Debug, (client, msg: unknown) => this.handleDebug(client, msg));
     this.onMessage(ClientMsg.Use, (client, msg: unknown) => this.handleUse(client, msg));
     this.onMessage(ClientMsg.InventoryMove, (client, msg: unknown) =>
@@ -264,22 +261,10 @@ export class NarcoRoom extends Room<GameState> {
   /** Boucle serveur : termine les découpes dont l'heure est venue. */
   private tick(): void {
     for (const result of completeCuts(this.state, this.now()))
-      this.notifyPlayer(result.playerId, true, result.text);
+      this.notifyPlayer(result.playerId, result.ok, result.text);
   }
 
   // ---------------------------------------------------------------- mise en place
-
-  /** Stock de départ (economy.lab). Le labo est vide : on l'équipe au Bricoshop. */
-  private setupLab(): void {
-    const lab = this.state.lab;
-    lab.stock = makeSlots(economy.inventory.stockSlots);
-    let stock = readInventory(lab.stock);
-    for (const { itemId, qty } of economy.lab.startingStock) {
-      const r = add(stock, itemId, qty, items);
-      if (r.ok) stock = r.inv;
-    }
-    writeInventory(lab.stock, stock);
-  }
 
   private spawnPlayer(playerId: string, name: string): Player {
     const used = new Set([...this.state.players.values()].map((p) => p.color));
@@ -330,7 +315,7 @@ export class NarcoRoom extends Room<GameState> {
     client: Client,
     ok: boolean,
     text: string,
-    extra: Pick<NoticeMessage, 'locationId' | 'open'> = {},
+    extra: Pick<NoticeMessage, 'locationId'> = {},
   ): void {
     const notice: NoticeMessage = { ok, text, ...extra };
     client.send(ServerMsg.Notice, notice);
@@ -463,7 +448,7 @@ export class NarcoRoom extends Room<GameState> {
       return this.notify(client, result.ok, result.text);
     }
     const result = runStationAction(this.state, player, station, action, this.now());
-    this.notify(client, result.ok, result.text, result.open ? { open: result.open } : {});
+    this.notify(client, result.ok, result.text);
   }
 
   /** Installer / démonter du mobilier : zone, emplacement, distance, puis règles du labo. */
@@ -655,18 +640,10 @@ export class NarcoRoom extends Room<GameState> {
     if (!r.ok) this.notify(client, false, r.text);
   }
 
-  /** Caisse du stock de l'intérieur courant, si le joueur est à portée. */
-  private stockInReach(player: Player): Interior['stations'][number] | null {
-    const interior = gameData.interiors.get(player.zone);
-    const crate = interior?.stations.find((s) => s.kind === 'stock');
-    return crate && this.isNear(player, crate) ? crate : null;
-  }
-
-  /** Transfert sac ↔ stock commun, seulement à portée de la caisse. */
   /**
-   * Glisser-déposer : déplacement / fusion / échange d'une pile entière. Sac ↔ sac partout ;
-   * tout ce qui touche le stock commun exige d'être près de la caisse. L'objet attendu protège
-   * des mouvements concurrents : si le slot a changé entre-temps, le second est refusé.
+   * Glisser-déposer dans le sac : déplacement / fusion / échange d'une pile entière (le stock
+   * commun est désactivé). L'objet attendu protège des mouvements concurrents : si le slot a
+   * changé entre-temps, le second est refusé.
    */
   private handleInventoryMove(client: Client, msg: unknown): void {
     const who = this.playerOf(client);
@@ -679,51 +656,18 @@ export class NarcoRoom extends Room<GameState> {
     };
     const from = isObject(msg.from) ? msg.from : null;
     const to = isObject(msg.to) ? msg.to : null;
-    const kinds = ['bag', 'stock'];
-    if (!from || !to || !kinds.includes(String(from.inv)) || !kinds.includes(String(to.inv)))
+    if (!from || !to || from.inv !== 'bag' || to.inv !== 'bag')
       return reply(false, 'Déplacement invalide.');
-    if ((from.inv === 'stock' || to.inv === 'stock') && !this.stockInReach(player))
-      return reply(false, 'Approche-toi de la caisse pour toucher au stock.');
-    const slotsOf = (inv: unknown) => (inv === 'bag' ? player.bag : this.state.lab.stock);
-    const source = slotsOf(from.inv);
-    const target = slotsOf(to.inv);
     const fromSlot = Number(from.slot);
-    if (source[fromSlot]?.itemId !== String(msg.itemId ?? ''))
+    if (player.bag[fromSlot]?.itemId !== String(msg.itemId ?? ''))
       return reply(false, "L'objet a déjà bougé.");
-    const same = from.inv === to.inv;
-    const r = moveStack(
-      readInventory(source),
-      fromSlot,
-      same ? null : readInventory(target),
-      Number(to.slot),
-      items,
-    );
+    const r = moveStack(readInventory(player.bag), fromSlot, null, Number(to.slot), items);
     if (!r.ok) return reply(false, r.message);
-    writeInventory(source, r.from);
-    if (!same) writeInventory(target, r.to);
+    writeInventory(player.bag, r.from);
     reply(true);
   }
 
-  private handleTransfer(client: Client, msg: unknown): void {
-    const who = this.playerOf(client);
-    if (!who || !isObject(msg)) return;
-    const { player } = who;
-    if (!this.stockInReach(player)) return this.notify(client, false, 'Approche-toi de la caisse.');
-    const fromBag = msg.from === 'bag';
-    if (!fromBag && msg.from !== 'stock') return;
-    const slot = Number(msg.slot);
-    const qty = Number(msg.qty);
-    const source = fromBag ? player.bag : this.state.lab.stock;
-    const target = fromBag ? this.state.lab.stock : player.bag;
-    if (!Number.isInteger(slot) || slot < 0 || slot >= source.length)
-      return this.notify(client, false, 'Slot invalide.');
-    const r = transfer(readInventory(source), slot, readInventory(target), qty, items);
-    if (!r.ok) return this.notify(client, false, r.message);
-    writeInventory(source, r.from);
-    writeInventory(target, r.to);
-  }
-
-  /** Commandes de debug : donner un objet, vider le stock, accélérer le temps. */
+  /** Commandes de debug : donner un objet, de l'argent, accélérer le temps. */
   private handleDebug(client: Client, msg: unknown): void {
     const who = this.playerOf(client);
     if (!who || !isObject(msg)) return;
@@ -765,14 +709,12 @@ export class NarcoRoom extends Room<GameState> {
       case 'restock':
         stockShelves(this.state);
         return this.notify(client, true, '[debug] étagères réapprovisionnées');
-      case 'clearStock':
-        writeInventory(this.state.lab.stock, emptyInventory(this.state.lab.stock.length));
-        return this.notify(client, true, '[debug] stock vidé');
+
       case 'equipLab':
       case 'clearLab': {
         const interior = gameData.interiors.get(player.zone);
         if (!interior?.fixtures.length)
-          return this.notify(client, false, '[debug] va dans le labo');
+          return this.notify(client, false, '[debug] aucun emplacement ici');
         if (msg.cmd === 'equipLab') equipAll(this.state, interior, this.now());
         else clearAll(this.state, interior);
         refreshPotRates(this.state, interior, this.now());

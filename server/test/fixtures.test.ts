@@ -14,7 +14,11 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { NarcoRoom } from '../src/rooms/NarcoRoom';
 import type { GameState } from '../src/rooms/schema';
 import { readInventory, readPot } from '../src/rooms/stateSync';
+import { installTestLabFixtures } from '@narco/shared/src/testing/labFixtures';
 import { bootOn } from './helpers';
+
+/** Le labo du jeu est vide : on installe sur les emplacements de l'ancien labo meublé. */
+installTestLabFixtures();
 
 type SdkRoom = ClientRoom<GameState>;
 

@@ -8,7 +8,8 @@
     "gameDaysPerWeek": 7
   },
   "startingMoney": {
-    "dirty": 100,
+    "_comment": "temporaire, test : 1000 $ d'argent sale par joueur",
+    "dirty": 1000,
     "clean": 0
   },
   "survival": {
@@ -114,12 +115,6 @@
     "priceVariance": 0.2
   },
   "lab": {
-    "startingStock": [
-      {
-        "itemId": "water",
-        "qty": 2
-      }
-    ],
     "waterPerWatering": 1,
     "waterPerTap": 1,
     "rackCapacity": 6,

@@ -15,15 +15,14 @@ export const ClientMsg = {
   Interact: 'interact',
   /** Action sur un poste d'intérieur (planter, arroser, sortir…). */
   Station: 'station',
-  /** Transfert sac ↔ stock commun (près de la caisse). */
-  Transfer: 'transfer',
+
   /** Commandes de debug (refusées si config.debug.commands est faux). */
   Debug: 'debug',
   /** Reposer 1 article du panier en rayon. */
   CartRemove: 'cartRemove',
   /** Manger / boire un objet du sac. */
   Use: 'use',
-  /** Glisser-déposer d'une pile (sac / stock). */
+  /** Glisser-déposer d'une pile dans le sac. */
   InventoryMove: 'inventory.move',
   /** Installer / démonter du mobilier sur un emplacement du labo. */
   Fixture: 'fixture',
@@ -81,8 +80,6 @@ export interface NoticeMessage {
   ok: boolean;
   text: string;
   locationId?: string;
-  /** Le client ouvre ce panneau (ex. caisse du stock). */
-  open?: 'stock';
 }
 
 /** Actions possibles sur un poste ; le serveur vérifie qu'elle correspond au type de poste. */
@@ -94,7 +91,6 @@ export const STATION_ACTIONS = [
   'hang',
   'collect',
   'cut',
-  'open',
   'exit',
   'take',
   'pay',
@@ -106,13 +102,8 @@ export interface StationMessage {
   action: StationAction;
 }
 
-export interface TransferMessage {
-  from: 'bag' | 'stock';
-  slot: number;
-  qty: number;
-}
-
-export type InventoryKind = 'bag' | 'stock';
+/** Inventaires manipulables (le stock commun reviendra avec la caisse posable). */
+export type InventoryKind = 'bag';
 
 export interface InventoryMoveMessage {
   requestId: number;
@@ -167,7 +158,6 @@ export interface CartRemoveMessage {
 
 export type DebugMessage =
   | { cmd: 'give'; itemId: string; qty: number }
-  | { cmd: 'clearStock' }
   | { cmd: 'timeScale'; scale: number }
   | { cmd: 'restock' }
   | { cmd: 'money'; amount: number }

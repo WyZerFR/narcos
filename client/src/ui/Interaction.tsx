@@ -19,7 +19,6 @@ import { gameNow } from '../net/gameView';
 import { placeView } from '../game/stationView';
 import { installedSet, placesOf } from '../game/fixtureState';
 import { npcSmoothed } from '../game/npcState';
-import { openInventory } from './uiStore';
 
 const LOCATIONS = [...gameData.locations.values()];
 /** Fréquence de recherche de la cible proche (pas besoin de 60 Hz pour un libellé). */
@@ -146,7 +145,6 @@ export function Interaction({ room }: { room: GameRoom }) {
     () =>
       connection.onNotice((n) => {
         setToast({ key: Date.now(), ok: n.ok, text: n.text });
-        if (n.ok && n.open === 'stock') openInventory('stock');
       }),
     [],
   );

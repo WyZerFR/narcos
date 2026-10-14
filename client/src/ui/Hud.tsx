@@ -68,7 +68,7 @@ export function Hud({ snapshot, room }: { snapshot: Snapshot; room: GameRoom }) 
       )}
 
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
-      {inventory && <InventoryPanel room={room} mode={inventory} />}
+      {inventory && <InventoryPanel room={room} />}
       <SalePanel room={room} />
     </>
   );

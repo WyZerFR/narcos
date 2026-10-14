@@ -255,7 +255,8 @@ export const EconomySchema = z.object({
     stockSlots: z.number().int().positive(),
   }),
   calendar: z.object({ realMinutesPerGameDay: pos, gameDaysPerWeek: z.number().int().positive() }),
-  startingMoney: z.object({ dirty: nonNeg, clean: nonNeg }),
+  /** Argent de départ par joueur ; `_comment` documente une valeur provisoire. */
+  startingMoney: z.object({ _comment: z.string().optional(), dirty: nonNeg, clean: nonNeg }),
   survival: z.object({
     max: pos,
     hungerPerMinute: nonNeg,
@@ -299,15 +300,12 @@ export const EconomySchema = z.object({
     bribeHeatReduction: nonNeg,
     lookoutRiskReduction: z.number().min(0).max(1),
   }),
-  /** Labo : postes de production et stock commun. */
   /** Vente de rue : prix = pouchSellPrice × (1 ± priceVariance), arrondi au dollar. */
   sale: z.object({
     priceVariance: z.number().min(0).lt(1),
   }),
+  /** Labo : postes de production. */
   lab: z.object({
-    startingStock: z.array(
-      z.object({ itemId: z.string().min(1), qty: z.number().int().positive() }),
-    ),
     waterPerWatering: z.number().int().positive(),
     waterPerTap: z.number().int().positive(),
     rackCapacity: z.number().int().positive(),

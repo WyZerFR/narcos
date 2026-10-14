@@ -13,7 +13,7 @@ describe('zones', () => {
     expect(interiorForLocation(gameData, 'local')?.id).toBe('lab');
     expect(interiorForLocation(gameData, 'repaire_jefe')).toBeUndefined();
     const kinds = lab.stations.map((s) => s.kind).sort();
-    expect(kinds).toEqual(['exit', 'stock', 'water']);
+    expect(kinds).toEqual(['exit', 'water']);
   });
 
   it('donne bornes et obstacles par zone', () => {

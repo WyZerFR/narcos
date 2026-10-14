@@ -18,23 +18,15 @@ import {
 /**
  * Sauvegarde JSON des parties (en attendant SQLite) : un fichier unique réécrit toutes les
  * `config.persistence.snapshotSeconds`. Au démarrage, chaque partie est recréée avec son code,
- * ses joueurs (hors ligne), leurs sacs, le stock, le mobilier du labo et l'horloge de jeu.
+ * ses joueurs (hors ligne), leurs sacs, le mobilier du labo et l'horloge de jeu.
  *
- * Chaque partie porte un `schemaVersion` : v1 = labo livré meublé (2 pots, un étendoir, une
- * table), v2 = labo aménageable. Une partie v1 est migrée en installant les emplacements
- * d'origine avec leur contenu (plantes, séchage, découpe) ; sacs et stock sont repris tels quels.
+ * Chaque partie porte un `schemaVersion` : v1 = labo meublé, v2 = labo aménageable avec stock
+ * commun, v3 = labo vide (robinet + sortie), sans stock commun. Aucune migration : une partie
+ * d'une autre version est ignorée (log) et le code redonne une partie neuve.
  */
 
 /** Version courante du contenu d'une partie sauvegardée. */
-export const SNAPSHOT_SCHEMA_VERSION = 2;
-
-/** Emplacements équipés par la migration v1 → v2 (le labo meublé d'avant). */
-export const V1_FIXTURES = {
-  pots: ['pot_1', 'pot_2'],
-  rack: 'rack_1',
-  table: 'table_1',
-  items: { pot: 'pot', rack: 'drying_rack', table: 'cutting_table' },
-} as const;
+export const SNAPSHOT_SCHEMA_VERSION = 3;
 
 export const DEFAULT_SNAPSHOT_FILE = resolve(
   process.env.NARCO_DATA_DIR ?? resolve(dirname(fileURLToPath(import.meta.url)), '..', '.data'),
@@ -83,7 +75,6 @@ const StateJson = z.object({
   ),
   shelves: z.record(z.string(), z.object({ stock: z.number().int() })).default({}),
   lab: z.object({
-    stock: z.array(SlotJson).default([]),
     fixtures: z.record(z.string(), z.object({ itemId: z.string() })).default({}),
     pots: z
       .record(
@@ -100,22 +91,25 @@ const StateJson = z.object({
       .default({}),
     racks: z.record(z.string(), z.object({ entries: z.array(RackEntryJson) })).default({}),
     cuts: z.record(z.string(), CutJson).default({}),
-    /** v1 : étendoir et table uniques. */
-    rack: z.array(RackEntryJson).optional(),
-    cut: CutJson.optional(),
   }),
 });
 
 export const RoomSnapshotSchema = z.object({
   code: z.string().min(1),
-  /** Absent dans les sauvegardes d'avant le labo aménageable (= 1). */
-  schemaVersion: z.number().int().positive().default(1),
+  /** Seule la version courante est restaurée (pas de migration). */
+  schemaVersion: z.literal(SNAPSHOT_SCHEMA_VERSION),
   /** Horloge de jeu au moment de la sauvegarde : elle reprend de là (temps figé pendant l'arrêt). */
   clock: z.object({ now: z.number(), scale: z.number().positive() }),
   state: StateJson,
 });
 
 export type RoomSnapshot = z.infer<typeof RoomSnapshotSchema>;
+
+/** Lecture minimale pour trier les parties par version avant la validation complète. */
+const VersionJson = z.object({
+  code: z.string().catch('?'),
+  schemaVersion: z.number().int().positive().default(1),
+});
 
 const FileSchema = z.object({
   version: z.literal(1),
@@ -125,26 +119,6 @@ const FileSchema = z.object({
 
 function slotsFrom(list: { itemId: string; qty: number }[]): Slot[] {
   return list.map((s) => Object.assign(new Slot(), s));
-}
-
-type LabJson = RoomSnapshot['state']['lab'];
-
-/** Convertit un labo v1 (meublé d'office) en labo v2 : emplacements d'origine installés. */
-export function migrateLab(lab: LabJson, version: number): LabJson {
-  if (version >= 2) return lab;
-  const { rack, cut, ...rest } = lab;
-  const out: LabJson = { ...rest, fixtures: {}, pots: {}, racks: {}, cuts: {} };
-  for (const id of V1_FIXTURES.pots) {
-    const pot = lab.pots[id];
-    if (!pot) continue; // pot pas installé dans la partie v1
-    out.fixtures[id] = { itemId: V1_FIXTURES.items.pot };
-    out.pots[id] = { ...pot, rate: 1 };
-  }
-  out.fixtures[V1_FIXTURES.rack] = { itemId: V1_FIXTURES.items.rack };
-  out.racks[V1_FIXTURES.rack] = { entries: rack ?? [] };
-  out.fixtures[V1_FIXTURES.table] = { itemId: V1_FIXTURES.items.table };
-  out.cuts[V1_FIXTURES.table] = cut ?? { playerId: '', strainId: '', qty: 0, readyAt: 0 };
-  return out;
 }
 
 /** Remplit un état vierge depuis un snapshot. Les joueurs reviennent hors ligne. */
@@ -172,9 +146,7 @@ export function hydrateState(state: GameState, snap: RoomSnapshot): void {
   }
   for (const [key, shelf] of Object.entries(s.shelves))
     state.shelves.set(key, Object.assign(new ShelfState(), shelf));
-  state.lab.stock.clear();
-  state.lab.stock.push(...slotsFrom(s.lab.stock));
-  const lab = migrateLab(s.lab, snap.schemaVersion);
+  const lab = s.lab;
   for (const [id, f] of Object.entries(lab.fixtures))
     state.lab.fixtures.set(id, Object.assign(new InstalledFixture(), f));
   for (const [id, pot] of Object.entries(lab.pots))
@@ -205,6 +177,14 @@ export function readSnapshotFile(file: string): RoomSnapshot[] {
     const parsed = FileSchema.parse(JSON.parse(readFileSync(file, 'utf8')));
     const rooms: RoomSnapshot[] = [];
     for (const raw of parsed.rooms) {
+      const v = VersionJson.safeParse(raw);
+      if (v.success && v.data.schemaVersion !== SNAPSHOT_SCHEMA_VERSION) {
+        console.warn(
+          `[narco] partie ${v.data.code} sauvegardée en v${v.data.schemaVersion} ` +
+            `(attendu v${SNAPSHOT_SCHEMA_VERSION}, labo refait à neuf) : ignorée, partie neuve.`,
+        );
+        continue;
+      }
       const r = RoomSnapshotSchema.safeParse(raw);
       if (r.success) rooms.push(r.data);
       else

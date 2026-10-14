@@ -58,29 +58,6 @@ export function buildRoom(interior: Interior, data: GameData = gameData): RoomGe
   solid.cuttable = false;
   glow.cuttable = false;
 
-  // déco du labo : affiches au mur du fond, étagère à bocaux, seau, vieux canapé
-  const isLab = interior.fixtures.length > 0;
-  const back = -d / 2 + 0.02;
-  if (isLab) {
-    glow.box(-w * 0.32, 2.1, back, 1.1, 0.8, 0.04, shade(entrance.neonColor, 0.45));
-    glow.box(w * 0.36, 2.2, back, 0.8, 1.1, 0.04, shade(palette.vegetation, 0.6));
-    solid.block(-w / 2 + 0.35, 1.6, -d / 4, 0.5, 0.08, 2.2, shade(palette.neon, 0.4));
-    for (let i = 0; i < 5; i++) {
-      solid.block(
-        -w / 2 + 0.35,
-        1.68,
-        -d / 4 - 0.9 + i * 0.45,
-        0.25,
-        0.3,
-        0.25,
-        shade(i % 2 ? palette.vegetation : palette.neon, 0.7),
-      );
-    }
-    solid.block(w / 2 - 1.6, 0, d / 2 - 0.9, 0.5, 0.45, 0.5, shade(palette.wall, 1.5));
-    solid.block(-w / 2 + 2.4, 0, d / 2 - 0.7, 2.2, 0.45, 0.8, shade(entrance.neonColor, 0.35));
-    solid.block(-w / 2 + 2.4, 0.45, d / 2 - 0.4, 2.2, 0.5, 0.2, shade(entrance.neonColor, 0.3));
-  }
-
   for (const st of interior.stations) buildStation(st, solid, glow, data, entrance.neonColor);
 
   // la porte fait partie du mur : elle redevient découpable

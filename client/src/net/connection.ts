@@ -86,7 +86,6 @@ export interface StateView {
   code: string;
   players: Map<string, PlayerView>;
   lab: {
-    stock: SlotView[];
     /** Emplacements installés (clé = id d'emplacement) et leur état. */
     fixtures: Map<string, { itemId: string }>;
     pots: Map<string, PotView>;

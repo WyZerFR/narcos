@@ -705,9 +705,6 @@ input {
   border-radius: 16px;
   background: #211d19;
 }
-.inv-panel.with-stock {
-  width: min(1100px, 100%);
-}
 .inv-header {
   display: flex;
   align-items: center;
@@ -735,10 +732,6 @@ input {
 }
 .inv-grid-wrap.bag {
   flex: 0 0 auto;
-}
-.inv-grid-wrap.stock {
-  flex: 1 1 auto;
-  min-width: 0;
 }
 .inv-grid {
   display: grid;

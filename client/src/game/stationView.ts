@@ -176,8 +176,6 @@ export function stationView(
         progress: 0,
       };
     }
-    case 'stock':
-      return { action: 'open', label: 'Ouvrir le stock', active: true };
     case 'exit':
       return { action: 'exit', label: 'Sortir', active: true };
     case 'shelf': {

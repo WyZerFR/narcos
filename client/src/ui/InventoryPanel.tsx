@@ -3,19 +3,19 @@ import {
   ClientMsg,
   gameData,
   type Inventory,
-  type TransferMessage,
+  type InventoryKind,
   type UseMessage,
 } from '@narco/shared';
 import { connection, type GameRoom } from '../net/connection';
-import { readBag, readStock, useRoomVersion } from '../net/gameView';
-import { closeInventory, type InventoryMode } from './uiStore';
+import { readBag, useRoomVersion } from '../net/gameView';
+import { closeInventory } from './uiStore';
 import { useInventoryDrag } from './useInventoryDrag';
 
 type Drag = ReturnType<typeof useInventoryDrag>;
 /** Durée d'affichage d'un refus de déplacement (style). */
 const ERROR_MS = 2500;
 
-type Side = 'bag' | 'stock';
+type Side = InventoryKind;
 
 interface Selection {
   side: Side;
@@ -89,18 +89,12 @@ function Grid({
 }
 
 /**
- * Inventaire plein écran : grille du sac ; à la caisse du labo, sac et stock côte à côte.
- * Tap pour sélectionner (détail, boutons de transfert) ; appui long pour glisser une pile
- * vers un autre slot (déplacement, fusion, échange, transfert sac ↔ stock à la caisse).
+ * Inventaire plein écran : grille du sac seul (le stock commun reviendra avec la caisse).
+ * Tap pour sélectionner (détail, manger / boire) ; appui long pour glisser une pile vers un
+ * autre slot (déplacement, fusion, échange).
  */
-export function InventoryPanel({
-  room,
-  mode,
-}: {
-  room: GameRoom;
-  mode: Exclude<InventoryMode, null>;
-}) {
-  useRoomVersion(room); // re-rendu à chaque patch : le stock peut changer sous nos yeux
+export function InventoryPanel({ room }: { room: GameRoom }) {
+  useRoomVersion(room); // re-rendu à chaque patch : le sac peut changer sous nos yeux
   const [selection, setSelection] = useState<Selection | null>(null);
   const [dragError, setDragError] = useState<string | null>(null);
   const onRefused = useCallback((text: string) => setDragError(text), []);
@@ -111,31 +105,21 @@ export function InventoryPanel({
     return () => clearTimeout(t);
   }, [dragError]);
   const bag = readBag(room, connection.playerId);
-  const stock = readStock(room);
-  const showStock = mode === 'stock';
-
-  const selectedInv = selection?.side === 'stock' ? stock : bag;
-  const stack = selection ? selectedInv[selection.slot] : null;
+  const stack = selection ? bag[selection.slot] : null;
   const def = stack ? gameData.items.get(stack.itemId) : undefined;
 
-  const send = (qty: number) => {
-    if (!selection || !stack) return;
-    const msg: TransferMessage = { from: selection.side, slot: selection.slot, qty };
-    room.send(ClientMsg.Transfer, msg);
-  };
-  const target = selection?.side === 'bag' ? 'Stock' : 'Sac';
   /** Manger / boire : le serveur applique la restauration et retire l'objet. */
   const useItem = () => {
-    if (!selection || selection.side !== 'bag') return;
+    if (!selection) return;
     const msg: UseMessage = { slot: selection.slot };
     room.send(ClientMsg.Use, msg);
   };
 
   return (
     <div className="inv-backdrop">
-      <div className={`inv-panel${showStock ? ' with-stock' : ''}`}>
+      <div className="inv-panel">
         <header className="inv-header">
-          <h2>{showStock ? 'Sac ↔ Caisse du stock' : 'Mon sac'}</h2>
+          <h2>Mon sac</h2>
           <button type="button" className="btn" onClick={closeInventory}>
             Fermer
           </button>
@@ -151,17 +135,6 @@ export function InventoryPanel({
             columns={5}
             drag={drag}
           />
-          {showStock && (
-            <Grid
-              title="📦 Stock commun"
-              inv={stock}
-              side="stock"
-              selection={selection}
-              onSelect={setSelection}
-              columns={10}
-              drag={drag}
-            />
-          )}
         </div>
 
         {dragError && <div className="inv-error">{dragError}</div>}
@@ -175,28 +148,16 @@ export function InventoryPanel({
                 </strong>
                 <p>{def.description}</p>
               </div>
-              {selection?.side === 'bag' && def.restores && (
+              {def.restores && (
                 <div className="inv-actions">
                   <button type="button" className="btn primary" onClick={useItem}>
                     {(def.restores.hunger ?? 0) >= (def.restores.thirst ?? 0) ? 'Manger' : 'Boire'}
                   </button>
                 </div>
               )}
-              {showStock && (
-                <div className="inv-actions">
-                  <button type="button" className="btn" onClick={() => send(1)}>
-                    → {target} (1)
-                  </button>
-                  <button type="button" className="btn primary" onClick={() => send(stack.qty)}>
-                    → {target} (tout)
-                  </button>
-                </div>
-              )}
             </>
           ) : (
-            <p className="inv-hint">
-              Touche un objet pour voir son détail{showStock ? ', puis transfère-le.' : '.'}
-            </p>
+            <p className="inv-hint">Touche un objet pour voir son détail.</p>
           )}
         </footer>
       </div>

@@ -16,6 +16,7 @@ import {
 } from './fixtures';
 import { plantPot, potGrowMs, potReadyAt, rebankPot, waterPot } from './production';
 import { zoneArea } from './zones';
+import { TEST_LAB_FIXTURES, installTestLabFixtures } from './testing/labFixtures';
 
 const raw = (): RawGameData =>
   structuredClone({
@@ -29,6 +30,9 @@ const raw = (): RawGameData =>
   });
 
 const lab = gameData.interiors.get('lab')!;
+/** Le labo du jeu est vide : on teste sur les emplacements de l'ancien labo meublé. */
+const gameLabFixtures = lab.fixtures.length;
+installTestLabFixtures();
 const LAMP = gameData.economy.lab.lamp;
 const strain = gameData.economy.strains.find((s) => s.id === 'base')!;
 const S = 1000;
@@ -39,10 +43,14 @@ function must<T>(r: { ok: true; value: T } | { ok: false; message: string }): T 
 }
 
 describe('emplacements du labo', () => {
-  it('4 pots, 2 étendoirs, 1 table, 4 lampes ; postes fixes : eau, caisse, porte', () => {
+  it('le labo du jeu est livré vide : robinet et porte seulement, aucun emplacement', () => {
+    expect(gameLabFixtures).toBe(0);
+    expect(lab.stations.map((s) => s.kind).sort()).toEqual(['exit', 'water']);
+  });
+
+  it('emplacements de test : 4 pots, 2 étendoirs, 1 table, 4 lampes', () => {
     const by = (t: string) => lab.fixtures.filter((f) => f.accepts === t).length;
     expect([by('pot'), by('drying_rack'), by('cutting_table'), by('lamp')]).toEqual([4, 2, 1, 4]);
-    expect(lab.stations.map((s) => s.kind).sort()).toEqual(['exit', 'stock', 'water']);
   });
 
   it('un emplacement installé devient un poste ; les lampes ne bloquent pas', () => {
@@ -72,9 +80,14 @@ describe('emplacements du labo', () => {
       interiors: { id: string; fixtures: { id: string; position: object }[] }[];
     };
     const labRaw = z.interiors.find((i) => i.id === 'lab')!;
+    labRaw.fixtures = structuredClone([...TEST_LAB_FIXTURES]);
+    expect(() => parseGameData(r)).not.toThrow();
     labRaw.fixtures[1]!.position = { ...labRaw.fixtures[0]!.position };
     expect(() => parseGameData(r)).toThrow(/se chevauchent/);
     const r2 = raw();
+    (r2.zones as typeof z).interiors.find((i) => i.id === 'lab')!.fixtures = structuredClone([
+      ...TEST_LAB_FIXTURES,
+    ]);
     const items = r2.items as { items: { id: string; installs?: string }[] };
     delete items.items.find((i) => i.id === 'grow_lamp')!.installs;
     expect(() => parseGameData(r2)).toThrow(/aucun objet ne s'installe/);

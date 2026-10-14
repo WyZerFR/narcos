@@ -50,9 +50,6 @@ export function DebugLabSection() {
         >
           Donner
         </button>
-        <button type="button" className="btn danger" onClick={() => send({ cmd: 'clearStock' })}>
-          Vider le stock
-        </button>
       </div>
       <div className="cam-actions">
         <button type="button" className="btn" onClick={() => send({ cmd: 'spawnBuyer' })}>

@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 
-/** Panneau d'inventaire ouvert : sac seul, ou sac + stock commun (à la caisse du labo). */
-export type InventoryMode = 'bag' | 'stock' | null;
+/** Panneau d'inventaire ouvert (sac seul ; le stock commun reviendra avec la caisse posable). */
+export type InventoryMode = 'bag' | null;
 
 let mode: InventoryMode = null;
 const listeners = new Set<() => void>();

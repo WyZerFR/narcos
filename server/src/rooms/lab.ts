@@ -44,8 +44,6 @@ const LAB = economy.lab;
 export interface ActionResult {
   ok: boolean;
   text: string;
-  /** Le client doit ouvrir un panneau (caisse du stock). */
-  open?: 'stock';
 }
 
 /** Actions autorisées par type de poste (la sortie est gérée par la room). */
@@ -54,15 +52,14 @@ export const ACTIONS_BY_KIND: Record<Station['kind'], readonly StationAction[]> 
   water: ['fill'],
   rack: ['hang', 'collect'],
   table: ['cut'],
-  stock: ['open'],
+  stock: [], // la caisse reviendra comme objet posable
   exit: ['exit'],
   shelf: ['take'],
   counter: ['pay'],
   lamp: [],
 };
 
-const done = (text: string, open?: 'stock'): ActionResult =>
-  open ? { ok: true, text, open } : { ok: true, text };
+const done = (text: string): ActionResult => ({ ok: true, text });
 const refuse = (text: string): ActionResult => ({ ok: false, text });
 
 function strainOf(id: string): Strain | undefined {
@@ -201,9 +198,6 @@ export function runStationAction(
       return done(`Découpe de ${qty} plante(s) en cours…`);
     }
 
-    case 'open':
-      return done('Caisse ouverte.', 'stock');
-
     case 'exit':
     case 'take':
     case 'pay':
@@ -211,9 +205,16 @@ export function runStationAction(
   }
 }
 
+/** Message de fin de découpe pour le joueur qui l'a lancée (`ok: false` = sac plein). */
+export interface CutNotice {
+  playerId: string;
+  ok: boolean;
+  text: string;
+}
+
 /** Termine les découpes prêtes de toutes les tables installées (messages par joueur). */
-export function completeCuts(state: GameState, now: number): { playerId: string; text: string }[] {
-  const out: { playerId: string; text: string }[] = [];
+export function completeCuts(state: GameState, now: number): CutNotice[] {
+  const out: CutNotice[] = [];
   for (const cut of state.lab.cuts.values()) {
     const r = completeCut(state, cut, now);
     if (r) out.push(r);
@@ -221,15 +222,15 @@ export function completeCuts(state: GameState, now: number): { playerId: string;
   return out;
 }
 
+/** Découpes déjà signalées « sac plein » : le message n'est envoyé qu'une fois par découpe. */
+const blockedCuts = new WeakSet<CutJob>();
+
 /**
- * Termine une découpe si elle est prête : pochons dans le sac de celui qui l'a lancée,
- * ou dans le stock commun si son sac est plein. Renvoie le message pour ce joueur.
+ * Termine une découpe si elle est prête : pochons dans le sac de celui qui l'a lancée.
+ * Sac plein (ou joueur absent) : la découpe refuse de se terminer, les pochons attendent sur
+ * la table et le joueur est prévenu une fois ; ils arrivent dès qu'il y a de la place.
  */
-function completeCut(
-  state: GameState,
-  cut: CutJob,
-  now: number,
-): { playerId: string; text: string } | null {
+function completeCut(state: GameState, cut: CutJob, now: number): CutNotice | null {
   const job = readCut(cut);
   if (!isCutDone(job, now)) return null;
   const strain = strainOf(job.strainId);
@@ -240,20 +241,18 @@ function completeCut(
   }
   const qty = pouchesFor(job, strain);
   const player = state.players.get(job.playerId);
-  if (player) {
-    const r = add(readInventory(player.bag), pouch.id, qty, items);
-    if (r.ok) {
-      writeInventory(player.bag, r.inv);
-      writeCut(cut, null);
-      return { playerId: job.playerId, text: `${qty} × ${pouch.name} dans ton sac.` };
-    }
+  const r = player ? add(readInventory(player.bag), pouch.id, qty, items) : null;
+  if (player && r?.ok) {
+    writeInventory(player.bag, r.inv);
+    writeCut(cut, null);
+    blockedCuts.delete(cut);
+    return { playerId: job.playerId, ok: true, text: `${qty} × ${pouch.name} dans ton sac.` };
   }
-  const r = add(readInventory(state.lab.stock), pouch.id, qty, items);
-  if (!r.ok) return null; // tout est plein : la table reste occupée jusqu'à ce qu'on fasse de la place
-  writeInventory(state.lab.stock, r.inv);
-  writeCut(cut, null);
+  if (blockedCuts.has(cut)) return null;
+  blockedCuts.add(cut);
   return {
     playerId: job.playerId,
-    text: `Sac plein : ${qty} × ${pouch.name} posés dans la caisse.`,
+    ok: false,
+    text: `Découpe finie mais sac plein : fais de la place pour récupérer ${qty} × ${pouch.name} (ils attendent sur la table).`,
   };
 }

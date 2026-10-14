@@ -14,12 +14,18 @@ import {
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { NarcoRoom } from '../src/rooms/NarcoRoom';
 import type { GameState } from '../src/rooms/schema';
-import { readInventory } from '../src/rooms/stateSync';
+import { readInventory, writeInventory } from '../src/rooms/stateSync';
 import { equipAll } from '../src/rooms/fixtures';
-import { RoomSnapshotSchema, migrateLab } from '../src/persistence';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join as joinPath } from 'node:path';
+import { installTestLabFixtures } from '@narco/shared/src/testing/labFixtures';
+import { RoomSnapshotSchema, SNAPSHOT_SCHEMA_VERSION, readSnapshotFile } from '../src/persistence';
 import { bootOn } from './helpers';
 
 const lab = gameData.interiors.get('lab')!;
+/** Le labo du jeu est vide : les tests de production utilisent l'ancien labo meublé. */
+installTestLabFixtures();
 const station = (id: string) => [...lab.stations, ...lab.fixtures].find((s) => s.id === id)!;
 /** Équipe tout le labo (comme la commande debug). */
 const equip = (room: NarcoRoom) => equipAll(room.state, lab, room.now());
@@ -71,11 +77,9 @@ const bagOf = (room: NarcoRoom, playerId: string) =>
   readInventory(room.state.players.get(playerId)!.bag);
 
 describe('labo — validation des actions', () => {
-  it('démarre avec le stock prévu dans economy.json et un labo vide', async () => {
+  it('démarre avec un labo vide et sans stock commun', async () => {
     const { room } = await newGame('lab-player-0001');
-    const stock = readInventory(room.state.lab.stock);
-    for (const { itemId, qty } of gameData.economy.lab.startingStock)
-      expect(count(stock, itemId)).toBe(qty);
+    expect('stock' in room.state.lab.toJSON()).toBe(false);
     expect(room.state.lab.fixtures.size).toBe(0);
     expect(room.state.lab.pots.size).toBe(0);
     expect(room.state.players.get('lab-player-0001')!.bag.length).toBe(
@@ -83,18 +87,13 @@ describe('labo — validation des actions', () => {
     );
   });
 
-  it('donne l’argent de départ et range l’argent sale dans la caisse commune', async () => {
-    const { client, room } = await newGame('lab-player-0011');
+  it('donne l’argent de départ (1000 $ sale, temporaire) dans le sac', async () => {
+    const { room } = await newGame('lab-player-0011');
     const { dirty, clean } = gameData.economy.startingMoney;
+    expect(dirty).toBe(1000);
     const p = room.state.players.get('lab-player-0011')!;
     expect(count(readInventory(p.bag), 'cash_dirty')).toBe(dirty);
     expect(p.cleanMoney).toBe(clean);
-    goTo(room, 'lab-player-0011', 'stock');
-    const slot = readInventory(p.bag).findIndex((s) => s?.itemId === 'cash_dirty');
-    client.send(ClientMsg.Transfer, { from: 'bag', slot, qty: 20 });
-    await room.waitForNextMessage();
-    expect(count(readInventory(p.bag), 'cash_dirty')).toBe(dirty - 20);
-    expect(count(readInventory(room.state.lab.stock), 'cash_dirty')).toBe(20);
   });
 
   it('refuse depuis la rue, de trop loin et sans objet', async () => {
@@ -112,31 +111,28 @@ describe('labo — validation des actions', () => {
     expect((await act(client, 'pot_1', 'cut')).ok).toBe(false); // mauvaise action pour ce poste
   });
 
-  it('transfère sac ↔ stock près de la caisse seulement', async () => {
+  it('fin de découpe sac plein : refus clair une seule fois, pochons livrés dès qu’il y a de la place', async () => {
     const { client, room } = await newGame('lab-player-0003');
-    goTo(room, 'lab-player-0003', 'pot_1');
-    client.send(ClientMsg.Transfer, { from: 'stock', slot: 0, qty: 2 });
-    expect(((await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage).ok).toBe(false);
-    goTo(room, 'lab-player-0003', 'stock');
-    client.send(ClientMsg.Transfer, { from: 'stock', slot: 0, qty: 1 });
-    await room.waitForNextMessage();
-    expect(count(bagOf(room, 'lab-player-0003'), 'water')).toBe(1);
-    expect(count(readInventory(room.state.lab.stock), 'water')).toBe(
-      gameData.economy.lab.startingStock.find((s) => s.itemId === 'water')!.qty - 1,
-    );
-  });
-
-  it('montre le même stock aux deux joueurs', async () => {
-    const { client: a, room } = await newGame('lab-player-0004');
-    const b = await join(room, 'lab-player-0005');
-    goTo(room, 'lab-player-0004', 'stock');
-    a.send(ClientMsg.Transfer, { from: 'stock', slot: 0, qty: 1 });
-    await room.waitForNextMessage();
-    await room.waitForNextPatch();
-    await new Promise((r) => setTimeout(r, 100));
-    const view = (s: GameState) => JSON.stringify(s.lab.stock.map((x) => [x.itemId, x.qty]));
-    expect(view(a.state)).toBe(view(room.state));
-    expect(view(b.state)).toBe(view(room.state));
+    equip(room);
+    const p = room.state.players.get('lab-player-0003')!;
+    const full = Array.from({ length: p.bag.length }, () => ({ itemId: 'food', qty: 1 }));
+    writeInventory(p.bag, full);
+    const cut = room.state.lab.cuts.get('table_1')!;
+    Object.assign(cut, { playerId: p.id, strainId: 'base', qty: 2, readyAt: room.now() });
+    const refused = (await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage;
+    expect(refused.ok).toBe(false);
+    expect(refused.text).toMatch(/sac plein/i);
+    expect(cut.qty).toBe(2); // la découpe attend sur la table
+    const notices: NoticeMessage[] = [];
+    client.onMessage(ServerMsg.Notice, (n: NoticeMessage) => notices.push(n));
+    await new Promise((r) => setTimeout(r, 300));
+    expect(notices).toHaveLength(0); // pas de répétition à chaque tick
+    writeInventory(p.bag, [null, ...full.slice(1)]);
+    while (notices.length === 0) await new Promise((r) => setTimeout(r, 20));
+    expect(notices[0]).toMatchObject({ ok: true });
+    expect(count(readInventory(p.bag), 'pouch_base')).toBe(2 * strain.pouchesPerDried);
+    expect(readInventory(p.bag)).toHaveLength(p.bag.length);
+    expect(cut.playerId).toBe('');
   });
 });
 
@@ -177,7 +173,7 @@ describe('labo — production', () => {
     // équiper depuis la rue est refusé, depuis le labo accepté
     a.send(ClientMsg.Debug, { cmd: 'equipLab' });
     expect(((await a.waitForMessage(ServerMsg.Notice)) as NoticeMessage).ok).toBe(false);
-    goTo(room, 'lab-player-0008', 'stock');
+    goTo(room, 'lab-player-0008', 'water');
     a.send(ClientMsg.Debug, { cmd: 'equipLab' });
     expect(((await a.waitForMessage(ServerMsg.Notice)) as NoticeMessage).ok).toBe(true);
     expect(room.state.lab.fixtures.size).toBe(lab.fixtures.length);
@@ -235,14 +231,15 @@ describe('labo — production', () => {
 });
 
 describe('sauvegarde', () => {
-  it('restaure une partie depuis son snapshot (même code, même stock, joueurs hors ligne)', async () => {
+  it('restaure une partie depuis son snapshot (même code, mêmes sacs, joueurs hors ligne)', async () => {
     const { client, room } = await newGame('lab-player-0010');
-    goTo(room, 'lab-player-0010', 'stock');
-    client.send(ClientMsg.Transfer, { from: 'stock', slot: 0, qty: 2 });
-    await room.waitForNextMessage();
+    goTo(room, 'lab-player-0010', 'water');
+    const p0 = room.state.players.get('lab-player-0010')!;
+    writeInventory(p0.bag, [{ itemId: 'water', qty: 2 }, ...readInventory(p0.bag).slice(1)]);
     equip(room);
     room.state.lab.pots.get('pot_3')!.planted = true;
     const snap = RoomSnapshotSchema.parse(JSON.parse(JSON.stringify(room.snapshot())));
+    expect(snap.schemaVersion).toBe(SNAPSHOT_SCHEMA_VERSION);
     const code = room.roomId;
     await client.leave();
     await room.disconnect();
@@ -256,7 +253,6 @@ describe('sauvegarde', () => {
     expect(p.connected).toBe(false);
     expect(p.zone).toBe('lab');
     expect(count(readInventory(p.bag), 'water')).toBe(2);
-    expect(readInventory(again.state.lab.stock)).toEqual(readInventory(room.state.lab.stock));
     expect([...again.state.lab.fixtures.keys()].sort()).toEqual(
       [...room.state.lab.fixtures.keys()].sort(),
     );
@@ -266,75 +262,27 @@ describe('sauvegarde', () => {
     await colyseus.sdk.joinById(code, { playerId: 'lab-player-0010', name: 'Chimiste' });
     expect(p.connected).toBe(true);
   });
-});
 
-describe('sauvegarde — migration v1 (labo meublé) → v2 (labo aménageable)', () => {
-  const v1 = {
-    code: 'ABCD',
-    clock: { now: 50_000, scale: 1 },
-    state: {
-      code: 'ABCD',
-      players: {
-        'old-player-0001': {
-          id: 'old-player-0001',
-          name: 'Ancien',
-          color: '#fff',
-          x: 1,
-          z: 2,
-          zone: 'lab',
-          bag: [
-            { itemId: 'cash_dirty', qty: 42 },
-            { itemId: 'plant_dried_base', qty: 2 },
-          ],
-        },
-      },
-      lab: {
-        stock: [{ itemId: 'seed_base', qty: 5 }],
-        pots: {
-          pot_1: {
-            planted: true,
-            strainId: 'base',
-            growMsDone: 1000,
-            bankedAt: 40_000,
-            wateredUntil: 60_000,
-          },
-          pot_2: { planted: false, strainId: '', growMsDone: 0, bankedAt: 0, wateredUntil: 0 },
-        },
-        rack: [{ strainId: 'base', qty: 3, readyAt: 70_000 }],
-        cut: { playerId: 'old-player-0001', strainId: 'base', qty: 2, readyAt: 55_000 },
-      },
-    },
-  };
-
-  it('migrateLab installe les emplacements d’origine avec leur contenu', () => {
-    const snap = RoomSnapshotSchema.parse(v1);
-    expect(snap.schemaVersion).toBe(1);
-    const lab2 = migrateLab(snap.state.lab, snap.schemaVersion);
-    expect(Object.keys(lab2.fixtures).sort()).toEqual(['pot_1', 'pot_2', 'rack_1', 'table_1']);
-    expect(lab2.fixtures.pot_1!.itemId).toBe('pot');
-    expect(lab2.fixtures.rack_1!.itemId).toBe('drying_rack');
-    expect(lab2.fixtures.table_1!.itemId).toBe('cutting_table');
-    expect(lab2.pots.pot_1).toMatchObject({ planted: true, growMsDone: 1000, rate: 1 });
-    expect(lab2.racks.rack_1!.entries).toEqual(v1.state.lab.rack);
-    expect(lab2.cuts.table_1).toEqual(v1.state.lab.cut);
-    expect(lab2.rack).toBeUndefined();
-    // une sauvegarde v2 n'est pas touchée
-    expect(migrateLab(lab2, 2)).toBe(lab2);
-  });
-
-  it('restaure une partie v1 sans perdre sacs, stock ni plantes', async () => {
-    const snap = RoomSnapshotSchema.parse(v1);
-    await matchMaker.createRoom(ROOM_NAME, { restore: snap });
-    const room = colyseus.getRoomById<GameState>('ABCD') as ServerRoom<GameState> as NarcoRoom;
-    const p = room.state.players.get('old-player-0001')!;
-    expect(count(readInventory(p.bag), 'cash_dirty')).toBe(42);
-    expect(count(readInventory(p.bag), 'plant_dried_base')).toBe(2);
-    expect(count(readInventory(room.state.lab.stock), 'seed_base')).toBe(5);
-    expect(room.state.lab.pots.get('pot_1')!.planted).toBe(true);
-    expect(room.state.lab.racks.get('rack_1')!.entries.length).toBe(1);
-    expect(room.state.lab.cuts.get('table_1')!.playerId).toBe('old-player-0001');
-    // la sauvegarde suivante est en v2
-    expect(room.snapshot().schemaVersion).toBe(2);
-    await room.disconnect();
+  it('ignore une sauvegarde d’une ancienne version, avec un log clair', () => {
+    const file = joinPath(mkdtempSync(joinPath(tmpdir(), 'narco-')), 'rooms.json');
+    const room = (code: string, schemaVersion?: number) => ({
+      code,
+      ...(schemaVersion === undefined ? {} : { schemaVersion }),
+      clock: { now: 0, scale: 1 },
+      state: { code, players: {}, lab: {} },
+    });
+    const rooms = [room('OLD1'), room('OLD2', 2), room('NEW3', SNAPSHOT_SCHEMA_VERSION)];
+    writeFileSync(file, JSON.stringify({ version: 1, savedAt: 0, rooms }));
+    const logs: string[] = [];
+    const warn = console.warn;
+    console.warn = (...args: unknown[]) => void logs.push(args.join(' '));
+    try {
+      expect(readSnapshotFile(file).map((r) => r.code)).toEqual(['NEW3']);
+    } finally {
+      console.warn = warn;
+    }
+    expect(logs).toHaveLength(2);
+    expect(logs[0]).toMatch(/OLD1.*v1.*ignorée, partie neuve/);
+    expect(logs[1]).toMatch(/OLD2.*v2/);
   });
 });

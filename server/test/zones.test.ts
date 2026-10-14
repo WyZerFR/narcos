@@ -9,9 +9,12 @@ import {
   type NoticeMessage,
 } from '@narco/shared';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { installTestLabFixtures } from '@narco/shared/src/testing/labFixtures';
 import type { GameState } from '../src/rooms/schema';
 
 const lab = gameData.interiors.get('lab')!;
+/** Le labo du jeu est vide : les collisions de mobilier sont testées sur l'ancien labo meublé. */
+installTestLabFixtures();
 const local = gameData.locations.get('local')!;
 const exit = lab.stations.find((s) => s.kind === 'exit')!;
 
@@ -83,8 +86,8 @@ describe('zones — rue ↔ labo', () => {
     const { client, p } = await roomAtLocalDoor('player-zone-0005');
     client.send(ClientMsg.Interact, { locationId: 'local' });
     await client.waitForMessage(ServerMsg.Notice);
-    const stock = lab.stations.find((s) => s.kind === 'stock')!;
-    client.send(ClientMsg.Station, { stationId: stock.id, action: 'open' });
+    const water = lab.stations.find((s) => s.kind === 'water')!;
+    client.send(ClientMsg.Station, { stationId: water.id, action: 'fill' });
     const notice = (await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage;
     expect(notice.ok).toBe(false);
     expect(notice.text).toMatch(/Trop loin/);

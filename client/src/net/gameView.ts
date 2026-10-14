@@ -48,10 +48,6 @@ export function readBag(room: GameRoom, playerId: string): Inventory {
   return toInventory(room.state.players?.get(playerId)?.bag);
 }
 
-export function readStock(room: GameRoom): Inventory {
-  return toInventory(room.state.lab?.stock);
-}
-
 export function readPot(room: GameRoom, stationId: string): PotState | null {
   const p = room.state.lab?.pots?.get(stationId);
   return p

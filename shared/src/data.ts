@@ -224,13 +224,7 @@ export function parseGameData(raw: RawGameData): GameData {
     if (!interior.stations.some((x) => x.kind === 'counter'))
       errors.push(`zones.json : le magasin "${shop.interiorId}" n'a pas de comptoir`);
   }
-  for (const entry of economy.lab.startingStock) {
-    const def = items.get(entry.itemId);
-    if (!def || def.storage !== 'slot')
-      errors.push(
-        `economy.json : stock de départ, objet "${entry.itemId}" inconnu ou non rangeable`,
-      );
-  }
+
   for (const interior of zonesFile.interiors) {
     const bounds = interiorBounds(interior);
     const ids = new Set(interior.stations.map((st) => st.id));
