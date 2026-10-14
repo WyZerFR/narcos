@@ -23,10 +23,10 @@
       "id": "base",
       "name": "Base de la rue",
       "unlockAct": 1,
-      "growSeconds": 240,
-      "waterEverySeconds": 80,
-      "dryingSeconds": 90,
-      "freshPerPlant": 3,
+      "growSeconds": 120,
+      "waterEverySeconds": 60,
+      "dryingSeconds": 60,
+      "freshPerPlant": 2,
       "pouchesPerDried": 2,
       "pouchSellPrice": 20
     },
@@ -97,5 +97,23 @@
       "name": "Guetteur (le petit Kevin)",
       "durationMinutes": 30
     }
+  },
+  "lab": {
+    "startPots": 2,
+    "startingStock": [
+      {
+        "itemId": "seed_base",
+        "qty": 4
+      },
+      {
+        "itemId": "water",
+        "qty": 4
+      }
+    ],
+    "waterPerWatering": 1,
+    "waterPerTap": 1,
+    "rackCapacity": 6,
+    "cuttingSeconds": 6,
+    "tableBatchMax": 5
   }
 }

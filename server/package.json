@@ -9,10 +9,11 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@narco/shared": "*",
     "@colyseus/core": "0.16.26",
     "@colyseus/schema": "3.0.76",
-    "@colyseus/ws-transport": "0.16.5"
+    "@colyseus/ws-transport": "0.16.5",
+    "@narco/shared": "*",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@colyseus/testing": "0.16.3",

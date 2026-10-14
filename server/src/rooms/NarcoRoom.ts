@@ -2,28 +2,40 @@ import { matchMaker, Room, ServerError, type Client, type Delayed } from '@colys
 import {
   ClientMsg,
   ServerMsg,
+  STATION_ACTIONS,
+  STREET,
+  add,
+  clockNow,
+  createClock,
+  distance,
+  emptyInventory,
   freshBudget,
   gameData,
   generateRoomCode,
-  resolveCircle,
-  sanitizeName,
-  validateMove,
-  distance,
   interactionPoint,
   interiorForLocation,
-  STATION_ACTIONS,
-  STREET,
+  resolveCircle,
+  sanitizeName,
+  setClockScale,
+  transfer,
+  validateMove,
   zoneArea,
-  type StationAction,
   type CorrectionMessage,
-  type NoticeMessage,
+  type GameClock,
+  type Interior,
   type JoinOptions,
   type MoveBudget,
   type MoveRules,
+  type NoticeMessage,
+  type StationAction,
 } from '@narco/shared';
-import { GameState, Player } from './schema';
+import type { RoomSnapshot } from '../persistence';
+import { hydrateState } from '../persistence';
+import { completeCut, runStationAction } from './lab';
+import { GameState, Player, Pot } from './schema';
+import { makeSlots, readInventory, writeInventory } from './stateSync';
 
-const { config } = gameData;
+const { config, economy, items } = gameData;
 
 /** Règles de mouvement par zone (rue, intérieurs), calculées une fois. */
 const MOVE_RULES = new Map<string, MoveRules>();
@@ -47,6 +59,12 @@ const PLAYER_ID_RE = /^[A-Za-z0-9-]{8,64}$/;
 
 /** Places en plus pour les sessions fantômes (socket mort pas encore détecté par le serveur). */
 const GHOST_SLOTS = 2;
+/** Cadence de la boucle serveur (fin des découpes) et de la diffusion de l'horloge. */
+const TICK_MS = 250;
+const CLOCK_BROADCAST_MS = 1000;
+
+/** Rooms vivantes, pour la sauvegarde périodique. */
+export const liveRooms = new Set<NarcoRoom>();
 
 async function uniqueRoomCode(): Promise<string> {
   for (let attempt = 0; attempt < 50; attempt++) {
@@ -65,6 +83,13 @@ function parseJoinOptions(options: unknown): JoinOptions {
   return { playerId: o.playerId, name: sanitizeName(o.name, '') };
 }
 
+const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
+
+export interface NarcoRoomOptions {
+  /** Partie à restaurer depuis la sauvegarde JSON. */
+  restore?: RoomSnapshot;
+}
+
 export class NarcoRoom extends Room<GameState> {
   override maxClients = config.room.maxPlayers + GHOST_SLOTS;
   override autoDispose = false;
@@ -74,16 +99,35 @@ export class NarcoRoom extends Room<GameState> {
   private sessions = new Map<string, string>();
   private budgets = new Map<string, MoveBudget>();
   private emptyTimer: Delayed | undefined;
+  private gameClock: GameClock = createClock(Date.now());
 
-  override async onCreate(): Promise<void> {
-    this.roomId = await uniqueRoomCode();
-    this.state.code = this.roomId;
+  override async onCreate(options: NarcoRoomOptions = {}): Promise<void> {
+    if (options.restore) {
+      this.roomId = options.restore.code;
+      hydrateState(this.state, options.restore);
+      this.gameClock = createClock(
+        Date.now(),
+        options.restore.clock.now,
+        options.restore.clock.scale,
+      );
+      console.log(`[room ${this.roomId}] restaurée (${this.state.players.size} joueur(s))`);
+    } else {
+      this.roomId = await uniqueRoomCode();
+      this.state.code = this.roomId;
+      this.setupLab();
+    }
+    this.publishClock();
     await this.setPrivate(true);
     this.setPatchRate(config.room.patchRateMs);
 
     this.onMessage(ClientMsg.Move, (client, msg: unknown) => this.handleMove(client, msg));
     this.onMessage(ClientMsg.Interact, (client, msg: unknown) => this.handleInteract(client, msg));
     this.onMessage(ClientMsg.Station, (client, msg: unknown) => this.handleStation(client, msg));
+    this.onMessage(ClientMsg.Transfer, (client, msg: unknown) => this.handleTransfer(client, msg));
+    this.onMessage(ClientMsg.Debug, (client, msg: unknown) => this.handleDebug(client, msg));
+    this.clock.setInterval(() => this.tick(), TICK_MS);
+    this.clock.setInterval(() => this.publishClock(), CLOCK_BROADCAST_MS);
+    liveRooms.add(this);
     this.armEmptyTimer();
   }
 
@@ -132,7 +176,52 @@ export class NarcoRoom extends Room<GameState> {
   }
 
   override onDispose(): void {
+    liveRooms.delete(this);
     console.log(`[room ${this.roomId}] fermée`);
+  }
+
+  // ---------------------------------------------------------------- horloge et sauvegarde
+
+  /** Temps de jeu courant (ms). */
+  now(): number {
+    return clockNow(this.gameClock, Date.now());
+  }
+
+  private publishClock(): void {
+    this.state.clock.now = this.now();
+    this.state.clock.scale = this.gameClock.scale;
+  }
+
+  snapshot(): RoomSnapshot {
+    return {
+      code: this.roomId,
+      clock: { now: this.now(), scale: this.gameClock.scale },
+      state: this.state.toJSON() as RoomSnapshot['state'],
+    };
+  }
+
+  /** Boucle serveur : termine la découpe en cours quand son heure est venue. */
+  private tick(): void {
+    const result = completeCut(this.state, this.now());
+    if (result) this.notifyPlayer(result.playerId, true, result.text);
+  }
+
+  // ---------------------------------------------------------------- mise en place
+
+  /** Stock de départ et pots installés au départ (economy.lab). */
+  private setupLab(): void {
+    const lab = this.state.lab;
+    lab.stock = makeSlots(economy.inventory.stockSlots);
+    let stock = readInventory(lab.stock);
+    for (const { itemId, qty } of economy.lab.startingStock) {
+      const r = add(stock, itemId, qty, items);
+      if (r.ok) stock = r.inv;
+    }
+    writeInventory(lab.stock, stock);
+    const potStations = [...gameData.interiors.values()].flatMap((i) =>
+      i.stations.filter((s) => s.kind === 'pot'),
+    );
+    for (const st of potStations.slice(0, economy.lab.startPots)) lab.pots.set(st.id, new Pot());
   }
 
   private spawnPlayer(playerId: string, name: string): Player {
@@ -146,6 +235,8 @@ export class NarcoRoom extends Room<GameState> {
     player.id = playerId;
     player.name = name || `Joueur ${index + 1}`;
     player.color = color;
+    player.bag = makeSlots(economy.inventory.bagSlots);
+    writeInventory(player.bag, emptyInventory(economy.inventory.bagSlots));
     // Autour du carton de départ, jamais dans un mur.
     const pos = resolveCircle(
       {
@@ -160,6 +251,8 @@ export class NarcoRoom extends Room<GameState> {
     return player;
   }
 
+  // ---------------------------------------------------------------- utilitaires
+
   /** Joueur associé à une session (null si inconnu). */
   private playerOf(client: Client): { playerId: string; player: Player } | null {
     const playerId = this.sessions.get(client.sessionId);
@@ -167,9 +260,23 @@ export class NarcoRoom extends Room<GameState> {
     return playerId && player ? { playerId, player } : null;
   }
 
-  private notify(client: Client, ok: boolean, text: string, locationId?: string): void {
-    const notice: NoticeMessage = locationId ? { ok, text, locationId } : { ok, text };
+  private notify(
+    client: Client,
+    ok: boolean,
+    text: string,
+    extra: Pick<NoticeMessage, 'locationId' | 'open'> = {},
+  ): void {
+    const notice: NoticeMessage = { ok, text, ...extra };
     client.send(ServerMsg.Notice, notice);
+  }
+
+  /** Notice à toutes les sessions d'un joueur (utile quand l'action finit plus tard). */
+  private notifyPlayer(playerId: string, ok: boolean, text: string): void {
+    for (const [sessionId, pid] of this.sessions) {
+      if (pid !== playerId) continue;
+      const client = this.clients.getById(sessionId);
+      if (client) this.notify(client, ok, text);
+    }
   }
 
   /** Téléporte un joueur dans une zone (entrée/sortie) : position imposée, crédit remis à neuf. */
@@ -185,19 +292,30 @@ export class NarcoRoom extends Room<GameState> {
     this.budgets.set(playerId, freshBudget(Date.now(), rulesFor(zoneId)));
   }
 
+  /** Le joueur est-il assez près de ce poste de son intérieur ? */
+  private isNear(
+    player: Player,
+    station: { position: { x: number; z: number }; interactRadius: number },
+  ) {
+    return (
+      distance(player, station.position) <= station.interactRadius + config.world.interactTolerance
+    );
+  }
+
+  // ---------------------------------------------------------------- messages
+
   private handleMove(client: Client, msg: unknown): void {
     const who = this.playerOf(client);
-    if (!who || typeof msg !== 'object' || msg === null) return;
+    if (!who || !isObject(msg)) return;
     const { playerId, player } = who;
     const budget = this.budgets.get(playerId);
     if (!budget) return;
 
-    const m = msg as Record<string, unknown>;
     // Position calculée dans une autre zone (message parti avant un changement de zone) : ignorée.
-    if (m.zone !== player.zone) return;
-    const proposed = { x: Number(m.x), z: Number(m.z) };
-    const seq = Number(m.seq) || 0;
-    const rotY = Number(m.rotY);
+    if (msg.zone !== player.zone) return;
+    const proposed = { x: Number(msg.x), z: Number(msg.z) };
+    const seq = Number(msg.seq) || 0;
+    const rotY = Number(msg.rotY);
 
     const result = validateMove(player, proposed, budget, Date.now(), rulesFor(player.zone));
     this.budgets.set(playerId, result.budget);
@@ -214,44 +332,97 @@ export class NarcoRoom extends Room<GameState> {
   /** Porte d'un lieu de la rue : entre dans son intérieur s'il existe, sinon simple réplique. */
   private handleInteract(client: Client, msg: unknown): void {
     const who = this.playerOf(client);
-    if (!who || typeof msg !== 'object' || msg === null) return;
+    if (!who || !isObject(msg)) return;
     const { playerId, player } = who;
-    const locationId = String((msg as Record<string, unknown>).locationId ?? '');
-    const loc = gameData.locations.get(locationId);
+    const loc = gameData.locations.get(String(msg.locationId ?? ''));
     if (!loc) return this.notify(client, false, "Ce lieu n'existe pas (encore).");
     if (player.zone !== STREET) return this.notify(client, false, "Sors d'abord d'ici.");
     const d = distance(player, interactionPoint(loc));
     if (d > loc.interactRadius + config.world.interactTolerance)
-      return this.notify(client, false, `Trop loin de : ${loc.name}`, loc.id);
+      return this.notify(client, false, `Trop loin de : ${loc.name}`, { locationId: loc.id });
     const interior = interiorForLocation(gameData, loc.id);
     if (interior) this.moveToZone(playerId, player, interior.id, interior.spawn);
-    this.notify(client, true, loc.enterText, loc.id);
+    this.notify(client, true, loc.enterText, { locationId: loc.id });
   }
 
-  /** Action sur un poste d'intérieur. Vérifie zone, poste, distance et type d'action. */
+  /** Action sur un poste d'intérieur : zone, poste, distance, puis logique du labo. */
   private handleStation(client: Client, msg: unknown): void {
     const who = this.playerOf(client);
-    if (!who || typeof msg !== 'object' || msg === null) return;
+    if (!who || !isObject(msg)) return;
     const { playerId, player } = who;
-    const m = msg as Record<string, unknown>;
-    const action = m.action as StationAction;
+    const action = msg.action as StationAction;
     if (!STATION_ACTIONS.includes(action)) return this.notify(client, false, 'Action inconnue.');
     const interior = gameData.interiors.get(player.zone);
-    const station = interior?.stations.find((s) => s.id === m.stationId);
+    const station = interior?.stations.find((s) => s.id === msg.stationId);
     if (!interior || !station) return this.notify(client, false, "Ce poste n'est pas ici.");
-    if (
-      distance(player, station.position) >
-      station.interactRadius + config.world.interactTolerance
-    )
+    if (!this.isNear(player, station))
       return this.notify(client, false, `Trop loin : ${station.label}`);
 
-    if (station.kind === 'exit' && action === 'exit') {
+    if (station.kind === 'exit') {
+      if (action !== 'exit') return this.notify(client, false, `Impossible ici : ${station.label}`);
       const loc = gameData.locations.get(interior.entranceLocationId)!;
       this.moveToZone(playerId, player, STREET, interactionPoint(loc));
       return this.notify(client, true, `Retour dans la rue, devant ${loc.name}.`);
     }
-    this.notify(client, false, `Impossible ici : ${station.label}`);
+    const result = runStationAction(this.state, player, station, action, this.now());
+    this.notify(client, result.ok, result.text, result.open ? { open: result.open } : {});
   }
+
+  /** Caisse du stock de l'intérieur courant, si le joueur est à portée. */
+  private stockInReach(player: Player): Interior['stations'][number] | null {
+    const interior = gameData.interiors.get(player.zone);
+    const crate = interior?.stations.find((s) => s.kind === 'stock');
+    return crate && this.isNear(player, crate) ? crate : null;
+  }
+
+  /** Transfert sac ↔ stock commun, seulement à portée de la caisse. */
+  private handleTransfer(client: Client, msg: unknown): void {
+    const who = this.playerOf(client);
+    if (!who || !isObject(msg)) return;
+    const { player } = who;
+    if (!this.stockInReach(player)) return this.notify(client, false, 'Approche-toi de la caisse.');
+    const fromBag = msg.from === 'bag';
+    if (!fromBag && msg.from !== 'stock') return;
+    const slot = Number(msg.slot);
+    const qty = Number(msg.qty);
+    const source = fromBag ? player.bag : this.state.lab.stock;
+    const target = fromBag ? this.state.lab.stock : player.bag;
+    if (!Number.isInteger(slot) || slot < 0 || slot >= source.length)
+      return this.notify(client, false, 'Slot invalide.');
+    const r = transfer(readInventory(source), slot, readInventory(target), qty, items);
+    if (!r.ok) return this.notify(client, false, r.message);
+    writeInventory(source, r.from);
+    writeInventory(target, r.to);
+  }
+
+  /** Commandes de debug : donner un objet, vider le stock, accélérer le temps. */
+  private handleDebug(client: Client, msg: unknown): void {
+    const who = this.playerOf(client);
+    if (!who || !isObject(msg)) return;
+    if (!config.debug.commands) return this.notify(client, false, 'Commandes debug désactivées.');
+    const { player } = who;
+    switch (msg.cmd) {
+      case 'give': {
+        const r = add(readInventory(player.bag), String(msg.itemId), Number(msg.qty), items);
+        if (!r.ok) return this.notify(client, false, r.message);
+        writeInventory(player.bag, r.inv);
+        return this.notify(client, true, `[debug] ${String(msg.qty)} × ${String(msg.itemId)}`);
+      }
+      case 'clearStock':
+        writeInventory(this.state.lab.stock, emptyInventory(this.state.lab.stock.length));
+        return this.notify(client, true, '[debug] stock vidé');
+      case 'timeScale': {
+        const scale = Number(msg.scale);
+        if (!config.debug.timeScales.includes(scale))
+          return this.notify(client, false, '[debug] vitesse non autorisée');
+        this.gameClock = setClockScale(this.gameClock, scale, Date.now());
+        this.publishClock();
+        return this.notify(client, true, `[debug] temps x${scale}`);
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- room vide
 
   private armEmptyTimer(): void {
     this.cancelEmptyTimer();

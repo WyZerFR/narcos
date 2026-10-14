@@ -118,6 +118,15 @@ export const ConfigSchema = z.object({
   cameraInterior: CameraSchema,
   cameraRig: z.object({ followStiffness: pos, near: pos, far: pos }),
   cutout: CutoutSchema,
+  persistence: z.object({
+    /** Fréquence des sauvegardes JSON des parties (s). */
+    snapshotSeconds: pos,
+  }),
+  debug: z.object({
+    /** Le serveur accepte-t-il les commandes debug (donner, vider, accélérer) ? */
+    commands: z.boolean(),
+    timeScales: z.array(pos).min(1),
+  }),
   net: z.object({
     reconnectBackoffMs: z.array(pos).min(1),
     reconnectMaxDelayMs: pos,
@@ -212,6 +221,18 @@ export const EconomySchema = z.object({
     bribeCost: nonNeg,
     bribeHeatReduction: nonNeg,
     lookoutRiskReduction: z.number().min(0).max(1),
+  }),
+  /** Labo : postes de production et stock commun. */
+  lab: z.object({
+    startPots: z.number().int().nonnegative(),
+    startingStock: z.array(
+      z.object({ itemId: z.string().min(1), qty: z.number().int().positive() }),
+    ),
+    waterPerWatering: z.number().int().positive(),
+    waterPerTap: z.number().int().positive(),
+    rackCapacity: z.number().int().positive(),
+    cuttingSeconds: pos,
+    tableBatchMax: z.number().int().positive(),
   }),
   upgrades: z.record(
     z.string(),

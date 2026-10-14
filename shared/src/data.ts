@@ -183,6 +183,24 @@ export function parseGameData(raw: RawGameData): GameData {
   }
   errors.push(...checkMap(config, locFile.locations, locFile.blocks, zones));
   errors.push(...checkInteriors(zonesFile.interiors, locations));
+  for (const entry of economy.lab.startingStock) {
+    const def = items.get(entry.itemId);
+    if (!def || def.storage !== 'slot')
+      errors.push(
+        `economy.json : stock de départ, objet "${entry.itemId}" inconnu ou non rangeable`,
+      );
+  }
+  const potStations = zonesFile.interiors.flatMap((i) =>
+    i.stations.filter((st) => st.kind === 'pot'),
+  );
+  if (economy.lab.startPots > potStations.length)
+    errors.push(
+      `economy.json : ${economy.lab.startPots} pots au départ mais ${potStations.length} emplacements`,
+    );
+  for (const strain of economy.strains)
+    for (const category of ['seed', 'plant_fresh', 'plant_dried', 'pouch'] as const)
+      if (![...items.values()].some((it) => it.category === category && it.strain === strain.id))
+        errors.push(`items.json : pas de "${category}" pour la variété "${strain.id}"`);
   if (config.players.colors.length < config.room.maxPlayers)
     errors.push('config.json : il faut au moins autant de couleurs que de joueurs max');
   if (config.movement.runSpeed < config.movement.walkSpeed)

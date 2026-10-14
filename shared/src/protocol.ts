@@ -15,6 +15,10 @@ export const ClientMsg = {
   Interact: 'interact',
   /** Action sur un poste d'intérieur (planter, arroser, sortir…). */
   Station: 'station',
+  /** Transfert sac ↔ stock commun (près de la caisse). */
+  Transfer: 'transfer',
+  /** Commandes de debug (refusées si config.debug.commands est faux). */
+  Debug: 'debug',
 } as const;
 
 export const ServerMsg = {
@@ -47,6 +51,8 @@ export interface NoticeMessage {
   ok: boolean;
   text: string;
   locationId?: string;
+  /** Le client ouvre ce panneau (ex. caisse du stock). */
+  open?: 'stock';
 }
 
 /** Actions possibles sur un poste ; le serveur vérifie qu'elle correspond au type de poste. */
@@ -67,6 +73,17 @@ export interface StationMessage {
   stationId: string;
   action: StationAction;
 }
+
+export interface TransferMessage {
+  from: 'bag' | 'stock';
+  slot: number;
+  qty: number;
+}
+
+export type DebugMessage =
+  | { cmd: 'give'; itemId: string; qty: number }
+  | { cmd: 'clearStock' }
+  | { cmd: 'timeScale'; scale: number };
 
 export const MAX_NAME_LENGTH = 16;
 

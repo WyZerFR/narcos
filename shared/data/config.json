@@ -284,5 +284,12 @@
   "net": {
     "reconnectBackoffMs": [500, 1000, 2000, 4000, 8000],
     "reconnectMaxDelayMs": 10000
+  },
+  "persistence": {
+    "snapshotSeconds": 5
+  },
+  "debug": {
+    "commands": true,
+    "timeScales": [1, 10, 60]
   }
 }

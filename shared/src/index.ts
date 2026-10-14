@@ -9,3 +9,5 @@ export * from './roomCode';
 export * from './protocol';
 export * from './zones';
 export * from './inventory';
+export * from './clock';
+export * from './production';
