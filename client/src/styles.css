@@ -850,3 +850,110 @@ input {
   color: var(--text);
   font-size: 14px;
 }
+
+/* ---------- argent et jauges (carte HUD) ---------- */
+.status-panel {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.money {
+  display: flex;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 14px;
+}
+.gauge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.gauge-icon {
+  width: 18px;
+  text-align: center;
+}
+.gauge-bar {
+  width: 92px;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+}
+.gauge-bar i {
+  display: block;
+  height: 100%;
+  background: var(--ok);
+  transition: width 0.3s linear;
+}
+.gauge-value {
+  width: 26px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.gauge.low .gauge-bar i {
+  background: var(--danger);
+}
+.gauge.low {
+  animation: gauge-blink 0.9s steps(2, start) infinite;
+}
+@keyframes gauge-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* ---------- panier (magasins) ---------- */
+.cart-panel {
+  pointer-events: auto;
+  width: 250px;
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-size: 14px;
+}
+.cart-panel h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+.cart-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.cart-panel li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--touch);
+}
+.cart-item {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cart-price {
+  color: var(--muted);
+  font-size: 12px;
+}
+.cart-remove {
+  padding: 0 10px;
+  font-size: 13px;
+}
+.cart-empty {
+  margin: 0;
+  color: var(--muted);
+}
+.cart-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+}
+.cart-footer .btn {
+  padding: 0 12px;
+  font-size: 14px;
+}

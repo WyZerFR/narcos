@@ -41,6 +41,8 @@ export function stationView(
   station: Station,
   myId: string,
   now: number,
+  /** Intérieur où se trouve le poste (pour les étagères des magasins). */
+  interiorId: string,
 ): StationView {
   const bag = readBag(room, myId);
   switch (station.kind) {
@@ -144,6 +146,28 @@ export function stationView(
       return { action: 'open', label: 'Ouvrir le stock', active: true };
     case 'exit':
       return { action: 'exit', label: 'Sortir', active: true };
+    case 'shelf': {
+      // prix et stock viennent des données et de l'état serveur : rien n'est calculé ici
+      const shelf = gameData.shops.get(interiorId)?.shelves.find((x) => x.stationId === station.id);
+      if (!shelf) return { label: station.label, active: false };
+      const name = items.get(shelf.itemId)?.name ?? shelf.itemId;
+      const stock = room.state.shelves?.get(`${interiorId}:${station.id}`)?.stock ?? -1;
+      const status = `${shelf.price} $ · ${stock < 0 ? 'en stock' : `reste ${stock}`}`;
+      if (stock === 0) return { action: 'take', label: `Rupture : ${name}`, active: false, status };
+      return {
+        action: 'take',
+        label: `Prendre : ${name} (${shelf.price} $)`,
+        active: true,
+        status,
+      };
+    }
+    case 'counter': {
+      const total = room.state.players?.get(myId)?.cartTotal ?? 0;
+      const lines = room.state.players?.get(myId)?.cart?.length ?? 0;
+      return lines > 0
+        ? { action: 'pay', label: `Payer (${total} $)`, active: true }
+        : { action: 'pay', label: 'Panier vide', active: false };
+    }
   }
   return { label: station.label, active: false };
 }

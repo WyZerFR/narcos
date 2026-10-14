@@ -122,7 +122,7 @@ export function LabelLayer({
       for (const st of interior.stations) {
         const els = statusRefs.current.get(st.id);
         if (!els) continue;
-        const view = stationView(room, st, myId, now);
+        const view = stationView(room, st, myId, now, zone);
         els.status.textContent = view.status ?? '';
         els.bar.style.display = view.progress === undefined ? 'none' : '';
         els.fill.style.width = `${Math.round((view.progress ?? 0) * 100)}%`;

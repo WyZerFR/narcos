@@ -16,6 +16,7 @@ export function DebugLabSection() {
   const [itemId, setItemId] = useState(STORABLE[0]?.id ?? '');
   const [qty, setQty] = useState(5);
   const scale = gameScale();
+  const survivalScale = connection.getSnapshot().room?.state.clock?.survivalScale ?? 1;
 
   return (
     <>
@@ -62,6 +63,47 @@ export function DebugLabSection() {
               type="button"
               className={scale === s ? 'active' : ''}
               onClick={() => send({ cmd: 'timeScale', scale: s })}
+            >
+              x{s}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="cam-section">Debug argent, survie, magasins</div>
+      <div className="cam-actions">
+        <button
+          type="button"
+          className="btn primary"
+          onClick={() => send({ cmd: 'money', amount: 100 })}
+        >
+          +100 $ sale
+        </button>
+        <button type="button" className="btn" onClick={() => send({ cmd: 'restock' })}>
+          Réappro.
+        </button>
+      </div>
+      <div className="cam-actions">
+        <button type="button" className="btn" onClick={() => send({ cmd: 'vitals', mode: 'fill' })}>
+          Jauges pleines
+        </button>
+        <button
+          type="button"
+          className="btn danger"
+          onClick={() => send({ cmd: 'vitals', mode: 'empty' })}
+        >
+          Jauges vides
+        </button>
+      </div>
+      <div className="dbg-row">
+        <span>Survie</span>
+        <div className="segmented">
+          {gameData.config.debug.timeScales.map((s) => (
+            <button
+              key={s}
+              type="button"
+              className={survivalScale === s ? 'active' : ''}
+              onClick={() => send({ cmd: 'survivalScale', scale: s })}
             >
               x{s}
             </button>

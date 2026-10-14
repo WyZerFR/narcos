@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { ClientMsg, gameData, type Inventory, type TransferMessage } from '@narco/shared';
+import {
+  ClientMsg,
+  gameData,
+  type Inventory,
+  type TransferMessage,
+  type UseMessage,
+} from '@narco/shared';
 import { connection, type GameRoom } from '../net/connection';
 import { readBag, readStock, useRoomVersion } from '../net/gameView';
 import { closeInventory, type InventoryMode } from './uiStore';
@@ -88,6 +94,12 @@ export function InventoryPanel({
     room.send(ClientMsg.Transfer, msg);
   };
   const target = selection?.side === 'bag' ? 'Stock' : 'Sac';
+  /** Manger / boire : le serveur applique la restauration et retire l'objet. */
+  const useItem = () => {
+    if (!selection || selection.side !== 'bag') return;
+    const msg: UseMessage = { slot: selection.slot };
+    room.send(ClientMsg.Use, msg);
+  };
 
   return (
     <div className="inv-backdrop">
@@ -129,6 +141,13 @@ export function InventoryPanel({
                 </strong>
                 <p>{def.description}</p>
               </div>
+              {selection?.side === 'bag' && def.restores && (
+                <div className="inv-actions">
+                  <button type="button" className="btn primary" onClick={useItem}>
+                    {(def.restores.hunger ?? 0) >= (def.restores.thirst ?? 0) ? 'Manger' : 'Boire'}
+                  </button>
+                </div>
+              )}
               {showStock && (
                 <div className="inv-actions">
                   <button type="button" className="btn" onClick={() => send(1)}>

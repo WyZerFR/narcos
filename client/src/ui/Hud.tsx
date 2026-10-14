@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { STREET } from '@narco/shared';
+import { gameData, STREET } from '@narco/shared';
 import type { GameRoom, Snapshot } from '../net/connection';
 import { connection } from '../net/connection';
 import { useRoomPlayers } from '../game/Players';
 import { LabelLayer } from '../game/labels';
 import { SettingsPanel } from './SettingsPanel';
 import { Minimap } from './Minimap';
+import { StatusPanel } from './StatusPanel';
+import { CartPanel } from './CartPanel';
 import { InventoryPanel } from './InventoryPanel';
 import { openInventory, useInventoryMode } from './uiStore';
 
@@ -35,7 +37,9 @@ export function Hud({ snapshot, room }: { snapshot: Snapshot; room: GameRoom }) 
                 </li>
               ))}
             </ul>
+            <StatusPanel room={room} />
           </div>
+          {gameData.shops.has(myZone) && <CartPanel room={room} interiorId={myZone} />}
           {myZone === STREET && <Minimap room={room} />}
         </div>
         <div className="hud-right">

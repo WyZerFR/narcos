@@ -43,7 +43,7 @@ interface Target {
 
 /** Action proposée sur un poste, selon son état de production et le sac du joueur. */
 function stationTarget(room: GameRoom, station: Station): Target {
-  const view = stationView(room, station, connection.playerId, gameNow());
+  const view = stationView(room, station, connection.playerId, gameNow(), localPlayer.zone);
   const action: StationAction | undefined = view.action;
   return {
     key: `${station.id}:${action ?? ''}`,
