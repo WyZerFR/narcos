@@ -47,6 +47,18 @@ export function buildCity(data: GameData): CityGeometry {
 
 // ---------------------------------------------------------------- éléments communs
 
+/**
+ * Mobilier posé devant ou entre les façades (étals, colonnes, guirlandes) : fusionné avec la
+ * ville mais jamais percé par la découpe, réservée aux murs (`aCut = 0`, aucun draw call).
+ */
+function furniture(ctx: Ctx, build: () => void): void {
+  ctx.solid.cuttable = false;
+  ctx.glow.cuttable = false;
+  build();
+  ctx.solid.cuttable = true;
+  ctx.glow.cuttable = true;
+}
+
 function litColor(ctx: Ctx, rng: () => number): Color {
   return shade(ctx.data.config.palette.neon, 0.65 + rng() * 0.45);
 }
@@ -332,19 +344,21 @@ function cornerShop(ctx: Ctx, loc: GameLocation, rng: () => number) {
   // enseigne
   ctx.glow.faceBox(f, 0, 4.3, f.len * 0.6, 0.55, 0.14, shade(loc.neonColor, 1), 0.12);
   // étals de fruits de chaque côté de la porte
-  for (const u of [f.len * 0.38, -f.len * 0.1]) {
-    ctx.solid.faceBox(f, u, 0.45, 1.3, 0.9, 0.8, shade(palette.wall, 0.8), 1.3);
-    ctx.solid.faceBox(
-      f,
-      u,
-      0.98,
-      1.2,
-      0.16,
-      0.7,
-      rng() > 0.5 ? shade(palette.vegetation, 1.4) : shade(palette.neon, 0.9),
-      1.3,
-    );
-  }
+  furniture(ctx, () => {
+    for (const u of [f.len * 0.38, -f.len * 0.1]) {
+      ctx.solid.faceBox(f, u, 0.45, 1.3, 0.9, 0.8, shade(palette.wall, 0.8), 1.3);
+      ctx.solid.faceBox(
+        f,
+        u,
+        0.98,
+        1.2,
+        0.16,
+        0.7,
+        rng() > 0.5 ? shade(palette.vegetation, 1.4) : shade(palette.neon, 0.9),
+        1.3,
+      );
+    }
+  });
   // étage
   windows(ctx, f, 5.3, h, rng, shade(loc.color, 0.4));
   for (const side of SIDES)
@@ -418,10 +432,12 @@ function villaTower(ctx: Ctx, loc: GameLocation, rng: () => number) {
   );
   ctx.glow.block(loc.position.x, h + 2.3, loc.position.z, 0.3, 2.5, 0.3, gold);
   // portique à colonnes
-  for (const u of [-3.3, -1.7, 1.7, 3.3])
-    ctx.solid.faceBox(f, u, 1.9, 0.5, 3.8, 0.5, shade(palette.ground, 2.3), 1.6);
-  ctx.solid.faceBox(f, 0, 3.95, 8, 0.3, 2.3, shade(palette.ground, 2), 1.15);
-  ctx.glow.faceBox(f, 0, 3.75, 7, 0.12, 0.1, gold, 2.3);
+  furniture(ctx, () => {
+    for (const u of [-3.3, -1.7, 1.7, 3.3])
+      ctx.solid.faceBox(f, u, 1.9, 0.5, 3.8, 0.5, shade(palette.ground, 2.3), 1.6);
+    ctx.solid.faceBox(f, 0, 3.95, 8, 0.3, 2.3, shade(palette.ground, 2), 1.15);
+    ctx.glow.faceBox(f, 0, 3.75, 7, 0.12, 0.1, gold, 2.3);
+  });
   door(ctx, f, 0, 2.4, 2.8, shade(loc.neonColor, 0.8));
   ctx.glow.faceBox(f, 0, podiumH - 0.9, f.len * 0.5, 0.35, 0.12, gold, 0.1);
 }
@@ -539,6 +555,8 @@ function alley(ctx: Ctx, loc: GameLocation, rng: () => number) {
   const length = alongZ ? loc.size.d : loc.size.w;
   const width = alongZ ? loc.size.w : loc.size.d;
   const y = loc.height;
+  ctx.solid.cuttable = false;
+  ctx.glow.cuttable = false;
   for (let t = -length / 2 + 1.2; t < length / 2; t += 2.4) {
     const cx = alongZ ? loc.position.x : loc.position.x + t;
     const cz = alongZ ? loc.position.z + t : loc.position.z;
@@ -557,6 +575,8 @@ function alley(ctx: Ctx, loc: GameLocation, rng: () => number) {
       ctx.glow.box(alongZ ? cx + s : cx, y + sag, alongZ ? cz : cz + s, 0.14, 0.14, 0.14, c);
     }
   }
+  ctx.solid.cuttable = true;
+  ctx.glow.cuttable = true;
   // flaque : reflet discret du néon
   const pr = rectFromCenter(
     {
