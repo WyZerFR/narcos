@@ -149,6 +149,8 @@ export const ItemDefSchema = z.object({
   /** Saisie par la police en fouille. */
   confiscable: z.boolean(),
   strain: z.string().optional(),
+  /** Texte affiché dans le détail de l'inventaire. */
+  description: z.string().min(1),
 });
 
 export const ItemsFileSchema = z.object({ items: z.array(ItemDefSchema).min(1) });

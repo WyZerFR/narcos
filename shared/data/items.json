@@ -8,7 +8,8 @@
       "stackMax": 20,
       "contraband": true,
       "confiscable": true,
-      "strain": "base"
+      "strain": "base",
+      "description": "De petites graines anonymes. El Jefe jure qu’elles poussent toutes seules. Elles ne poussent pas toutes seules."
     },
     {
       "id": "seed_citron",
@@ -18,7 +19,8 @@
       "stackMax": 20,
       "contraband": true,
       "confiscable": true,
-      "strain": "citron"
+      "strain": "citron",
+      "description": "Variété premium au parfum d’agrume. Le sachet indique « bio ». Personne n’a vérifié."
     },
     {
       "id": "plant_fresh_base",
@@ -28,7 +30,8 @@
       "stackMax": 10,
       "contraband": true,
       "confiscable": true,
-      "strain": "base"
+      "strain": "base",
+      "description": "Une plante tout juste coupée, humide et odorante. À faire sécher avant que les voisins ne posent des questions."
     },
     {
       "id": "plant_fresh_citron",
@@ -38,7 +41,8 @@
       "stackMax": 10,
       "contraband": true,
       "confiscable": true,
-      "strain": "citron"
+      "strain": "citron",
+      "description": "Ça sent le citron et les ennuis. À faire sécher."
     },
     {
       "id": "plant_dried_base",
@@ -48,7 +52,8 @@
       "stackMax": 10,
       "contraband": true,
       "confiscable": true,
-      "strain": "base"
+      "strain": "base",
+      "description": "Sèche, craquante, prête à être découpée. Ne pas confondre avec la tisane de mamie."
     },
     {
       "id": "plant_dried_citron",
@@ -58,7 +63,8 @@
       "stackMax": 10,
       "contraband": true,
       "confiscable": true,
-      "strain": "citron"
+      "strain": "citron",
+      "description": "Séchée à point. Les cristaux brillent presque autant que tes perspectives d’avenir."
     },
     {
       "id": "pouch_base",
@@ -68,7 +74,8 @@
       "stackMax": 25,
       "contraband": true,
       "confiscable": true,
-      "strain": "base"
+      "strain": "base",
+      "description": "Un pochon bien fermé. L’unité de base de ton empire naissant."
     },
     {
       "id": "pouch_citron",
@@ -78,7 +85,8 @@
       "stackMax": 25,
       "contraband": true,
       "confiscable": true,
-      "strain": "citron"
+      "strain": "citron",
+      "description": "Un pochon haut de gamme. On peut le vendre plus cher en disant « artisanal »."
     },
     {
       "id": "water",
@@ -87,7 +95,8 @@
       "storage": "slot",
       "stackMax": 5,
       "contraband": false,
-      "confiscable": false
+      "confiscable": false,
+      "description": "Eau du robinet en bouteille réutilisée. Pour les plantes, et pour toi si tu insistes."
     },
     {
       "id": "food",
@@ -96,7 +105,8 @@
       "storage": "slot",
       "stackMax": 5,
       "contraband": false,
-      "confiscable": false
+      "confiscable": false,
+      "description": "Un sandwich triangle d’une date de péremption philosophique."
     },
     {
       "id": "pot",
@@ -105,7 +115,8 @@
       "storage": "slot",
       "stackMax": 10,
       "contraband": false,
-      "confiscable": false
+      "confiscable": false,
+      "description": "Un pot de fleurs emprunté sans demander. Mamie ne s’en rendra pas compte."
     },
     {
       "id": "watering_can",
@@ -114,7 +125,8 @@
       "storage": "slot",
       "stackMax": 1,
       "contraband": false,
-      "confiscable": false
+      "confiscable": false,
+      "description": "Un arrosoir vert. Totalement innocent, comme toi."
     },
     {
       "id": "cash_dirty",
@@ -123,7 +135,8 @@
       "storage": "slot",
       "stackMax": 1000,
       "contraband": false,
-      "confiscable": true
+      "confiscable": true,
+      "description": "Des billets froissés qui sentent le parking. À blanchir avant de dormir tranquille."
     },
     {
       "id": "cash_clean",
@@ -132,7 +145,8 @@
       "storage": "account",
       "stackMax": 0,
       "contraband": false,
-      "confiscable": false
+      "confiscable": false,
+      "description": "Argent sur un compte. Propre, déclaré, presque honnête."
     }
   ]
 }
