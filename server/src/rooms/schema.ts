@@ -17,6 +17,8 @@ export class Player extends Schema {
   /** Zone courante : 'street' ou l'id d'un intérieur (zones.json). */
   @type('string') zone = 'street';
   @type([Slot]) bag = new ArraySchema<Slot>();
+  /** Argent propre : compte numérique, non confiscable (la laverie viendra plus tard). */
+  @type('uint32') cleanMoney = 0;
 }
 
 /** Pot du labo (timestamps en temps de jeu, ms : float64 obligatoire). */

@@ -31,6 +31,7 @@ const StateJson = z.object({
       rotY: z.number().default(0),
       zone: z.string().default('street'),
       bag: z.array(SlotJson).default([]),
+      cleanMoney: z.number().nonnegative().default(0),
     }),
   ),
   lab: z.object({
@@ -88,6 +89,7 @@ export function hydrateState(state: GameState, snap: RoomSnapshot): void {
       z: p.z,
       rotY: p.rotY,
       zone: p.zone,
+      cleanMoney: p.cleanMoney,
       connected: false,
     });
     player.bag.push(...slotsFrom(p.bag));

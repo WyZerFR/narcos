@@ -236,7 +236,15 @@ export class NarcoRoom extends Room<GameState> {
     player.name = name || `Joueur ${index + 1}`;
     player.color = color;
     player.bag = makeSlots(economy.inventory.bagSlots);
-    writeInventory(player.bag, emptyInventory(economy.inventory.bagSlots));
+    // Argent de départ : sale dans le sac (physique, confiscable), propre sur le compte.
+    const start = add(
+      emptyInventory(economy.inventory.bagSlots),
+      'cash_dirty',
+      economy.startingMoney.dirty,
+      items,
+    );
+    writeInventory(player.bag, start.ok ? start.inv : emptyInventory(economy.inventory.bagSlots));
+    player.cleanMoney = economy.startingMoney.clean;
     // Autour du carton de départ, jamais dans un mur.
     const pos = resolveCircle(
       {

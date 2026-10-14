@@ -79,6 +79,20 @@ describe('labo — validation des actions', () => {
     );
   });
 
+  it('donne l’argent de départ et range l’argent sale dans la caisse commune', async () => {
+    const { client, room } = await newGame('lab-player-0011');
+    const { dirty, clean } = gameData.economy.startingMoney;
+    const p = room.state.players.get('lab-player-0011')!;
+    expect(count(readInventory(p.bag), 'cash_dirty')).toBe(dirty);
+    expect(p.cleanMoney).toBe(clean);
+    goTo(room, 'lab-player-0011', 'stock');
+    const slot = readInventory(p.bag).findIndex((s) => s?.itemId === 'cash_dirty');
+    client.send(ClientMsg.Transfer, { from: 'bag', slot, qty: 20 });
+    await room.waitForNextMessage();
+    expect(count(readInventory(p.bag), 'cash_dirty')).toBe(dirty - 20);
+    expect(count(readInventory(room.state.lab.stock), 'cash_dirty')).toBe(20);
+  });
+
   it('refuse depuis la rue, de trop loin et sans objet', async () => {
     const { client, room } = await newGame('lab-player-0002');
     expect((await act(client, 'pot_1', 'plant')).ok).toBe(false); // dans la rue

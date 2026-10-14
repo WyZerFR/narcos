@@ -145,7 +145,7 @@
       "name": "Liasse d'argent sale",
       "category": "cash_dirty",
       "storage": "slot",
-      "stackMax": 1000,
+      "stackMax": 1000000,
       "contraband": false,
       "confiscable": true,
       "description": "Des billets froissés qui sentent le parking. À blanchir avant de dormir tranquille.",
