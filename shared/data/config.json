@@ -294,7 +294,8 @@
   },
   "ui": {
     "longPressMs": 350,
-    "dragCancelPx": 8
+    "dragCancelPx": 8,
+    "moveTimeoutMs": 3000
   },
   "npc": {
     "count": 8,

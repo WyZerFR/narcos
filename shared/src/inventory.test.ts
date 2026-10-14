@@ -143,6 +143,31 @@ describe('inventaire — glisser-déposer (moveStack)', () => {
     expect(swapped.ok && swapped.to[1]).toEqual({ itemId: 'water', qty: 1 });
   });
 
+  it('un seul sac de 10 slots (panneau sans stock) : déplacement, fusion puis échange', () => {
+    let bag: Inventory = [
+      ['cash_dirty', 1000],
+      ['water', 2],
+      ['water', 1],
+      ...Array(7).fill(null),
+    ].map((s: [string, number] | null) => (s ? { itemId: s[0], qty: s[1] } : null));
+    const step = (from: number, to: number) => {
+      const r = moveStack(bag, from, null, to, items);
+      if (!r.ok) throw new Error(r.message);
+      expect(r.to).toBe(r.from); // même inventaire : une seule écriture côté serveur
+      bag = r.from;
+    };
+    step(0, 9); // vers un slot vide
+    expect(bag[0]).toBeNull();
+    expect(bag[9]).toEqual({ itemId: 'cash_dirty', qty: 1000 });
+    step(2, 1); // fusion
+    expect(bag[1]).toEqual({ itemId: 'water', qty: 3 });
+    expect(bag[2]).toBeNull();
+    step(1, 9); // échange
+    expect(bag[1]).toEqual({ itemId: 'cash_dirty', qty: 1000 });
+    expect(bag[9]).toEqual({ itemId: 'water', qty: 3 });
+    expect(bag).toHaveLength(10);
+  });
+
   it('refuse un slot vide ou hors limites, et ne modifie jamais l\x27original', () => {
     const bag = inv(['water', 2], null);
     const snapshot = JSON.stringify(bag);

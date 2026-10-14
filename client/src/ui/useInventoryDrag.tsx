@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 import { ClientMsg, gameData, type InventoryKind, type InventoryMoveMessage } from '@narco/shared';
 import { connection, type GameRoom } from '../net/connection';
 
-const { longPressMs, dragCancelPx } = gameData.config.ui;
+const { longPressMs, dragCancelPx, moveTimeoutMs } = gameData.config.ui;
 /** Durée du retour du fantôme vers son slot après un refus ou une annulation (style). */
 const RETURN_MS = 220;
 
@@ -61,6 +61,8 @@ export function useInventoryDrag(room: GameRoom, onRefused: (text: string) => vo
   /** Le clic qui suit un glisser ne doit pas sélectionner. */
   const swallowClick = useRef(false);
   const pending = useRef<number | null>(null);
+  /** Filet de sécurité : une réponse perdue (reconnexion…) ne doit pas bloquer tout glisser. */
+  const pendingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** Slot d'origine du dernier dépôt envoyé (pour y renvoyer le fantôme en cas de refus). */
   const dropFrom = useRef<SlotRef | null>(null);
   const requestId = useRef(1);
@@ -89,6 +91,7 @@ export function useInventoryDrag(room: GameRoom, onRefused: (text: string) => vo
       connection.onMoveResult((res) => {
         if (res.requestId !== pending.current) return;
         pending.current = null;
+        if (pendingTimer.current) clearTimeout(pendingTimer.current);
         if (res.ok) {
           setGhost(null);
         } else {
@@ -100,7 +103,13 @@ export function useInventoryDrag(room: GameRoom, onRefused: (text: string) => vo
     [onRefused],
   );
 
-  useEffect(() => () => endDrag(), []);
+  useEffect(
+    () => () => {
+      endDrag();
+      if (pendingTimer.current) clearTimeout(pendingTimer.current);
+    },
+    [],
+  );
 
   const onPointerDown = (
     e: ReactPointerEvent<HTMLElement>,
@@ -167,6 +176,12 @@ export function useInventoryDrag(room: GameRoom, onRefused: (text: string) => vo
     pending.current = msg.requestId;
     dropFrom.current = p.from;
     room.send(ClientMsg.InventoryMove, msg);
+    const from = p.from;
+    pendingTimer.current = setTimeout(() => {
+      if (pending.current !== msg.requestId) return;
+      pending.current = null;
+      returnGhost(from);
+    }, moveTimeoutMs);
   };
 
   const onPointerCancel = (e: ReactPointerEvent<HTMLElement>) => {

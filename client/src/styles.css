@@ -977,8 +977,9 @@ input {
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
-  /* la grille peut défiler verticalement ; pendant un glisser, le défilement est bloqué en JS */
-  touch-action: pan-y;
+  /* Le sac (seule grille) ne défile pas : aucun geste natif sur une case. Avec `pan-y`, iPad
+     démarrait un défilement pendant le glisser et envoyait pointercancel (fantôme renvoyé). */
+  touch-action: none;
 }
 .inv-slot.lifted {
   opacity: 0.35;

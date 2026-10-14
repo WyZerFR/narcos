@@ -126,6 +126,8 @@ export const ConfigSchema = z.object({
     longPressMs: pos,
     /** Mouvement toléré avant la fin de l'appui long ; au-delà, c'est un défilement. */
     dragCancelPx: pos,
+    /** Sans réponse du serveur à un dépôt après ce délai, le glisser est débloqué (ms). */
+    moveTimeoutMs: pos,
   }),
   persistence: z.object({
     /** Fréquence des sauvegardes JSON des parties (s). */
