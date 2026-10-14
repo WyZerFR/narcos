@@ -6,6 +6,19 @@ export class Slot extends Schema {
   @type('uint16') qty = 0;
 }
 
+/** Ligne de panier : prix unitaire fixé par le serveur au moment où l'article est pris. */
+export class CartLine extends Schema {
+  @type('string') stationId = '';
+  @type('string') itemId = '';
+  @type('uint16') qty = 0;
+  @type('uint32') unitPrice = 0;
+}
+
+/** Stock d'une étagère ; -1 = illimité. */
+export class ShelfState extends Schema {
+  @type('int32') stock = -1;
+}
+
 export class Player extends Schema {
   @type('string') id = '';
   @type('string') name = '';
@@ -19,6 +32,9 @@ export class Player extends Schema {
   @type([Slot]) bag = new ArraySchema<Slot>();
   /** Argent propre : compte numérique, non confiscable (la laverie viendra plus tard). */
   @type('uint32') cleanMoney = 0;
+  /** Panier dans le magasin courant (réservé en rayon), total calculé par le serveur. */
+  @type([CartLine]) cart = new ArraySchema<CartLine>();
+  @type('uint32') cartTotal = 0;
 }
 
 /** Pot du labo (timestamps en temps de jeu, ms : float64 obligatoire). */
@@ -64,4 +80,6 @@ export class GameState extends Schema {
   @type({ map: Player }) players = new MapSchema<Player>();
   @type(LabState) lab = new LabState();
   @type(ClockState) clock = new ClockState();
+  /** Stock des étagères, clé `intérieur:poste`. */
+  @type({ map: ShelfState }) shelves = new MapSchema<ShelfState>();
 }

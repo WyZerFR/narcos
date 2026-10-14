@@ -57,18 +57,7 @@
       "door": "south",
       "interactRadius": 3,
       "enterText": "Supérette Chez Momo. La clochette de la porte a vu des choses.",
-      "catalog": [
-        {
-          "kind": "item",
-          "id": "water",
-          "price": 3
-        },
-        {
-          "kind": "item",
-          "id": "food",
-          "price": 5
-        }
-      ]
+      "catalog": []
     },
     {
       "id": "repaire_jefe",
@@ -126,28 +115,7 @@
       "door": "north",
       "interactRadius": 3,
       "enterText": "Bricoshop : tout pour le jardinage. Surtout pour le jardinage.",
-      "catalog": [
-        {
-          "kind": "upgrade",
-          "id": "bag_12",
-          "price": 150
-        },
-        {
-          "kind": "item",
-          "id": "pot",
-          "price": 25
-        },
-        {
-          "kind": "item",
-          "id": "watering_can",
-          "price": 30
-        },
-        {
-          "kind": "service",
-          "id": "lookout",
-          "price": 80
-        }
-      ]
+      "catalog": []
     },
     {
       "id": "point_relais",

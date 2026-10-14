@@ -32,6 +32,7 @@ import {
 import type { RoomSnapshot } from '../persistence';
 import { hydrateState } from '../persistence';
 import { completeCut, runStationAction } from './lab';
+import { pay, putBack, returnCart, stockShelves, takeItem } from './shop';
 import { GameState, Player, Pot } from './schema';
 import { makeSlots, readInventory, writeInventory } from './stateSync';
 
@@ -110,11 +111,13 @@ export class NarcoRoom extends Room<GameState> {
         options.restore.clock.now,
         options.restore.clock.scale,
       );
+      stockShelves(this.state, false);
       console.log(`[room ${this.roomId}] restaurée (${this.state.players.size} joueur(s))`);
     } else {
       this.roomId = await uniqueRoomCode();
       this.state.code = this.roomId;
       this.setupLab();
+      stockShelves(this.state);
     }
     this.publishClock();
     await this.setPrivate(true);
@@ -125,6 +128,9 @@ export class NarcoRoom extends Room<GameState> {
     this.onMessage(ClientMsg.Station, (client, msg: unknown) => this.handleStation(client, msg));
     this.onMessage(ClientMsg.Transfer, (client, msg: unknown) => this.handleTransfer(client, msg));
     this.onMessage(ClientMsg.Debug, (client, msg: unknown) => this.handleDebug(client, msg));
+    this.onMessage(ClientMsg.CartRemove, (client, msg: unknown) =>
+      this.handleCartRemove(client, msg),
+    );
     this.clock.setInterval(() => this.tick(), TICK_MS);
     this.clock.setInterval(() => this.publishClock(), CLOCK_BROADCAST_MS);
     liveRooms.add(this);
@@ -169,6 +175,7 @@ export class NarcoRoom extends Room<GameState> {
       const player = this.state.players.get(playerId);
       if (player) {
         player.connected = false;
+        this.emptyCart(player);
         console.log(`[room ${this.roomId}] ${player.name} déconnecté`);
       }
     }
@@ -294,6 +301,7 @@ export class NarcoRoom extends Room<GameState> {
     zoneId: string,
     at: { x: number; z: number },
   ) {
+    if (zoneId !== player.zone) this.emptyCart(player);
     player.zone = zoneId;
     player.x = at.x;
     player.z = at.z;
@@ -372,8 +380,37 @@ export class NarcoRoom extends Room<GameState> {
       this.moveToZone(playerId, player, STREET, interactionPoint(loc));
       return this.notify(client, true, `Retour dans la rue, devant ${loc.name}.`);
     }
+    if (station.kind === 'shelf' || station.kind === 'counter') {
+      const wrong = { ok: false, text: `Impossible ici : ${station.label}` };
+      const result =
+        station.kind === 'shelf'
+          ? action === 'take'
+            ? takeItem(this.state, player, interior.id, station)
+            : wrong
+          : action === 'pay'
+            ? pay(player, station)
+            : wrong;
+      return this.notify(client, result.ok, result.text);
+    }
     const result = runStationAction(this.state, player, station, action, this.now());
     this.notify(client, result.ok, result.text, result.open ? { open: result.open } : {});
+  }
+
+  /** Panier rendu au rayon (sortie du magasin, déconnexion, KO). */
+  private emptyCart(player: Player): void {
+    if (player.cart.length > 0 && gameData.shops.has(player.zone))
+      returnCart(this.state, player, player.zone);
+  }
+
+  /** « Retirer » : repose 1 article du panier (il faut être dans le magasin). */
+  private handleCartRemove(client: Client, msg: unknown): void {
+    const who = this.playerOf(client);
+    if (!who || !isObject(msg)) return;
+    const { player } = who;
+    if (!gameData.shops.has(player.zone))
+      return this.notify(client, false, "Tu n'es pas dans un magasin.");
+    const r = putBack(this.state, player, player.zone, String(msg.stationId ?? ''));
+    if (!r.ok) this.notify(client, false, r.text);
   }
 
   /** Caisse du stock de l'intérieur courant, si le joueur est à portée. */
@@ -416,6 +453,9 @@ export class NarcoRoom extends Room<GameState> {
         writeInventory(player.bag, r.inv);
         return this.notify(client, true, `[debug] ${String(msg.qty)} × ${String(msg.itemId)}`);
       }
+      case 'restock':
+        stockShelves(this.state);
+        return this.notify(client, true, '[debug] étagères réapprovisionnées');
       case 'clearStock':
         writeInventory(this.state.lab.stock, emptyInventory(this.state.lab.stock.length));
         return this.notify(client, true, '[debug] stock vidé');

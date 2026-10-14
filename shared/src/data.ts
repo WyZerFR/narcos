@@ -4,12 +4,15 @@ import economyJson from '../data/economy.json';
 import itemsJson from '../data/items.json';
 import locationsJson from '../data/locations.json';
 import zonesJson from '../data/zones.json';
+import shopsJson from '../data/shops.json';
 import {
   ConfigSchema,
   EconomySchema,
   ItemsFileSchema,
   LocationsFileSchema,
   ZonesFileSchema,
+  ShopsFileSchema,
+  type Shop,
   type Interior,
   type Block,
   type Economy,
@@ -39,6 +42,8 @@ export interface GameData {
   blocks: readonly Block[];
   /** Intérieurs (`zones.json`), indexés par id de zone. */
   interiors: ReadonlyMap<string, Interior>;
+  /** Magasins (`shops.json`), indexés par id d'intérieur. */
+  shops: ReadonlyMap<string, Shop>;
 }
 
 export interface RawGameData {
@@ -47,6 +52,7 @@ export interface RawGameData {
   items: unknown;
   locations: unknown;
   zones: unknown;
+  shops: unknown;
 }
 
 function parse<T>(file: string, schema: z.ZodType<T>, raw: unknown): T {
@@ -153,12 +159,14 @@ export function parseGameData(raw: RawGameData): GameData {
   const itemsFile = parse('items.json', ItemsFileSchema, raw.items);
   const locFile = parse('locations.json', LocationsFileSchema, raw.locations);
   const zonesFile = parse('zones.json', ZonesFileSchema, raw.zones);
+  const shopsFile = parse('shops.json', ShopsFileSchema, raw.shops);
 
   const items = indexById('items.json', itemsFile.items);
   const zones = indexById('locations.json (zones)', locFile.zones);
   const locations = indexById('locations.json', locFile.locations);
   const strains = indexById('economy.json (strains)', economy.strains);
   const interiors = indexById('zones.json', zonesFile.interiors);
+  const shops = new Map(shopsFile.shops.map((sh) => [sh.interiorId, sh]));
 
   const errors: string[] = [];
   for (const item of items.values()) {
@@ -183,6 +191,30 @@ export function parseGameData(raw: RawGameData): GameData {
   }
   errors.push(...checkMap(config, locFile.locations, locFile.blocks, zones));
   errors.push(...checkInteriors(zonesFile.interiors, locations));
+  for (const shop of shopsFile.shops) {
+    const interior = interiors.get(shop.interiorId);
+    if (!interior) {
+      errors.push(`shops.json : intérieur inconnu "${shop.interiorId}"`);
+      continue;
+    }
+    const sold = new Set<string>();
+    for (const shelf of shop.shelves) {
+      const st = interior.stations.find((x) => x.id === shelf.stationId);
+      if (st?.kind !== 'shelf')
+        errors.push(`shops.json : "${shop.interiorId}/${shelf.stationId}" n'est pas une étagère`);
+      if (sold.has(shelf.stationId))
+        errors.push(`shops.json : étagère en double "${shelf.stationId}"`);
+      sold.add(shelf.stationId);
+      const def = items.get(shelf.itemId);
+      if (!def || def.storage !== 'slot')
+        errors.push(`shops.json : objet "${shelf.itemId}" inconnu ou non rangeable`);
+    }
+    for (const st of interior.stations)
+      if (st.kind === 'shelf' && !sold.has(st.id))
+        errors.push(`shops.json : l'étagère "${shop.interiorId}/${st.id}" n'a rien à vendre`);
+    if (!interior.stations.some((x) => x.kind === 'counter'))
+      errors.push(`zones.json : le magasin "${shop.interiorId}" n'a pas de comptoir`);
+  }
   for (const entry of economy.lab.startingStock) {
     const def = items.get(entry.itemId);
     if (!def || def.storage !== 'slot')
@@ -207,7 +239,7 @@ export function parseGameData(raw: RawGameData): GameData {
     errors.push('config.json : runSpeed doit être >= walkSpeed');
   if (errors.length > 0) throw new Error(`[data] incohérences :\n  - ${errors.join('\n  - ')}`);
 
-  return { config, economy, items, zones, locations, blocks: locFile.blocks, interiors };
+  return { config, economy, items, zones, locations, blocks: locFile.blocks, interiors, shops };
 }
 
 /** Données du jeu chargées depuis `shared/data/*.json` au démarrage. */
@@ -217,4 +249,5 @@ export const gameData: GameData = parseGameData({
   items: itemsJson,
   locations: locationsJson,
   zones: zonesJson,
+  shops: shopsJson,
 });

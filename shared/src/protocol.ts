@@ -19,6 +19,8 @@ export const ClientMsg = {
   Transfer: 'transfer',
   /** Commandes de debug (refusées si config.debug.commands est faux). */
   Debug: 'debug',
+  /** Reposer 1 article du panier en rayon. */
+  CartRemove: 'cartRemove',
 } as const;
 
 export const ServerMsg = {
@@ -82,10 +84,15 @@ export interface TransferMessage {
   qty: number;
 }
 
+export interface CartRemoveMessage {
+  stationId: string;
+}
+
 export type DebugMessage =
   | { cmd: 'give'; itemId: string; qty: number }
   | { cmd: 'clearStock' }
-  | { cmd: 'timeScale'; scale: number };
+  | { cmd: 'timeScale'; scale: number }
+  | { cmd: 'restock' };
 
 export const MAX_NAME_LENGTH = 16;
 

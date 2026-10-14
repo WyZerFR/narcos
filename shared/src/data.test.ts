@@ -4,6 +4,7 @@ import economyJson from '../data/economy.json';
 import itemsJson from '../data/items.json';
 import locationsJson from '../data/locations.json';
 import zonesJson from '../data/zones.json';
+import shopsJson from '../data/shops.json';
 import { gameData, parseGameData, type RawGameData } from './data';
 
 const raw = (): RawGameData =>
@@ -13,6 +14,7 @@ const raw = (): RawGameData =>
     items: itemsJson,
     locations: locationsJson,
     zones: zonesJson,
+    shops: shopsJson,
   });
 
 describe('données du jeu', () => {
@@ -64,8 +66,8 @@ describe('données du jeu', () => {
 
   it('refuse une référence croisée cassée', () => {
     const r = raw();
-    const locs = r.locations as { locations: { catalog: { id: string }[] }[] };
-    locs.locations[1]!.catalog[0]!.id = 'caviar';
+    const locs = r.locations as { locations: { id: string; catalog: { id: string }[] }[] };
+    locs.locations.find((l) => l.id === 'repaire_jefe')!.catalog[0]!.id = 'caviar';
     expect(() => parseGameData(r)).toThrow(/item inconnu "caviar"/);
   });
 
@@ -97,5 +99,20 @@ describe('données du jeu', () => {
       z: -15,
     };
     expect(() => parseGameData(r)).toThrow(/spawn est dans un bâtiment/);
+  });
+
+  it('refuse une étagère qui vend un objet inconnu', () => {
+    const r = raw();
+    const shops = r.shops as { shops: { shelves: { itemId: string }[] }[] };
+    shops.shops[0]!.shelves[0]!.itemId = 'caviar';
+    expect(() => parseGameData(r)).toThrow(/objet "caviar" inconnu/);
+  });
+
+  it('charge les magasins avec prix et stock', () => {
+    const grocery = gameData.shops.get('grocery')!;
+    expect(grocery.shelves.map((s) => s.itemId).sort()).toEqual(['food', 'soda', 'water']);
+    expect(
+      gameData.shops.get('shop')!.shelves.find((s) => s.itemId === 'seed_base')!.price,
+    ).toBeGreaterThan(0);
   });
 });

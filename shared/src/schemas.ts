@@ -141,6 +141,7 @@ export const ItemCategorySchema = z.enum([
   'pouch',
   'water',
   'food',
+  'drink',
   'tool',
   'cash_dirty',
   'cash_clean',
@@ -286,6 +287,22 @@ export const InteriorSchema = z.object({
 
 export const ZonesFileSchema = z.object({ interiors: z.array(InteriorSchema) });
 
+// ---------- shops.json ----------
+/** Une étagère vend un objet ; `stock: null` = illimité. Le prix ne vit qu'ici (et côté serveur). */
+export const ShelfSchema = z.object({
+  stationId: z.string().min(1),
+  itemId: z.string().min(1),
+  price: z.number().int().nonnegative(),
+  stock: z.number().int().nonnegative().nullable(),
+});
+
+export const ShopSchema = z.object({
+  interiorId: z.string().min(1),
+  shelves: z.array(ShelfSchema).min(1),
+});
+
+export const ShopsFileSchema = z.object({ shops: z.array(ShopSchema) });
+
 // ---------- locations.json ----------
 export const LocationFunctionSchema = z.enum([
   'base',
@@ -384,4 +401,6 @@ export type Vec2Data = z.infer<typeof Vec2Schema>;
 export type StationKind = z.infer<typeof StationKindSchema>;
 export type Station = z.infer<typeof StationSchema>;
 export type Interior = z.infer<typeof InteriorSchema>;
+export type Shelf = z.infer<typeof ShelfSchema>;
+export type Shop = z.infer<typeof ShopSchema>;
 export type LocationsFile = z.infer<typeof LocationsFileSchema>;

@@ -3,7 +3,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import type { GameState } from './rooms/schema';
-import { Player, Pot, RackEntry, Slot } from './rooms/schema';
+import { CartLine, Player, Pot, RackEntry, ShelfState, Slot } from './rooms/schema';
 
 /**
  * Sauvegarde JSON des parties (en attendant SQLite) : un fichier unique réécrit toutes les
@@ -32,8 +32,20 @@ const StateJson = z.object({
       zone: z.string().default('street'),
       bag: z.array(SlotJson).default([]),
       cleanMoney: z.number().nonnegative().default(0),
+      cart: z
+        .array(
+          z.object({
+            stationId: z.string(),
+            itemId: z.string(),
+            qty: z.number(),
+            unitPrice: z.number(),
+          }),
+        )
+        .default([]),
+      cartTotal: z.number().nonnegative().default(0),
     }),
   ),
+  shelves: z.record(z.string(), z.object({ stock: z.number().int() })).default({}),
   lab: z.object({
     stock: z.array(SlotJson).default([]),
     pots: z.record(
@@ -93,8 +105,12 @@ export function hydrateState(state: GameState, snap: RoomSnapshot): void {
       connected: false,
     });
     player.bag.push(...slotsFrom(p.bag));
+    player.cart.push(...p.cart.map((l) => Object.assign(new CartLine(), l)));
+    player.cartTotal = p.cartTotal;
     state.players.set(id, player);
   }
+  for (const [key, shelf] of Object.entries(s.shelves))
+    state.shelves.set(key, Object.assign(new ShelfState(), shelf));
   state.lab.stock.clear();
   state.lab.stock.push(...slotsFrom(s.lab.stock));
   for (const [id, pot] of Object.entries(s.lab.pots))

@@ -141,6 +141,28 @@
       "icon": "🚿"
     },
     {
+      "id": "soda",
+      "name": "Soda « Cola Pirate »",
+      "category": "drink",
+      "storage": "slot",
+      "stackMax": 5,
+      "contraband": false,
+      "confiscable": false,
+      "description": "Sucré, pétillant, vaguement radioactif. Désaltère et cale un peu.",
+      "icon": "🥤"
+    },
+    {
+      "id": "scissors",
+      "name": "Ciseaux de découpe",
+      "category": "tool",
+      "storage": "slot",
+      "stackMax": 1,
+      "contraband": false,
+      "confiscable": false,
+      "description": "Des ciseaux de cuisine reconvertis. Officiellement pour les herbes aromatiques.",
+      "icon": "✂️"
+    },
+    {
       "id": "cash_dirty",
       "name": "Liasse d'argent sale",
       "category": "cash_dirty",

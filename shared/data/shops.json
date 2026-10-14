@@ -1,0 +1,50 @@
+{
+  "shops": [
+    {
+      "interiorId": "shop",
+      "shelves": [
+        {
+          "stationId": "shelf_seeds",
+          "itemId": "seed_base",
+          "price": 15,
+          "stock": 12
+        },
+        {
+          "stationId": "shelf_pots",
+          "itemId": "pot",
+          "price": 25,
+          "stock": 4
+        },
+        {
+          "stationId": "shelf_tools",
+          "itemId": "scissors",
+          "price": 12,
+          "stock": 5
+        }
+      ]
+    },
+    {
+      "interiorId": "grocery",
+      "shelves": [
+        {
+          "stationId": "shelf_water",
+          "itemId": "water",
+          "price": 2,
+          "stock": null
+        },
+        {
+          "stationId": "shelf_food",
+          "itemId": "food",
+          "price": 4,
+          "stock": 20
+        },
+        {
+          "stationId": "shelf_soda",
+          "itemId": "soda",
+          "price": 3,
+          "stock": 10
+        }
+      ]
+    }
+  ]
+}
