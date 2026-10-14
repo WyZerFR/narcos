@@ -12,6 +12,7 @@ import {
 } from '@narco/shared';
 import { connection, type GameRoom, type PlayerView } from '../net/connection';
 import { readMoveIntent } from '../input/inputState';
+import { subscribeState } from '../net/gameView';
 import { localPlayer } from './localPlayer';
 import { screenToWorld } from './cameraState';
 import { isOccluded, setLabelAnchor } from './labels';
@@ -63,8 +64,7 @@ export function useRoomPlayers(room: GameRoom | null): PlayerInfo[] {
       }
     };
     refresh();
-    const sub = room.onStateChange(refresh);
-    return () => sub.clear();
+    return subscribeState(room, refresh);
   }, [room]);
   return room ? players : [];
 }

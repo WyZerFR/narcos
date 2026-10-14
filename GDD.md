@@ -145,9 +145,9 @@ Le monde continue quand un joueur est offline (cultures, dealers). À la reconne
 
 1. ✅ **Fondations** : monorepo, multi minimal (cubes synchronisés), reconnexion, JSON chargés et typés, test anti-téléportation.
 2. ✅ **Map zone 1** : quartier de nuit (8 lieux, immeubles, routes, décor), collisions partagées client/serveur, bouton « Entrer : <lieu> », mini-carte, mode debug persistant, réglage caméra.
-3. Inventaire (logique pure dans `shared/` + tests) : sac, stock commun, transferts, UI tactile.
+3. ✅ **Inventaire** : sac (10 slots), stock commun (60), piles, transferts tout ou rien, UI tactile sans glisser-déposer.
 4. Faim/soif + épicerie.
-5. Production : plantation, arrosage, pousse, séchage, pochons (timers serveur).
+5. ✅ **Labo et production** : intérieur 3D séparé, pots (arrosage nécessaire), étendoir, table de découpe, timers en temps de jeu côté serveur, barres de progression partagées ; sauvegarde JSON des parties.
 6. Vente aux PNJ + taxe El Jefe + caisse commune + argent sale.
 7. Police : patrouilles, cône de vision, fouille, Heat, perquisition.
 8. Acte I scripté (tuto, pacte El Jefe).

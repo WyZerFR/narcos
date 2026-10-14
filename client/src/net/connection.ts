@@ -9,6 +9,7 @@ import {
   type NoticeMessage,
   type JoinOptions,
 } from '@narco/shared';
+import { syncClock } from './gameView';
 import { getPlayerId, getSavedName, getSavedRoomCode, saveName, saveRoomCode } from './identity';
 
 /** Vue client du state serveur (`server/src/rooms/schema.ts`), décodé par réflexion. */
@@ -21,11 +22,45 @@ export interface PlayerView {
   rotY: number;
   connected: boolean;
   zone: string;
+  bag: SlotView[];
+}
+
+export interface SlotView {
+  itemId: string;
+  qty: number;
+}
+
+export interface PotView {
+  planted: boolean;
+  strainId: string;
+  growMsDone: number;
+  bankedAt: number;
+  wateredUntil: number;
+}
+
+export interface RackEntryView {
+  strainId: string;
+  qty: number;
+  readyAt: number;
+}
+
+export interface CutJobView {
+  playerId: string;
+  strainId: string;
+  qty: number;
+  readyAt: number;
 }
 
 export interface StateView {
   code: string;
   players: Map<string, PlayerView>;
+  lab: {
+    stock: SlotView[];
+    pots: Map<string, PotView>;
+    rack: RackEntryView[];
+    cut: CutJobView;
+  };
+  clock: { now: number; scale: number };
 }
 
 export type GameRoom = Room<StateView>;
@@ -169,6 +204,7 @@ class Connection {
     this.clearReconnectTimer();
     saveRoomCode(room.roomId);
 
+    room.onStateChange(() => syncClock(room));
     room.onMessage(ServerMsg.Notice, (n: NoticeMessage) => {
       for (const fn of this.noticeListeners) fn(n);
     });

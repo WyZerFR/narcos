@@ -6,16 +6,19 @@ import { useRoomPlayers } from '../game/Players';
 import { LabelLayer } from '../game/labels';
 import { SettingsPanel } from './SettingsPanel';
 import { Minimap } from './Minimap';
+import { InventoryPanel } from './InventoryPanel';
+import { openInventory, useInventoryMode } from './uiStore';
 
 export function Hud({ snapshot, room }: { snapshot: Snapshot; room: GameRoom }) {
   const players = useRoomPlayers(room);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const me = connection.playerId;
   const myZone = players.find((p) => p.id === me)?.zone ?? STREET;
+  const inventory = useInventoryMode();
 
   return (
     <>
-      <LabelLayer players={players} myId={me} zone={myZone} />
+      <LabelLayer room={room} players={players} myId={me} zone={myZone} />
       <div className="hud-top">
         <div className="hud-left">
           <div className="hud-card">
@@ -35,14 +38,24 @@ export function Hud({ snapshot, room }: { snapshot: Snapshot; room: GameRoom }) 
           </div>
           {myZone === STREET && <Minimap room={room} />}
         </div>
-        <button
-          type="button"
-          className="icon-btn"
-          aria-label="Options"
-          onClick={() => setSettingsOpen(true)}
-        >
-          ⚙
-        </button>
+        <div className="hud-right">
+          <button
+            type="button"
+            className="icon-btn"
+            aria-label="Sac"
+            onClick={() => openInventory('bag')}
+          >
+            🎒
+          </button>
+          <button
+            type="button"
+            className="icon-btn"
+            aria-label="Options"
+            onClick={() => setSettingsOpen(true)}
+          >
+            ⚙
+          </button>
+        </div>
       </div>
 
       {snapshot.status === 'reconnecting' && (
@@ -50,6 +63,7 @@ export function Hud({ snapshot, room }: { snapshot: Snapshot; room: GameRoom }) 
       )}
 
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
+      {inventory && <InventoryPanel room={room} mode={inventory} />}
     </>
   );
 }

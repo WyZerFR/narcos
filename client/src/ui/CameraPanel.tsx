@@ -15,6 +15,7 @@ import {
   type CameraKind,
 } from '../game/cameraState';
 import { resetCutout, updateCutout, useCutout } from '../game/city/cutout';
+import { DebugLabSection } from './DebugLabSection';
 
 /** Plage du zoom : large autour de la valeur de config.json. */
 const ZOOM_RANGE = { min: gameData.config.camera.zoom / 4, max: gameData.config.camera.zoom * 4 };
@@ -227,6 +228,7 @@ export function CameraPanel() {
               onFocus={(e) => e.target.select()}
             />
           )}
+          <DebugLabSection />
         </div>
       )}
     </div>

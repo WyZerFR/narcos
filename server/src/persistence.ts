@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from '
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
-import type { GameState} from './rooms/schema';
+import type { GameState } from './rooms/schema';
 import { Player, Pot, RackEntry, Slot } from './rooms/schema';
 
 /**

@@ -3,9 +3,19 @@ import { MeshBasicMaterial, MeshLambertMaterial } from 'three';
 import { gameData } from '@narco/shared';
 import { applyCutout } from '../city/cutout';
 import { buildRoom } from './buildRoom';
+import { LabProps } from './LabProps';
+import type { GameRoom } from '../../net/connection';
 
 /** Rendu d'un intérieur (`zones.json`) : pièce fusionnée, découpe des murs devant le joueur. */
-export function Interior({ zoneId, glowBoost }: { zoneId: string; glowBoost: number }) {
+export function Interior({
+  room,
+  zoneId,
+  glowBoost,
+}: {
+  room: GameRoom;
+  zoneId: string;
+  glowBoost: number;
+}) {
   const interior = gameData.interiors.get(zoneId)!;
   const geometry = useMemo(() => buildRoom(interior), [interior]);
   const materials = useMemo(
@@ -34,6 +44,7 @@ export function Interior({ zoneId, glowBoost }: { zoneId: string; glowBoost: num
     <>
       <mesh geometry={geometry.solid} material={materials.solid} />
       <mesh geometry={geometry.glow} material={materials.glow} />
+      <LabProps room={room} interior={interior} />
     </>
   );
 }

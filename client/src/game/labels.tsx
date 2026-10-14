@@ -1,5 +1,9 @@
 import { useFrame, useThree } from '@react-three/fiber';
+import { useEffect, useRef } from 'react';
 import { Vector3 } from 'three';
+import type { GameRoom } from '../net/connection';
+import { gameNow } from '../net/gameView';
+import { stationView } from './stationView';
 import { footprint, gameData, segmentHitsBox, STREET, type Box } from '@narco/shared';
 import type { PlayerInfo } from './Players';
 
@@ -13,6 +17,8 @@ type Point3 = { x: number; y: number; z: number };
 type Anchor = (camera: Point3) => Point3 | null;
 
 const anchors = new Map<string, Anchor>();
+/** Rafraîchissement des statuts de postes (texte + barre) : 5 fois par seconde suffit. */
+const STATUS_REFRESH_MS = 200;
 const elements = new Map<string, HTMLElement>();
 
 export function setLabelAnchor(id: string, anchor: Anchor | null): void {
@@ -93,14 +99,41 @@ export function LabelProjector() {
  * bâtiment, à placer hors du Canvas.
  */
 export function LabelLayer({
+  room,
   players,
   myId,
   zone,
 }: {
+  room: GameRoom;
   players: PlayerInfo[];
   myId: string;
   zone: string;
 }) {
+  const statusRefs = useRef(
+    new Map<string, { status: HTMLElement; fill: HTMLElement; bar: HTMLElement }>(),
+  );
+
+  // État des postes (statut + barre), visible par tous : mis à jour en DOM, sans re-rendu React.
+  useEffect(() => {
+    const interior = gameData.interiors.get(zone);
+    if (!interior) return;
+    const update = () => {
+      const now = gameNow();
+      for (const st of interior.stations) {
+        const els = statusRefs.current.get(st.id);
+        if (!els) continue;
+        const view = stationView(room, st, myId, now);
+        els.status.textContent = view.status ?? '';
+        els.bar.style.display = view.progress === undefined ? 'none' : '';
+        els.fill.style.width = `${Math.round((view.progress ?? 0) * 100)}%`;
+        els.fill.dataset.done = view.progress === 1 ? '1' : '0';
+      }
+    };
+    update();
+    const id = setInterval(update, STATUS_REFRESH_MS);
+    return () => clearInterval(id);
+  }, [room, zone, myId]);
+
   return (
     <div className="label-layer">
       {zone === STREET &&
@@ -116,7 +149,19 @@ export function LabelLayer({
         ))}
       {gameData.interiors.get(zone)?.stations.map((st) => (
         <div key={st.id} ref={bindElement(`station:${zone}:${st.id}`)} className="station-label">
-          {st.label}
+          <span className="station-name">{st.label}</span>
+          <span
+            className="station-status"
+            ref={(el) => {
+              const bar = el?.nextElementSibling as HTMLElement | null;
+              const fill = bar?.firstElementChild as HTMLElement | null;
+              if (el && bar && fill) statusRefs.current.set(st.id, { status: el, bar, fill });
+              else statusRefs.current.delete(st.id);
+            }}
+          />
+          <span className="station-bar">
+            <i />
+          </span>
         </div>
       ))}
       {players.map((p) => (

@@ -14,6 +14,9 @@ import { connection, type GameRoom } from '../net/connection';
 import { localPlayer } from '../game/localPlayer';
 import { ActionButton } from '../input/ActionButton';
 import { onAction } from '../input/inputState';
+import { gameNow } from '../net/gameView';
+import { stationView } from '../game/stationView';
+import { openInventory } from './uiStore';
 
 const LOCATIONS = [...gameData.locations.values()];
 /** Fréquence de recherche de la cible proche (pas besoin de 60 Hz pour un libellé). */
@@ -38,19 +41,19 @@ interface Target {
     | null;
 }
 
-/** Action proposée sur un poste (complétée par l'état de production au bloc suivant). */
-function stationTarget(station: Station): Target {
-  const act = (action: StationAction, label: string): Target => ({
-    key: `${station.id}:${action}`,
-    label,
-    active: true,
-    message: { type: ClientMsg.Station, body: { stationId: station.id, action } },
-  });
-  if (station.kind === 'exit') return act('exit', 'Sortir');
-  return { key: station.id, label: station.label, active: false, message: null };
+/** Action proposée sur un poste, selon son état de production et le sac du joueur. */
+function stationTarget(room: GameRoom, station: Station): Target {
+  const view = stationView(room, station, connection.playerId, gameNow());
+  const action: StationAction | undefined = view.action;
+  return {
+    key: `${station.id}:${action ?? ''}`,
+    label: view.label,
+    active: view.active && Boolean(action),
+    message: action ? { type: ClientMsg.Station, body: { stationId: station.id, action } } : null,
+  };
 }
 
-function findTarget(): Target | null {
+function findTarget(room: GameRoom): Target | null {
   if (!localPlayer.initialized) return null;
   if (localPlayer.zone === STREET) {
     const loc = nearestLocation(localPlayer, LOCATIONS);
@@ -65,7 +68,7 @@ function findTarget(): Target | null {
   }
   const interior = gameData.interiors.get(localPlayer.zone);
   const station = interior ? nearestStation(localPlayer, interior) : null;
-  return station ? stationTarget(station) : null;
+  return station ? stationTarget(room, station) : null;
 }
 
 /** Bouton ACTION contextuel (porte d'un lieu, poste d'intérieur) + toast de la réponse serveur. */
@@ -76,7 +79,7 @@ export function Interaction({ room }: { room: GameRoom }) {
 
   useEffect(() => {
     const id = setInterval(() => {
-      const next = findTarget();
+      const next = findTarget(room);
       const prev = targetRef.current;
       if (next?.key !== prev?.key || next?.label !== prev?.label || next?.active !== prev?.active) {
         targetRef.current = next;
@@ -84,7 +87,7 @@ export function Interaction({ room }: { room: GameRoom }) {
       }
     }, PROBE_MS);
     return () => clearInterval(id);
-  }, []);
+  }, [room]);
 
   // L'intention part au serveur, qui vérifie tout et répond par une notice.
   useEffect(
@@ -98,7 +101,11 @@ export function Interaction({ room }: { room: GameRoom }) {
   );
 
   useEffect(
-    () => connection.onNotice((n) => setToast({ key: Date.now(), ok: n.ok, text: n.text })),
+    () =>
+      connection.onNotice((n) => {
+        setToast({ key: Date.now(), ok: n.ok, text: n.text });
+        if (n.ok && n.open === 'stock') openInventory('stock');
+      }),
     [],
   );
 

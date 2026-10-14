@@ -5,7 +5,7 @@ import type {
   PotState,
   RackEntry as RackData,
 } from '@narco/shared';
-import type { CutJob, Pot} from './schema';
+import type { CutJob, Pot } from './schema';
 import { RackEntry, Slot } from './schema';
 
 /**

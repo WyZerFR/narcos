@@ -160,6 +160,8 @@ export const ItemDefSchema = z.object({
   strain: z.string().optional(),
   /** Texte affiché dans le détail de l'inventaire. */
   description: z.string().min(1),
+  /** Pictogramme (emoji) affiché dans l'inventaire. */
+  icon: z.string().min(1),
 });
 
 export const ItemsFileSchema = z.object({ items: z.array(ItemDefSchema).min(1) });

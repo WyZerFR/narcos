@@ -109,7 +109,7 @@ function World({ room, glowBoost }: { room: GameRoom; glowBoost: number }) {
         <City glowBoost={glowBoost} />
       </group>
       {!inStreet && gameData.interiors.has(myZone) && (
-        <Interior key={myZone} zoneId={myZone} glowBoost={glowBoost} />
+        <Interior key={myZone} room={room} zoneId={myZone} glowBoost={glowBoost} />
       )}
       {players
         .filter((p) => p.zone === myZone)

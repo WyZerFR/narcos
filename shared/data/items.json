@@ -9,7 +9,8 @@
       "contraband": true,
       "confiscable": true,
       "strain": "base",
-      "description": "De petites graines anonymes. El Jefe jure qu’elles poussent toutes seules. Elles ne poussent pas toutes seules."
+      "description": "De petites graines anonymes. El Jefe jure qu’elles poussent toutes seules. Elles ne poussent pas toutes seules.",
+      "icon": "🌱"
     },
     {
       "id": "seed_citron",
@@ -20,7 +21,8 @@
       "contraband": true,
       "confiscable": true,
       "strain": "citron",
-      "description": "Variété premium au parfum d’agrume. Le sachet indique « bio ». Personne n’a vérifié."
+      "description": "Variété premium au parfum d’agrume. Le sachet indique « bio ». Personne n’a vérifié.",
+      "icon": "🌱"
     },
     {
       "id": "plant_fresh_base",
@@ -31,7 +33,8 @@
       "contraband": true,
       "confiscable": true,
       "strain": "base",
-      "description": "Une plante tout juste coupée, humide et odorante. À faire sécher avant que les voisins ne posent des questions."
+      "description": "Une plante tout juste coupée, humide et odorante. À faire sécher avant que les voisins ne posent des questions.",
+      "icon": "🌿"
     },
     {
       "id": "plant_fresh_citron",
@@ -42,7 +45,8 @@
       "contraband": true,
       "confiscable": true,
       "strain": "citron",
-      "description": "Ça sent le citron et les ennuis. À faire sécher."
+      "description": "Ça sent le citron et les ennuis. À faire sécher.",
+      "icon": "🌿"
     },
     {
       "id": "plant_dried_base",
@@ -53,7 +57,8 @@
       "contraband": true,
       "confiscable": true,
       "strain": "base",
-      "description": "Sèche, craquante, prête à être découpée. Ne pas confondre avec la tisane de mamie."
+      "description": "Sèche, craquante, prête à être découpée. Ne pas confondre avec la tisane de mamie.",
+      "icon": "🍂"
     },
     {
       "id": "plant_dried_citron",
@@ -64,7 +69,8 @@
       "contraband": true,
       "confiscable": true,
       "strain": "citron",
-      "description": "Séchée à point. Les cristaux brillent presque autant que tes perspectives d’avenir."
+      "description": "Séchée à point. Les cristaux brillent presque autant que tes perspectives d’avenir.",
+      "icon": "🍂"
     },
     {
       "id": "pouch_base",
@@ -75,7 +81,8 @@
       "contraband": true,
       "confiscable": true,
       "strain": "base",
-      "description": "Un pochon bien fermé. L’unité de base de ton empire naissant."
+      "description": "Un pochon bien fermé. L’unité de base de ton empire naissant.",
+      "icon": "👝"
     },
     {
       "id": "pouch_citron",
@@ -86,7 +93,8 @@
       "contraband": true,
       "confiscable": true,
       "strain": "citron",
-      "description": "Un pochon haut de gamme. On peut le vendre plus cher en disant « artisanal »."
+      "description": "Un pochon haut de gamme. On peut le vendre plus cher en disant « artisanal ».",
+      "icon": "👝"
     },
     {
       "id": "water",
@@ -96,7 +104,8 @@
       "stackMax": 5,
       "contraband": false,
       "confiscable": false,
-      "description": "Eau du robinet en bouteille réutilisée. Pour les plantes, et pour toi si tu insistes."
+      "description": "Eau du robinet en bouteille réutilisée. Pour les plantes, et pour toi si tu insistes.",
+      "icon": "💧"
     },
     {
       "id": "food",
@@ -106,7 +115,8 @@
       "stackMax": 5,
       "contraband": false,
       "confiscable": false,
-      "description": "Un sandwich triangle d’une date de péremption philosophique."
+      "description": "Un sandwich triangle d’une date de péremption philosophique.",
+      "icon": "🥪"
     },
     {
       "id": "pot",
@@ -116,7 +126,8 @@
       "stackMax": 10,
       "contraband": false,
       "confiscable": false,
-      "description": "Un pot de fleurs emprunté sans demander. Mamie ne s’en rendra pas compte."
+      "description": "Un pot de fleurs emprunté sans demander. Mamie ne s’en rendra pas compte.",
+      "icon": "🪴"
     },
     {
       "id": "watering_can",
@@ -126,7 +137,8 @@
       "stackMax": 1,
       "contraband": false,
       "confiscable": false,
-      "description": "Un arrosoir vert. Totalement innocent, comme toi."
+      "description": "Un arrosoir vert. Totalement innocent, comme toi.",
+      "icon": "🚿"
     },
     {
       "id": "cash_dirty",
@@ -136,7 +148,8 @@
       "stackMax": 1000,
       "contraband": false,
       "confiscable": true,
-      "description": "Des billets froissés qui sentent le parking. À blanchir avant de dormir tranquille."
+      "description": "Des billets froissés qui sentent le parking. À blanchir avant de dormir tranquille.",
+      "icon": "💵"
     },
     {
       "id": "cash_clean",
@@ -146,7 +159,8 @@
       "stackMax": 0,
       "contraband": false,
       "confiscable": false,
-      "description": "Argent sur un compte. Propre, déclaré, presque honnête."
+      "description": "Argent sur un compte. Propre, déclaré, presque honnête.",
+      "icon": "🏦"
     }
   ]
 }
