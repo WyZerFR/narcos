@@ -56,6 +56,7 @@ docs/notes/      notes détaillées (voir plus bas)
 - `docs/notes/reseau.md` — lire seulement si tu touches au réseau, aux zones, au mouvement ou à la sauvegarde.
 - `docs/notes/debug.md` — lire seulement si tu touches aux outils debug ou aux tests serveur.
 - `docs/notes/quartiers.md` — lire seulement si tu touches aux areas, aux impasses générées ou à la vente par area.
+- Blanchisseur caché (cave, 15 %) : lieux de blanchiment dans `docs/notes/economie.md`, cachette dans `docs/notes/quartiers.md`.
 
 ## Économie de tokens
 

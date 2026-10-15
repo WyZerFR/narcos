@@ -10,6 +10,7 @@ import {
   distancesFrom,
   gameData,
   interactionPoint,
+  launderReport,
   obstaclesFrom,
   starterKitCost,
   survivalCostReport,
@@ -63,7 +64,7 @@ console.log(
   `\nSurvie en argent propre : ${food.perMinute.toFixed(2)} $/min de jeu, ${food.perHour.toFixed(0)} $/h`,
   `(faim ${food.hungerPointPrice.toFixed(3)} $/pt, soif ${food.thirstPointPrice.toFixed(3)} $/pt).`,
   `\nÀ couvrir : ${(food.perHour * food.dirtyPerClean).toFixed(0)} $ sales/h blanchis`,
-  `(commission ${economy.bank.fee * 100} %) → ${Math.ceil(food.pouchesPerHour)} pochons ${base.name}/h`,
+  `(commission banque ${economy.launder.venues.bank.fee * 100} %) → ${Math.ceil(food.pouchesPerHour)} pochons ${base.name}/h`,
   `(${(food.pouchesPerHour / 60).toFixed(2)}/min).`,
 );
 
@@ -95,5 +96,23 @@ for (const q of gameData.quartiers.values()) {
   console.log(
     `  bout de ${gameData.areas.get(q.areaId)!.name} (${loc.name}) : ${m.toFixed(0)} m,`,
     `${(m / config.movement.walkSpeed).toFixed(1)} s en marchant, ${(m / config.movement.runSpeed).toFixed(1)} s en courant`,
+  );
+}
+
+// Blanchiment : revenu sale de toute la rue (débouché max des areas) passé par la banque, le
+// blanchisseur de la cave, ou les deux (le moins cher d'abord).
+const dirtyPerHour = sales.reduce((s, r) => s + r.revenuePerMinute, 0) * 60;
+console.log(`\nBlanchiment de ~${dirtyPerHour.toFixed(0)} $ sales/h (débouché max des areas) :`);
+for (const o of launderReport(gameData, dirtyPerHour))
+  console.log(
+    `  ${o.label} : ${o.dirtyPerHour.toFixed(0)} $ sales/h blanchis → ${o.cleanPerHour.toFixed(0)} $ propres/h`,
+  );
+const trapLoc = [...gameData.quartiers.values()]
+  .map((q) => q.hiddenCellar && gameData.locations.get(q.hiddenCellar.locationId))
+  .find((l) => l);
+if (trapLoc) {
+  const m = fromSpawn[cellIndex(grid, interactionPoint(trapLoc))]!;
+  console.log(
+    `  Trajet départ → trappe de la cave : ${m.toFixed(0)} m, ${(m / config.movement.walkSpeed).toFixed(1)} s en marchant`,
   );
 }

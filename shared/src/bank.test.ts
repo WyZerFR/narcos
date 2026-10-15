@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { activeEntries, checkLaunder, launderRemaining, launderSplit, shiftLog } from './bank';
 import type { LaunderRules } from './schemas';
+import { launderReport } from './balance';
+import { gameData } from './data';
 
 const RULES: LaunderRules = {
   fee: 0.5,
@@ -71,5 +73,28 @@ describe('banque — vérifications', () => {
     const shifted = shiftLog(log, 30_000);
     expect(launderRemaining(log, 110_001, RULES)).toBe(1000);
     expect(launderRemaining(shifted, 110_001, RULES)).toBe(0);
+  });
+});
+
+describe('équilibrage du blanchiment (banque, cave, les deux)', () => {
+  const { bank, cellar } = gameData.economy.launder.venues;
+  const capH = (r: { cap: number; windowSeconds: number }) => (r.cap * 3600) / r.windowSeconds;
+
+  it('cave plafonnée, combinaison optimale ≥ chaque lieu seul', () => {
+    const dirty = capH(bank) + capH(cellar) + 1000;
+    const [b, c, both] = launderReport(gameData, dirty);
+    expect(b!.cleanPerHour).toBeCloseTo(capH(bank) * (1 - bank.fee));
+    expect(c!.dirtyPerHour).toBeCloseTo(capH(cellar));
+    expect(c!.cleanPerHour).toBeCloseTo(capH(cellar) * (1 - cellar.fee));
+    expect(both!.cleanPerHour).toBeGreaterThanOrEqual(Math.max(b!.cleanPerHour, c!.cleanPerHour));
+    expect(both!.cleanPerHour).toBeCloseTo(
+      capH(cellar) * (1 - cellar.fee) + capH(bank) * (1 - bank.fee),
+    );
+  });
+
+  it('petit revenu : tout passe par la cave, moins chère', () => {
+    const [, c, both] = launderReport(gameData, 100);
+    expect(both!.cleanPerHour).toBeCloseTo(c!.cleanPerHour);
+    expect(both!.cleanPerHour).toBeCloseTo(100 * (1 - cellar.fee));
   });
 });
