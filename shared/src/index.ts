@@ -21,6 +21,7 @@ export * from './balance';
 export * from './dialogue';
 export * from './bank';
 export * from './areas';
+export * from './island';
 export * from './quartiers';
 export * from './bag';
 export * from './collisionAudit';

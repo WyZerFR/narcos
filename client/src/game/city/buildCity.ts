@@ -1,5 +1,6 @@
 import type { BufferGeometry, Color } from 'three';
 import {
+  areaRects,
   expandRect,
   footprint,
   rectFromCenter,
@@ -188,12 +189,11 @@ function sidewalkStrips(road: Rect, others: Rect[], sw: number): Rect[] {
 }
 
 function buildGround(ctx: Ctx) {
-  const { palette, map, world } = ctx.data.config;
+  const { palette, map } = ctx.data.config;
   const { solid } = ctx;
   // Le sol (trottoirs compris) n'est jamais percé par la découpe.
   solid.cuttable = false;
-  solid.floor(expandRect(world.bounds, 30), -0.02, shade(palette.ground, 0.45));
-  solid.floor(world.bounds, 0, shade(palette.ground, 0.7));
+  buildIsland(ctx);
 
   const roads = map.roads.map((r) => rectFromCenter(r, r));
   const curb = shade(palette.ground, 0.8);
@@ -242,6 +242,36 @@ function buildGround(ctx: Ctx) {
     }
   }
   solid.cuttable = true;
+}
+
+/**
+ * Île : mer sous le niveau du sol, terre (pavage exact des areas), falaises légères sur tout
+ * le contour, plages de sable et ourlet d'écume au pied. Tout dans `solid` (aucun draw call).
+ */
+function buildIsland(ctx: Ctx) {
+  const { palette, world, island } = ctx.data.config;
+  const { solid } = ctx;
+  const sea = island.seaLevel;
+  solid.floor(expandRect(world.bounds, island.seaMargin), sea, shade(palette.sea, 1));
+  for (const area of ctx.data.areas.values())
+    for (const r of areaRects(area)) solid.floor(r, 0, shade(palette.ground, 0.7));
+  // falaise : paroi du sol jusqu'à la mer, collée au bord côté terre
+  const rock = shade(palette.ground, 0.5);
+  const T = 0.4;
+  for (const e of ctx.data.island.coast) {
+    const len = Math.hypot(e.b.x - e.a.x, e.b.z - e.a.z);
+    const cx = (e.a.x + e.b.x) / 2 - (e.nx * T) / 2;
+    const cz = (e.a.z + e.b.z) / 2 - (e.nz * T) / 2;
+    const [w, d] = e.nx !== 0 ? [T, len] : [len, T];
+    solid.block(cx, sea, cz, w, -sea - 0.01, d, rock);
+  }
+  const sand = shade(palette.sand, 1);
+  const foam = shade(palette.sea, 2.2);
+  for (const b of ctx.data.island.beaches) {
+    solid.floor(b, sea + 0.12, sand);
+    // écume : liseré un peu plus large que la plage, juste au-dessus de l'eau
+    solid.floor(expandRect(b, 0.5), sea + 0.04, foam);
+  }
 }
 
 // ---------------------------------------------------------------- lieux

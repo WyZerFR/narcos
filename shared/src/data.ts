@@ -57,6 +57,7 @@ import { findSlits, obstaclesFrom } from './collision';
 import { dialogueVars, textVars } from './dialogue';
 import { areaAt, areaContainsRect, areaRects, areasEnvelope } from './areas';
 import { checkQuartier, generateQuartier, quartierFrame, type QuartierLayout } from './quartiers';
+import { islandLayout, type IslandLayout } from './island';
 
 /**
  * Catégories payables en « any » (propre d'abord, sale sinon) : nourriture, boissons, matériel
@@ -134,6 +135,8 @@ export interface GameData {
   quartierColliders: QuartierColliders;
   /** Impasses générées (même graine = même résultat sur client et serveur), par id de quartier. */
   quartierLayouts: ReadonlyMap<string, QuartierLayout>;
+  /** Côte de l'île (contour des areas), plages et palmiers : décor tiré de `config.island`. */
+  island: IslandLayout;
   /** Personnages jouables (`characters.json`), dans l'ordre du fichier. */
   characters: ReadonlyMap<string, Character>;
   /** Zones personnalisables (`palettes.json`), dans l'ordre du fichier. */
@@ -658,6 +661,7 @@ export function parseGameData(raw: RawGameData): GameData {
     quartiers,
     quartierColliders: quartiersFile.colliders,
     quartierLayouts,
+    island: islandLayout(areas.values(), config.island),
     characters,
     appearanceSlots,
   };

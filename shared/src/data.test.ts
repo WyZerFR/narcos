@@ -87,7 +87,7 @@ describe('données du jeu', () => {
   });
 
   it('valide palette, carte et décor de config.json', () => {
-    expect(Object.keys(gameData.config.palette)).toHaveLength(8);
+    expect(Object.keys(gameData.config.palette)).toHaveLength(10);
     expect(gameData.config.map.roads.length).toBeGreaterThan(0);
     expect(gameData.config.camera.type).toBe('perspective');
     expect(gameData.blocks.length).toBeGreaterThan(0);

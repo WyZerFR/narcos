@@ -2,6 +2,7 @@ import { outsideAreas, walkableAreas } from './areas';
 import type { GameData } from './data';
 import {
   clampToBounds,
+  expandRect,
   isNarrowGap,
   rectContainsPoint,
   rectFromCenter,
@@ -24,8 +25,14 @@ export type MapData = Pick<
  * Les ruelles (`area`) et le petit décor de la rue centrale restent traversables.
  */
 export function obstaclesFrom(data: MapData): Rect[] {
-  // mer, côte et areas verrouillées (aéroport) : hors-zone
-  const rects: Rect[] = outsideAreas(walkableAreas(data.areas.values()), data.config.world.bounds);
+  // mer, côte et areas verrouillées (aéroport) : hors-zone, calculé sur la carte élargie d'un
+  // gabarit de joueur pour que la côte au bord de la carte soit un vrai obstacle (pas un simple
+  // bornage du centre, qui laisserait le corps au-dessus de l'eau)
+  const { world } = data.config;
+  const rects: Rect[] = outsideAreas(
+    walkableAreas(data.areas.values()),
+    expandRect(world.bounds, world.playerSize),
+  );
   for (const loc of data.locations.values())
     if (loc.kind === 'building') rects.push(footprint(loc));
   for (const block of data.blocks) rects.push(footprint(block));

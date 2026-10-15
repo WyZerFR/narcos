@@ -1,7 +1,6 @@
 import type { Color } from 'three';
 import {
   areaRects,
-  outsideAreas,
   type GameData,
   type House,
   type QuartierLayout,
@@ -43,12 +42,8 @@ function furniture(b: Batches, build: () => void): void {
 }
 
 export function buildQuartiers(b: Batches, data: GameData): void {
-  const { palette, world } = data.config;
-  // hors des areas (autour des impasses) : terrain vague sombre, infranchissable
-  b.solid.cuttable = false;
-  for (const r of outsideAreas(data.areas.values(), world.bounds))
-    b.solid.floor(r, 0.004, shade(palette.ground, 0.4));
-  b.solid.cuttable = true;
+  // hors des areas : la mer, posée par buildCity
+  const { palette } = data.config;
   for (const layout of data.quartierLayouts.values()) {
     const q = data.quartiers.get(layout.id)!;
     ground(b, layout, q, data);

@@ -35,7 +35,30 @@ export const PaletteSchema = z.object({
   vegetation: hexColor,
   ok: hexColor,
   danger: hexColor,
+  /** Mer autour de l'île et sable des plages. */
+  sea: hexColor,
+  sand: hexColor,
 });
+
+/**
+ * Île (`config.island`) : mer sous le niveau du sol, falaises légères sur tout le contour,
+ * plages et palmiers tirés par `seed` (décor, jamais marchable : la collision s'arrête à la côte).
+ */
+export const IslandSchema = z.object({
+  /** Hauteur de la mer (m, négative) : les falaises descendent du sol (0) jusque-là. */
+  seaLevel: z.number().negative(),
+  /** Mer visible au-delà de la carte (m). */
+  seaMargin: pos,
+  beachWidth: pos,
+  /** Chance qu'un segment de côte ait une plage, et longueur minimale du segment. */
+  beachChance: z.number().min(0).max(1),
+  minBeachLength: pos,
+  /** Palmiers sur le sable : un essai tous les N m, avec cette chance. */
+  palmSpacing: pos,
+  palmChance: z.number().min(0).max(1),
+  seed: z.string().min(1),
+});
+export type IslandParams = z.infer<typeof IslandSchema>;
 
 /** Faim, soif, santé (0..max). */
 export const VitalsSchema = z.object({ hunger: nonNeg, thirst: nonNeg, health: nonNeg });
@@ -125,6 +148,7 @@ export const ConfigSchema = z.object({
       z.object({ x: z.number(), z: z.number(), axis: z.enum(['x', 'z']), length: pos, width: pos }),
     ),
   }),
+  island: IslandSchema,
   decor: z.object({
     /** Part des fenêtres allumées (0-1). */
     windowLitRatio: z.number().min(0).max(1),

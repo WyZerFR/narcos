@@ -47,7 +47,9 @@
     "neon": "#ffc56b",
     "vegetation": "#2f7d5b",
     "ok": "#5be37d",
-    "danger": "#ff4d5e"
+    "danger": "#ff4d5e",
+    "sea": "#10283d",
+    "sand": "#8f7f62"
   },
   "map": {
     "roads": [
@@ -125,6 +127,16 @@
         "width": 3
       }
     ]
+  },
+  "island": {
+    "seaLevel": -1.4,
+    "seaMargin": 120,
+    "beachWidth": 6,
+    "beachChance": 0.55,
+    "minBeachLength": 30,
+    "palmSpacing": 9,
+    "palmChance": 0.55,
+    "seed": "ile-1"
   },
   "decor": {
     "windowLitRatio": 0.55,

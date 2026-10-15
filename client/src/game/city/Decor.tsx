@@ -1,6 +1,7 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import {
   AdditiveBlending,
+  BoxGeometry,
   CanvasTexture,
   Color,
   Euler,
@@ -193,6 +194,27 @@ export function Decor({
     tree.add(new IcosahedronGeometry(1.3, 0), shade(palette.vegetation, 1), 0, 2.6, 0);
     tree.add(new IcosahedronGeometry(0.8, 0), shade(palette.vegetation, 1.3), 0.3, 3.5, -0.2, 0.4);
 
+    // palmier des plages : tronc penché en trois tronçons, cinq palmes retombantes, noix
+    const palm = new Batch();
+    const bark = shade(palette.sand, 0.55);
+    palm.block(0, 0, 0, 0.4, 1.4, 0.4, bark);
+    palm.block(0.15, 1.4, 0, 0.34, 1.4, 0.34, bark);
+    palm.block(0.35, 2.8, 0, 0.3, 1.2, 0.3, bark);
+    const frond = new BoxGeometry(2.2, 0.08, 0.55).translate(1, 0, 0);
+    for (let k = 0; k < 5; k++)
+      palm.add(
+        frond.clone(),
+        shade(palette.vegetation, 1.1),
+        0.4,
+        4,
+        0,
+        0,
+        (k * 2 * Math.PI) / 5,
+        -0.4,
+      );
+    frond.dispose();
+    palm.add(new IcosahedronGeometry(0.3, 0), shade(palette.sand, 0.4), 0.4, 3.8, 0);
+
     // voiture : caisse teintée par instance + habitacle sombre
     const { length, width, height } = decor.carSize;
     const car = new Batch();
@@ -288,6 +310,12 @@ export function Decor({
           ...decor.trees,
           ...quartierPlacements(data, (l) => l.trees).map((t) => ({ x: t.x, z: t.z })),
         ].map((t, i) => ({ ...t, rotY: i })),
+      },
+      {
+        key: 'palms',
+        geometry: palm.build(),
+        material: solidMaterial,
+        items: data.island.palms.map((p, i) => ({ ...p, rotY: i * 1.3 })),
       },
       { key: 'cars', geometry: car.build(), material: solidMaterial, items: cars },
       {
