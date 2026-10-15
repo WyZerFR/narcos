@@ -183,6 +183,22 @@ describe('labo — déplacer et reprendre', () => {
     expect((await move(client, 'f99', 0, 0)).text).toMatch(/plus là/);
   });
 
+  it('glisser : lampe déplacée au-dessus d’un pot acceptée, pot sur pot et lampe sur lampe refusés', async () => {
+    const { client, room } = await newGame('fur-player-0010');
+    await give(client, 'pot', 2);
+    await give(client, 'grow_lamp', 2);
+    const potA = (await place(client, 'pot', -3, -2)).fixtureId!;
+    const potB = (await place(client, 'pot', 3, -2)).fixtureId!;
+    const lampA = (await place(client, 'grow_lamp', 0, -3)).fixtureId!;
+    const lampB = (await place(client, 'grow_lamp', 0, 1)).fixtureId!;
+    expect((await move(client, lampA, -3, -2)).ok).toBe(true);
+    expect((await move(client, potB, -2.6, -2)).text).toMatch(/Ça touche/);
+    expect((await move(client, lampB, -3, -2)).text).toMatch(/Ça touche/);
+    expect(room.state.lab.fixtures.get(potB)!.x).toBe(3);
+    expect(room.state.lab.fixtures.get(lampB)!.z).toBe(1);
+    expect(room.state.lab.fixtures.get(potA)!.x).toBe(-3);
+  });
+
   it('déplacer est refusé si un autre joueur utilise le poste', async () => {
     const { client, room } = await newGame('fur-player-0008');
     const b = await colyseus.sdk.joinById<GameState>(room.roomId, { playerId: 'fur-player-0009' });

@@ -125,6 +125,49 @@ export function checkPlacement(
   return { ok: true, fixture };
 }
 
+/** Joueur vu par les règles de placement (pour nommer qui gêne). */
+export interface Occupant extends Vec2 {
+  id: string;
+  name: string;
+}
+
+/**
+ * Qui se sert de ce meuble, hormis `selfId` : la découpe en cours à son nom (`cutterId`),
+ * ou un autre joueur à portée. Null si le poste est libre (on peut le déplacer).
+ */
+export function fixtureUser(
+  f: Pick<Fixture, 'position' | 'interactRadius'>,
+  occupants: readonly Occupant[],
+  selfId: string,
+  tolerance: number,
+  cutterId?: string,
+): string | null {
+  if (cutterId && cutterId !== selfId)
+    return occupants.find((p) => p.id === cutterId)?.name ?? 'Un associé';
+  const reach = f.interactRadius + tolerance;
+  const other = occupants.find((p) => p.id !== selfId && distance(p, f.position) <= reach);
+  return other?.name ?? null;
+}
+
+/**
+ * Meuble sous un point du sol (appui long) : celui dont l'empreinte, élargie de `margin`,
+ * contient le point ; le plus proche de son centre, les meubles au sol avant les lampes.
+ */
+export function fixtureAt(point: Vec2, fixtures: readonly Fixture[], margin = 0): Fixture | null {
+  let best: Fixture | null = null;
+  let bestScore = Infinity;
+  for (const f of fixtures) {
+    const r = expandRect(fixtureRect(f), margin);
+    if (point.x < r.minX || point.x > r.maxX || point.z < r.minZ || point.z > r.maxZ) continue;
+    const score = distance(point, f.position) + (isSolidFixture(f) ? 0 : 1000);
+    if (score < bestScore) {
+      best = f;
+      bestScore = score;
+    }
+  }
+  return best;
+}
+
 /** Arrondi au pas de placement (évite les 0.6000000001). */
 export function snap(v: number, step: number): number {
   return Math.round(Math.round(v / step) * step * 1000) / 1000;

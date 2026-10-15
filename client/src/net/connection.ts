@@ -199,6 +199,11 @@ class Connection {
     return () => this.noticeListeners.delete(fn);
   }
 
+  /** Message local affiché comme une notice serveur (refus décidé côté client). */
+  localNotice(n: NoticeMessage): void {
+    for (const fn of this.noticeListeners) fn(n);
+  }
+
   onCorrection(fn: CorrectionListener): () => void {
     this.correctionListeners.add(fn);
     return () => this.correctionListeners.delete(fn);

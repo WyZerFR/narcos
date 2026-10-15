@@ -3,6 +3,7 @@ import {
   checkPlacement,
   distance,
   fixtureObstacles,
+  fixtureUser,
   furnitureFixtures,
   gameData,
   generateLayout,
@@ -154,12 +155,10 @@ export function placeFurniture(
 /** Un autre joueur se sert de ce poste (à portée, ou découpe à son nom) ? */
 function usedBy(state: GameState, player: Player, f: Fixture): string | null {
   const cut = state.lab.cuts.get(f.id)?.playerId;
-  if (cut && cut !== player.id) return state.players.get(cut)?.name ?? 'Un associé';
-  const reach = f.interactRadius + config.world.interactTolerance;
-  const other = playersIn(state, player.zone).find(
-    (p) => p.id !== player.id && distance(p, f.position) <= reach,
-  );
-  return other?.name ?? null;
+  const occupants = playersIn(state, player.zone);
+  if (cut && cut !== player.id && !occupants.some((p) => p.id === cut))
+    return state.players.get(cut)?.name ?? 'Un associé';
+  return fixtureUser(f, occupants, player.id, config.world.interactTolerance, cut || undefined);
 }
 
 /** Déplace un meuble posé ; son état de production le suit. */

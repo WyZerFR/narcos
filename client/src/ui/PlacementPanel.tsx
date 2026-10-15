@@ -6,6 +6,7 @@ import {
   checkCurrent,
   confirmPlacement,
   getPlacement,
+  livePosition,
   nudge,
   rotatePlacement,
   usePlacement,
@@ -83,7 +84,8 @@ export function PlacementPanel({ room }: { room: GameRoom }) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!getPlacement()) return;
+      const pl = getPlacement();
+      if (!pl || pl.direct) return;
       const dir = KEY_DIRS[e.code];
       if (dir) nudge(dir[0], dir[1]);
       else if (e.code === 'KeyR') rotatePlacement();
@@ -96,8 +98,10 @@ export function PlacementPanel({ room }: { room: GameRoom }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [room]);
 
-  if (!placement) return null;
-  const check = checkCurrent(room, placement);
+  // glisser direct : pas de panneau, le fantôme rouge / vert suffit
+  if (!placement || placement.direct) return null;
+  const live = livePosition(placement);
+  const check = checkCurrent(room, { ...placement, ...live });
   const valid = check?.ok ?? false;
   const name = gameData.items.get(placement.itemId)?.name ?? placement.itemId;
   const message = placement.pending

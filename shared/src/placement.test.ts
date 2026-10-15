@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { gameData } from './data';
 import { furnitureFixture, type Fixture } from './fixtures';
-import { checkPlacement, generateLayout, snap, type PlacementRequest } from './placement';
+import {
+  checkPlacement,
+  fixtureAt,
+  fixtureUser,
+  generateLayout,
+  snap,
+  type PlacementRequest,
+} from './placement';
 import type { Vec2 } from './geometry';
 
 const lab = gameData.interiors.get('lab')!;
@@ -131,5 +138,47 @@ describe('placement libre — agencement généré (debug)', () => {
       { itemId: 'cutting_table', count: MAX.cutting_table + 3 },
     ]);
     expect(layout.length).toBeLessThanOrEqual(MAX.cutting_table);
+  });
+});
+
+describe('placement — glisser direct et lampes', () => {
+  it('lampe au-dessus d’un pot : valide ; lampe sur lampe : refusée ; pot sur pot : refusé', () => {
+    const pot = fx('f1', 'pot', 0, 0);
+    expect(check({ itemId: 'grow_lamp', x: 0.2, z: 0, rot: 0 }, [pot]).ok).toBe(true);
+    const lamp = fx('f2', 'grow_lamp', 0, 0);
+    expect(check({ itemId: 'grow_lamp', x: 0, z: 0, rot: 0 }, [pot, lamp])).toMatchObject({
+      ok: false,
+      reason: 'furniture',
+    });
+    expect(check({ itemId: 'pot', x: 0.6, z: 0, rot: 0 }, [pot])).toMatchObject({
+      ok: false,
+      reason: 'furniture',
+    });
+  });
+
+  it('lampe : ignore porte, robinet et joueurs, mais reste dans la pièce', () => {
+    const water = lab.stations.find((s) => s.kind === 'water')!;
+    expect(check({ itemId: 'grow_lamp', ...water.position, rot: 0 }).ok).toBe(true);
+    expect(check({ itemId: 'grow_lamp', x: 0, z: 3.6, rot: 0 }).ok).toBe(true);
+    expect(check({ itemId: 'grow_lamp', x: 6.9, z: 0, rot: 0 })).toMatchObject({
+      reason: 'out_of_room',
+    });
+  });
+
+  it('fixtureAt : meuble sous le doigt, le meuble au sol avant la lampe', () => {
+    const pot = fx('f1', 'pot', 0, 0);
+    const lamp = fx('f2', 'grow_lamp', 0.1, 0);
+    expect(fixtureAt({ x: 0.1, z: 0 }, [lamp, pot])?.id).toBe('f1');
+    expect(fixtureAt({ x: 3, z: 3 }, [lamp, pot])).toBeNull();
+  });
+
+  it('fixtureUser : poste libre, joueur à portée, découpe d’un autre', () => {
+    const pot = fx('f1', 'pot', 0, 0);
+    const me = { id: 'a', name: 'Moi', x: 0, z: 1 };
+    const far = { id: 'b', name: 'Bob', x: 5, z: 3 };
+    expect(fixtureUser(pot, [me, far], 'a', 1)).toBeNull();
+    expect(fixtureUser(pot, [me, { ...far, x: 0.5, z: 0.5 }], 'a', 1)).toBe('Bob');
+    expect(fixtureUser(pot, [me, far], 'a', 1, 'b')).toBe('Bob');
+    expect(fixtureUser(pot, [me], 'a', 1, 'a')).toBeNull();
   });
 });

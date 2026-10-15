@@ -319,6 +319,8 @@
     "stepM": 0.2,
     "repeatDelayMs": 300,
     "repeatMs": 90,
+    "grabMarginM": 0.4,
+    "liftM": 0.25,
     "camera": {
       "elevation": 80,
       "zoom": 15
@@ -327,6 +329,7 @@
   "ui": {
     "longPressMs": 350,
     "dragCancelPx": 8,
-    "moveTimeoutMs": 3000
+    "moveTimeoutMs": 3000,
+    "returnMs": 280
   }
 }

@@ -3,6 +3,7 @@ import { MeshBasicMaterial, MeshLambertMaterial } from 'three';
 import { gameData } from '@narco/shared';
 import { applyCutout } from '../city/cutout';
 import { buildRoom } from './buildRoom';
+import { FixtureDrag } from './FixtureDrag';
 import { FixtureProps } from './FixtureProps';
 import { LabProps } from './LabProps';
 import { PlacementGhost } from './PlacementGhost';
@@ -51,6 +52,7 @@ export function Interior({
           <FixtureProps room={room} interior={interior} glowBoost={glowBoost} />
           <LabProps room={room} />
           <PlacementGhost room={room} interior={interior} />
+          <FixtureDrag room={room} />
         </>
       )}
     </>

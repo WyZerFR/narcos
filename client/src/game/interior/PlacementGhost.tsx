@@ -12,7 +12,13 @@ import {
 } from 'three';
 import { gameData, rotatedSize, type Interior } from '@narco/shared';
 import type { GameRoom } from '../../net/connection';
-import { checkCurrent, getPlacement, type Placement } from '../../ui/placementStore';
+import {
+  checkCurrent,
+  getPlacement,
+  liftOf,
+  livePosition,
+  type Placement,
+} from '../../ui/placementStore';
 import { partsFor } from './fixtureParts';
 
 const { palette } = gameData.config;
@@ -36,7 +42,11 @@ const DANGER = new Color(palette.danger);
 export function PlacementGhost({ room, interior }: { room: GameRoom; interior: Interior }) {
   const boxesRef = useRef<InstancedMesh>(null);
   const floorRef = useRef<Mesh>(null);
-  const last = useRef<{ placement: Placement | null; at: number }>({ placement: null, at: 0 });
+  const last = useRef<{ placement: Placement | null; key: string; at: number }>({
+    placement: null,
+    key: '',
+    at: 0,
+  });
   const neon = gameData.locations.get(interior.entranceLocationId)!.neonColor;
 
   const { geometry, boxMat, floorMat } = useMemo(
@@ -64,19 +74,23 @@ export function PlacementGhost({ room, interior }: { room: GameRoom; interior: I
     boxes.visible = floor.visible = pl !== null;
     if (!pl) return;
     const now = performance.now();
-    const moved = pl !== last.current.placement;
+    const pos = livePosition(pl, now);
+    const lift = liftOf(pl);
+    const key = `${pos.x},${pos.z},${pl.rot},${lift}`;
+    const moved = pl !== last.current.placement || key !== last.current.key;
     if (!moved && now - last.current.at < CHECK_MS) return;
-    last.current = { placement: pl, at: now };
+    last.current = { placement: pl, key, at: now };
 
-    const valid = checkCurrent(room, pl)?.ok ?? false;
+    // En glisser, couleur mise à jour en direct avec la même règle que le serveur.
+    const valid = checkCurrent(room, { ...pl, x: pos.x, z: pos.z })?.ok ?? false;
     const color = valid ? OK : DANGER;
     boxMat.color.copy(color);
     floorMat.color.copy(color);
     if (!moved) return;
-    const parts = partsFor(pl.itemId, pl.x, pl.z, pl.rot, neon);
+    const parts = partsFor(pl.itemId, pos.x, pos.z, pl.rot, neon);
     const all = [...parts.solid, ...parts.glow].slice(0, MAX_BOXES);
     all.forEach((b, i) => {
-      m.compose(p.set(b.x, b.y, b.z), q, s.set(b.sx, b.sy, b.sz));
+      m.compose(p.set(b.x, b.y + lift, b.z), q, s.set(b.sx, b.sy, b.sz));
       boxes.setMatrixAt(i, m);
     });
     boxes.count = all.length;
@@ -84,7 +98,7 @@ export function PlacementGhost({ room, interior }: { room: GameRoom; interior: I
     const def = gameData.items.get(pl.itemId)?.placeable;
     if (def) {
       const size = rotatedSize(def, pl.rot);
-      floor.position.set(pl.x, 0.02, pl.z);
+      floor.position.set(pos.x, 0.02, pos.z);
       floor.scale.set(size.w, 0.02, size.d);
     }
   });

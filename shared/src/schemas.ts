@@ -136,6 +136,8 @@ export const ConfigSchema = z.object({
     dragCancelPx: pos,
     /** Sans réponse du serveur à un dépôt après ce délai, le glisser est débloqué (ms). */
     moveTimeoutMs: pos,
+    /** Meuble lâché à une position refusée : durée du retour animé à l'origine (ms). */
+    returnMs: pos,
   }),
   persistence: z.object({
     /** Fréquence des sauvegardes JSON des parties (s). */
@@ -160,6 +162,10 @@ export const ConfigSchema = z.object({
     /** Bouton maintenu : délai avant répétition, puis intervalle (ms). */
     repeatDelayMs: pos,
     repeatMs: pos,
+    /** Marge autour du fantôme où un appui l'attrape pour le glisser (m). */
+    grabMarginM: z.number().nonnegative(),
+    /** Hauteur dont un meuble glissé est soulevé (m). */
+    liftM: z.number().nonnegative(),
     /** Caméra haute pendant le placement (le reste du réglage intérieur est conservé). */
     camera: z.object({ elevation: z.number().min(10).max(89.9), zoom: pos }),
   }),

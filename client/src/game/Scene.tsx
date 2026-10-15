@@ -40,7 +40,9 @@ function CameraRig() {
       target.current.set(localPlayer.x, 0, localPlayer.z);
     }
     // Mode placement : vue haute (config.placement.camera) centrée sur le fantôme.
-    const placing = getPlacement();
+    // (glisser direct d'un meuble : la caméra ne bouge pas sous le doigt)
+    const pl = getPlacement();
+    const placing = pl && !pl.direct ? pl : null;
     const c = placing ? { ...getCamera(), ...placementCamera } : getCamera();
     const follow = placing ?? localPlayer;
     const t = 1 - Math.exp(-cameraRig.followStiffness * Math.min(dt, 0.1));

@@ -38,7 +38,23 @@ export interface Placement {
   pending: number | null;
   /** Dernier refus du serveur (affiché jusqu'au prochain mouvement). */
   error: string | null;
+  /**
+   * Glisser direct d'un meuble posé (appui long dans la scène) : pas de panneau ni de caméra
+   * haute ; au lâcher, envoi immédiat si valide, sinon retour animé à l'origine.
+   */
+  direct?: boolean;
 }
+
+/**
+ * Glisser en cours (doigt ou souris) : position vivante du fantôme, mutée à chaque mouvement
+ * sans re-rendu React ; recopiée dans l'état au lâcher.
+ */
+export const drag = { active: false, x: 0, z: 0 };
+
+/** Retour animé à l'origine après un refus (lu par le fantôme à chaque frame). */
+let returning: { fromX: number; fromZ: number; start: number } | null = null;
+let returnTimer: ReturnType<typeof setTimeout> | null = null;
+const { returnMs } = gameData.config.ui;
 
 let state: Placement | null = null;
 let nextRequest = 1;
@@ -46,6 +62,12 @@ const listeners = new Set<() => void>();
 
 function set(next: Placement | null): void {
   state = next;
+  if (!next) {
+    drag.active = false;
+    returning = null;
+    if (returnTimer) clearTimeout(returnTimer);
+    returnTimer = null;
+  }
   for (const fn of listeners) fn();
 }
 
@@ -63,26 +85,108 @@ export function usePlacement(): Placement | null {
   );
 }
 
-/** Garde le meuble dans la pièce (le serveur refuserait de toute façon). */
-function clampIn(p: Placement): Placement {
+/** Position dans la pièce, alignée sur le pas (le serveur refuserait de toute façon). */
+function clampXZ(itemId: string, rot: number, x: number, z: number): { x: number; z: number } {
   const interior = gameData.interiors.get(localPlayer.zone);
-  const def = gameData.items.get(p.itemId)?.placeable;
-  if (!interior || !def) return p;
+  const def = gameData.items.get(itemId)?.placeable;
+  if (!interior || !def) return { x, z };
   const b = interiorBounds(interior);
-  const size = rotatedSize(def, p.rot);
-  const cx = Math.min(b.maxX - size.w / 2, Math.max(b.minX + size.w / 2, p.x));
-  const cz = Math.min(b.maxZ - size.d / 2, Math.max(b.minZ + size.d / 2, p.z));
-  return { ...p, x: snap(cx, stepM), z: snap(cz, stepM) };
+  const size = rotatedSize(def, rot);
+  const cx = Math.min(b.maxX - size.w / 2, Math.max(b.minX + size.w / 2, x));
+  const cz = Math.min(b.maxZ - size.d / 2, Math.max(b.minZ + size.d / 2, z));
+  return { x: snap(cx, stepM), z: snap(cz, stepM) };
+}
+
+function clampIn(p: Placement): Placement {
+  return { ...p, ...clampXZ(p.itemId, p.rot, p.x, p.z) };
 }
 
 /** Lance le mode placement ; le personnage s'arrête (joystick et ACTION masqués). */
 export function startPlacement(
-  init: Pick<Placement, 'mode' | 'itemId' | 'x' | 'z' | 'rot'> & { fixtureId?: string },
+  init: Pick<Placement, 'mode' | 'itemId' | 'x' | 'z' | 'rot'> & {
+    fixtureId?: string;
+    direct?: boolean;
+  },
 ): void {
   input.joyX = input.joyY = 0;
   input.up = input.down = input.left = input.right = input.run = false;
   const origin = { x: init.x, z: init.z, rot: normRot(init.rot) };
   set(clampIn({ ...init, rot: origin.rot, origin, pending: null, error: null }));
+}
+
+/** Position affichée du fantôme : glisser en cours, retour animé, sinon l'état. */
+export function livePosition(p: Placement, now = performance.now()): { x: number; z: number } {
+  if (drag.active) return drag;
+  if (returning) {
+    const t = Math.min(1, (now - returning.start) / returnMs);
+    const e = 1 - (1 - t) * (1 - t);
+    return {
+      x: returning.fromX + (p.origin.x - returning.fromX) * e,
+      z: returning.fromZ + (p.origin.z - returning.fromZ) * e,
+    };
+  }
+  return p;
+}
+
+/** Hauteur du fantôme : soulevé pendant un glisser direct, redescend pendant le retour. */
+export function liftOf(p: Placement): number {
+  return p.direct && (drag.active || returning || p.pending !== null)
+    ? gameData.config.placement.liftM
+    : 0;
+}
+
+/** Attrape le fantôme au point `at` du sol ; `offset` = fantôme − point (garde la prise). */
+let grab = { dx: 0, dz: 0 };
+export function beginDrag(at: { x: number; z: number }): boolean {
+  if (!state || state.pending !== null || returning) return false;
+  grab = { dx: state.x - at.x, dz: state.z - at.z };
+  Object.assign(drag, { active: true, x: state.x, z: state.z });
+  return true;
+}
+
+export function dragTo(at: { x: number; z: number }): void {
+  if (!state || !drag.active) return;
+  Object.assign(drag, clampXZ(state.itemId, state.rot, at.x + grab.dx, at.z + grab.dz));
+}
+
+/** Retour animé à l'origine, puis fermeture du mode avec le message de refus. */
+function returnToOrigin(from: { x: number; z: number }, message: string): void {
+  if (!state) return;
+  returning = { fromX: from.x, fromZ: from.z, start: performance.now() };
+  set({ ...state, pending: null, error: message });
+  returnTimer = setTimeout(() => {
+    set(null);
+    connection.localNotice({ ok: false, text: message });
+  }, returnMs);
+}
+
+/**
+ * Lâcher : la position vivante devient celle de l'état. En glisser direct, envoi immédiat si
+ * la position est valide, sinon retour à l'origine avec le message clair.
+ */
+export function endDrag(room: GameRoom): void {
+  if (!state || !drag.active) return;
+  const at = { x: drag.x, z: drag.z };
+  drag.active = false;
+  const next = { ...state, ...at, error: null };
+  if (!next.direct) return set(next);
+  if (next.x === next.origin.x && next.z === next.origin.z) return set(null);
+  const check = checkCurrent(room, next);
+  if (!check?.ok) return returnToOrigin(at, check?.message ?? 'Position invalide.');
+  set(next);
+  confirmPlacement(room);
+  const sent = state?.pending ?? null;
+  returnTimer = setTimeout(() => {
+    if (state && sent !== null && state.pending === sent)
+      returnToOrigin(state, 'Pas de réponse du serveur.');
+  }, gameData.config.ui.moveTimeoutMs);
+}
+
+/** Glisser interrompu (pointeur perdu) : retour à l'origine sans rien envoyer. */
+export function abortDrag(): void {
+  if (!state || !drag.active) return;
+  drag.active = false;
+  if (state.direct) set(null);
 }
 
 /** Position de départ d'un objet du sac : devant le joueur, alignée sur le pas. */
@@ -161,5 +265,7 @@ export function confirmPlacement(room: GameRoom): void {
 
 connection.onFixtureResult((r) => {
   if (!state || r.requestId !== state.pending) return;
-  set(r.ok ? null : { ...state, pending: null, error: r.text });
+  if (r.ok) set(null);
+  else if (state.direct) returnToOrigin(state, r.text);
+  else set({ ...state, pending: null, error: r.text });
 });
