@@ -1,5 +1,13 @@
 import { useEffect, useRef } from 'react';
-import { footprint, gameData, obstaclesFrom, rectFromCenter, type Rect } from '@narco/shared';
+import {
+  footprint,
+  gameData,
+  obstaclesFrom,
+  rectFromCenter,
+  STREET,
+  visibleLocations,
+  type Rect,
+} from '@narco/shared';
 import type { GameRoom, PlayerView } from '../net/connection';
 import { connection } from '../net/connection';
 import { getCamera } from '../game/cameraState';
@@ -24,7 +32,7 @@ const ROADS = [
 ];
 const AREAS = [...gameData.areas.values()];
 const SOLIDS = obstaclesFrom(gameData);
-const PLACES = [...gameData.locations.values()];
+const PLACES = visibleLocations(gameData.locations.values()); // jamais la trappe cachée
 
 /**
  * Mini-carte : toute la zone, tournée comme la caméra (le haut de la carte = le haut de l'écran).
@@ -71,6 +79,8 @@ export function Minimap({ room }: { room: GameRoom }) {
       for (const loc of PLACES) rect(footprint(loc), loc.neonColor);
 
       room.state.players?.forEach((p: PlayerView) => {
+        // un joueur dans un intérieur (cave comprise) n'est pas sur la carte de la rue
+        if (p.zone !== STREET) return;
         const me = p.id === connection.playerId;
         const x = me && localPlayer.initialized ? localPlayer.x : p.x;
         const z = me && localPlayer.initialized ? localPlayer.z : p.z;

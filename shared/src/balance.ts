@@ -101,7 +101,8 @@ export function survivalCostReport(
       if (restores?.thirst)
         thirstPointPrice = Math.min(thirstPointPrice, shelf.price / restores.thirst);
     }
-  const { survival, bank, strains } = data.economy;
+  const { survival, launder, strains } = data.economy;
+  const bank = launder.venues.bank;
   const perMinute =
     survival.hungerPerMinute * hungerPointPrice + survival.thirstPerMinute * thirstPointPrice;
   const perHour = perMinute * 60;
@@ -165,4 +166,42 @@ export function areaSalesReport(
       priceVsStreet: a.priceMultiplier / street,
     };
   });
+}
+
+export interface LaunderOption {
+  label: string;
+  /** Argent sale blanchi par heure de jeu ($), plafonds compris. */
+  dirtyPerHour: number;
+  /** Argent propre obtenu par heure de jeu ($). */
+  cleanPerHour: number;
+}
+
+/**
+ * Blanchiment d'un revenu sale de `dirtyPerHour` $/h : banque seule, blanchisseur seul (plafonné),
+ * et combinaison optimale (d'abord le lieu le moins cher, puis l'autre jusqu'à son plafond).
+ */
+export function launderReport(
+  data: Pick<GameData, 'economy'>,
+  dirtyPerHour: number,
+): LaunderOption[] {
+  const { bank, cellar } = data.economy.launder.venues;
+  const capPerHour = (r: typeof bank) => (r.cap * 3600) / r.windowSeconds;
+  const through = (r: typeof bank, dirty: number) => {
+    const used = Math.min(dirty, capPerHour(r));
+    return { used, clean: used * (1 - r.fee) };
+  };
+  const b = through(bank, dirtyPerHour);
+  const c = through(cellar, dirtyPerHour);
+  const [first, second] = cellar.fee <= bank.fee ? [cellar, bank] : [bank, cellar];
+  const one = through(first, dirtyPerHour);
+  const two = through(second, dirtyPerHour - one.used);
+  return [
+    { label: 'Banque seule', dirtyPerHour: b.used, cleanPerHour: b.clean },
+    { label: 'Blanchisseur seul', dirtyPerHour: c.used, cleanPerHour: c.clean },
+    {
+      label: 'Combinaison optimale',
+      dirtyPerHour: one.used + two.used,
+      cleanPerHour: one.clean + two.clean,
+    },
+  ];
 }

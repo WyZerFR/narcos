@@ -47,7 +47,7 @@ export function quartierFrame(
   const housesEnd = housesStart + s.housesLength;
   return {
     dir,
-    axisX: (area.minX + area.maxX) / 2,
+    axisX: s.axisX,
     entranceZ: dir < 0 ? area.maxZ : area.minZ,
     roadwayHalf,
     sidewalkOuter: roadwayHalf + s.sidewalkWidth,
@@ -91,6 +91,21 @@ export function checkQuartier(
     errors.push(`${where} : les maisons débordent de l'area "${area.id}"`);
   if (q.street.housesLength / h.perSide[1] < h.width[0] + h.gap[0])
     errors.push(`${where} : housesLength trop court pour perSide max (largeur + écart min)`);
+  const hc = q.hiddenCellar;
+  if (hc) {
+    if (hc.houseIndex + 1 >= h.perSide[0])
+      errors.push(`${where} : hiddenCellar.houseIndex + 1 doit être < perSide min`);
+    if (q.street.housesLength / h.perSide[1] - hc.passageWidth < h.width[0])
+      errors.push(
+        `${where} : pas la place d'un passage de ${hc.passageWidth} m entre deux maisons`,
+      );
+    const garden = f.sidewalkOuter + h.setback[1] + h.depth[1] + hc.gardenDepth + 1;
+    const edge = hc.side === 'west' ? f.axisX - area.bounds.minX : area.bounds.maxX - f.axisX;
+    if (garden > edge)
+      errors.push(
+        `${where} : jardin caché hors de l'area "${area.id}" (élargir son côté ${hc.side})`,
+      );
+  }
   if (q.street.plazaWidth / 2 < f.sidewalkOuter)
     errors.push(`${where} : la placette doit être au moins aussi large que la rue`);
   const loc = locations.get(q.landmarkLocationId);
@@ -200,6 +215,32 @@ export interface QuartierLayout {
   colliders: Rect[];
   /** Points de passage des PNJ du quartier (chaussée et placette, toujours libres). */
   waypoints: Vec2[];
+  /** Cachette du blanchisseur (passage, jardin, trappe), ou null. */
+  cellar: HiddenCellarLayout | null;
+  /** Zones interdites aux PNJ de vente (passage et jardin de la cachette). */
+  npcBlocked: Rect[];
+}
+
+/** Passage entre deux maisons, jardin arrière clos et trappe de la cave. */
+export interface HiddenCellarLayout {
+  /** Passage piéton entre les deux maisons, du trottoir à la ligne de fond. */
+  passage: Rect;
+  /** Jardin derrière les deux maisons (libre, hors clôtures). */
+  garden: Rect;
+  trapdoor: Vec2;
+  /** Clôtures du jardin (côtés et fond), hauteur `fenceHeight`. */
+  fences: Rect[];
+  fenceHeight: number;
+  /** Remblai plein autour du jardin, jusqu'au bord de l'area (rien d'autre derrière les maisons). */
+  backfill: Rect[];
+  /** Décor solide du jardin : caisses, poubelles, vieux fauteuil. */
+  crates: Vec2[];
+  bins: Vec2[];
+  armchair: Vec2;
+  /** Décor solide en rectangles (caisses, poubelles, fauteuil). */
+  solids: Rect[];
+  /** Ampoule nue au-dessus de la trappe (décor émissif). */
+  bulb: Vec2;
 }
 
 const between = (rng: () => number, [min, max]: readonly [number, number]) =>
@@ -222,6 +263,7 @@ export function generateQuartier(
   frame: QuartierFrame,
   colliders: QuartierColliders,
   car: { length: number; width: number },
+  area: Bounds,
 ): QuartierLayout {
   const rng = seededRng(q.seed);
   const f = frame;
@@ -240,6 +282,12 @@ export function generateQuartier(
   const fences: Rect[] = [];
   const garlands: Garland[] = [];
 
+  // cachette : maisons k et k+1 d'un côté, alignées au fond sur `backLine`, passage entre elles
+  const hc = q.hiddenCellar;
+  const hcSide: -1 | 1 = hc?.side === 'east' ? 1 : -1;
+  const backLine = f.sidewalkOuter + H.setback[1] + H.depth[1];
+  const hiddenSpans: { t0: number; t1: number }[] = [];
+
   for (const side of [-1, 1] as const) {
     const n = Math.round(between(rng, H.perSide));
     const slot = s.housesLength / n;
@@ -252,11 +300,17 @@ export function generateQuartier(
     };
     addLamp(f.housesStart + colliders.lampSize);
     for (let k = 0; k < n; k++) {
+      const hidden = hc && side === hcSide && (k === hc.houseIndex || k === hc.houseIndex + 1);
       const gap = between(rng, H.gap);
-      const w = Math.max(H.width[0], Math.min(between(rng, H.width), slot - gap));
+      const drawnW = Math.max(H.width[0], Math.min(between(rng, H.width), slot - gap));
+      // maisons de la cachette : assez étroites pour laisser le passage entre elles
+      const w = hidden ? Math.min(drawnW, slot - hc.passageWidth) : drawnW;
       const t0 = f.housesStart + k * slot + (slot - w) / 2;
       const setback = between(rng, H.setback);
-      const depth = between(rng, H.depth);
+      const drawnDepth = between(rng, H.depth);
+      // …et profondes jusqu'à la ligne de fond : leurs murs ferment le jardin côté rue
+      const depth = hidden ? backLine - f.sidewalkOuter - setback : drawnDepth;
+      if (hidden) hiddenSpans.push({ t0, t1: t0 + w });
       const frontX = f.axisX + side * (f.sidewalkOuter + setback);
       const backX = frontX + side * depth;
       const za = z(t0);
@@ -332,10 +386,18 @@ export function generateQuartier(
           z: zc,
           rotY: Math.PI / 2,
         });
-      // lampadaire dans l'écart avec la maison suivante (jamais sur la placette)
-      addLamp(Math.min(f.housesStart + (k + 1) * slot, f.housesEnd - colliders.lampSize));
+      // lampadaire dans l'écart avec la maison suivante (jamais sur la placette ni devant
+      // l'entrée du passage caché)
+      if (!(hc && side === hcSide && k === hc.houseIndex))
+        addLamp(Math.min(f.housesStart + (k + 1) * slot, f.housesEnd - colliders.lampSize));
     }
   }
+
+  const cellar =
+    hc && hiddenSpans.length === 2
+      ? hiddenGarden(f, hcSide, backLine, hiddenSpans, hc, colliders, area)
+      : null;
+  if (cellar) fences.push(...cellar.fences);
 
   // placette : lampadaires aux angles, guirlandes, gardes et portail devant le bâtiment du bout
   const plaza = bandRect(f, f.housesEnd, f.plazaEnd, s.plazaWidth / 2);
@@ -385,6 +447,7 @@ export function generateQuartier(
     ...crates.map((p) => square(p, colliders.crateSize)),
     ...cars.map((c) => rectFromCenter(c, carSize)),
     ...fences,
+    ...(cellar ? [...cellar.backfill, ...cellar.solids] : []),
   ];
   // bandes symétriques de part et d'autre de l'axe, entre deux demi-largeurs
   const strips = (inner: number, outer: number): Rect[] => {
@@ -417,6 +480,8 @@ export function generateQuartier(
     gate,
     colliders: colliderRects,
     waypoints: npcWaypoints(f, s),
+    cellar,
+    npcBlocked: cellar ? [cellar.passage, cellar.garden] : [],
   };
 }
 
@@ -430,4 +495,77 @@ function npcWaypoints(f: QuartierFrame, s: QuartierParams['street']): Vec2[] {
   for (const dx of [-s.plazaWidth / 4, 0, s.plazaWidth / 4])
     out.push({ x: f.axisX + dx, z: alongZ(f, mid) });
   return out;
+}
+
+/**
+ * Jardin caché derrière deux maisons voisines d'un côté (`side`) : passage entre elles, jardin
+ * entre la ligne de fond (`backLine`, arrière des deux maisons) et `gardenDepth` plus loin,
+ * clôturé sur trois côtés, remblai plein ailleurs derrière les maisons de ce côté.
+ */
+function hiddenGarden(
+  f: QuartierFrame,
+  side: -1 | 1,
+  backLine: number,
+  spans: { t0: number; t1: number }[],
+  hc: NonNullable<QuartierParams['hiddenCellar']>,
+  colliders: QuartierColliders,
+  area: Bounds,
+): HiddenCellarLayout {
+  const [a, b] = spans as [{ t0: number; t1: number }, { t0: number; t1: number }];
+  const x = (d: number) => f.axisX + side * d;
+  // rectangle entre deux distances à l'axe (côté `side`) et deux distances le long de la rue
+  const box = (d0: number, d1: number, t0: number, t1: number): Rect => {
+    const [x0, x1] = [x(d0), x(d1)];
+    const [z0, z1] = [alongZ(f, t0), alongZ(f, t1)];
+    return {
+      minX: Math.min(x0, x1),
+      maxX: Math.max(x0, x1),
+      minZ: Math.min(z0, z1),
+      maxZ: Math.max(z0, z1),
+    };
+  };
+  const th = colliders.fenceThickness;
+  const outer = backLine + hc.gardenDepth;
+  const edge = side < 0 ? f.axisX - area.minX : area.maxX - f.axisX;
+  const tEnd = Math.abs(f.dir < 0 ? f.entranceZ - area.minZ : area.maxZ - f.entranceZ);
+  const garden = box(backLine, outer, a.t0, b.t1);
+  const passage = box(f.sidewalkOuter, backLine, a.t1, b.t0);
+  const fences = [
+    box(backLine, outer + th, a.t0 - th, a.t0),
+    box(backLine, outer + th, b.t1, b.t1 + th),
+    box(outer, outer + th, a.t0, b.t1),
+  ];
+  const backfill = [
+    box(backLine, edge, 0, a.t0 - th),
+    box(backLine, edge, b.t1 + th, tEnd),
+    box(outer + th, edge, a.t0 - th, b.t1 + th),
+  ].filter((r) => r.maxX - r.minX > 1e-6 && r.maxZ - r.minZ > 1e-6);
+  const along = (k: number) => a.t0 + (b.t1 - a.t0) * k;
+  const deep = (k: number) => backLine + hc.gardenDepth * k;
+  const trapdoor = { x: x(deep(hc.trapdoor.depth)), z: alongZ(f, along(hc.trapdoor.along)) };
+  // décor dans les coins, loin de la trappe et de la sortie du passage
+  const crates = [
+    { x: x(outer - 0.7), z: alongZ(f, a.t0 + 0.7) },
+    { x: x(outer - 0.7), z: alongZ(f, a.t0 + 1.8) },
+  ];
+  const bins = [{ x: x(backLine + 0.6), z: alongZ(f, a.t0 + 0.6) }];
+  const armchair = { x: x(outer - 0.9), z: alongZ(f, b.t1 - 1.2) };
+  const square = (p: Vec2, size: number) => rectFromCenter(p, { w: size, d: size });
+  return {
+    passage,
+    garden,
+    trapdoor,
+    fences,
+    fenceHeight: hc.fenceHeight,
+    backfill,
+    crates,
+    bins,
+    armchair,
+    solids: [
+      ...crates.map((p) => square(p, colliders.crateSize)),
+      ...bins.map((p) => rectFromCenter(p, colliders.binSize)),
+      square(armchair, colliders.crateSize),
+    ],
+    bulb: { x: trapdoor.x, z: trapdoor.z },
+  };
 }

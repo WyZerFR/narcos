@@ -189,6 +189,72 @@
           ]
         }
       ]
+    },
+    {
+      "id": "launderer",
+      "venue": "cellar",
+      "start": [
+        {
+          "node": "hello"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "hello",
+          "speaker": "Le Blanchisseur",
+          "text": "T'es perdu, petit ?",
+          "choices": [
+            {
+              "id": "ask",
+              "label": "Je cherche quelqu'un qui lave le linge sale.",
+              "next": "offer",
+              "requires": ["account"]
+            },
+            {
+              "id": "ask_no_account",
+              "label": "Je cherche quelqu'un qui lave le linge sale.",
+              "next": "no_account",
+              "requires": ["no_account"]
+            },
+            {
+              "id": "oops",
+              "label": "Oups, mauvaise porte.",
+              "next": null
+            }
+          ]
+        },
+        {
+          "id": "offer",
+          "speaker": "Le Blanchisseur",
+          "text": "{fee} pour cent. Pas un dollar de moins, et pas plus de {cap} $ toutes les {window} minutes. Le reste, je le lave avec les draps. Ça te va ?",
+          "choices": [
+            {
+              "id": "launder",
+              "label": "Je veux blanchir",
+              "next": null,
+              "requires": ["account"],
+              "action": "open_launder"
+            },
+            {
+              "id": "later",
+              "label": "Pas maintenant",
+              "next": null
+            }
+          ]
+        },
+        {
+          "id": "no_account",
+          "speaker": "Le Blanchisseur",
+          "text": "Pas de compte, pas de lessive. Va voir le banquier.",
+          "choices": [
+            {
+              "id": "end",
+              "label": "J'y vais.",
+              "next": null
+            }
+          ]
+        }
+      ]
     }
   ]
 }

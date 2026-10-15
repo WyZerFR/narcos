@@ -6,7 +6,14 @@ import { gameNow } from '../net/gameView';
 import { placeView } from './stationView';
 import { fixturesFor, placesOf, useFixtures } from './fixtureState';
 import { useNpcList } from './npcState';
-import { footprint, gameData, segmentHitsBox, STREET, type Box } from '@narco/shared';
+import {
+  footprint,
+  gameData,
+  segmentHitsBox,
+  STREET,
+  visibleLocations,
+  type Box,
+} from '@narco/shared';
 import type { PlayerInfo } from './Players';
 
 /**
@@ -90,7 +97,7 @@ for (const interior of gameData.interiors.values()) {
 }
 
 // Les lieux ne bougent pas : ancres posées une fois pour toutes.
-for (const loc of gameData.locations.values()) {
+for (const loc of visibleLocations(gameData.locations.values())) {
   const y = loc.height + (loc.kind === 'area' ? 1 : 2.2);
   setLabelAnchor(`place:${loc.id}`, () => ({ x: loc.position.x, y, z: loc.position.z }));
 }
@@ -190,7 +197,7 @@ export function LabelLayer({
   return (
     <div className="label-layer">
       {zone === STREET &&
-        [...gameData.locations.values()].map((loc) => (
+        visibleLocations(gameData.locations.values()).map((loc) => (
           <div
             key={loc.id}
             ref={bindElement(`place:${loc.id}`)}

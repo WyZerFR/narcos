@@ -42,6 +42,7 @@ export interface PlayerView {
   hasAccount: boolean;
   pactAccepted: boolean;
   launderLog: { at: number; amount: number }[];
+  cellarLaunderLog: { at: number; amount: number }[];
   cart: CartLineView[];
   cartTotal: number;
   cartDirty: number;

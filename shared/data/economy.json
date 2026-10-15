@@ -112,12 +112,25 @@
   "sale": {
     "priceVariance": 0.2
   },
-  "bank": {
-    "fee": 0.5,
-    "launderCap": 5000,
-    "capWindowSeconds": 1800,
+  "launder": {
     "step": 50,
-    "quickAmounts": [100, 500]
+    "quickAmounts": [100, 500],
+    "venues": {
+      "bank": {
+        "fee": 0.5,
+        "cap": 5000,
+        "windowSeconds": 1800,
+        "requireAccount": true,
+        "noAccountText": "Ouvrez d'abord un compte."
+      },
+      "cellar": {
+        "fee": 0.15,
+        "cap": 1500,
+        "windowSeconds": 1800,
+        "requireAccount": true,
+        "noAccountText": "Ouvre d'abord un compte à la banque."
+      }
+    }
   },
   "lab": {
     "waterPerWatering": 1,

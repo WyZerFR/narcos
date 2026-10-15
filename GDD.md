@@ -59,6 +59,12 @@ La rue centrale (banque, Bricoshop, épicerie, point relais, ruelles) dessert de
 - **Rôle futur** : conflit avec El Jefe pour le Nord (`controlledBy`), patrouilles de police pondérées par le danger, rachat de maisons des impasses (planques, fronts).
 - Trajets : départ → bout d'une impasse < 45 s à pied, bout à bout < 60 s.
 
+### 3.2 ter Blanchisseur du Sud
+
+- **Cachette** : un passage étroit entre deux maisons de l'impasse Sud mène à un jardin arrière clos ; une trappe y descend à la cave du blanchisseur. Aucune étiquette ni marqueur : seule une lueur filtre de la trappe, et « Descendre » n'apparaît qu'à 1,5 m.
+- **Tarif** : 15 % de commission (contre 50 % à la banque), plafond de 1500 $ par demi-heure, séparé de celui de la banque. Le net est versé sur le compte bancaire : **compte exigé** (« Pas de compte, pas de lessive »).
+- **Rôle** : la banque reste nécessaire au-delà du plafond de la cave ; la cave, plus rentable, est un secret de quartier (futur : Heat, descentes de police, El Jefe qui veut sa part).
+
 ### 3.3 Lieux et fonction de gameplay
 
 | Lieu                           | Zone | Fonction                                                                                                                        |

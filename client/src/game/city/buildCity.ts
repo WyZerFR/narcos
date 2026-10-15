@@ -9,6 +9,7 @@ import {
   type GameData,
   type GameLocation,
   type Rect,
+  visibleLocations,
 } from '@narco/shared';
 import { Batch, faceOf, mix, seeded, shade, SIDES, type Face } from './batch';
 import { buildQuartiers } from './buildQuartiers';
@@ -41,7 +42,7 @@ export interface CityGeometry {
 export function buildCity(data: GameData): CityGeometry {
   const ctx: Ctx = { solid: new Batch(), glow: new Batch(), data };
   buildGround(ctx);
-  for (const loc of data.locations.values()) buildLocation(ctx, loc);
+  for (const loc of visibleLocations(data.locations.values())) buildLocation(ctx, loc);
   for (const block of data.blocks) buildFiller(ctx, block);
   buildQuartiers(ctx, data);
   return { solid: ctx.solid.build(), glow: ctx.glow.build() };

@@ -14,6 +14,7 @@ const radius = config.world.playerRadius;
 const grid = createNavGrid(config.world.bounds, obstacles, radius, 0.5);
 const fromSpawn = distancesFrom(grid, config.players.spawn);
 const width = (r: Rect) => r.maxX - r.minX;
+const areaOf = (l: { areaId: string }) => gameData.areas.get(l.areaId)!.bounds;
 
 describe('génération des impasses', () => {
   it('deux impasses générées : nord et sud', () => {
@@ -26,13 +27,20 @@ describe('génération des impasses', () => {
   it('déterministe : même graine, même résultat ; autre graine, autre résultat', () => {
     for (const l of layouts) {
       const q = paramsOf(l.id);
-      const again = generateQuartier(q, l.frame, gameData.quartierColliders, config.decor.carSize);
+      const again = generateQuartier(
+        q,
+        l.frame,
+        gameData.quartierColliders,
+        config.decor.carSize,
+        areaOf(l),
+      );
       expect(again).toEqual(l);
       const other = generateQuartier(
         { ...q, seed: `${q.seed}-autre` },
         l.frame,
         gameData.quartierColliders,
         config.decor.carSize,
+        areaOf(l),
       );
       expect(other).not.toEqual(l);
     }
@@ -156,5 +164,62 @@ describe('accès aux impasses depuis la rue centrale', () => {
         l.id,
       ).toBe(false);
     }
+  });
+});
+
+describe('cachette du Quartier Sud', () => {
+  const sud = layouts.find((l) => l.id === 'sud')!;
+  const c = sud.cellar!;
+  const hc = paramsOf('sud').hiddenCellar!;
+  const center = (r: Rect) => ({ x: (r.minX + r.maxX) / 2, z: (r.minZ + r.maxZ) / 2 });
+
+  it('seul le Sud a une cachette ; trappe = lieu trappe_cave, caché, dans le jardin', () => {
+    expect(layouts.find((l) => l.id === 'nord')!.cellar).toBeNull();
+    const trap = gameData.locations.get(hc.locationId)!;
+    expect(trap.hidden).toBe(true);
+    expect(trap.interactRadius).toBe(1.5);
+    expect(rectContainsPoint(c.garden, c.trapdoor)).toBe(true);
+    expect(Math.hypot(trap.position.x - c.trapdoor.x, trap.position.z - c.trapdoor.z)).toBeLessThan(
+      0.05,
+    );
+  });
+
+  it('passage d’au moins la largeur configurée, libre, entre deux maisons voisines', () => {
+    expect(c.passage.maxZ - c.passage.minZ).toBeGreaterThanOrEqual(hc.passageWidth - 1e-9);
+    expect(obstacles.some((o) => rectsOverlap(o, c.passage))).toBe(false);
+    const side = hc.side === 'west' ? -1 : 1;
+    const neighbours = sud.houses.filter(
+      (h) => h.side === side && (h.rect.maxZ === c.passage.minZ || h.rect.minZ === c.passage.maxZ),
+    );
+    expect(neighbours).toHaveLength(2);
+  });
+
+  it('aucune maison ne chevauche le jardin ; le jardin n’est accessible que par le passage', () => {
+    for (const h of sud.houses) expect(rectsOverlap(h.rect, c.garden), h.id).toBe(false);
+    // sans le passage (bouché), la trappe devient inaccessible depuis le départ
+    const plugged = createNavGrid(config.world.bounds, [...obstacles, c.passage], radius, 0.5);
+    const d = distancesFrom(plugged, config.players.spawn)[cellIndex(plugged, c.trapdoor)]!;
+    expect(d).toBe(Infinity);
+  });
+
+  it('passage, jardin et trappe atteignables depuis le départ (grille de navigation)', () => {
+    for (const p of [center(c.passage), center(c.garden), c.trapdoor])
+      expect(Number.isFinite(fromSpawn[cellIndex(grid, p)]!), JSON.stringify(p)).toBe(true);
+    expect(isBlocked(c.trapdoor, radius, obstacles)).toBe(false);
+  });
+
+  it('chaussée ≥ 6 m, placette devant Le Local dégagée, maisons dans la fourchette', () => {
+    expect(width(sud.road)).toBeGreaterThanOrEqual(6);
+    expect(obstacles.some((o) => rectsOverlap(o, sud.plaza))).toBe(false);
+    const [min, max] = paramsOf('sud').houses.perSide;
+    for (const side of [-1, 1]) {
+      const n = sud.houses.filter((h) => h.side === side).length;
+      expect(n).toBeGreaterThanOrEqual(min);
+      expect(n).toBeLessThanOrEqual(max);
+    }
+  });
+
+  it('PNJ exclus : passage et jardin dans npcBlocked', () => {
+    expect(sud.npcBlocked).toEqual([c.passage, c.garden]);
   });
 });

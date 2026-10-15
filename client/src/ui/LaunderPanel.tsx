@@ -7,19 +7,29 @@ import {
   launderRemaining,
   launderSplit,
   type BankLaunderMessage,
+  type LaunderVenue,
 } from '@narco/shared';
 import { connection, type GameRoom } from '../net/connection';
 import { gameNow, readBag, useRoomVersion } from '../net/gameView';
 import { localPlayer } from '../game/localPlayer';
 
-const RULES = gameData.economy.bank;
+const LAUNDER = gameData.economy.launder;
+const TITLE: Record<LaunderVenue, string> = {
+  bank: "🏦 Blanchir de l'argent",
+  cellar: '🧺 Lessive du blanchisseur',
+};
 
 /**
- * Guichet de la banque : montant sale à blanchir (− / +, montants rapides, « Tout »), commission
- * et net affichés pour l'aperçu. Le serveur recalcule et valide tout (compte, sac, plafond).
+ * Panneau de blanchiment d'un lieu (guichet de la banque, bureau du blanchisseur) : montant sale
+ * (− / +, montants rapides, « Tout »), commission, net et plafond restant du lieu pour l'aperçu.
+ * Le serveur recalcule et valide tout (zone, proximité, compte, sac, plafond du lieu).
  */
 export function LaunderPanel({ room }: { room: GameRoom }) {
-  const [open, setOpen] = useState<{ stationId: string; zone: string } | null>(null);
+  const [open, setOpen] = useState<{
+    stationId: string;
+    venue: LaunderVenue;
+    zone: string;
+  } | null>(null);
   const [amount, setAmount] = useState(0);
   const [pending, setPending] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -29,14 +39,17 @@ export function LaunderPanel({ room }: { room: GameRoom }) {
 
   const me = room.state.players?.get(connection.playerId);
   const dirty = count(readBag(room, connection.playerId), DIRTY_CASH);
-  const left = me ? launderRemaining([...(me.launderLog ?? [])], gameNow(), RULES) : 0;
+  const venue = open?.venue ?? 'bank';
+  const RULES = LAUNDER.venues[venue];
+  const log = venue === 'bank' ? me?.launderLog : me?.cellarLaunderLog;
+  const left = me ? launderRemaining([...(log ?? [])], gameNow(), RULES) : 0;
   const max = Math.min(dirty, left);
 
   useEffect(
     () =>
       connection.onLaunder((e) => {
         if ('open' in e) {
-          setOpen({ stationId: e.open.stationId, zone: localPlayer.zone });
+          setOpen({ stationId: e.open.stationId, venue: e.open.venue, zone: localPlayer.zone });
           setError(null);
           pendingRef.current = null;
           setPending(null);
@@ -78,7 +91,7 @@ export function LaunderPanel({ room }: { room: GameRoom }) {
 
   return (
     <div className="sale-panel launder-panel" role="dialog" aria-label="Blanchir">
-      <h3>🏦 Blanchir de l'argent</h3>
+      <h3>{TITLE[venue]}</h3>
       <div className="sale-row">
         <span>Espèces sales : {dirty} $</span>
         <span>Plafond restant : {left} $</span>
@@ -90,7 +103,7 @@ export function LaunderPanel({ room }: { room: GameRoom }) {
             type="button"
             className="btn"
             disabled={value <= 0}
-            onClick={() => set(value - RULES.step)}
+            onClick={() => set(value - LAUNDER.step)}
           >
             −
           </button>
@@ -99,14 +112,14 @@ export function LaunderPanel({ room }: { room: GameRoom }) {
             type="button"
             className="btn"
             disabled={value >= max}
-            onClick={() => set(value + RULES.step)}
+            onClick={() => set(value + LAUNDER.step)}
           >
             +
           </button>
         </div>
       </div>
       <div className="launder-quick">
-        {RULES.quickAmounts.map((q) => (
+        {LAUNDER.quickAmounts.map((q) => (
           <button key={q} type="button" className="btn" disabled={max <= 0} onClick={() => set(q)}>
             {q}
           </button>

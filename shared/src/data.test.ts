@@ -33,7 +33,7 @@ describe('données du jeu', () => {
     expect(gameData.economy.dealer.weeklyCost).toBe(100);
   });
 
-  it('ne contient que la zone 1 avec ses 9 lieux', () => {
+  it('ne contient que la zone 1 avec ses 10 lieux (dont la trappe cachée)', () => {
     expect([...gameData.zones.keys()]).toEqual(['zone1']);
     expect([...gameData.locations.keys()].sort()).toEqual(
       [
@@ -46,6 +46,7 @@ describe('données du jeu', () => {
         'ruelle_nord',
         'ruelle_sud',
         'shop',
+        'trappe_cave',
       ].sort(),
     );
     for (const loc of gameData.locations.values()) expect(loc.zone).toBe('zone1');
@@ -136,7 +137,13 @@ describe('dialogues.json et banque', () => {
       'teller_1',
       'teller_2',
     ]);
-    expect(gameData.economy.bank.fee).toBe(0.5);
+    expect(gameData.economy.launder.venues.bank).toEqual({
+      fee: 0.5,
+      cap: 5000,
+      windowSeconds: 1800,
+      requireAccount: true,
+      noAccountText: "Ouvrez d'abord un compte.",
+    });
   });
 
   it('refuse un dialogue mal formé : nœud suivant inconnu, variable inconnue, action inconnue', () => {
@@ -158,7 +165,7 @@ describe('dialogues.json et banque', () => {
 
   it('refuse une commission ≥ 100 % et un poste « talk » sans dialogue', () => {
     const r = raw();
-    (r.economy as { bank: { fee: number } }).bank.fee = 1;
+    (r.economy as { launder: { venues: { bank: { fee: number } } } }).launder.venues.bank.fee = 1;
     expect(() => parseGameData(r)).toThrow(/economy\.json invalide[\s\S]*bank\.fee/);
     const r2 = raw();
     const zones = r2.zones as { interiors: { id: string; stations: { dialogue?: string }[] }[] };

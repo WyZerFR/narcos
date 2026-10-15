@@ -308,6 +308,23 @@ export const StrainSchema = z.object({
   pouchSellPrice: nonNeg,
 });
 
+/** Lieux de blanchiment : la banque (guichets) et la cave du blanchisseur (Quartier Sud). */
+export const LaunderVenueSchema = z.enum(['bank', 'cellar']);
+
+/** Règles d'un lieu de blanchiment ; chaque lieu a son propre plafond glissant. */
+export const LaunderRulesSchema = z.object({
+  /** Commission prélevée sur la somme sale (0.5 = 50 %). */
+  fee: z.number().min(0).lt(1),
+  /** Somme sale blanchissable par joueur sur la fenêtre glissante ($). */
+  cap: z.number().int().positive(),
+  /** Durée de la fenêtre glissante du plafond (s de temps de jeu, gelée sans joueur). */
+  windowSeconds: pos,
+  /** Compte bancaire ouvert exigé (le net est versé sur le compte). */
+  requireAccount: z.boolean(),
+  /** Refus affiché sans compte. */
+  noAccountText: z.string().min(1),
+});
+
 const SkillSchema = z.object({ maxRank: z.number().int().positive(), effectPerRank: z.number() });
 
 export const EconomySchema = z.object({
@@ -363,18 +380,13 @@ export const EconomySchema = z.object({
   sale: z.object({
     priceVariance: z.number().min(0).lt(1),
   }),
-  /** Banque : blanchiment de l'argent sale du sac vers le compte propre. */
-  bank: z.object({
-    /** Commission prélevée sur la somme sale (0.5 = 50 %). */
-    fee: z.number().min(0).lt(1),
-    /** Somme sale blanchissable par joueur sur la fenêtre glissante ($). */
-    launderCap: z.number().int().positive(),
-    /** Durée de la fenêtre glissante du plafond (s de temps de jeu, gelée sans joueur). */
-    capWindowSeconds: pos,
+  /** Blanchiment de l'argent sale du sac vers le compte propre, par lieu (banque, cave). */
+  launder: z.object({
     /** Pas des boutons − / + du panneau ($). */
     step: z.number().int().positive(),
     /** Montants rapides proposés au guichet ($). */
     quickAmounts: z.array(z.number().int().positive()),
+    venues: z.object({ bank: LaunderRulesSchema, cellar: LaunderRulesSchema }),
   }),
   /** Labo : postes de production. */
   lab: z.object({
@@ -436,6 +448,8 @@ export const StationSchema = z.object({
   vendor: z.string().min(1).optional(),
   /** Poste `talk` : id du dialogue (dialogues.json). */
   dialogue: z.string().min(1).optional(),
+  /** Poste où l'on blanchit (défaut : guichet `teller` = banque). */
+  launderVenue: LaunderVenueSchema.optional(),
 });
 
 /** Pièce intérieure : une « zone » où le joueur passe en franchissant la porte d'un lieu. */
@@ -452,6 +466,19 @@ export const InteriorSchema = z.object({
   stations: z.array(StationSchema).min(1),
   /** On peut y poser librement des meubles (labo). */
   furnishable: z.boolean().default(false),
+  /** Ambiance de rendu : pièce carrelée (défaut) ou cave de pierre, plus sombre. */
+  style: z.enum(['default', 'cellar']).default('default'),
+  /** Décor de la pièce (caisses, coffre, escalier, ampoule) ; `solid` = obstacle. */
+  props: z
+    .array(
+      z.object({
+        kind: z.enum(['crate', 'safe', 'stairs', 'bulb']),
+        position: Vec2Schema,
+        size: z.object({ w: pos, d: pos }),
+        solid: z.boolean(),
+      }),
+    )
+    .default([]),
 });
 
 export const ZonesFileSchema = z.object({ interiors: z.array(InteriorSchema) });
@@ -487,7 +514,7 @@ export const ShopsFileSchema = z.object({ shops: z.array(ShopSchema) });
  */
 export const DialogueConditionSchema = z.enum(['account', 'no_account', 'pact', 'no_pact']);
 /** Actions exécutées par le serveur quand le choix est validé. */
-export const DialogueActionSchema = z.enum(['open_account', 'accept_pact']);
+export const DialogueActionSchema = z.enum(['open_account', 'accept_pact', 'open_launder']);
 
 export const DialogueChoiceSchema = z.object({
   id: z.string().min(1),
@@ -508,6 +535,8 @@ export const DialogueNodeSchema = z.object({
 
 export const DialogueSchema = z.object({
   id: z.string().min(1),
+  /** Lieu de blanchiment dont {fee}, {cap} et {window} sont tirés (banque par défaut). */
+  venue: LaunderVenueSchema.optional(),
   /** Nœud d'entrée : le premier dont les conditions sont remplies. */
   start: z
     .array(
@@ -558,6 +587,7 @@ export const SilhouetteSchema = z.enum([
   'kiosk',
   'alley',
   'bank',
+  'trapdoor',
 ]);
 
 export const DoorSideSchema = z.enum(['north', 'south', 'east', 'west']);
@@ -587,6 +617,8 @@ export const LocationSchema = z.object({
   dialogue: z.string().min(1).optional(),
   /** Libellé du bouton ACTION devant ce lieu (défaut « Entrer : nom »). */
   actionLabel: z.string().min(1).optional(),
+  /** Lieu caché : ni étiquette flottante, ni marqueur de mini-carte, ni bâtiment rendu. */
+  hidden: z.boolean().default(false),
   catalog: z.array(CatalogEntrySchema),
 });
 
@@ -640,7 +672,8 @@ export type DialogueAction = z.infer<typeof DialogueActionSchema>;
 export type DialogueChoice = z.infer<typeof DialogueChoiceSchema>;
 export type DialogueNode = z.infer<typeof DialogueNodeSchema>;
 export type Dialogue = z.infer<typeof DialogueSchema>;
-export type BankRules = Economy['bank'];
+export type LaunderVenue = z.infer<typeof LaunderVenueSchema>;
+export type LaunderRules = z.infer<typeof LaunderRulesSchema>;
 
 // ---------- areas.json ----------
 /** Qui tient une area (lu plus tard par le conflit et la police) ; null = personne. */
@@ -682,6 +715,8 @@ export const QuartierSchema = z.object({
   landmarkLocationId: z.string().min(1),
   seed: z.string().min(1),
   street: z.object({
+    /** Axe de la rue de l'impasse (x), dans le prolongement de la rue centrale. */
+    axisX: z.number(),
     /** Chaussée roulante, toujours libre (≥ 6 m). */
     roadWidth: z.number().min(6),
     /** Bande de stationnement de chaque côté de la chaussée. */
@@ -738,6 +773,22 @@ export const QuartierSchema = z.object({
   }),
   /** Arche d'entrée avec enseigne néon. */
   arch: z.object({ label: z.string().min(1), height: pos }),
+  /**
+   * Cachette (Quartier Sud) : passage étroit entre les maisons `houseIndex` et `houseIndex + 1`
+   * du côté `side`, jardin arrière clos derrière elles, trappe (lieu `locationId`) dans le
+   * jardin, placée par fractions de sa longueur (`along`) et de sa profondeur (`depth`).
+   */
+  hiddenCellar: z
+    .object({
+      locationId: z.string().min(1),
+      side: z.enum(['west', 'east']),
+      houseIndex: z.number().int().nonnegative(),
+      passageWidth: pos,
+      gardenDepth: pos,
+      fenceHeight: pos,
+      trapdoor: z.object({ along: z.number().min(0).max(1), depth: z.number().min(0).max(1) }),
+    })
+    .optional(),
   /** Bâtiment du bout : portail, gardes statiques, guirlandes sur la placette. */
   landmark: z.object({
     gate: z.boolean(),

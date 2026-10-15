@@ -15,8 +15,6 @@ import { connection, type GameRoom } from '../net/connection';
 import { useRoomVersion } from '../net/gameView';
 import { localPlayer } from '../game/localPlayer';
 
-const VARS = dialogueVars(gameData.economy);
-
 /**
  * Dialogue avec un personnage (courtier, El Jefe, plus tard les vendeurs) : nom, texte,
  * boutons de réponse. Textes et choix viennent de dialogues.json ; le serveur valide chaque
@@ -58,7 +56,8 @@ export function DialoguePanel({ room }: { room: GameRoom }) {
   }, [current]);
 
   if (!current?.nodeId) return null;
-  const node = dialogueNode(gameData.dialogues.get(current.dialogueId)!, current.nodeId);
+  const dialogue = gameData.dialogues.get(current.dialogueId)!;
+  const node = dialogueNode(dialogue, current.nodeId);
   const me = room.state.players?.get(connection.playerId);
   if (!node || !me) return null;
   const ctx: DialogueContext = {
@@ -79,7 +78,9 @@ export function DialoguePanel({ room }: { room: GameRoom }) {
   return (
     <div className="sale-panel dialogue-panel" role="dialog" aria-label={node.speaker}>
       <h3>💬 {node.speaker}</h3>
-      <p className="dialogue-text">{fillText(node.text, VARS)}</p>
+      <p className="dialogue-text">
+        {fillText(node.text, dialogueVars(gameData.economy, dialogue.venue))}
+      </p>
       {error && <div className="sale-error">{error}</div>}
       <div className="dialogue-choices">
         {availableChoices(node, ctx).map((c) => (

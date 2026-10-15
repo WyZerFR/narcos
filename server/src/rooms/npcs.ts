@@ -53,13 +53,19 @@ const WAYPOINTS = new Map<string, Vec2[]>(
 );
 const waypointsOf = (areaId: string) => WAYPOINTS.get(areaId) ?? [];
 
-/** Grille d'une area (obstacles gonflés du rayon d'un PNJ, bornée à l'area), construite une fois. */
-function gridOf(areaId: string): NavGrid {
+/** Zones interdites aux PNJ de vente (passage et jardin de la cachette du Quartier Sud). */
+const NPC_BLOCKED = [...gameData.quartierLayouts.values()].flatMap((l) => l.npcBlocked);
+
+/**
+ * Grille d'une area (obstacles gonflés du rayon d'un PNJ, bornée à l'area, sans la cachette),
+ * construite une fois.
+ */
+export function gridOf(areaId: string): NavGrid {
   let g = grids.get(areaId);
   if (!g) {
     g = createNavGrid(
       gameData.areas.get(areaId)!.bounds,
-      obstaclesFrom(gameData),
+      [...obstaclesFrom(gameData), ...NPC_BLOCKED],
       NPC.radius,
       NPC.navCellSize,
     );
