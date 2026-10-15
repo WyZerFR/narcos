@@ -43,7 +43,8 @@ describe('placement libre — règles', () => {
     expect(check({ itemId: 'drying_rack', x: 6.5, z: -3, rot: 0 })).toMatchObject({
       reason: 'out_of_room',
     });
-    expect(check({ itemId: 'drying_rack', x: 6.5, z: -3, rot: 1 }).ok).toBe(true);
+    // collé au mur (règle des écarts : collé ou un vrai passage)
+    expect(check({ itemId: 'drying_rack', x: 6.6, z: -3.4, rot: 1 }).ok).toBe(true);
     expect(check({ itemId: 'drying_rack', x: 6.5, z: -3, rot: 1.5 })).toMatchObject({
       reason: 'bad_position',
     });

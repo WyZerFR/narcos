@@ -46,7 +46,7 @@ import {
 import { footprint, interactionPoint } from './locations';
 import { interiorBounds, interiorObstacles } from './zones';
 
-import { obstaclesFrom } from './collision';
+import { findSlits, obstaclesFrom } from './collision';
 import { dialogueVars, textVars } from './dialogue';
 import { areaAt, areasEnvelope } from './areas';
 import { checkQuartier, generateQuartier, quartierFrame, type QuartierLayout } from './quartiers';
@@ -308,7 +308,14 @@ export function parseGameData(raw: RawGameData): GameData {
     if (frame)
       quartierLayouts.set(
         q.id,
-        generateQuartier(q, frame, quartiersFile.colliders, config.decor.carSize, area!.bounds),
+        generateQuartier(
+          q,
+          frame,
+          quartiersFile.colliders,
+          config.decor.carSize,
+          area!.bounds,
+          2 * config.world.playerRadius + config.collision.passageMargin,
+        ),
       );
   }
 
@@ -464,6 +471,25 @@ export function parseGameData(raw: RawGameData): GameData {
   if (config.movement.runSpeed < config.movement.walkSpeed)
     errors.push('config.json : runSpeed doit être >= walkSpeed');
   errors.push(...checkAreas(config, areas, locFile.locations, quartiers));
+  // écarts : deux obstacles se touchent ou laissent un vrai passage (diamètre + marge)
+  const minGap = 2 * config.world.playerRadius + config.collision.passageMargin;
+  const fmt = (r: Rect) => `(${r.minX.toFixed(2)}, ${r.minZ.toFixed(2)})`;
+  for (const interior of zonesFile.interiors) {
+    const b = interiorBounds(interior);
+    const walls = [
+      { minX: b.minX - 1, maxX: b.maxX + 1, minZ: b.minZ - 1, maxZ: b.minZ },
+      { minX: b.minX - 1, maxX: b.maxX + 1, minZ: b.maxZ, maxZ: b.maxZ + 1 },
+      { minX: b.minX - 1, maxX: b.minX, minZ: b.minZ, maxZ: b.maxZ },
+      { minX: b.maxX, maxX: b.maxX + 1, minZ: b.minZ, maxZ: b.maxZ },
+    ];
+    for (const [a, c] of findSlits([...interiorObstacles(interior), ...walls], minGap))
+      errors.push(
+        `zones.json : "${interior.id}" : fente de moins de ${minGap} m entre ${fmt(a)} et ${fmt(c)}`,
+      );
+  }
+  for (const layout of quartierLayouts.values())
+    for (const [a, c] of findSlits(layout.colliders, minGap))
+      errors.push(`quartiers.json : "${layout.id}" : fente entre ${fmt(a)} et ${fmt(c)}`);
   for (const layout of quartierLayouts.values()) {
     const q = quartiers.get(layout.id)!;
     // chaque jardin déclaré a été généré (ses deux maisons existent de ce côté)

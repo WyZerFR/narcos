@@ -292,8 +292,8 @@ describe('partie neuve → pochons', () => {
     const potSpots = [
       [-5, -2.8],
       [-2.6, -2.8],
-      [-5, -0.4],
-      [-2.6, -0.4],
+      [-4.6, -0.4],
+      [-2.2, -0.4],
     ] as const;
     const pots: string[] = [];
     for (const [x, z] of potSpots.slice(0, SEEDS)) pots.push(await place('pot', x, z));

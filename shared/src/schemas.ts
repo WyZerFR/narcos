@@ -95,6 +95,16 @@ export const ConfigSchema = z.object({
     /** Marge (m) accordée par le serveur sur le rayon d'interaction (latence). */
     interactTolerance: nonNeg,
   }),
+  /**
+   * Collisions joueur (shared/collision.ts, mêmes réglages client et serveur) : sous-pas maximal
+   * d'un déplacement (m, < rayon), écart toléré entre position prédite et trajet rejoué par le
+   * serveur avant correction (m), marge exigée au-delà du diamètre pour un passage (m).
+   */
+  collision: z.object({
+    maxSubStep: pos,
+    correctionThreshold: nonNeg,
+    passageMargin: nonNeg,
+  }),
   players: z.object({
     colors: z.array(hexColor).min(1),
     /** Point de départ : un carton dans la rue. */

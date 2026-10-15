@@ -25,6 +25,11 @@
     "playerRadius": 0.45,
     "interactTolerance": 1
   },
+  "collision": {
+    "maxSubStep": 0.225,
+    "correctionThreshold": 0.45,
+    "passageMargin": 0.1
+  },
   "players": {
     "colors": ["#e63946", "#2a9d8f", "#f4c430"],
     "spawn": {

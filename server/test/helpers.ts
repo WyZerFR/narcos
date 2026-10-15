@@ -21,11 +21,12 @@ export async function bootOn(port: number): Promise<ColyseusTestServer> {
 export const TEST_LAYOUT = {
   pot_1: { itemId: 'pot', x: -5, z: -2.8, rot: 0 },
   pot_2: { itemId: 'pot', x: -2.6, z: -2.8, rot: 0 },
-  pot_3: { itemId: 'pot', x: -5, z: -0.4, rot: 0 },
-  pot_4: { itemId: 'pot', x: -2.6, z: -0.4, rot: 0 },
-  rack_1: { itemId: 'drying_rack', x: 1.4, z: -4, rot: 0 },
+  // écarts : collés ou ≥ 1 m (diamètre + marge), murs et robinet compris
+  pot_3: { itemId: 'pot', x: -4.6, z: -0.4, rot: 0 },
+  pot_4: { itemId: 'pot', x: -2.2, z: -0.4, rot: 0 },
+  rack_1: { itemId: 'drying_rack', x: 1.4, z: -4.6, rot: 0 },
   rack_2: { itemId: 'drying_rack', x: 1.4, z: -1.6, rot: 0 },
-  table_1: { itemId: 'cutting_table', x: 4.6, z: -0.6, rot: 0 },
+  table_1: { itemId: 'cutting_table', x: 4.2, z: -0.6, rot: 0 },
   lamp_1: { itemId: 'grow_lamp', x: -6.3, z: -2.8, rot: 0 },
   lamp_2: { itemId: 'grow_lamp', x: -3.8, z: -4.3, rot: 0 },
   lamp_3: { itemId: 'grow_lamp', x: -3.8, z: -1.6, rot: 0 },

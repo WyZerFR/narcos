@@ -23,16 +23,37 @@ export function expandRect(r: Rect, by: number): Rect {
 }
 
 /** Chevauchement strict (des rectangles qui se touchent ne se chevauchent pas). */
+/** Tolérance des tests de contact (m) : deux rectangles qui se touchent à 1e-9 près se touchent. */
+const EPS = 1e-9;
+
 export function rectsOverlap(a: Rect, b: Rect): boolean {
-  return a.minX < b.maxX && a.maxX > b.minX && a.minZ < b.maxZ && a.maxZ > b.minZ;
+  return (
+    a.minX < b.maxX - EPS && a.maxX > b.minX + EPS && a.minZ < b.maxZ - EPS && a.maxZ > b.minZ + EPS
+  );
+}
+
+/** Distance entre deux rectangles (0 s'ils se touchent ou se chevauchent). */
+export function rectGap(a: Rect, b: Rect): number {
+  const dx = Math.max(0, a.minX - b.maxX, b.minX - a.maxX);
+  const dz = Math.max(0, a.minZ - b.maxZ, b.minZ - a.maxZ);
+  return Math.hypot(dx, dz);
+}
+
+/**
+ * Fente : deux obstacles séparés d'un écart non nul mais plus petit que `minGap` (diamètre du
+ * joueur + marge). Ils doivent se toucher ou laisser un vrai passage.
+ */
+export function isNarrowGap(a: Rect, b: Rect, minGap: number): boolean {
+  const g = rectGap(a, b);
+  return g > 1e-6 && g < minGap - 1e-6;
 }
 
 export function rectContainsRect(outer: Rect, inner: Rect): boolean {
   return (
-    inner.minX >= outer.minX &&
-    inner.maxX <= outer.maxX &&
-    inner.minZ >= outer.minZ &&
-    inner.maxZ <= outer.maxZ
+    inner.minX >= outer.minX - EPS &&
+    inner.maxX <= outer.maxX + EPS &&
+    inner.minZ >= outer.minZ - EPS &&
+    inner.maxZ <= outer.maxZ + EPS
   );
 }
 
