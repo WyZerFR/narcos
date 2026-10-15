@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { AnimationMixer, RingGeometry, Vector3, type AnimationAction, type Group } from 'three';
-import { appearanceKey, gameData, smoothFactor, type Appearance } from '@narco/shared';
+import { AnimationMixer, RingGeometry, type AnimationAction, type Group } from 'three';
+import { appearanceKey, gameData, Locomotion, type Appearance, type Gait } from '@narco/shared';
 import { FRAME_PRIORITY } from '../framePriority';
 import {
   applyAppearance,
@@ -22,32 +22,61 @@ const RING = new RingGeometry(rules.ring.innerRadius, rules.ring.outerRadius, 32
  * Corps d'un joueur : modèle 3D de son personnage (cloné, animé), ou cube de repli tant que le
  * modèle charge ou s'il a échoué. La couleur du joueur ne teinte que l'anneau au sol (et la
  * pastille de nom) : le corps garde les couleurs de son modèle, ou celles choisies par slot.
+ *
+ * Locomotion (`shared/src/locomotion.ts`) mesurée sur la position affichée du groupe parent
+ * (prédite pour soi, interpolée pour les autres) : allure, fondus, cap lissé, penchement.
  */
 export function CharacterBody({
   characterId,
   appearance,
   color,
   ghost,
+  heading,
 }: {
   characterId: string;
   appearance: Appearance;
   color: string;
   ghost: boolean;
+  /** Cap voulu (rad), lu à chaque frame. */
+  heading: () => number;
 }) {
   const asset = useCharacterAsset(characterId);
+  const body = useRef<Group>(null);
+  const loco = useMemo(() => new Locomotion(rules.locomotion, heading()), []);
+  const animate = useRef<((dt: number) => void) | null>(null);
+  useFrame((_, rawDt) => {
+    const g = body.current;
+    const player = g?.parent;
+    if (!g || !player) return;
+    const dt = Math.min(rawDt, 0.1);
+    loco.step(player.position.x, player.position.z, heading(), dt);
+    g.rotation.set(loco.lean, loco.heading, 0, 'YXZ');
+    g.position.y = loco.bobOffset();
+    animate.current?.(dt);
+  }, FRAME_PRIORITY.animation);
   return (
     <>
       <mesh geometry={RING} position={[0, 0.02, 0]}>
         <meshBasicMaterial color={color} transparent={ghost} opacity={ghost ? 0.35 : 1} />
       </mesh>
-      {typeof asset === 'object' ? (
-        <Model asset={asset} appearance={appearance} ghost={ghost} />
-      ) : (
-        <CubeBody ghost={ghost} />
-      )}
+      <group ref={body}>
+        {typeof asset === 'object' ? (
+          <Model
+            asset={asset}
+            appearance={appearance}
+            ghost={ghost}
+            loco={loco}
+            animate={animate}
+          />
+        ) : (
+          <CubeBody ghost={ghost} />
+        )}
+      </group>
     </>
   );
 }
+
+const GAITS: readonly Gait[] = ['idle', 'walk', 'run'];
 
 /** Cube historique : repli sans modèle, neutre (la couleur du joueur est sur l'anneau). */
 export function CubeBody({ ghost }: { ghost: boolean }) {
@@ -70,25 +99,53 @@ function Model({
   asset,
   appearance,
   ghost,
+  loco,
+  animate,
 }: {
   asset: CharacterAsset;
   appearance: Appearance;
   ghost: boolean;
+  loco: Locomotion;
+  animate: { current: ((dt: number) => void) | null };
 }) {
-  const wrapper = useRef<Group>(null);
   const root = useMemo(() => instantiate(asset), [asset]);
   const anim = useMemo(() => {
     const mixer = new AnimationMixer(root);
-    const action = (name: string | undefined): AnimationAction | null => {
-      const clip = name ? asset.clips.find((c) => c.name === name) : undefined;
-      return clip ? mixer.clipAction(clip) : null;
-    };
-    const idle = action(asset.character.animations.idle);
-    const walk = action(asset.character.animations.walk);
-    idle?.play();
-    return { mixer, idle, walk, current: idle };
+    const names = gameData.config.characters.animations;
+    const actions: Partial<Record<Gait, AnimationAction>> = {};
+    for (const g of GAITS) {
+      const clip = names[g] ? asset.clips.find((c) => c.name === names[g]) : undefined;
+      if (clip) actions[g] = mixer.clipAction(clip);
+    }
+    return { mixer, actions };
   }, [asset, root]);
-  const motion = useRef({ last: new Vector3(NaN, 0, 0), speed: 0, time: 0 });
+
+  // Clips disponibles → allures possibles ; tous joués, mélangés par leurs poids.
+  useEffect(() => {
+    const { actions } = anim;
+    loco.clips = { walk: !!actions.walk, run: !!actions.run };
+    for (const g of GAITS) actions[g]?.setEffectiveWeight(loco.weights[g]).play();
+    animate.current = (dt) => {
+      const weights = { ...loco.weights };
+      // allure sans clip : son poids revient à l'attente (le balancement prend le relais)
+      for (const g of GAITS) if (!actions[g] && g !== 'idle') weights.idle += weights[g];
+      const lead = loco.gait === 'run' ? actions.run : actions.walk;
+      for (const g of GAITS) {
+        const a = actions[g];
+        if (!a) continue;
+        // une allure qui revient en fondu reprend la phase de pas de celle qui mène : pas de
+        // pied qui saute entre marche et course
+        if (a.getEffectiveWeight() === 0 && weights[g] > 0 && g !== 'idle' && lead && lead !== a)
+          a.time = (lead.time / lead.getClip().duration) * a.getClip().duration;
+        a.setEffectiveWeight(weights[g]);
+        a.timeScale = loco.timeScale(g);
+      }
+      anim.mixer.update(dt);
+    };
+    return () => {
+      animate.current = null;
+    };
+  }, [anim, loco, animate]);
 
   // Fantôme si déconnecté ; aucune teinte : le corps garde les couleurs du modèle.
   useEffect(() => applyBodyState(root, ghost), [root, ghost]);
@@ -105,36 +162,5 @@ function Model({
     [anim, root],
   );
 
-  useFrame((_, rawDt) => {
-    const player = wrapper.current?.parent;
-    if (!player) return;
-    const dt = Math.min(rawDt, 0.1);
-    const mo = motion.current;
-    const p = player.position;
-    const dist = Number.isNaN(mo.last.x) ? 0 : Math.hypot(p.x - mo.last.x, p.z - mo.last.z);
-    mo.last.copy(p);
-    if (dt > 0) mo.speed += (dist / dt - mo.speed) * smoothFactor(rules.speedSmoothing, dt);
-    const moving = mo.speed > rules.moveThreshold;
-
-    const next = moving ? (anim.walk ?? anim.idle) : anim.idle;
-    if (next && next !== anim.current) {
-      next.reset().play();
-      if (anim.current) next.crossFadeFrom(anim.current, rules.animationFadeSeconds, false);
-      anim.current = next;
-    }
-    if (anim.current) anim.mixer.update(dt);
-    else {
-      // pas d'animation dans le fichier : léger balancement en marchant
-      mo.time += dt;
-      root.position.y = moving
-        ? Math.abs(Math.sin(mo.time * rules.bob.speed)) * rules.bob.height
-        : 0;
-    }
-  }, FRAME_PRIORITY.animation);
-
-  return (
-    <group ref={wrapper}>
-      <primitive object={root} />
-    </group>
-  );
+  return <primitive object={root} />;
 }

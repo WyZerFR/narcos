@@ -223,3 +223,13 @@ describe('données — monnaies et pacte', () => {
     expect(() => parseGameData(r2)).toThrow(/"local" a un intérieur/);
   });
 });
+
+describe('locomotion', () => {
+  it('seuils d’hystérésis ordonnés, sinon refusé au chargement', () => {
+    const bad = raw();
+    (
+      bad.config as { characters: { locomotion: { walkStop: number } } }
+    ).characters.locomotion.walkStop = 9;
+    expect(() => parseGameData(bad)).toThrow(/walkStop < walkStart < runStop < runStart/);
+  });
+});

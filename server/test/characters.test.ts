@@ -46,10 +46,10 @@ describe('sélection de personnage', () => {
     const bagBefore = JSON.stringify(readInventory(pa.bag));
     const cleanBefore = pa.cleanBalance;
 
-    const msg: CharacterChooseMessage = { characterId: 'perso_2' };
+    const msg: CharacterChooseMessage = { characterId: 'decontractee' };
     a.send(ClientMsg.CharacterChoose, msg);
-    await until(() => b.state.players?.get('chr-player-000a')?.characterId === 'perso_2');
-    expect(room.state.players.get('chr-player-000a')!.characterId).toBe('perso_2');
+    await until(() => b.state.players?.get('chr-player-000a')?.characterId === 'decontractee');
+    expect(room.state.players.get('chr-player-000a')!.characterId).toBe('decontractee');
     // l'autre joueur n'est pas touché ; sac et compte intacts
     expect(b.state.players!.get('chr-player-000b')!.characterId).toBe(DEFAULT);
     expect(JSON.stringify(readInventory(pa.bag))).toBe(bagBefore);
@@ -57,21 +57,23 @@ describe('sélection de personnage', () => {
     await b.leave();
   });
 
-  it('perso_2 de bout en bout : état du client, serveur, snapshot puis reprise', async () => {
+  it('decontractee de bout en bout : état du client, serveur, snapshot puis reprise', async () => {
     const a = await colyseus.sdk.create<GameState>(ROOM_NAME, {
       playerId: 'chr-player-000d',
       name: 'D',
     });
     const room = colyseus.getRoomById<GameState>(a.roomId) as ServerRoom<GameState> as NarcoRoom;
     await until(() => a.state.players?.get('chr-player-000d')?.characterId === DEFAULT);
-    a.send(ClientMsg.CharacterChoose, { characterId: 'perso_2' } satisfies CharacterChooseMessage);
+    a.send(ClientMsg.CharacterChoose, {
+      characterId: 'decontractee',
+    } satisfies CharacterChooseMessage);
     // le client voit son propre choix (l'écran de sélection et le rendu lisent cet état)
-    await until(() => a.state.players?.get('chr-player-000d')?.characterId === 'perso_2');
-    expect(room.state.players.get('chr-player-000d')!.characterId).toBe('perso_2');
+    await until(() => a.state.players?.get('chr-player-000d')?.characterId === 'decontractee');
+    expect(room.state.players.get('chr-player-000d')!.characterId).toBe('decontractee');
     const snap = RoomSnapshotSchema.parse(JSON.parse(JSON.stringify(room.snapshot())));
     const restored = new GameState();
     hydrateState(restored, snap);
-    expect(restored.players.get('chr-player-000d')!.characterId).toBe('perso_2');
+    expect(restored.players.get('chr-player-000d')!.characterId).toBe('decontractee');
   });
 
   it('id inconnu : remplacé par le défaut', async () => {
@@ -80,8 +82,8 @@ describe('sélection de personnage', () => {
       name: 'C',
     });
     const room = colyseus.getRoomById<GameState>(a.roomId) as ServerRoom<GameState> as NarcoRoom;
-    a.send(ClientMsg.CharacterChoose, { characterId: 'perso_2' });
-    await until(() => room.state.players.get('chr-player-000c')!.characterId === 'perso_2');
+    a.send(ClientMsg.CharacterChoose, { characterId: 'decontractee' });
+    await until(() => room.state.players.get('chr-player-000c')!.characterId === 'decontractee');
     a.send(ClientMsg.CharacterChoose, { characterId: 'dark_vador' });
     await until(() => room.state.players.get('chr-player-000c')!.characterId === DEFAULT);
     a.send(ClientMsg.CharacterChoose, { characterId: 42 });
@@ -109,16 +111,16 @@ describe('personnage — sauvegarde', () => {
     const state = new GameState();
     hydrateState(state, snapOf(base));
     expect(state.players.get('old')!.characterId).toBe(DEFAULT);
-    hydrateState(state, snapOf({ ...base, id: 'p2', characterId: 'perso_2' }));
-    expect(state.players.get('p2')!.characterId).toBe('perso_2');
+    hydrateState(state, snapOf({ ...base, id: 'p2', characterId: 'decontractee' }));
+    expect(state.players.get('p2')!.characterId).toBe('decontractee');
     hydrateState(state, snapOf({ ...base, id: 'gone', characterId: 'perso_supprime' }));
     expect(state.players.get('gone')!.characterId).toBe(DEFAULT);
   });
 
   it('le snapshot écrit contient le personnage', () => {
     const state = new GameState();
-    hydrateState(state, snapOf({ ...base, characterId: 'perso_2' }));
+    hydrateState(state, snapOf({ ...base, characterId: 'decontractee' }));
     const json = state.toJSON() as { players: Record<string, { characterId?: string }> };
-    expect(json.players.old!.characterId).toBe('perso_2');
+    expect(json.players.old!.characterId).toBe('decontractee');
   });
 });

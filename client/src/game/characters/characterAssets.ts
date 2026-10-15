@@ -228,6 +228,28 @@ export function prepare(
   return { template, triangles: Math.round(triangles), drawCalls };
 }
 
+let library: Promise<AnimationClip[]> | null = null;
+
+/**
+ * Clips communs (`config.characters.animations.library`), chargés une seule fois : tous les
+ * skins partagent le squelette, les pistes se lient par nom d'os. Échec = aucun clip (repli).
+ */
+function libraryClips(): Promise<AnimationClip[]> {
+  library ??= loader
+    .loadAsync(`${import.meta.env.BASE_URL}${gameData.config.characters.animations.library}`)
+    .then((g) => g.animations)
+    .catch((err: unknown) => {
+      console.warn('[narco] animations communes non chargées', err);
+      return [];
+    });
+  return library;
+}
+
+/** Clips d'un skin : les siens s'il en a, sinon ceux de la bibliothèque commune. */
+export function clipsFor(own: AnimationClip[], shared: AnimationClip[]): AnimationClip[] {
+  return own.length ? own : shared;
+}
+
 /** Charge (une fois) le modèle d'un personnage. */
 export function loadCharacter(id: string): Promise<CharacterAsset> {
   const hit = cache.get(id);
@@ -236,10 +258,10 @@ export function loadCharacter(id: string): Promise<CharacterAsset> {
   const character = gameData.characters.get(id);
   if (!character) return Promise.reject(new Error(`personnage inconnu : ${id}`));
   const url = `${import.meta.env.BASE_URL}${character.model}`;
-  const promise = loader.loadAsync(url).then((gltf) => {
+  const promise = Promise.all([loader.loadAsync(url), libraryClips()]).then(([gltf, shared]) => {
     const asset: CharacterAsset = {
       character,
-      clips: gltf.animations,
+      clips: clipsFor(gltf.animations, shared),
       ...prepare(character, gltf.scene),
     };
     cache.set(id, { status: 'ready', asset });

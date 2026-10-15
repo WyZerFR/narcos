@@ -21,7 +21,8 @@
     "balance": "tsx scripts/balance.ts",
     "check": "node scripts/check.mjs",
     "collisions": "tsx scripts/collisions.ts",
-    "models": "tsx scripts/check-models.ts"
+    "models": "tsx scripts/check-models.ts",
+    "models:strip": "tsx scripts/strip-animations.ts"
   },
   "engines": {
     "node": ">=20"

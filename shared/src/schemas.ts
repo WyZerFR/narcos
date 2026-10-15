@@ -154,6 +154,16 @@ export const ConfigSchema = z.object({
     defaultId: z.string().min(1),
     /** Nombre maximal de personnages dans characters.json (taille du dépôt, écran de choix). */
     maxCount: z.number().int().positive(),
+    /**
+     * Animations communes à tous les skins (même squelette) : fichier source, relatif à
+     * `client/public`, et noms des clips (absents = balancement de repli).
+     */
+    animations: z.object({
+      library: z.string().regex(/^[\w-]+(\/[\w-]+)*\.(gltf|glb)$/i),
+      idle: z.string().min(1).optional(),
+      walk: z.string().min(1).optional(),
+      run: z.string().min(1).optional(),
+    }),
     /** Catégories de l'écran de sélection, dans l'ordre d'affichage. */
     categories: z
       .array(z.object({ id: z.string().regex(/^[a-z0-9_]+$/), name: z.string().min(1) }))
@@ -171,14 +181,36 @@ export const ConfigSchema = z.object({
     preview: z.object({ distance: pos, height: pos, lookY: pos, fov: range(CAMERA_LIMITS.fov) }),
     /** Hauteur des étiquettes de nom au-dessus de la tête (m). */
     labelMargin: z.number().nonnegative(),
-    /** Raideur (1/s) du lissage de la vitesse mesurée (marche / attente sans clignoter). */
-    speedSmoothing: pos,
-    /** Vitesse (m/s) au-delà de laquelle l'animation de marche remplace l'attente. */
-    moveThreshold: pos,
-    /** Fondu entre deux animations (s). */
-    animationFadeSeconds: z.number().nonnegative(),
-    /** Balancement de repli quand le modèle n'a pas d'animation. */
-    bob: z.object({ height: z.number().nonnegative(), speed: pos }),
+    /** Locomotion affichée (`shared/src/locomotion.ts`) : allures, fondus, cap, penchement. */
+    locomotion: z.object({
+      /** Raideur (1/s) du lissage de la vitesse mesurée. */
+      speedSmoothing: pos,
+      /** Au-delà (m/s) : déplacement de recalage ou changement de zone, ignoré. */
+      teleportSpeed: pos,
+      /** Hystérésis (m/s) : départ de la marche au-dessus de walkStart, arrêt sous walkStop. */
+      walkStart: pos,
+      walkStop: pos,
+      /** Idem pour la course (clip Run), si le clip existe. */
+      runStart: pos,
+      runStop: pos,
+      /** Vitesse (m/s) à laquelle chaque clip se lit à timeScale 1 (pieds sans patinage). */
+      walkClipSpeed: pos,
+      runClipSpeed: pos,
+      timeScale: z.object({ min: pos, max: pos }),
+      /** Fondu enchaîné entre clips (s). */
+      crossFadeSeconds: z.number().min(0.15).max(0.25),
+      /** Raideur (1/s) de la rotation du corps ; sous turnMinSpeed (m/s), pas de rotation. */
+      turnStiffness: pos,
+      turnMinSpeed: pos,
+      /** Penchement avant (rad par m/s, plafond rad, raideur 1/s). */
+      lean: z.object({
+        perSpeed: z.number().nonnegative(),
+        max: z.number().min(0).max(0.5),
+        stiffness: pos,
+      }),
+      /** Rebond de repli sans clip de marche : hauteur (m), foulées par mètre. */
+      bob: z.object({ height: z.number().nonnegative(), stridesPerMeter: pos }),
+    }),
     /** Anneau au sol à la couleur du joueur (distingue 3 joueurs au même modèle). */
     ring: z.object({ innerRadius: pos, outerRadius: pos }),
   }),
@@ -191,8 +223,6 @@ export const ConfigSchema = z.object({
   netSmoothing: z.object({
     /** Retard d'affichage des joueurs distants (ms), interpolés entre deux instantanés. */
     remoteDelayMs: pos,
-    /** Raideur (1/s) de la rotation affichée des personnages. */
-    rotationStiffness: pos,
     /** Écart (m) sous lequel une correction du serveur est ignorée. */
     correctionIgnoreDistance: z.number().nonnegative(),
     /** Écart (m) au-delà duquel le client se recale d'un coup ; en dessous, fondu. */
@@ -926,10 +956,6 @@ export const CharacterSchema = z.object({
   rotationY: z.number().min(-180).max(180),
   /** Hauteur affichée (m) : le modèle est mis à cette taille au chargement. */
   height: z.number().positive(),
-  /** Noms des animations du fichier (absentes = léger balancement). */
-  animations: z
-    .object({ idle: z.string().min(1).optional(), walk: z.string().min(1).optional() })
-    .default({}),
   /**
    * Zones personnalisables (`palettes.json` → slots) : noms des matériaux du fichier qui les
    * composent. Les matériaux absents gardent leur couleur d'origine (yeux, détails…).

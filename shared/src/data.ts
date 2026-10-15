@@ -544,6 +544,15 @@ export function parseGameData(raw: RawGameData): GameData {
   for (const c of characters.values())
     if (!categories.has(c.category))
       errors.push(`characters.json : ${c.id}, catégorie "${c.category}" inconnue`);
+  const loco = config.characters.locomotion;
+  if (!(
+    loco.walkStop < loco.walkStart &&
+    loco.walkStart < loco.runStop &&
+    loco.runStop < loco.runStart
+  ))
+    errors.push('config.json : locomotion, il faut walkStop < walkStart < runStop < runStart');
+  if (loco.timeScale.min > loco.timeScale.max)
+    errors.push('config.json : locomotion.timeScale.min doit être ≤ max');
   const ring = config.characters.ring;
   if (ring.innerRadius >= ring.outerRadius)
     errors.push('config.json : characters.ring.innerRadius doit être < outerRadius');

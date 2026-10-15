@@ -59,7 +59,7 @@ describe('apparence', () => {
     const cleanBefore = pa.cleanBalance;
     for (const c of [a, b])
       c.send(ClientMsg.CharacterChoose, {
-        characterId: 'perso_2',
+        characterId: 'decontractee',
       } satisfies CharacterChooseMessage);
     a.send(ClientMsg.AppearanceSet, {
       appearance: { skin: 'peau_2', top: 'tissu_7' },
@@ -74,8 +74,8 @@ describe('apparence', () => {
     );
     expect(seen(b, 'app-player-00a')).toEqual({ skin: 'peau_2', top: 'tissu_7' });
     expect(seen(a, 'app-player-00b')).toEqual({ skin: 'peau_9', top: 'tissu_4' });
-    expect(b.state.players!.get('app-player-00a')!.characterId).toBe('perso_2');
-    expect(b.state.players!.get('app-player-00b')!.characterId).toBe('perso_2');
+    expect(b.state.players!.get('app-player-00a')!.characterId).toBe('decontractee');
+    expect(b.state.players!.get('app-player-00b')!.characterId).toBe('decontractee');
     expect(JSON.stringify(readInventory(pa.bag))).toBe(bagBefore);
     expect(pa.cleanBalance).toBe(cleanBefore);
     await b.leave();
@@ -88,15 +88,15 @@ describe('apparence', () => {
     });
     const room = colyseus.getRoomById<GameState>(a.roomId) as ServerRoom<GameState> as NarcoRoom;
     const p = () => plain(room.state.players.get('app-player-00c')!.appearance as Look);
-    a.send(ClientMsg.CharacterChoose, { characterId: 'perso_2' });
+    a.send(ClientMsg.CharacterChoose, { characterId: 'decontractee' });
     a.send(ClientMsg.AppearanceSet, {
-      appearance: { skin: 'peau_1', hair: '#ff00ff', shoes: 'tissu_2' },
+      appearance: { skin: 'peau_1', hair: '#ff00ff', bottom: 'tissu_2' },
     });
     await until(() => p().skin === 'peau_1');
-    expect(p()).toEqual({ skin: 'peau_1', shoes: 'tissu_2' });
-    // gobelin : peau et bas seulement
-    a.send(ClientMsg.CharacterChoose, { characterId: 'gobelin' });
-    await until(() => room.state.players.get('app-player-00c')!.characterId === 'gobelin');
+    expect(p()).toEqual({ skin: 'peau_1', bottom: 'tissu_2' });
+    // mannequin : peau seulement
+    a.send(ClientMsg.CharacterChoose, { characterId: 'mannequin' });
+    await until(() => room.state.players.get('app-player-00c')!.characterId === 'mannequin');
     expect(p()).toEqual({ skin: 'peau_1' });
     a.send(ClientMsg.AppearanceSet, { appearance: 'rouge' });
     await until(() => Object.keys(p()).length === 0);
@@ -127,14 +127,53 @@ describe('apparence', () => {
         ...new GameState().toJSON(),
         code: 'ABCD',
         players: {
-          old: { id: 'old', name: 'Ancien', color: '#ffffff', x: 0, z: 0, characterId: 'perso_2' },
+          old: {
+            id: 'old',
+            name: 'Ancien',
+            color: '#ffffff',
+            x: 0,
+            z: 0,
+            characterId: 'decontractee',
+          },
         },
       },
     });
     const state = new GameState();
     hydrateState(state, old);
-    expect(state.players.get('old')!.characterId).toBe('perso_2');
+    expect(state.players.get('old')!.characterId).toBe('decontractee');
     expect(state.players.get('old')!.appearance.size).toBe(0);
-    expect(gameData.characters.get('perso_2')!.slots.skin).toBeDefined();
+    expect(gameData.characters.get('decontractee')!.slots.skin).toBeDefined();
+  });
+
+  it('migration : skin du pack 2 retiré → défaut, couleurs compatibles gardées', () => {
+    const DEFAULT = gameData.config.characters.defaultId;
+    expect(gameData.characters.has('perso_2')).toBe(false);
+    const snap = RoomSnapshotSchema.parse({
+      code: 'ABCD',
+      schemaVersion: SNAPSHOT_SCHEMA_VERSION,
+      savedAt: 0,
+      clock: { now: 0, scale: 1 },
+      state: {
+        ...new GameState().toJSON(),
+        code: 'ABCD',
+        players: {
+          p2: {
+            id: 'p2',
+            name: 'Capuche',
+            color: '#ffffff',
+            x: 0,
+            z: 0,
+            characterId: 'perso_2',
+            // le défaut (Suit_Male) a peau, cheveux, haut ; pas de chaussures
+            appearance: { skin: 'peau_4', top: 'tissu_6', shoes: 'tissu_1' },
+          },
+        },
+      },
+    });
+    const state = new GameState();
+    hydrateState(state, snap);
+    const p = state.players.get('p2')!;
+    expect(p.characterId).toBe(DEFAULT);
+    expect(plain(p.appearance as Look)).toEqual({ skin: 'peau_4', top: 'tissu_6' });
   });
 });

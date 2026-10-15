@@ -35,7 +35,7 @@ function Preview({ asset, appearance }: { asset: CharacterAsset; appearance: App
   useEffect(() => applyAppearance(root, appearance), [root, look]);
   const mixer = useMemo(() => {
     const m = new AnimationMixer(root);
-    const idle = asset.clips.find((c) => c.name === asset.character.animations.idle);
+    const idle = asset.clips.find((c) => c.name === gameData.config.characters.animations.idle);
     if (idle) m.clipAction(idle).play();
     return m;
   }, [asset, root]);
