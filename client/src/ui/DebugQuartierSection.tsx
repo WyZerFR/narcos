@@ -6,6 +6,8 @@ import { setAreaBoundsVisible, useAreaBoundsVisible } from '../game/AreaBounds';
 const AREAS = [...gameData.areas.values()];
 /** Pas de réglage du multiplicateur de prix (debug). */
 const PRICE_STEP = 0.05;
+/** Pas de réglage de la commission du blanchisseur (debug). */
+const FEE_STEP = 0.05;
 
 function send(msg: DebugMessage): void {
   const room = connection.getSnapshot().room;
@@ -24,6 +26,13 @@ export function DebugQuartierSection() {
     send({ cmd: 'priceMultiplier', areaId, value });
   };
 
+  const [cellarFee, setCellarFee] = useState(gameData.economy.launder.venues.cellar.fee);
+  const changeFee = (delta: number) => {
+    const value = Math.round(Math.min(0.95, Math.max(0, cellarFee + delta)) * 100) / 100;
+    setCellarFee(value);
+    send({ cmd: 'launderFee', venue: 'cellar', value });
+  };
+
   return (
     <>
       <div className="cam-section">Debug quartiers</div>
@@ -38,6 +47,16 @@ export function DebugQuartierSection() {
             → {a.name}
           </button>
         ))}
+        <button type="button" className="btn" onClick={() => send({ cmd: 'teleportTrapdoor' })}>
+          → Trappe
+        </button>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => send({ cmd: 'resetLaunderCap', venue: 'cellar' })}
+        >
+          Plafond cave à zéro
+        </button>
         <button
           type="button"
           className={`btn${bounds ? ' primary' : ''}`}
@@ -45,6 +64,17 @@ export function DebugQuartierSection() {
         >
           Frontières {bounds ? 'ON' : 'OFF'}
         </button>
+      </div>
+      <div className="dbg-row">
+        <span>Commission cave : {Math.round(cellarFee * 100)} %</span>
+        <div className="segmented">
+          <button type="button" onClick={() => changeFee(-FEE_STEP)}>
+            −
+          </button>
+          <button type="button" onClick={() => changeFee(FEE_STEP)}>
+            +
+          </button>
+        </div>
       </div>
       {AREAS.map((a) => (
         <div key={a.id} className="dbg-row">

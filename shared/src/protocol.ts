@@ -269,7 +269,9 @@ export type DebugMessage =
   | { cmd: 'giveClean'; amount: number }
   | { cmd: 'teleport'; areaId: string }
   | { cmd: 'priceMultiplier'; areaId: string; value: number }
-  | { cmd: 'resetLaunderCap' };
+  | { cmd: 'resetLaunderCap'; venue?: LaunderVenue }
+  | { cmd: 'launderFee'; venue: LaunderVenue; value: number }
+  | { cmd: 'teleportTrapdoor' };
 
 export const MAX_NAME_LENGTH = 16;
 

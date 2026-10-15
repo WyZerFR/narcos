@@ -4,6 +4,7 @@ import {
   gameData,
   obstaclesFrom,
   rectFromCenter,
+  STREET,
   visibleLocations,
   type Rect,
 } from '@narco/shared';
@@ -78,6 +79,8 @@ export function Minimap({ room }: { room: GameRoom }) {
       for (const loc of PLACES) rect(footprint(loc), loc.neonColor);
 
       room.state.players?.forEach((p: PlayerView) => {
+        // un joueur dans un intérieur (cave comprise) n'est pas sur la carte de la rue
+        if (p.zone !== STREET) return;
         const me = p.id === connection.playerId;
         const x = me && localPlayer.initialized ? localPlayer.x : p.x;
         const z = me && localPlayer.initialized ? localPlayer.z : p.z;
