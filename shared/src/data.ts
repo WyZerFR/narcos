@@ -478,6 +478,11 @@ export function parseGameData(raw: RawGameData): GameData {
       errors.push(`items.json : "${it.id}" s'équipe comme sac mais n'est pas bag.backpackItemId`);
   if (config.movement.runSpeed < config.movement.walkSpeed)
     errors.push('config.json : runSpeed doit être >= walkSpeed');
+  const net = config.netSmoothing;
+  if (net.remoteDelayMs < config.room.patchRateMs)
+    errors.push('config.json : netSmoothing.remoteDelayMs doit couvrir au moins room.patchRateMs');
+  if (net.correctionIgnoreDistance >= net.correctionSnapDistance)
+    errors.push('config.json : correctionIgnoreDistance doit être < correctionSnapDistance');
   errors.push(...checkAreas(config, areas, locFile.locations, quartiers));
   // écarts : deux obstacles se touchent ou laissent un vrai passage (diamètre + marge)
   const minGap = 2 * config.world.playerRadius + config.collision.passageMargin;

@@ -6,7 +6,8 @@ import {
   PerspectiveCamera as PerspectiveCameraImpl,
   Vector3,
 } from 'three';
-import { gameData, STREET } from '@narco/shared';
+import { gameData, smoothFactor, STREET } from '@narco/shared';
+import { FRAME_PRIORITY } from './framePriority';
 import { connection, type GameRoom } from '../net/connection';
 import { QUALITY_PRESETS, useSettings } from '../ui/settings';
 import { debugStats } from '../ui/DebugOverlay';
@@ -46,7 +47,7 @@ function CameraRig() {
     const placing = pl && !pl.direct ? pl : null;
     const c = placing ? { ...getCamera(), ...placementCamera } : getCamera();
     const follow = placing ?? localPlayer;
-    const t = 1 - Math.exp(-cameraRig.followStiffness * Math.min(dt, 0.1));
+    const t = smoothFactor(cameraRig.followStiffness, Math.min(dt, 0.1));
     target.current.x += (follow.x - target.current.x) * t;
     target.current.z += (follow.z - target.current.z) * t;
     const o = cameraOffset(c);
@@ -63,7 +64,9 @@ function CameraRig() {
         camera.updateProjectionMatrix();
       }
     }
-  });
+    // matrices à jour tout de suite : les étiquettes DOM sont projetées dans cette même frame
+    camera.updateMatrixWorld();
+  }, FRAME_PRIORITY.camera);
 
   return type === 'ortho' ? (
     <OrthographicCamera makeDefault near={cameraRig.near} far={cameraRig.far} />

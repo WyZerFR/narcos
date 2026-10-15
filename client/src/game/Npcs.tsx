@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { FRAME_PRIORITY } from './framePriority';
 import {
   BoxGeometry,
   Color,
@@ -111,7 +112,7 @@ export function Npcs({ room }: { room: GameRoom }) {
     head.instanceMatrix.needsUpdate = true;
     if (body.instanceColor) body.instanceColor.needsUpdate = true;
     if (head.instanceColor) head.instanceColor.needsUpdate = true;
-  });
+  }, FRAME_PRIORITY.actors);
 
   return (
     <>

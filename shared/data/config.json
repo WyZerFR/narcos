@@ -285,6 +285,13 @@
     "near": 0.5,
     "far": 300
   },
+  "netSmoothing": {
+    "remoteDelayMs": 100,
+    "rotationStiffness": 14,
+    "correctionIgnoreDistance": 0.05,
+    "correctionSnapDistance": 1.5,
+    "correctionBlendStiffness": 12
+  },
   "cutout": {
     "enabled": true,
     "radius": 2.2,

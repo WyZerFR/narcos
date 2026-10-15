@@ -146,6 +146,19 @@ export const ConfigSchema = z.object({
   /** Caméra dans les intérieurs (pièces plus petites, vue plus plongeante). */
   cameraInterior: CameraSchema,
   cameraRig: z.object({ followStiffness: pos, near: pos, far: pos }),
+  /** Lissage réseau côté client (indépendant du framerate). */
+  netSmoothing: z.object({
+    /** Retard d'affichage des joueurs distants (ms), interpolés entre deux instantanés. */
+    remoteDelayMs: pos,
+    /** Raideur (1/s) de la rotation affichée des personnages. */
+    rotationStiffness: pos,
+    /** Écart (m) sous lequel une correction du serveur est ignorée. */
+    correctionIgnoreDistance: z.number().nonnegative(),
+    /** Écart (m) au-delà duquel le client se recale d'un coup ; en dessous, fondu. */
+    correctionSnapDistance: pos,
+    /** Raideur (1/s) du fondu de correction. */
+    correctionBlendStiffness: pos,
+  }),
   cutout: CutoutSchema,
   ui: z.object({
     /** Appui long avant de détacher un objet de l'inventaire (ms). */
