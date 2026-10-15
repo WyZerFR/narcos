@@ -6,6 +6,7 @@ import locationsJson from '../data/locations.json';
 import zonesJson from '../data/zones.json';
 import shopsJson from '../data/shops.json';
 import npcsJson from '../data/npcs.json';
+import dialoguesJson from '../data/dialogues.json';
 import {
   ConfigSchema,
   EconomySchema,
@@ -15,6 +16,8 @@ import {
   ZonesFileSchema,
   ShopsFileSchema,
   NpcsFileSchema,
+  DialoguesFileSchema,
+  type Dialogue,
   type NpcsFile,
   type Shop,
   type Interior,
@@ -37,6 +40,47 @@ import { footprint, interactionPoint } from './locations';
 import { interiorBounds, interiorObstacles } from './zones';
 
 import { obstaclesFrom } from './collision';
+import { dialogueVars, textVars } from './dialogue';
+
+/** Dialogues : nœuds uniques, liens valides, variables connues, postes « talk » reliés. */
+function checkDialogues(
+  dialogues: ReadonlyMap<string, Dialogue>,
+  interiors: ReadonlyMap<string, Interior>,
+  vars: Readonly<Record<string, string>>,
+): string[] {
+  const errors: string[] = [];
+  for (const d of dialogues.values()) {
+    const where = `dialogues.json : "${d.id}"`;
+    const ids = new Set<string>();
+    for (const n of d.nodes) {
+      if (ids.has(n.id)) errors.push(`${where} : nœud en double "${n.id}"`);
+      ids.add(n.id);
+    }
+    for (const s of d.start)
+      if (!ids.has(s.node)) errors.push(`${where} : nœud d'entrée inconnu "${s.node}"`);
+    if (d.start.at(-1)?.requires?.length)
+      errors.push(`${where} : la dernière entrée de start doit être sans condition`);
+    for (const n of d.nodes) {
+      for (const v of textVars(n.text))
+        if (!(v in vars)) errors.push(`${where} : variable inconnue {${v}} dans "${n.id}"`);
+      const choiceIds = new Set<string>();
+      for (const c of n.choices) {
+        if (choiceIds.has(c.id)) errors.push(`${where} : choix en double "${n.id}/${c.id}"`);
+        choiceIds.add(c.id);
+        if (c.next !== null && !ids.has(c.next))
+          errors.push(`${where} : "${n.id}/${c.id}" mène au nœud inconnu "${c.next}"`);
+      }
+    }
+  }
+  for (const interior of interiors.values())
+    for (const st of interior.stations) {
+      if (st.kind === 'talk' && !(st.dialogue && dialogues.has(st.dialogue)))
+        errors.push(`zones.json : "${interior.id}/${st.id}" : dialogue manquant ou inconnu`);
+      if (st.kind !== 'talk' && st.dialogue)
+        errors.push(`zones.json : "${interior.id}/${st.id}" : dialogue sur un poste non « talk »`);
+    }
+  return errors;
+}
 
 export interface GameData {
   config: GameConfig;
@@ -52,6 +96,8 @@ export interface GameData {
   shops: ReadonlyMap<string, Shop>;
   /** PNJ de la rue (`npcs.json`). */
   npcs: NpcsFile;
+  /** Dialogues (`dialogues.json`), indexés par id. */
+  dialogues: ReadonlyMap<string, Dialogue>;
 }
 
 export interface RawGameData {
@@ -62,6 +108,7 @@ export interface RawGameData {
   zones: unknown;
   shops: unknown;
   npcs: unknown;
+  dialogues: unknown;
 }
 
 function parse<T>(file: string, schema: z.ZodType<T>, raw: unknown): T {
@@ -170,6 +217,7 @@ export function parseGameData(raw: RawGameData): GameData {
   const zonesFile = parse('zones.json', ZonesFileSchema, raw.zones);
   const shopsFile = parse('shops.json', ShopsFileSchema, raw.shops);
   const npcs = parse('npcs.json', NpcsFileSchema, raw.npcs);
+  const dialoguesFile = parse('dialogues.json', DialoguesFileSchema, raw.dialogues);
 
   const items = indexById('items.json', itemsFile.items);
   const zones = indexById('locations.json (zones)', locFile.zones);
@@ -177,6 +225,7 @@ export function parseGameData(raw: RawGameData): GameData {
   const strains = indexById('economy.json (strains)', economy.strains);
   const interiors = indexById('zones.json', zonesFile.interiors);
   const shops = new Map(shopsFile.shops.map((sh) => [sh.interiorId, sh]));
+  const dialogues = indexById('dialogues.json', dialoguesFile.dialogues);
 
   const errors: string[] = [];
   for (const item of items.values()) {
@@ -270,6 +319,7 @@ export function parseGameData(raw: RawGameData): GameData {
       streetObstacles.some((r) => rectContainsPoint(r, wp))
     )
       errors.push(`npcs.json : point de passage n°${i} hors carte ou dans un bâtiment`);
+  errors.push(...checkDialogues(dialogues, interiors, dialogueVars(economy)));
   if (config.players.colors.length < config.room.maxPlayers)
     errors.push('config.json : il faut au moins autant de couleurs que de joueurs max');
   if (config.movement.runSpeed < config.movement.walkSpeed)
@@ -286,6 +336,7 @@ export function parseGameData(raw: RawGameData): GameData {
     interiors,
     shops,
     npcs,
+    dialogues,
   };
 }
 
@@ -298,4 +349,5 @@ export const gameData: GameData = parseGameData({
   zones: zonesJson,
   shops: shopsJson,
   npcs: npcsJson,
+  dialogues: dialoguesJson,
 });

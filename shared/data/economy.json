@@ -110,6 +110,13 @@
   "sale": {
     "priceVariance": 0.2
   },
+  "bank": {
+    "fee": 0.5,
+    "launderCap": 5000,
+    "capWindowSeconds": 1800,
+    "step": 50,
+    "quickAmounts": [100, 500]
+  },
   "lab": {
     "waterPerWatering": 1,
     "waterPerTap": 1,

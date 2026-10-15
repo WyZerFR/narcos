@@ -18,3 +18,5 @@ export * from './fixtures';
 export * from './placement';
 export * from './sale';
 export * from './balance';
+export * from './dialogue';
+export * from './bank';

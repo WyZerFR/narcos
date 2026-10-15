@@ -287,6 +287,9 @@
     "reconnectBackoffMs": [500, 1000, 2000, 4000, 8000],
     "reconnectMaxDelayMs": 10000
   },
+  "dialogue": {
+    "requirePact": false
+  },
   "persistence": {
     "snapshotSeconds": 5
   },

@@ -263,6 +263,85 @@
           "solid": false
         }
       ]
+    },
+    {
+      "id": "bank",
+      "name": "Banque du Quartier",
+      "entranceLocationId": "banque",
+      "size": {
+        "w": 10,
+        "d": 8
+      },
+      "wallHeight": 3.6,
+      "spawn": {
+        "x": 0,
+        "z": 2.6
+      },
+      "obstacles": [],
+      "stations": [
+        {
+          "id": "banker",
+          "kind": "talk",
+          "label": "Courtier · M. Lenoir",
+          "position": {
+            "x": 0,
+            "z": -2.6
+          },
+          "size": {
+            "w": 3.4,
+            "d": 0.9
+          },
+          "interactRadius": 2,
+          "solid": true,
+          "vendor": "M. Lenoir",
+          "dialogue": "banker"
+        },
+        {
+          "id": "teller_1",
+          "kind": "teller",
+          "label": "Guichet 1",
+          "position": {
+            "x": -3.2,
+            "z": 0.6
+          },
+          "size": {
+            "w": 1.6,
+            "d": 0.7
+          },
+          "interactRadius": 1.6,
+          "solid": true
+        },
+        {
+          "id": "teller_2",
+          "kind": "teller",
+          "label": "Guichet 2",
+          "position": {
+            "x": 3.2,
+            "z": 0.6
+          },
+          "size": {
+            "w": 1.6,
+            "d": 0.7
+          },
+          "interactRadius": 1.6,
+          "solid": true
+        },
+        {
+          "id": "exit",
+          "kind": "exit",
+          "label": "Sortie",
+          "position": {
+            "x": 0,
+            "z": 3.8
+          },
+          "size": {
+            "w": 1.6,
+            "d": 0.4
+          },
+          "interactRadius": 1.5,
+          "solid": false
+        }
+      ]
     }
   ]
 }

@@ -139,6 +139,10 @@ export const ConfigSchema = z.object({
     /** Meuble lâché à une position refusée : durée du retour animé à l'origine (ms). */
     returnMs: pos,
   }),
+  dialogue: z.object({
+    /** Le pacte d'El Jefe est-il exigé par les choix `requires: pact` ? (pas encore en jeu) */
+    requirePact: z.boolean(),
+  }),
   persistence: z.object({
     /** Fréquence des sauvegardes JSON des parties (s). */
     snapshotSeconds: pos,
@@ -352,6 +356,19 @@ export const EconomySchema = z.object({
   sale: z.object({
     priceVariance: z.number().min(0).lt(1),
   }),
+  /** Banque : blanchiment de l'argent sale du sac vers le compte propre. */
+  bank: z.object({
+    /** Commission prélevée sur la somme sale (0.5 = 50 %). */
+    fee: z.number().min(0).lt(1),
+    /** Somme sale blanchissable par joueur sur la fenêtre glissante ($). */
+    launderCap: z.number().int().positive(),
+    /** Durée de la fenêtre glissante du plafond (s de temps de jeu, gelée sans joueur). */
+    capWindowSeconds: pos,
+    /** Pas des boutons − / + du panneau ($). */
+    step: z.number().int().positive(),
+    /** Montants rapides proposés au guichet ($). */
+    quickAmounts: z.array(z.number().int().positive()),
+  }),
   /** Labo : postes de production. */
   lab: z.object({
     waterPerWatering: z.number().int().positive(),
@@ -391,6 +408,10 @@ export const StationKindSchema = z.enum([
   'shelf',
   'counter',
   'lamp',
+  /** Personnage à qui parler (dialogue de dialogues.json). */
+  'talk',
+  /** Guichet de banque : blanchiment. */
+  'teller',
 ]);
 
 /** Poste physique d'un intérieur (coordonnées locales à la pièce, centre = origine). */
@@ -406,6 +427,8 @@ export const StationSchema = z.object({
   solid: z.boolean(),
   /** Comptoir : nom du vendeur affiché derrière. */
   vendor: z.string().min(1).optional(),
+  /** Poste `talk` : id du dialogue (dialogues.json). */
+  dialogue: z.string().min(1).optional(),
 });
 
 /** Pièce intérieure : une « zone » où le joueur passe en franchissant la porte d'un lieu. */
@@ -441,6 +464,45 @@ export const ShopSchema = z.object({
 });
 
 export const ShopsFileSchema = z.object({ shops: z.array(ShopSchema) });
+
+// ---------- dialogues.json ----------
+/**
+ * Conditions d'un choix : `account` = compte ouvert, `no_account` = pas de compte,
+ * `pact` = pacte d'El Jefe (toujours vrai tant que config.dialogue.requirePact est faux).
+ */
+export const DialogueConditionSchema = z.enum(['account', 'no_account', 'pact']);
+/** Actions exécutées par le serveur quand le choix est validé. */
+export const DialogueActionSchema = z.enum(['open_account']);
+
+export const DialogueChoiceSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1),
+  /** Nœud suivant ; null = fin du dialogue. */
+  next: z.string().min(1).nullable(),
+  requires: z.array(DialogueConditionSchema).optional(),
+  action: DialogueActionSchema.optional(),
+});
+
+export const DialogueNodeSchema = z.object({
+  id: z.string().min(1),
+  speaker: z.string().min(1),
+  /** Texte ; `{fee}` etc. remplacés par les valeurs des JSON (voir `dialogueVars`). */
+  text: z.string().min(1),
+  choices: z.array(DialogueChoiceSchema).min(1),
+});
+
+export const DialogueSchema = z.object({
+  id: z.string().min(1),
+  /** Nœud d'entrée : le premier dont les conditions sont remplies. */
+  start: z
+    .array(
+      z.object({ node: z.string().min(1), requires: z.array(DialogueConditionSchema).optional() }),
+    )
+    .min(1),
+  nodes: z.array(DialogueNodeSchema).min(1),
+});
+
+export const DialoguesFileSchema = z.object({ dialogues: z.array(DialogueSchema) });
 
 // ---------- locations.json ----------
 export const LocationFunctionSchema = z.enum([
@@ -480,6 +542,7 @@ export const SilhouetteSchema = z.enum([
   'hardware',
   'kiosk',
   'alley',
+  'bank',
 ]);
 
 export const DoorSideSchema = z.enum(['north', 'south', 'east', 'west']);
@@ -549,3 +612,9 @@ export type NpcProfile = z.infer<typeof NpcProfileSchema>;
 export type NpcsFile = z.infer<typeof NpcsFileSchema>;
 export type Shop = z.infer<typeof ShopSchema>;
 export type LocationsFile = z.infer<typeof LocationsFileSchema>;
+export type DialogueCondition = z.infer<typeof DialogueConditionSchema>;
+export type DialogueAction = z.infer<typeof DialogueActionSchema>;
+export type DialogueChoice = z.infer<typeof DialogueChoiceSchema>;
+export type DialogueNode = z.infer<typeof DialogueNodeSchema>;
+export type Dialogue = z.infer<typeof DialogueSchema>;
+export type BankRules = Economy['bank'];

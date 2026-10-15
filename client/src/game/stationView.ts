@@ -186,6 +186,10 @@ export function stationView(
     }
     case 'lamp':
       return { label: 'Lampe allumée', active: false, status: 'Allumée' };
+    case 'talk':
+      return { action: 'talk', label: `Parler à ${station.vendor ?? station.label}`, active: true };
+    case 'teller':
+      return { action: 'launder', label: 'Blanchir', active: true };
     case 'counter': {
       const total = room.state.players?.get(myId)?.cartTotal ?? 0;
       const lines = room.state.players?.get(myId)?.cart?.length ?? 0;

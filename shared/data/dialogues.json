@@ -1,0 +1,74 @@
+{
+  "dialogues": [
+    {
+      "id": "banker",
+      "start": [
+        { "node": "already_open", "requires": ["account"] },
+        { "node": "hello" }
+      ],
+      "nodes": [
+        {
+          "id": "hello",
+          "speaker": "M. Lenoir",
+          "text": "Bonjour. Que puis-je faire pour vous ?",
+          "choices": [
+            {
+              "id": "ask_account",
+              "label": "Je voudrais ouvrir un compte.",
+              "next": "references",
+              "requires": ["no_account"]
+            },
+            { "id": "nothing", "label": "Rien, merci.", "next": null }
+          ]
+        },
+        {
+          "id": "references",
+          "speaker": "M. Lenoir",
+          "text": "Bien sûr. Vous avez des références ?",
+          "choices": [
+            {
+              "id": "jefe",
+              "label": "Je viens de la part d'El Jefe.",
+              "next": "offer",
+              "requires": ["pact"]
+            },
+            { "id": "never_mind", "label": "Finalement, non.", "next": null }
+          ]
+        },
+        {
+          "id": "offer",
+          "speaker": "M. Lenoir",
+          "text": "Ah. El Jefe m'a dit que grâce à ce compte, je peux faire blanchir votre argent. Je prends {fee} % de la somme sale, versée en propre sur votre compte. Acceptez-vous ?",
+          "choices": [
+            {
+              "id": "accept",
+              "label": "Accepter",
+              "next": "welcome",
+              "requires": ["no_account"],
+              "action": "open_account"
+            },
+            { "id": "refuse", "label": "Refuser", "next": "refused" }
+          ]
+        },
+        {
+          "id": "welcome",
+          "speaker": "M. Lenoir",
+          "text": "Parfait. Bienvenue chez nous. Les guichets sont à votre service.",
+          "choices": [{ "id": "end", "label": "Merci.", "next": null }]
+        },
+        {
+          "id": "refused",
+          "speaker": "M. Lenoir",
+          "text": "Ma proposition tient toujours. Si vous changez d'avis, n'hésitez pas.",
+          "choices": [{ "id": "end", "label": "Au revoir.", "next": null }]
+        },
+        {
+          "id": "already_open",
+          "speaker": "M. Lenoir",
+          "text": "Votre compte est ouvert. Les guichets sont à votre service.",
+          "choices": [{ "id": "end", "label": "Merci.", "next": null }]
+        }
+      ]
+    }
+  ]
+}

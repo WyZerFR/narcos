@@ -258,7 +258,42 @@ function buildLocation(ctx: Ctx, loc: GameLocation) {
       return kiosk(ctx, loc, rng);
     case 'alley':
       return alley(ctx, loc, rng);
+    case 'bank':
+      return bank(ctx, loc, rng);
   }
+}
+
+/**
+ * Banque : bloc de pierre clair, colonnade et fronton sur la façade, marches, enseigne néon
+ * horizontale et liseré au fronton. Sage et respectable : tout ce que la clientèle n'est pas.
+ */
+function bank(ctx: Ctx, loc: GameLocation, rng: () => number) {
+  const { palette } = ctx.data.config;
+  const r = footprint(loc);
+  const h = loc.height;
+  const f = faceOf(r, loc.door ?? 'south');
+  const stone = shade(loc.color, 1.25);
+  ctx.solid.block(loc.position.x, 0, loc.position.z, loc.size.w, h, loc.size.d, shade(loc.color, 1));
+  parapet(ctx, r, h, shade(loc.color, 0.8));
+  // marches
+  ctx.solid.faceBox(f, 0, 0.1, f.len * 0.8, 0.2, 0.6, shade(palette.ground, 1.4), 0.3);
+  // colonnade
+  const cols = 4;
+  const colH = h - 1.6;
+  for (let i = 0; i < cols; i++) {
+    const u = (i / (cols - 1) - 0.5) * f.len * 0.7;
+    ctx.solid.faceBox(f, u, 0.2 + colH / 2, 0.5, colH, 0.5, stone, 0.25);
+  }
+  // entablement + fronton en gradins
+  ctx.solid.faceBox(f, 0, colH + 0.5, f.len * 0.85, 0.6, 0.7, stone, 0.3);
+  ctx.solid.faceBox(f, 0, colH + 1.05, f.len * 0.6, 0.5, 0.6, stone, 0.3);
+  ctx.solid.faceBox(f, 0, colH + 1.5, f.len * 0.3, 0.4, 0.5, stone, 0.25);
+  // enseigne néon au-dessus de la porte, liseré sous l'entablement
+  ctx.glow.faceBox(f, 0, colH + 0.5, f.len * 0.5, 0.35, 0.08, shade(loc.neonColor, 1), 0.7);
+  ctx.glow.faceBox(f, 0, colH + 0.12, f.len * 0.8, 0.06, 0.06, shade(loc.neonColor, 0.6), 0.65);
+  door(ctx, f, 0, 1.6, 2.6, shade(palette.neon, 0.8));
+  for (const side of SIDES)
+    if (side !== loc.door) windows(ctx, faceOf(r, side), 1.8, h, rng, shade(loc.color, 0.45));
 }
 
 /** Le local : entrepôt bas et large, rideau métallique, lucarnes roses (on devine le labo). */

@@ -95,6 +95,29 @@
       ]
     },
     {
+      "id": "banque",
+      "name": "Banque",
+      "zone": "zone1",
+      "kind": "building",
+      "function": "bank",
+      "silhouette": "bank",
+      "position": {
+        "x": 26,
+        "z": -13
+      },
+      "size": {
+        "w": 8,
+        "d": 10
+      },
+      "height": 9,
+      "color": "#8a8478",
+      "neonColor": "#4dd2ff",
+      "door": "south",
+      "interactRadius": 3,
+      "enterText": "Banque du Quartier. Marbre au sol, plantes en plastique, aucune question.",
+      "catalog": []
+    },
+    {
       "id": "shop",
       "name": "Bricoshop",
       "zone": "zone1",
@@ -243,18 +266,6 @@
         "d": 12
       },
       "height": 15
-    },
-    {
-      "id": "ne_milieu",
-      "position": {
-        "x": 26,
-        "z": -13
-      },
-      "size": {
-        "w": 8,
-        "d": 10
-      },
-      "height": 12
     },
     {
       "id": "ne_fond",

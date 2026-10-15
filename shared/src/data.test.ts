@@ -6,6 +6,7 @@ import locationsJson from '../data/locations.json';
 import zonesJson from '../data/zones.json';
 import shopsJson from '../data/shops.json';
 import npcsJson from '../data/npcs.json';
+import dialoguesJson from '../data/dialogues.json';
 import { gameData, parseGameData, type RawGameData } from './data';
 
 const raw = (): RawGameData =>
@@ -17,6 +18,7 @@ const raw = (): RawGameData =>
     zones: zonesJson,
     shops: shopsJson,
     npcs: npcsJson,
+    dialogues: dialoguesJson,
   });
 
 describe('données du jeu', () => {
@@ -27,10 +29,11 @@ describe('données du jeu', () => {
     expect(gameData.economy.dealer.weeklyCost).toBe(100);
   });
 
-  it('ne contient que la zone 1 avec ses 8 lieux', () => {
+  it('ne contient que la zone 1 avec ses 9 lieux', () => {
     expect([...gameData.zones.keys()]).toEqual(['zone1']);
     expect([...gameData.locations.keys()].sort()).toEqual(
       [
+        'banque',
         'epicerie',
         'local',
         'point_relais',
@@ -116,5 +119,45 @@ describe('données du jeu', () => {
     expect(
       gameData.shops.get('shop')!.shelves.find((s) => s.itemId === 'seed_base')!.price,
     ).toBeGreaterThan(0);
+  });
+});
+
+describe('dialogues.json et banque', () => {
+  it('valide dialogues.json, le dialogue du courtier et les réglages de la banque', () => {
+    const banker = gameData.dialogues.get('banker')!;
+    expect(banker.nodes.map((n) => n.id)).toContain('offer');
+    const bank = gameData.interiors.get('bank')!;
+    expect(bank.stations.find((s) => s.id === 'banker')).toMatchObject({ dialogue: 'banker' });
+    expect(bank.stations.filter((s) => s.kind === 'teller').map((s) => s.id)).toEqual([
+      'teller_1',
+      'teller_2',
+    ]);
+    expect(gameData.economy.bank.fee).toBe(0.5);
+  });
+
+  it('refuse un dialogue mal formé : nœud suivant inconnu, variable inconnue, action inconnue', () => {
+    const r = raw();
+    (r.dialogues as { dialogues: { nodes: { choices: { next: string }[] }[] }[] }).dialogues[0]!
+      .nodes[0]!.choices[0]!.next = 'nulle_part';
+    expect(() => parseGameData(r)).toThrow(/nœud inconnu "nulle_part"/);
+    const r2 = raw();
+    (r2.dialogues as { dialogues: { nodes: { text: string }[] }[] }).dialogues[0]!.nodes[0]!.text =
+      'Bonjour {inconnu}';
+    expect(() => parseGameData(r2)).toThrow(/variable inconnue \{inconnu\}/);
+    const r3 = raw();
+    (
+      r3.dialogues as { dialogues: { nodes: { choices: { action?: string }[] }[] }[] }
+    ).dialogues[0]!.nodes[0]!.choices[0]!.action = 'voler_la_banque';
+    expect(() => parseGameData(r3)).toThrow(/dialogues\.json invalide/);
+  });
+
+  it('refuse une commission ≥ 100 % et un poste « talk » sans dialogue', () => {
+    const r = raw();
+    (r.economy as { bank: { fee: number } }).bank.fee = 1;
+    expect(() => parseGameData(r)).toThrow(/economy\.json invalide[\s\S]*bank\.fee/);
+    const r2 = raw();
+    const zones = r2.zones as { interiors: { id: string; stations: { dialogue?: string }[] }[] };
+    delete zones.interiors.find((i) => i.id === 'bank')!.stations[0]!.dialogue;
+    expect(() => parseGameData(r2)).toThrow(/dialogue manquant/);
   });
 });

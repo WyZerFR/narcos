@@ -57,6 +57,8 @@ export const ACTIONS_BY_KIND: Record<Station['kind'], readonly StationAction[]> 
   shelf: ['take'],
   counter: ['pay'],
   lamp: [],
+  talk: ['talk'],
+  teller: ['launder'],
 };
 
 const done = (text: string): ActionResult => ({ ok: true, text });
@@ -201,6 +203,8 @@ export function runStationAction(
     case 'exit':
     case 'take':
     case 'pay':
+    case 'talk':
+    case 'launder':
       return refuse('Action gérée par la room.');
   }
 }

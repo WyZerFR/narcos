@@ -128,6 +128,23 @@ function buildStation(st: Station, solid: Batch, glow: Batch, data: GameData, ne
       solid.block(x - w * 0.15, 1.82, vz, 0.46, 0.08, 0.46, shade(palette.sky, 0.6));
       return;
     }
+    case 'talk': {
+      // grand comptoir de marbre, courtier (bloc de couleur) derrière, lampe de bureau
+      solid.block(x, 0, z, w, 1.05, d, shade(palette.wall, 1.8));
+      solid.block(x, 1.05, z, w + 0.1, 0.06, d + 0.1, shade(palette.ground, 2.6));
+      glow.box(x + w * 0.35, 1.25, z, 0.2, 0.3, 0.2, shade(neon, 1.2));
+      const vz = z - d / 2 - 0.45;
+      solid.block(x, 0, vz, 0.65, 1.45, 0.4, shade(neon, 0.6));
+      solid.block(x, 1.45, vz, 0.42, 0.42, 0.42, shade(palette.ground, 2.3));
+      solid.block(x, 1.87, vz, 0.46, 0.06, 0.46, shade(palette.sky, 0.6));
+      return;
+    }
+    case 'teller':
+      // guichet : comptoir bas, vitre lumineuse, fente
+      solid.block(x, 0, z, w, 1, d, shade(palette.wall, 1.6));
+      solid.block(x, 1, z, w + 0.06, 0.05, d + 0.06, wood);
+      glow.box(x, 1.55, z - d * 0.2, w * 0.9, 1, 0.04, shade(neon, 0.45));
+      return;
     case 'exit':
       return;
   }

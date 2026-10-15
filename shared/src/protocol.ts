@@ -100,6 +100,10 @@ export const STATION_ACTIONS = [
   'exit',
   'take',
   'pay',
+  /** Parler au personnage d'un poste `talk` (ouvre son dialogue). */
+  'talk',
+  /** Guichet : ouvrir le panneau de blanchiment (le serveur vérifie le compte). */
+  'launder',
 ] as const;
 export type StationAction = (typeof STATION_ACTIONS)[number];
 
