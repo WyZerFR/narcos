@@ -491,6 +491,11 @@ export const InteriorSchema = z.object({
   stations: z.array(StationSchema).min(1),
   /** On peut y poser librement des meubles (labo). */
   furnishable: z.boolean().default(false),
+  /**
+   * Agrandissement appliqué au chargement (`scaleInterior`) : pièce, positions des postes,
+   * obstacles, décor et point d'apparition ; tailles du mobilier inchangées.
+   */
+  layoutScale: pos.default(1),
   /** Ambiance de rendu : pièce carrelée (défaut) ou cave de pierre, plus sombre. */
   style: z.enum(['default', 'cellar']).default('default'),
   /** Décor de la pièce (caisses, coffre, escalier, ampoule) ; `solid` = obstacle. */

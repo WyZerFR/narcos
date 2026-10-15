@@ -44,7 +44,7 @@ import {
   type Rect,
 } from './geometry';
 import { footprint, interactionPoint } from './locations';
-import { interiorBounds, interiorObstacles } from './zones';
+import { interiorBounds, interiorObstacles, scaleInterior } from './zones';
 
 import { findSlits, obstaclesFrom } from './collision';
 import { dialogueVars, textVars } from './dialogue';
@@ -284,7 +284,13 @@ export function parseGameData(raw: RawGameData): GameData {
   const economy = parse('economy.json', EconomySchema, raw.economy);
   const itemsFile = parse('items.json', ItemsFileSchema, raw.items);
   const locFile = parse('locations.json', LocationsFileSchema, raw.locations);
-  const zonesFile = parse('zones.json', ZonesFileSchema, raw.zones);
+  const parsedZones = parse('zones.json', ZonesFileSchema, raw.zones);
+  // agrandissement des intérieurs (layoutScale) appliqué une fois, avant toute vérification
+  const passage = 2 * config.world.playerRadius + config.collision.passageMargin;
+  const zonesFile = {
+    ...parsedZones,
+    interiors: parsedZones.interiors.map((i) => scaleInterior(i, passage)),
+  };
   const shopsFile = parse('shops.json', ShopsFileSchema, raw.shops);
   const npcs = parse('npcs.json', NpcsFileSchema, raw.npcs);
   const dialoguesFile = parse('dialogues.json', DialoguesFileSchema, raw.dialogues);
