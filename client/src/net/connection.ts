@@ -42,6 +42,8 @@ export interface PlayerView {
   launderLog: { at: number; amount: number }[];
   cart: CartLineView[];
   cartTotal: number;
+  cartDirty: number;
+  cartClean: number;
   hunger: number;
   thirst: number;
   health: number;
@@ -52,6 +54,7 @@ export interface CartLineView {
   itemId: string;
   qty: number;
   unitPrice: number;
+  currency: string;
 }
 
 export interface SlotView {

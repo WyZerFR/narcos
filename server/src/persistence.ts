@@ -71,10 +71,14 @@ const StateJson = z.object({
             itemId: z.string(),
             qty: z.number(),
             unitPrice: z.number(),
+            // ajouté avec les deux monnaies : un ancien panier était payé en espèces
+            currency: z.enum(['dirty', 'clean', 'any']).default('dirty'),
           }),
         )
         .default([]),
       cartTotal: z.number().nonnegative().default(0),
+      cartDirty: z.number().nonnegative().optional(),
+      cartClean: z.number().nonnegative().optional(),
       hunger: z.number().default(100),
       thirst: z.number().default(100),
       health: z.number().default(100),
@@ -160,6 +164,8 @@ export function hydrateState(state: GameState, snap: RoomSnapshot): void {
     player.bag.push(...slotsFrom(p.bag));
     player.cart.push(...p.cart.map((l) => Object.assign(new CartLine(), l)));
     player.cartTotal = p.cartTotal;
+    player.cartDirty = p.cartDirty ?? p.cartTotal;
+    player.cartClean = p.cartClean ?? 0;
     player.launderLog.push(
       ...(p.launderLog ?? []).map((e) => Object.assign(new LaunderEntry(), e)),
     );

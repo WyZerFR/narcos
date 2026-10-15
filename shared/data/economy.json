@@ -4,8 +4,7 @@
     "gameDaysPerWeek": 7
   },
   "startingMoney": {
-    "_comment": "temporaire, test : 1000 $ d'argent sale par joueur",
-    "dirty": 1000,
+    "dirty": 150,
     "clean": 0
   },
   "survival": {

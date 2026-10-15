@@ -42,6 +42,9 @@ import { interiorBounds, interiorObstacles } from './zones';
 import { obstaclesFrom } from './collision';
 import { dialogueVars, textVars } from './dialogue';
 
+/** Catégories d'objets payables en « any » (compte ou espèces) : nourriture et boissons. */
+const ANY_CURRENCY_CATEGORIES: ReadonlySet<string> = new Set(['food', 'drink', 'water']);
+
 /** Dialogues : nœuds uniques, liens valides, variables connues, postes « talk » reliés. */
 function checkDialogues(
   dialogues: ReadonlyMap<string, Dialogue>,
@@ -277,6 +280,9 @@ export function parseGameData(raw: RawGameData): GameData {
       const def = items.get(shelf.itemId);
       if (!def || def.storage !== 'slot')
         errors.push(`shops.json : objet "${shelf.itemId}" inconnu ou non rangeable`);
+      // « any » (compte ou espèces) est réservé à la nourriture et aux boissons de base
+      if (shelf.currency === 'any' && def && !ANY_CURRENCY_CATEGORIES.has(def.category))
+        errors.push(`shops.json : "${shelf.itemId}" ne peut pas se payer en « any »`);
     }
     for (const st of interior.stations)
       if (st.kind === 'shelf' && !sold.has(st.id))

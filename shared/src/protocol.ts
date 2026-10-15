@@ -255,6 +255,7 @@ export type DebugMessage =
   | { cmd: 'spawnBuyer' }
   | { cmd: 'openAccount' }
   | { cmd: 'setClean'; amount: number }
+  | { cmd: 'giveClean'; amount: number }
   | { cmd: 'resetLaunderCap' };
 
 export const MAX_NAME_LENGTH = 16;

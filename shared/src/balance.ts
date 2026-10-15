@@ -72,3 +72,46 @@ export function starterKitCost(data: Pick<GameData, 'economy' | 'shops' | 'items
     data.economy.lab.starterKitSeeds * seedPrice(data, base)
   );
 }
+
+export interface SurvivalCostReport {
+  /** Prix le plus bas d'un point de faim / de soif en argent propre (articles « any » ou « clean »). */
+  hungerPointPrice: number;
+  thirstPointPrice: number;
+  /** Argent propre dépensé en nourriture par minute de jeu (jauges tenues à flot). */
+  perMinute: number;
+  perHour: number;
+  /** Argent sale à blanchir pour obtenir 1 $ propre (commission incluse). */
+  dirtyPerClean: number;
+  /** Pochons de base à vendre puis blanchir pour couvrir une heure de survie. */
+  pouchesPerHour: number;
+}
+
+/** Coût de la survie payée en argent propre, et pochons à vendre puis blanchir pour le couvrir. */
+export function survivalCostReport(
+  data: Pick<GameData, 'economy' | 'shops' | 'items'>,
+): SurvivalCostReport {
+  let hungerPointPrice = Infinity;
+  let thirstPointPrice = Infinity;
+  for (const shop of data.shops.values())
+    for (const shelf of shop.shelves) {
+      if (shelf.currency === 'dirty') continue;
+      const restores = data.items.get(shelf.itemId)?.restores;
+      if (restores?.hunger)
+        hungerPointPrice = Math.min(hungerPointPrice, shelf.price / restores.hunger);
+      if (restores?.thirst)
+        thirstPointPrice = Math.min(thirstPointPrice, shelf.price / restores.thirst);
+    }
+  const { survival, bank, strains } = data.economy;
+  const perMinute =
+    survival.hungerPerMinute * hungerPointPrice + survival.thirstPerMinute * thirstPointPrice;
+  const perHour = perMinute * 60;
+  const dirtyPerClean = 1 / (1 - bank.fee);
+  return {
+    hungerPointPrice,
+    thirstPointPrice,
+    perMinute,
+    perHour,
+    dirtyPerClean,
+    pouchesPerHour: (perHour * dirtyPerClean) / strains[0]!.pouchSellPrice,
+  };
+}

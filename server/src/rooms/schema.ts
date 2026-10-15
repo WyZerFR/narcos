@@ -12,6 +12,8 @@ export class CartLine extends Schema {
   @type('string') itemId = '';
   @type('uint16') qty = 0;
   @type('uint32') unitPrice = 0;
+  /** Monnaie de l'étagère : 'dirty' | 'clean' | 'any'. */
+  @type('string') currency = 'dirty';
 }
 
 /** Stock d'une étagère ; -1 = illimité. */
@@ -45,6 +47,9 @@ export class Player extends Schema {
   /** Panier dans le magasin courant (réservé en rayon), total calculé par le serveur. */
   @type([CartLine]) cart = new ArraySchema<CartLine>();
   @type('uint32') cartTotal = 0;
+  /** Répartition du total : espèces sales / compte (« any » selon le solde au moment du calcul). */
+  @type('uint32') cartDirty = 0;
+  @type('uint32') cartClean = 0;
   /** Jauges de survie (0..max), mises à jour par le serveur pour les joueurs connectés. */
   @type('float32') hunger = 100;
   @type('float32') thirst = 100;

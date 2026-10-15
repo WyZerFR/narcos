@@ -61,7 +61,7 @@ import {
   remove,
   speedFactor,
 } from '@narco/shared';
-import { pay, putBack, returnCart, stockShelves, takeItem } from './shop';
+import { pay, putBack, readCart, returnCart, stockShelves, takeItem, writeCart } from './shop';
 import { StreetNpcs } from './npcs';
 import { DialogueDesk } from './dialogues';
 import { accessGranted, debugEnabled } from '../env';
@@ -808,7 +808,14 @@ export class NarcoRoom extends Room<GameState> {
       case 'setClean': {
         const amount = Math.max(0, Math.floor(Number(msg.amount) || 0));
         player.cleanBalance = amount;
+        writeCart(player, readCart(player)); // « any » réparti selon le nouveau solde
         return this.notify(client, true, `[debug] solde propre = ${amount} $`);
+      }
+      case 'giveClean': {
+        const amount = Math.max(0, Math.floor(Number(msg.amount) || 0));
+        player.cleanBalance += amount;
+        writeCart(player, readCart(player));
+        return this.notify(client, true, `[debug] +${amount} $ propres sur le compte`);
       }
       case 'resetLaunderCap':
         resetLaunderCap(player);

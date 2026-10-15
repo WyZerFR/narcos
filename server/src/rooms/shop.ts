@@ -1,7 +1,9 @@
 import {
   cartTotal,
   checkout,
+  formatSplit,
   gameData,
+  splitCart,
   returnOne,
   takeFromShelf,
   type Cart,
@@ -46,14 +48,23 @@ export function readCart(player: Player): Cart {
     itemId: l.itemId,
     qty: l.qty,
     unitPrice: l.unitPrice,
+    currency: l.currency === 'clean' || l.currency === 'any' ? l.currency : 'dirty',
   }));
 }
 
-/** Réécrit le panier et son total (seul endroit où un prix est calculé). */
+const accountOf = (player: Player) => ({
+  clean: player.cleanBalance,
+  hasAccount: player.hasAccount,
+});
+
+/** Réécrit le panier, son total et sa répartition par monnaie (seul endroit où un prix est calculé). */
 export function writeCart(player: Player, cart: Cart): void {
   player.cart.clear();
   for (const line of cart) player.cart.push(Object.assign(new CartLine(), line));
   player.cartTotal = cartTotal(cart);
+  const split = splitCart(cart, accountOf(player));
+  player.cartDirty = split.dirty;
+  player.cartClean = split.clean;
 }
 
 function writeStock(state: GameState, key: string, stock: ShelfStock): void {
@@ -105,14 +116,19 @@ export function returnCart(state: GameState, player: Player, interiorId: string)
   writeCart(player, []);
 }
 
-/** « Payer » au comptoir : argent sale du sac débité, achats rangés, tout ou rien. */
+/**
+ * « Payer » au comptoir : espèces du sac et solde du compte débités selon la monnaie de chaque
+ * article, achats rangés, tout ou rien.
+ */
 export function pay(player: Player, counter: Station): ActionResult {
-  const cart = readCart(player);
-  const r = checkout(readInventory(player.bag), cart, items);
+  const r = checkout(readInventory(player.bag), readCart(player), accountOf(player), items);
   if (!r.ok) return { ok: false, text: r.message };
-  writeInventory(player.bag, r.value);
-  const total = cartTotal(cart);
+  writeInventory(player.bag, r.value.bag);
+  player.cleanBalance = r.value.clean;
   writeCart(player, []);
   const vendor = counter.vendor ?? 'Le vendeur';
-  return { ok: true, text: `${vendor} encaisse ${total} $ sans poser de questions.` };
+  return {
+    ok: true,
+    text: `${vendor} encaisse ${formatSplit(r.value.split)} sans poser de questions.`,
+  };
 }

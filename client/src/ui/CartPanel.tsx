@@ -9,9 +9,13 @@ import { connection, type GameRoom } from '../net/connection';
 import { useRoomVersion } from '../net/gameView';
 import { localPlayer } from '../game/localPlayer';
 
+/** Monnaie d'une ligne : espèces sales, carte (compte), ou l'une ou l'autre. */
+const CURRENCY_ICON: Record<string, string> = { dirty: '💵', clean: '💳', any: '💵/💳' };
+
 /**
- * Panier du magasin : lignes, « Retirer », total et « Payer ». Tous les montants viennent du
- * serveur (`cart`, `cartTotal`) ; « Payer » n'est actif qu'à portée du comptoir.
+ * Panier du magasin : lignes, « Retirer », un total par monnaie et « Payer ». Tous les montants
+ * viennent du serveur (`cart`, `cartDirty`, `cartClean`) ; « Payer » n'est actif qu'à portée
+ * du comptoir.
  */
 export function CartPanel({ room, interiorId }: { room: GameRoom; interiorId: string }) {
   useRoomVersion(room); // re-rendu à chaque patch (panier, et position pour « Payer »)
@@ -46,7 +50,9 @@ export function CartPanel({ room, interiorId }: { room: GameRoom; interiorId: st
                 <span className="cart-item">
                   {def?.icon} {def?.name ?? l.itemId} ×{l.qty}
                 </span>
-                <span className="cart-price">{l.unitPrice} $/u</span>
+                <span className="cart-price">
+                  {CURRENCY_ICON[l.currency] ?? ''} {l.unitPrice} $/u
+                </span>
                 <button
                   type="button"
                   className="btn cart-remove"
@@ -60,7 +66,12 @@ export function CartPanel({ room, interiorId }: { room: GameRoom; interiorId: st
         </ul>
       )}
       <div className="cart-footer">
-        <strong>Total : {me.cartTotal} $</strong>
+        <strong>
+          {me.cartDirty > 0 && <span className="money-dirty">💵 {me.cartDirty} $</span>}
+          {me.cartDirty > 0 && me.cartClean > 0 && ' · '}
+          {me.cartClean > 0 && <span>💳 {me.cartClean} $</span>}
+          {me.cartDirty === 0 && me.cartClean === 0 && 'Total : 0 $'}
+        </strong>
         <button
           type="button"
           className="btn primary"

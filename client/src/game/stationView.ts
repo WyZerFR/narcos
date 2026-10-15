@@ -191,10 +191,14 @@ export function stationView(
     case 'teller':
       return { action: 'launder', label: 'Blanchir', active: true };
     case 'counter': {
-      const total = room.state.players?.get(myId)?.cartTotal ?? 0;
-      const lines = room.state.players?.get(myId)?.cart?.length ?? 0;
+      const me = room.state.players?.get(myId);
+      const lines = me?.cart?.length ?? 0;
+      const amounts = [
+        me?.cartDirty ? `💵 ${me.cartDirty} $` : '',
+        me?.cartClean ? `💳 ${me.cartClean} $` : '',
+      ].filter(Boolean);
       return lines > 0
-        ? { action: 'pay', label: `Payer (${total} $)`, active: true }
+        ? { action: 'pay', label: `Payer (${amounts.join(' · ') || '0 $'})`, active: true }
         : { action: 'pay', label: 'Panier vide', active: false };
     }
   }
