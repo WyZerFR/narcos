@@ -1192,3 +1192,19 @@ input {
 .inv-ghost.returning {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
 }
+
+/* ---------- dialogue (courtier…) ---------- */
+.dialogue-panel .dialogue-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.dialogue-panel .dialogue-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dialogue-panel .dialogue-choices .btn {
+  min-height: 44px;
+  text-align: left;
+}

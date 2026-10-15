@@ -34,6 +34,10 @@ export const ClientMsg = {
   SaleOpen: 'sale.open',
   SaleAccept: 'sale.accept',
   SaleDecline: 'sale.decline',
+  /** Dialogue : choix d'une réponse sur le nœud courant (validé par le serveur). */
+  DialogueChoose: 'dialogue.choose',
+  /** Guichet : blanchir un montant d'argent sale. */
+  BankLaunder: 'bank.launder',
 } as const;
 
 export const ServerMsg = {
@@ -49,6 +53,12 @@ export const ServerMsg = {
   SaleOffer: 'sale.offer',
   /** Fin d'une offre (vente faite, refus, patience épuisée, joueur parti). */
   SaleClosed: 'sale.closed',
+  /** Dialogue : nœud à afficher (null = fin de la conversation). */
+  Dialogue: 'dialogue.node',
+  /** Guichet : ouvrir le panneau de blanchiment (compte vérifié). */
+  LaunderOpen: 'bank.launderOpen',
+  /** Réponse à un blanchiment (le panneau se ferme si ok). */
+  LaunderResult: 'bank.launderResult',
 } as const;
 
 /** Nom de l'événement serveur émis à chaque vente (pour le Heat et la police plus tard). */
@@ -61,6 +71,47 @@ export interface SaleCompletedEvent {
   amount: number;
   x: number;
   z: number;
+}
+
+/** Événement serveur émis à chaque blanchiment (pour le Heat plus tard). */
+export const LAUNDERED = 'laundered';
+
+export interface LaunderedEvent {
+  playerId: string;
+  /** Somme sale retirée du sac. */
+  dirty: number;
+  /** Somme propre créditée sur le compte. */
+  clean: number;
+}
+
+export interface DialogueChooseMessage {
+  dialogueId: string;
+  nodeId: string;
+  choiceId: string;
+}
+
+export interface DialogueNodeMessage {
+  dialogueId: string;
+  /** Poste du personnage (comptoir du courtier…). */
+  stationId: string;
+  /** Nœud à afficher ; null = conversation terminée. */
+  nodeId: string | null;
+}
+
+export interface LaunderOpenMessage {
+  stationId: string;
+}
+
+export interface BankLaunderMessage {
+  requestId: number;
+  stationId: string;
+  amount: number;
+}
+
+export interface LaunderResultMessage {
+  requestId: number;
+  ok: boolean;
+  text: string;
 }
 
 export interface MoveMessage {

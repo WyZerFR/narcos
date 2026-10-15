@@ -10,6 +10,7 @@ import { StatusPanel } from './StatusPanel';
 import { CartPanel } from './CartPanel';
 import { InventoryPanel } from './InventoryPanel';
 import { SalePanel } from './SalePanel';
+import { DialoguePanel } from './DialoguePanel';
 import { openInventory, useInventoryMode } from './uiStore';
 
 export function Hud({ snapshot, room }: { snapshot: Snapshot; room: GameRoom }) {
@@ -70,6 +71,7 @@ export function Hud({ snapshot, room }: { snapshot: Snapshot; room: GameRoom }) 
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
       {inventory && <InventoryPanel room={room} />}
       <SalePanel room={room} />
+      <DialoguePanel room={room} />
     </>
   );
 }

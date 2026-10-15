@@ -22,6 +22,7 @@ import {
   validateMove,
   zoneArea,
   type CorrectionMessage,
+  type DialogueNodeMessage,
   type FixtureResultMessage,
   type GameClock,
   type JoinOptions,
@@ -58,6 +59,7 @@ import {
 } from '@narco/shared';
 import { pay, putBack, returnCart, stockShelves, takeItem } from './shop';
 import { StreetNpcs } from './npcs';
+import { DialogueDesk } from './dialogues';
 import { SALE_COMPLETED, type SaleClosedMessage, type SaleCompletedEvent } from '@narco/shared';
 import { GameState, Player } from './schema';
 import { makeSlots, readInventory, writeInventory } from './stateSync';
@@ -130,6 +132,8 @@ export class NarcoRoom extends Room<GameState> {
   private gameClock: GameClock = createClock(Date.now());
   /** PNJ acheteurs de la rue. */
   readonly npcs = new StreetNpcs(this.state);
+  /** Conversations en cours (courtier…), validées choix par choix. */
+  readonly dialogues = new DialogueDesk();
   /** Événements de jeu côté serveur (`sale_completed`…), pour le Heat et la police plus tard. */
   readonly events = new EventEmitter();
   private npcTickAt = Date.now();
@@ -184,6 +188,9 @@ export class NarcoRoom extends Room<GameState> {
     this.clock.setInterval(() => this.settleAllVitals(), CLOCK_BROADCAST_MS);
     this.npcs.spawnAll(Date.now());
     this.clock.setInterval(() => this.npcTick(), 1000 / config.npc.broadcastHz);
+    this.onMessage(ClientMsg.DialogueChoose, (client, msg: unknown) =>
+      this.handleDialogueChoose(client, msg),
+    );
     this.onMessage(ClientMsg.SaleOpen, (client, msg: unknown) => this.handleSaleOpen(client, msg));
     this.onMessage(ClientMsg.SaleAccept, (client, msg: unknown) =>
       this.handleSaleAccept(client, msg),
@@ -238,6 +245,7 @@ export class NarcoRoom extends Room<GameState> {
         player.connected = false;
         this.emptyCart(player);
         this.releaseSales(playerId);
+        this.dialogues.end(playerId);
         console.log(`[room ${this.roomId}] ${player.name} déconnecté`);
       }
     }
@@ -352,6 +360,7 @@ export class NarcoRoom extends Room<GameState> {
     if (zoneId !== player.zone) {
       this.emptyCart(player);
       this.releaseSales(playerId);
+      this.dialogues.end(playerId);
     }
     player.zone = zoneId;
     player.x = at.x;
@@ -447,6 +456,13 @@ export class NarcoRoom extends Room<GameState> {
       const loc = gameData.locations.get(interior.entranceLocationId)!;
       this.moveToZone(playerId, player, STREET, interactionPoint(loc));
       return this.notify(client, true, `Retour dans la rue, devant ${loc.name}.`);
+    }
+    if (station.kind === 'talk') {
+      if (action !== 'talk') return this.notify(client, false, `Impossible ici : ${station.label}`);
+      const r = this.dialogues.start(playerId, player, station);
+      if (r.ok) client.send(ServerMsg.Dialogue, r.node);
+      else this.notify(client, false, r.text);
+      return;
     }
     if (station.kind === 'shelf' || station.kind === 'counter') {
       const wrong = { ok: false, text: `Impossible ici : ${station.label}` };
@@ -629,6 +645,23 @@ export class NarcoRoom extends Room<GameState> {
       const name = this.state.npcs.get(npcId)?.name ?? 'Le client';
       this.notify(client, true, `${name} hausse les épaules et s'en va.`);
     }
+  }
+
+  /** Réponse choisie dans un dialogue : validée par le serveur, nœud suivant renvoyé. */
+  private handleDialogueChoose(client: Client, msg: unknown): void {
+    const who = this.playerOf(client);
+    if (!who || !isObject(msg)) return;
+    const req = {
+      dialogueId: String(msg.dialogueId ?? ''),
+      nodeId: String(msg.nodeId ?? ''),
+      choiceId: String(msg.choiceId ?? ''),
+    };
+    const r = this.dialogues.choose(who.playerId, who.player, req, (st) =>
+      this.isNear(who.player, st),
+    );
+    if (!r.ok) this.notify(client, false, r.text);
+    const node: DialogueNodeMessage | undefined = r.node;
+    if (node) client.send(ServerMsg.Dialogue, node);
   }
 
   /** Panier rendu au rayon (sortie du magasin, déconnexion, KO). */

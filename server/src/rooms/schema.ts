@@ -32,6 +32,8 @@ export class Player extends Schema {
   @type([Slot]) bag = new ArraySchema<Slot>();
   /** Argent propre : compte numérique, non confiscable (la laverie viendra plus tard). */
   @type('uint32') cleanMoney = 0;
+  /** Compte ouvert à la banque (dialogue du courtier) : condition pour blanchir. */
+  @type('boolean') hasAccount = false;
   /** Panier dans le magasin courant (réservé en rayon), total calculé par le serveur. */
   @type([CartLine]) cart = new ArraySchema<CartLine>();
   @type('uint32') cartTotal = 0;

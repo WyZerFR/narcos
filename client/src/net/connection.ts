@@ -11,6 +11,9 @@ import {
   type FixtureResultMessage,
   type SaleClosedMessage,
   type SaleOfferMessage,
+  type DialogueNodeMessage,
+  type LaunderOpenMessage,
+  type LaunderResultMessage,
   type JoinOptions,
 } from '@narco/shared';
 import { syncClock } from './gameView';
@@ -28,6 +31,7 @@ export interface PlayerView {
   zone: string;
   bag: SlotView[];
   cleanMoney: number;
+  hasAccount: boolean;
   cart: CartLineView[];
   cartTotal: number;
   hunger: number;
@@ -137,6 +141,10 @@ type CorrectionListener = (c: CorrectionMessage) => void;
 type NoticeListener = (n: NoticeMessage) => void;
 type MoveResultListener = (r: MoveResultMessage) => void;
 type FixtureResultListener = (r: FixtureResultMessage) => void;
+type DialogueListener = (n: DialogueNodeMessage) => void;
+type LaunderListener = (
+  e: { open: LaunderOpenMessage } | { result: LaunderResultMessage },
+) => void;
 type SaleListener = (e: { offer: SaleOfferMessage } | { closed: SaleClosedMessage }) => void;
 
 class Connection {
@@ -147,6 +155,8 @@ class Connection {
   private moveResultListeners = new Set<MoveResultListener>();
   private fixtureResultListeners = new Set<FixtureResultListener>();
   private saleListeners = new Set<SaleListener>();
+  private dialogueListeners = new Set<DialogueListener>();
+  private launderListeners = new Set<LaunderListener>();
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private hiddenAt: number | null = null;
   private joining = false;
@@ -178,6 +188,18 @@ class Connection {
   }
 
   /** Offres de vente : ouverture (panneau) et fermeture (vente, refus, patience épuisée). */
+  /** Nœud de dialogue à afficher (null = fin). */
+  onDialogue(fn: DialogueListener): () => void {
+    this.dialogueListeners.add(fn);
+    return () => this.dialogueListeners.delete(fn);
+  }
+
+  /** Guichet : ouverture du panneau, réponse à un blanchiment. */
+  onLaunder(fn: LaunderListener): () => void {
+    this.launderListeners.add(fn);
+    return () => this.launderListeners.delete(fn);
+  }
+
   onSale(fn: SaleListener): () => void {
     this.saleListeners.add(fn);
     return () => this.saleListeners.delete(fn);
@@ -279,6 +301,15 @@ class Connection {
     });
     room.onMessage(ServerMsg.SaleClosed, (closed: SaleClosedMessage) => {
       for (const fn of this.saleListeners) fn({ closed });
+    });
+    room.onMessage(ServerMsg.Dialogue, (n: DialogueNodeMessage) => {
+      for (const fn of this.dialogueListeners) fn(n);
+    });
+    room.onMessage(ServerMsg.LaunderOpen, (open: LaunderOpenMessage) => {
+      for (const fn of this.launderListeners) fn({ open });
+    });
+    room.onMessage(ServerMsg.LaunderResult, (result: LaunderResultMessage) => {
+      for (const fn of this.launderListeners) fn({ result });
     });
     room.onMessage(ServerMsg.Notice, (n: NoticeMessage) => {
       for (const fn of this.noticeListeners) fn(n);

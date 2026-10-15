@@ -58,6 +58,8 @@ const StateJson = z.object({
       zone: z.string().default('street'),
       bag: z.array(SlotJson).default([]),
       cleanMoney: z.number().nonnegative().default(0),
+      // ajouté après la v4 : une ancienne sauvegarde se charge avec le compte fermé
+      hasAccount: z.boolean().optional(),
       cart: z
         .array(
           z.object({
@@ -148,6 +150,7 @@ export function hydrateState(state: GameState, snap: RoomSnapshot): void {
       rotY: p.rotY,
       zone: p.zone,
       cleanMoney: p.cleanMoney,
+      hasAccount: p.hasAccount ?? false,
       connected: false,
     });
     player.bag.push(...slotsFrom(p.bag));
