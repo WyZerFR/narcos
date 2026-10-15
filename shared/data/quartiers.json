@@ -2,7 +2,10 @@
   "colliders": {
     "lampSize": 0.4,
     "trunkSize": 0.6,
-    "binSize": { "w": 0.8, "d": 0.7 },
+    "binSize": {
+      "w": 0.8,
+      "d": 0.7
+    },
     "crateSize": 0.9,
     "fenceThickness": 0.15,
     "fenceDoorGap": 2.4
@@ -20,7 +23,8 @@
         "entranceClear": 3,
         "housesLength": 64,
         "plazaDepth": 12,
-        "plazaWidth": 26
+        "plazaWidth": 26,
+        "npcWaypointSpacing": 12
       },
       "houses": {
         "perSide": [6, 8],
@@ -56,8 +60,15 @@
         "fenceChance": 0.5,
         "garlandSpacing": 0
       },
-      "arch": { "label": "QUARTIER NORD — Chez El Jefe", "height": 5.5 },
-      "landmark": { "gate": true, "guards": 2, "garlands": false }
+      "arch": {
+        "label": "QUARTIER NORD — Chez El Jefe",
+        "height": 5.5
+      },
+      "landmark": {
+        "gate": true,
+        "guards": 2,
+        "garlands": false
+      }
     },
     {
       "id": "sud",
@@ -71,7 +82,8 @@
         "entranceClear": 3,
         "housesLength": 64,
         "plazaDepth": 12,
-        "plazaWidth": 26
+        "plazaWidth": 26,
+        "npcWaypointSpacing": 12
       },
       "houses": {
         "perSide": [6, 8],
@@ -107,8 +119,15 @@
         "fenceChance": 0.35,
         "garlandSpacing": 10
       },
-      "arch": { "label": "QUARTIER SUD — Chez nous", "height": 5.5 },
-      "landmark": { "gate": false, "guards": 0, "garlands": true }
+      "arch": {
+        "label": "QUARTIER SUD — Chez nous",
+        "height": 5.5
+      },
+      "landmark": {
+        "gate": false,
+        "guards": 0,
+        "garlands": true
+      }
     }
   ]
 }

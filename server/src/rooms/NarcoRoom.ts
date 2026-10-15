@@ -68,7 +68,7 @@ import { accessGranted, debugEnabled } from '../env';
 import { freezeLaunderWindows, launder, openTeller, resetLaunderCap } from './bank';
 import { SALE_COMPLETED, type SaleClosedMessage, type SaleCompletedEvent } from '@narco/shared';
 import { GameState, Player } from './schema';
-import { makeSlots, readInventory, writeInventory } from './stateSync';
+import { makeSlots, readInventory, syncArea, writeInventory } from './stateSync';
 
 const { config, economy, items } = gameData;
 const SURVIVAL = economy.survival;
@@ -342,6 +342,7 @@ export class NarcoRoom extends Room<GameState> {
     );
     player.x = pos.x;
     player.z = pos.z;
+    syncArea(player);
     return player;
   }
 
@@ -388,6 +389,7 @@ export class NarcoRoom extends Room<GameState> {
     player.zone = zoneId;
     player.x = at.x;
     player.z = at.z;
+    syncArea(player);
     this.budgets.set(playerId, freshBudget(Date.now(), this.zoneRules(zoneId)));
   }
 
@@ -432,6 +434,7 @@ export class NarcoRoom extends Room<GameState> {
     this.budgets.set(playerId, result.budget);
     player.x = result.pos.x;
     player.z = result.pos.z;
+    syncArea(player);
     if (Number.isFinite(rotY)) player.rotY = rotY;
 
     if (result.corrected) {
@@ -671,6 +674,7 @@ export class NarcoRoom extends Room<GameState> {
       amount: r.amount ?? 0,
       x: player.x,
       z: player.z,
+      area: r.area ?? '',
     };
     this.events.emit(SALE_COMPLETED, event);
   }

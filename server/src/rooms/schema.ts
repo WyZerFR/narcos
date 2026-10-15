@@ -37,6 +37,8 @@ export class Player extends Schema {
   @type('boolean') connected = true;
   /** Zone courante : 'street' ou l'id d'un intérieur (zones.json). */
   @type('string') zone = 'street';
+  /** Area de la rue où il se trouve (areas.json), calculée par le serveur ; '' en intérieur. */
+  @type('string') area = '';
   @type([Slot]) bag = new ArraySchema<Slot>();
   /** Argent propre : solde du compte en banque, non confiscable. */
   @type('uint32') cleanBalance = 0;

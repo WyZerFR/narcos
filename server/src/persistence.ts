@@ -2,6 +2,8 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from '
 import { dirname, resolve } from 'node:path';
 import { dataDir } from './env';
 import { z } from 'zod';
+import { gameData, obstaclesFrom, resolveCircle, STREET } from '@narco/shared';
+import { syncArea } from './rooms/stateSync';
 import type { GameState } from './rooms/schema';
 import {
   CartLine,
@@ -145,7 +147,19 @@ function slotsFrom(list: { itemId: string; qty: number }[]): Slot[] {
   return list.map((s) => Object.assign(new Slot(), s));
 }
 
-/** Remplit un état vierge depuis un snapshot. Les joueurs reviennent hors ligne. */
+/**
+ * Point de reprise d'un joueur restauré dans la rue : la carte a pu changer (quartiers,
+ * lieux déplacés), on le replace au point de départ, hors de tout obstacle.
+ */
+function streetRespawn(): { x: number; z: number } {
+  const { players, world } = gameData.config;
+  return resolveCircle(players.spawn, world.playerRadius, obstaclesFrom(gameData));
+}
+
+/**
+ * Remplit un état vierge depuis un snapshot. Les joueurs reviennent hors ligne ; ceux qui
+ * étaient dans la rue reprennent au point de départ (sac, comptes, pactes et labo intacts).
+ */
 export function hydrateState(state: GameState, snap: RoomSnapshot): void {
   const s = snap.state;
   state.code = snap.code;
@@ -173,6 +187,8 @@ export function hydrateState(state: GameState, snap: RoomSnapshot): void {
       ...(p.launderLog ?? []).map((e) => Object.assign(new LaunderEntry(), e)),
     );
     Object.assign(player, { hunger: p.hunger, thirst: p.thirst, health: p.health });
+    if (player.zone === STREET) Object.assign(player, streetRespawn());
+    syncArea(player);
     state.players.set(id, player);
   }
   for (const [key, shelf] of Object.entries(s.shelves))

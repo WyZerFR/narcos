@@ -1261,3 +1261,21 @@ input {
   font-size: 12px;
   opacity: 0.6;
 }
+
+/* Indicateur de danger de l'area (ui/StatusPanel.tsx) : 5 barres, vert → rouge. */
+.danger-meter {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 4px;
+}
+.danger-meter i {
+  width: 12px;
+  height: 10px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.15);
+}
+.sale-bonus {
+  color: var(--accent);
+  font-weight: 700;
+}

@@ -1,17 +1,26 @@
 import { ArraySchema } from '@colyseus/schema';
+import { areaAt, gameData, STREET } from '@narco/shared';
 import type {
   CutJob as CutJobData,
   Inventory,
   PotState,
   RackEntry as RackData,
 } from '@narco/shared';
-import type { CutJob, Pot } from './schema';
+import type { CutJob, Player, Pot } from './schema';
 import { RackEntry, Slot } from './schema';
 
 /**
  * Passerelle entre l'état Colyseus (synchronisé) et la logique pure de `shared/` :
  * on lit l'état en objets simples, on applique une fonction pure, on réécrit le résultat.
  */
+
+const AREAS = [...gameData.areas.values()];
+
+/** Area du joueur (`areas.json`) d'après sa position ; '' dans un intérieur ou hors carte. */
+export function syncArea(player: Player): void {
+  const id = player.zone === STREET ? (areaAt(AREAS, player)?.id ?? '') : '';
+  if (player.area !== id) player.area = id;
+}
 
 export function makeSlots(count: number): ArraySchema<Slot> {
   const arr = new ArraySchema<Slot>();

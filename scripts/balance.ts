@@ -37,11 +37,12 @@ const perNpcVisit = npcs.profiles.reduce(
   0,
 );
 const avgCooldownMin = (config.npc.cooldownSeconds[0] + config.npc.cooldownSeconds[1]) / 2 / 60;
-const pouchesPerMin = (config.npc.count * perNpcVisit) / avgCooldownMin;
+const npcTotal = [...gameData.areas.values()].reduce((n, a) => n + a.npcCount, 0);
+const pouchesPerMin = (npcTotal * perNpcVisit) / avgCooldownMin;
 const base = economy.strains[0]!;
 console.log(
   `\nDébouché de la rue : ~${pouchesPerMin.toFixed(1)} pochons/min de jeu au mieux`,
-  `(${config.npc.count} PNJ, ${perNpcVisit.toFixed(2)} pochon par passage, cooldown moyen ${(avgCooldownMin * 60).toFixed(0)} s)`,
+  `(${npcTotal} PNJ, ${perNpcVisit.toFixed(2)} pochon par passage, cooldown moyen ${(avgCooldownMin * 60).toFixed(0)} s)`,
   `soit ~${(pouchesPerMin * base.pouchSellPrice).toFixed(0)} $/min si on trouve chaque acheteur.`,
 );
 

@@ -5,7 +5,16 @@ import { gameData } from './data';
 import { rectContainsPoint, expandRect } from './geometry';
 import { add, count, emptyInventory } from './inventory';
 import { createNavGrid, distancesFrom, findPath, isSegmentFree } from './navgrid';
-import { buyerProfile, pickName, pickProfile, rollDemand, sellPouches, type Demand } from './sale';
+import {
+  areaBonusLabel,
+  buyerProfile,
+  pickName,
+  pickProfile,
+  rollDemand,
+  sellPouches,
+  unitPriceFor,
+  type Demand,
+} from './sale';
 
 const { npcs, economy, config } = gameData;
 
@@ -69,6 +78,8 @@ describe('vente de pochons', () => {
     budget: 50,
     unitPrice: 21,
     patienceMs: 10_000,
+    area: 'street',
+    priceMultiplier: 1,
   };
   const bagWith = (pouches: number) => {
     const r = add(emptyInventory(4), 'pouch_base', pouches, gameData.items);
@@ -155,5 +166,52 @@ describe('équilibrage', () => {
       }
     }
     console.info(lines.join('\n'));
+  });
+});
+
+describe('vente par area', () => {
+  const profile = npcs.profiles[0]!;
+  const fixed = (v: number) => () => v;
+  const north = gameData.areas.get('north')!;
+  const south = gameData.areas.get('south')!;
+
+  it('prix multiplié par l’area du PNJ, arrondi une seule fois au dollar le plus proche', () => {
+    const sale = gameData.economy.sale;
+    // rng 0,5 : variation nulle → prix de base × multiplicateur
+    expect(unitPriceFor(20, fixed(0.5), sale, 1.25)).toBe(25);
+    expect(unitPriceFor(20, fixed(0.5), sale, 1.3)).toBe(26);
+    expect(unitPriceFor(21, fixed(0.5), sale, 1.25)).toBe(26); // 26,25 → 26
+    expect(unitPriceFor(1, fixed(0), sale, 0.5)).toBe(1); // jamais sous 1 $
+    const street = rollDemand(profile, gameData.economy, fixed(0.5));
+    const nord = rollDemand(profile, gameData.economy, fixed(0.5), north);
+    expect(street.area).toBe('street');
+    expect(nord.area).toBe('north');
+    expect(nord.priceMultiplier).toBe(north.priceMultiplier);
+    const base = gameData.economy.strains.find((s) => s.id === street.strainId)!.pouchSellPrice;
+    expect(nord.unitPrice).toBe(Math.round(base * north.priceMultiplier));
+    expect(street.unitPrice).toBe(base);
+  });
+
+  it('demandRate augmente la proportion de PNJ intéressés (plafonnée à 1)', () => {
+    // tirage juste au-dessus de la chance du profil : refus en rue, achat au quartier
+    const just = Math.min(0.999, profile.interestChance + 0.01);
+    const seq = (values: number[]) => {
+      let i = 0;
+      return () => values[Math.min(i++, values.length - 1)]!;
+    };
+    const rngs = () => seq([0, just, 0.5, 0.5, 0.5, 0.5]);
+    expect(rollDemand(profile, gameData.economy, rngs()).interested).toBe(false);
+    if (profile.interestChance * south.demandRate > just)
+      expect(rollDemand(profile, gameData.economy, rngs(), south).interested).toBe(true);
+    const sure = { ...south, demandRate: 3 };
+    expect(rollDemand(profile, gameData.economy, seq([0, 0.999, 0.5]), sure).interested).toBe(
+      profile.interestChance * 3 >= 1,
+    );
+  });
+
+  it('mention du bonus : « +25 % quartier », rien sans bonus', () => {
+    expect(areaBonusLabel(1.25)).toBe('+25 % quartier');
+    expect(areaBonusLabel(1.3)).toBe('+30 % quartier');
+    expect(areaBonusLabel(1)).toBeNull();
   });
 });

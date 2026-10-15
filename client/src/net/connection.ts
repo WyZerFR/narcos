@@ -36,6 +36,7 @@ export interface PlayerView {
   rotY: number;
   connected: boolean;
   zone: string;
+  area: string;
   bag: SlotView[];
   cleanBalance: number;
   hasAccount: boolean;

@@ -305,7 +305,7 @@
     }
   },
   "npc": {
-    "count": 8,
+    "maxTotal": 14,
     "speed": 1.4,
     "radius": 0.4,
     "broadcastHz": 4,

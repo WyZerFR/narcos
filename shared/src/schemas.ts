@@ -183,7 +183,8 @@ export const ConfigSchema = z.object({
   }),
   /** PNJ de la rue (acheteurs) : simulés par le serveur, diffusés à cadence réduite. */
   npc: z.object({
-    count: z.number().int().min(6).max(10),
+    /** Plafond de PNJ simulés (somme des `npcCount` de areas.json) : CPU du serveur. */
+    maxTotal: z.number().int().positive(),
     /** Vitesse de marche (m/s, temps réel). */
     speed: pos,
     radius: pos,
@@ -690,6 +691,8 @@ export const QuartierSchema = z.object({
     /** Placette dégagée entre les dernières maisons et le bâtiment du bout. */
     plazaDepth: pos,
     plazaWidth: pos,
+    /** Points de passage des PNJ sur la chaussée, tous les N m. */
+    npcWaypointSpacing: pos,
   }),
   houses: z.object({
     perSide: minMax(z.number().int().positive()),

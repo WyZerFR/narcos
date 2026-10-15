@@ -401,6 +401,28 @@ export function parseGameData(raw: RawGameData): GameData {
       streetObstacles.some((r) => rectContainsPoint(r, wp))
     )
       errors.push(`npcs.json : point de passage n°${i} hors carte ou dans un bâtiment`);
+  for (const layout of quartierLayouts.values())
+    for (const wp of layout.waypoints)
+      if (
+        areaAt(areas.values(), wp)?.id !== layout.areaId ||
+        streetObstacles.some((r) => rectContainsPoint(r, wp))
+      )
+        errors.push(`quartiers.json : "${layout.id}" : point de passage PNJ bloqué ou hors area`);
+  const npcTotal = [...areas.values()].reduce((n, a) => n + a.npcCount, 0);
+  if (npcTotal > config.npc.maxTotal)
+    errors.push(
+      `areas.json : ${npcTotal} PNJ au total, plafond config.npc.maxTotal = ${config.npc.maxTotal}`,
+    );
+  for (const a of areas.values()) {
+    const wps =
+      a.id === 'street'
+        ? npcs.waypoints.filter((wp) => areaAt(areas.values(), wp)?.id === 'street')
+        : [...quartierLayouts.values()]
+            .filter((l) => l.areaId === a.id)
+            .flatMap((l) => l.waypoints);
+    if (a.npcCount > 0 && wps.length < 2)
+      errors.push(`areas.json : "${a.id}" a des PNJ mais moins de 2 points de passage`);
+  }
   errors.push(...checkDialogues(dialogues, interiors, dialogueVars(economy)));
   for (const loc of locations.values()) {
     if (loc.dialogue && !dialogues.has(loc.dialogue))

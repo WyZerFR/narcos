@@ -198,6 +198,8 @@ export interface QuartierLayout {
   gate: { left: Vec2; right: Vec2 } | null;
   /** Tout ce qui bloque joueurs et PNJ : maisons et décor solide. */
   colliders: Rect[];
+  /** Points de passage des PNJ du quartier (chaussée et placette, toujours libres). */
+  waypoints: Vec2[];
 }
 
 const between = (rng: () => number, [min, max]: readonly [number, number]) =>
@@ -414,5 +416,18 @@ export function generateQuartier(
     guards,
     gate,
     colliders: colliderRects,
+    waypoints: npcWaypoints(f, s),
   };
+}
+
+/** Points de passage des PNJ : de part et d'autre de l'axe de la chaussée, puis la placette. */
+function npcWaypoints(f: QuartierFrame, s: QuartierParams['street']): Vec2[] {
+  const out: Vec2[] = [];
+  const lane = s.roadWidth / 4;
+  for (let t = s.npcWaypointSpacing / 2; t < f.housesEnd; t += s.npcWaypointSpacing)
+    for (const side of [-1, 1]) out.push({ x: f.axisX + side * lane, z: alongZ(f, t) });
+  const mid = (f.housesEnd + f.plazaEnd) / 2;
+  for (const dx of [-s.plazaWidth / 4, 0, s.plazaWidth / 4])
+    out.push({ x: f.axisX + dx, z: alongZ(f, mid) });
+  return out;
 }

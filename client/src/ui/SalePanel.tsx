@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ClientMsg, count, gameData, type SaleOfferMessage } from '@narco/shared';
+import { areaBonusLabel, ClientMsg, count, gameData, type SaleOfferMessage } from '@narco/shared';
 import { connection, type GameRoom } from '../net/connection';
 import { gameNow, readBag, useRoomVersion } from '../net/gameView';
 
@@ -92,7 +92,12 @@ export function SalePanel({ room }: { room: GameRoom }) {
       </div>
       <div className="sale-row">
         <span>Prix unitaire</span>
-        <span>{offer.unitPrice} $</span>
+        <span>
+          {offer.unitPrice} ${' '}
+          {areaBonusLabel(offer.priceMultiplier) && (
+            <small className="sale-bonus">({areaBonusLabel(offer.priceMultiplier)})</small>
+          )}
+        </span>
       </div>
       <div className="sale-row">
         <span>Total</span>

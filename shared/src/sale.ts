@@ -24,6 +24,26 @@ export interface Demand {
   unitPrice: number;
   /** Durée d'attente devant une offre ouverte (ms de jeu). */
   patienceMs: number;
+  /** Area du PNJ et multiplicateur de prix appliqué (`areas.json`). */
+  area: string;
+  priceMultiplier: number;
+}
+
+/** Ce qui change la vente selon l'area du PNJ : prix et proportion d'intéressés. */
+export interface AreaMarket {
+  id: string;
+  priceMultiplier: number;
+  demandRate: number;
+}
+
+/** Marché neutre (rue sans bonus) : tests et appels sans area. */
+export const NEUTRAL_MARKET: AreaMarket = { id: 'street', priceMultiplier: 1, demandRate: 1 };
+
+/** Mention du bonus d'area affichée au joueur (« +25 % quartier »), ou null sans bonus. */
+export function areaBonusLabel(priceMultiplier: number): string | null {
+  const pct = Math.round((priceMultiplier - 1) * 100);
+  if (pct === 0) return null;
+  return pct > 0 ? `+${pct} % quartier` : `${pct} % quartier`;
 }
 
 const between = (rng: Rng, [min, max]: readonly [number, number]) => min + (max - min) * rng();
@@ -41,22 +61,34 @@ export function pickProfile(profiles: readonly NpcProfile[], rng: Rng): NpcProfi
   return profiles[profiles.length - 1]!;
 }
 
-/** Prix unitaire d'un pochon : prix de la variété × (1 ± variation), arrondi, au moins 1 $. */
-export function unitPriceFor(basePrice: number, rng: Rng, sale: Economy['sale']): number {
+/**
+ * Prix unitaire d'un pochon : prix de la variété × (1 ± variation) × multiplicateur d'area,
+ * arrondi au dollar le plus proche (une seule fois, à la fin), au moins 1 $.
+ */
+export function unitPriceFor(
+  basePrice: number,
+  rng: Rng,
+  sale: Economy['sale'],
+  priceMultiplier = 1,
+): number {
   const k = 1 + (rng() * 2 - 1) * sale.priceVariance;
-  return Math.max(1, Math.round(basePrice * k));
+  return Math.max(1, Math.round(basePrice * k * priceMultiplier));
 }
 
-/** Demande d'un PNJ selon son profil. Le budget couvre toujours au moins un pochon. */
+/**
+ * Demande d'un PNJ selon son profil et son area (prix × `priceMultiplier`, chance d'être
+ * intéressé × `demandRate`, plafonnée à 1). Le budget couvre toujours au moins un pochon.
+ */
 export function rollDemand(
   profile: NpcProfile,
   economy: Pick<Economy, 'strains' | 'sale'>,
   rng: Rng,
+  market: AreaMarket = NEUTRAL_MARKET,
 ): Demand {
   const strainId = profile.strains[Math.floor(rng() * profile.strains.length)]!;
   const strain = economy.strains.find((s) => s.id === strainId)!;
-  const interested = rng() < profile.interestChance;
-  const unitPrice = unitPriceFor(strain.pouchSellPrice, rng, economy.sale);
+  const interested = rng() < Math.min(1, profile.interestChance * market.demandRate);
+  const unitPrice = unitPriceFor(strain.pouchSellPrice, rng, economy.sale, market.priceMultiplier);
   const wanted = intBetween(rng, profile.qty);
   const budget = Math.max(unitPrice, Math.round(between(rng, profile.budget)));
   return {
@@ -67,6 +99,8 @@ export function rollDemand(
     budget,
     unitPrice,
     patienceMs: between(rng, profile.patienceSeconds) * 1000,
+    area: market.id,
+    priceMultiplier: market.priceMultiplier,
   };
 }
 

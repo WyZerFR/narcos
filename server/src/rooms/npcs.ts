@@ -1,4 +1,5 @@
 import {
+  areaAt,
   createNavGrid,
   distance,
   distancesFrom,
@@ -12,6 +13,7 @@ import {
   rollDemand,
   sellPouches,
   strainItem,
+  type Area,
   type Demand,
   type NavGrid,
   type Rng,
@@ -27,36 +29,59 @@ import { readInventory, writeInventory } from './stateSync';
  * réserve le PNJ pour un seul joueur (verrou) jusqu'à la fin de sa patience : deux joueurs
  * ne vendent jamais au même PNJ. Après une vente ou un refus, il s'éloigne puis revient avec
  * une nouvelle demande. Positions écrites dans l'état à `broadcastHz` seulement.
+ * Chaque PNJ vit dans son area (`areas.json`) : sa grille de navigation est bornée au
+ * rectangle de l'area, ses points de passage y sont, sa demande suit le marché de l'area.
  */
 
 const { config, npcs: NPCS, economy, items } = gameData;
 const NPC = config.npc;
 
-let streetGrid: NavGrid | null = null;
-const fields = new Map<number, Float64Array>();
+const AREAS = [...gameData.areas.values()];
+const grids = new Map<string, NavGrid>();
+const fields = new Map<string, Float64Array>();
 
-/** Grille de la rue (bâtiments gonflés du rayon d'un PNJ), construite une fois. */
-function grid(): NavGrid {
-  streetGrid ??= createNavGrid(
-    config.world.bounds,
-    obstaclesFrom(gameData),
-    NPC.radius,
-    NPC.navCellSize,
-  );
-  return streetGrid;
+/** Points de passage d'une area : ceux de npcs.json pour la rue, ceux générés pour une impasse. */
+const WAYPOINTS = new Map<string, Vec2[]>(
+  AREAS.map((a) => [
+    a.id,
+    a.id === 'street'
+      ? NPCS.waypoints.filter((wp) => areaAt(AREAS, wp)?.id === 'street')
+      : [...gameData.quartierLayouts.values()]
+          .filter((l) => l.areaId === a.id)
+          .flatMap((l) => l.waypoints),
+  ]),
+);
+const waypointsOf = (areaId: string) => WAYPOINTS.get(areaId) ?? [];
+
+/** Grille d'une area (obstacles gonflés du rayon d'un PNJ, bornée à l'area), construite une fois. */
+function gridOf(areaId: string): NavGrid {
+  let g = grids.get(areaId);
+  if (!g) {
+    g = createNavGrid(
+      gameData.areas.get(areaId)!.bounds,
+      obstaclesFrom(gameData),
+      NPC.radius,
+      NPC.navCellSize,
+    );
+    grids.set(areaId, g);
+  }
+  return g;
 }
 
 /** Champ de distances vers un point de passage (mis en cache : 1 Dijkstra par point). */
-function fieldTo(index: number): Float64Array {
-  let f = fields.get(index);
+function fieldTo(areaId: string, index: number): Float64Array {
+  const key = `${areaId}:${index}`;
+  let f = fields.get(key);
   if (!f) {
-    f = distancesFrom(grid(), NPCS.waypoints[index]!);
-    fields.set(index, f);
+    f = distancesFrom(gridOf(areaId), waypointsOf(areaId)[index]!);
+    fields.set(key, f);
   }
   return f;
 }
 
 interface Sim {
+  /** Area où il vit (il n'en sort jamais). */
+  area: Area;
   pos: Vec2;
   path: Vec2[];
   /** Fin de la pause (ms réelles). */
@@ -68,7 +93,14 @@ interface Sim {
 }
 
 export type SaleResult =
-  | { ok: true; text: string; offer?: SaleOfferMessage; amount?: number; qty?: number }
+  | {
+      ok: true;
+      text: string;
+      offer?: SaleOfferMessage;
+      amount?: number;
+      qty?: number;
+      area?: string;
+    }
   | { ok: false; text: string };
 
 export class StreetNpcs {
@@ -80,21 +112,28 @@ export class StreetNpcs {
     private readonly rng: Rng = Math.random,
   ) {}
 
-  /** Fait apparaître la population (sur des points de passage au hasard). */
+  /** Fait apparaître la population de chaque area (sur ses points de passage, au hasard). */
   spawnAll(realNow: number): void {
-    while (this.sims.size < NPC.count) this.spawn(this.randomWaypoint(), realNow);
+    for (const area of AREAS) {
+      const living = () => [...this.sims.values()].filter((s) => s.area.id === area.id).length;
+      while (living() < area.npcCount) this.spawn(area, this.randomWaypoint(area.id), realNow);
+    }
     this.publish();
   }
 
-  private randomWaypoint(): Vec2 {
-    return NPCS.waypoints[Math.floor(this.rng() * NPCS.waypoints.length)]!;
+  private randomIndex(areaId: string): number {
+    return Math.floor(this.rng() * waypointsOf(areaId).length);
+  }
+
+  private randomWaypoint(areaId: string): Vec2 {
+    return waypointsOf(areaId)[this.randomIndex(areaId)]!;
   }
 
   private between([min, max]: readonly [number, number]) {
     return min + (max - min) * this.rng();
   }
 
-  private spawn(at: Vec2, realNow: number): string {
+  private spawn(area: Area, at: Vec2, realNow: number): string {
     const id = `npc_${this.nextId++}`;
     const taken = new Set([...this.state.npcs.values()].map((n) => n.name));
     const npc = new Npc();
@@ -102,10 +141,11 @@ export class StreetNpcs {
     npc.name = pickName(NPCS.names, taken, this.rng);
     this.state.npcs.set(id, npc);
     const sim: Sim = {
+      area,
       pos: { ...at },
       path: [],
       pauseUntil: realNow + this.between(NPC.pauseSeconds) * 1000,
-      demand: rollDemand(pickProfile(NPCS.profiles, this.rng), economy, this.rng),
+      demand: rollDemand(pickProfile(NPCS.profiles, this.rng), economy, this.rng, area),
       cooldownUntil: 0,
       lock: null,
     };
@@ -139,7 +179,7 @@ export class StreetNpcs {
       }
       if (sim.cooldownUntil > 0 && gameNow >= sim.cooldownUntil) {
         sim.cooldownUntil = 0;
-        sim.demand = rollDemand(pickProfile(NPCS.profiles, this.rng), economy, this.rng);
+        sim.demand = rollDemand(pickProfile(NPCS.profiles, this.rng), economy, this.rng, sim.area);
         this.writeDemand(npc, sim);
       }
       if (sim.lock) continue; // en pleine négociation : il ne bouge pas
@@ -151,8 +191,9 @@ export class StreetNpcs {
   private walk(sim: Sim, dtMs: number, realNow: number): void {
     if (sim.path.length === 0) {
       if (realNow < sim.pauseUntil) return;
-      const index = Math.floor(this.rng() * NPCS.waypoints.length);
-      sim.path = findPath(grid(), sim.pos, NPCS.waypoints[index]!, fieldTo(index)) ?? [];
+      const a = sim.area.id;
+      const index = this.randomIndex(a);
+      sim.path = findPath(gridOf(a), sim.pos, waypointsOf(a)[index]!, fieldTo(a, index)) ?? [];
       if (sim.path.length === 0) sim.pauseUntil = realNow + this.between(NPC.pauseSeconds) * 1000;
       return;
     }
@@ -234,6 +275,8 @@ export class StreetNpcs {
         maxQty: sim.demand.qty,
         unitPrice: sim.demand.unitPrice,
         expiresAt: sim.lock!.until,
+        area: sim.area.id,
+        priceMultiplier: sim.demand.priceMultiplier,
       },
     };
   }
@@ -263,6 +306,7 @@ export class StreetNpcs {
       text: `${npc.name} repart avec ${qty} × ${pouch.name}. +${sale.amount} $ (sale).`,
       amount: sale.amount,
       qty,
+      area: sim.area.id,
     };
   }
 
@@ -285,9 +329,11 @@ export class StreetNpcs {
     return freed;
   }
 
-  /** Debug : un acheteur intéressé apparaît devant le joueur (dans la rue). */
+  /** Debug : un acheteur intéressé de l'area du joueur apparaît devant lui (dans la rue). */
   spawnBuyerNear(player: Player): string | null {
-    const g = grid();
+    const area = areaAt(AREAS, player);
+    if (!area) return null;
+    const g = gridOf(area.id);
     for (let k = 0; k < 16; k++) {
       const a = player.rotY + (k * Math.PI) / 8;
       const at = {
@@ -300,7 +346,7 @@ export class StreetNpcs {
       let farD = -1;
       for (const [id, sim] of this.sims) {
         const d = distance(sim.pos, player);
-        if (!sim.lock && d > farD) {
+        if (!sim.lock && sim.area.id === area.id && d > farD) {
           farD = d;
           farId = id;
         }
@@ -312,7 +358,7 @@ export class StreetNpcs {
       sim.pauseUntil = Number.POSITIVE_INFINITY; // il attend le joueur
       sim.cooldownUntil = 0;
       sim.demand = {
-        ...rollDemand(buyerProfile(NPCS.profiles), economy, this.rng),
+        ...rollDemand(buyerProfile(NPCS.profiles), economy, this.rng, area),
         interested: true,
       };
       const npc = this.state.npcs.get(farId)!;
@@ -328,5 +374,10 @@ export class StreetNpcs {
   /** Position simulée (tests). */
   positionOf(npcId: string): Vec2 | undefined {
     return this.sims.get(npcId)?.pos;
+  }
+
+  /** Area d'un PNJ (tests, debug). */
+  areaOf(npcId: string): string | undefined {
+    return this.sims.get(npcId)?.area.id;
   }
 }
