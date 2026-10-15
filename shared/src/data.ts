@@ -51,8 +51,17 @@ import { dialogueVars, textVars } from './dialogue';
 import { areaAt, areasEnvelope } from './areas';
 import { checkQuartier, generateQuartier, quartierFrame, type QuartierLayout } from './quartiers';
 
-/** Catégories d'objets payables en « any » (compte ou espèces) : nourriture et boissons. */
-const ANY_CURRENCY_CATEGORIES: ReadonlySet<string> = new Set(['food', 'drink', 'water']);
+/**
+ * Catégories payables en « any » (propre d'abord, sale sinon) : nourriture, boissons, matériel
+ * de production (meubles du labo) et équipement (sac à dos).
+ */
+const ANY_CURRENCY_CATEGORIES: ReadonlySet<string> = new Set([
+  'food',
+  'drink',
+  'water',
+  'furniture',
+  'gear',
+]);
 
 /** Dialogues : nœuds uniques, liens valides, variables connues, postes « talk » reliés. */
 function checkDialogues(

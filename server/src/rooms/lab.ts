@@ -1,4 +1,5 @@
 import {
+  bagFullText,
   add,
   count,
   gameData,
@@ -128,7 +129,7 @@ export function runStationAction(
       if (!harvested.ok) return refuse(harvested.message);
       const fresh = strainItem(items, 'plant_fresh', strain.id)!;
       const nextBag = add(bag, fresh.id, harvested.value.fresh, items);
-      if (!nextBag.ok) return refuse(`Sac plein : impossible de récolter.`);
+      if (!nextBag.ok) return refuse(bagFullText(player.bagTier, 'impossible de récolter.'));
       writePot(potState, harvested.value.pot);
       writeInventory(player.bag, nextBag.inv);
       return done(`Récolte : ${harvested.value.fresh} × ${fresh.name}.`);
@@ -169,7 +170,8 @@ export function runStationAction(
       for (const entry of dried) {
         const item = strainItem(items, 'plant_dried', entry.strainId)!;
         const r = add(nextBag, item.id, entry.qty, items);
-        if (!r.ok) return refuse('Sac plein : fais de la place avant de décrocher.');
+        if (!r.ok)
+          return refuse(bagFullText(player.bagTier, 'fais de la place avant de décrocher.'));
         nextBag = r.inv;
         total += entry.qty;
       }
@@ -257,6 +259,9 @@ function completeCut(state: GameState, cut: CutJob, now: number): CutNotice | nu
   return {
     playerId: job.playerId,
     ok: false,
-    text: `Découpe finie mais sac plein : fais de la place pour récupérer ${qty} × ${pouch.name} (ils attendent sur la table).`,
+    text: `Découpe finie. ${bagFullText(
+      player?.bagTier ?? 0,
+      `fais de la place pour récupérer ${qty} × ${pouch.name} (ils attendent sur la table).`,
+    )}`,
   };
 }

@@ -104,20 +104,18 @@ describe('lampes', () => {
 });
 
 describe('kit de départ', () => {
-  it('l’argent sale de départ paie pot + étendoir + table + graines prévues', () => {
+  it('l’argent de départ (propre) paie pot + étendoir + table ; graines du pacte', () => {
     const shelves = gameData.shops.get('shop')!.shelves;
     const price = (itemId: string) => {
       const shelf = shelves.find((s) => s.itemId === itemId);
       expect(shelf, `${itemId} doit être vendu au Bricoshop`).toBeDefined();
       return shelf!.price;
     };
-    const kit =
-      price('pot') +
-      price('drying_rack') +
-      price('cutting_table') +
-      gameData.economy.lab.starterKitSeeds * price('seed_base');
-    expect(gameData.economy.lab.starterKitSeeds).toBeGreaterThan(0);
-    expect(gameData.economy.startingMoney.dirty).toBeGreaterThanOrEqual(kit);
+    const kit = price('pot') + price('drying_rack') + price('cutting_table');
+    // plus aucune graine au Bricoshop : elles viennent d'El Jefe (pacte)
+    expect(shelves.some((s) => gameData.items.get(s.itemId)?.category === 'seed')).toBe(false);
+    expect(gameData.economy.pact.startSeeds).toBeGreaterThan(0);
+    expect(gameData.economy.startingMoney.clean).toBeGreaterThanOrEqual(kit);
   });
 
   it('chaque type de meuble a un objet posable vendu au Bricoshop', () => {

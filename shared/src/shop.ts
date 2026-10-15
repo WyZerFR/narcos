@@ -70,7 +70,10 @@ export function returnOne(cart: Cart, stationId: string): Outcome<CartLine[]> {
   );
 }
 
-/** Ce que le joueur peut dépenser : solde propre et compte (les espèces sont dans le sac). */
+/**
+ * Ce que le joueur peut dépenser : solde propre (sans compte bancaire, exigé seulement pour
+ * recevoir de l'argent blanchi) ; les espèces sont dans le sac.
+ */
 export interface Account {
   clean: number;
   hasAccount: boolean;
@@ -83,8 +86,8 @@ export interface CartSplit {
 }
 
 /**
- * Répartit le panier entre les deux monnaies. Les articles « any » passent sur le compte s'il
- * est ouvert et couvre leur total en plus des articles « clean », sinon en espèces.
+ * Répartit le panier entre les deux monnaies. Les articles « any » passent en propre si le solde
+ * couvre leur total en plus des articles « clean », sinon en espèces.
  */
 export function splitCart(cart: Cart, account: Account): CartSplit {
   const sum = (c: Currency) =>
@@ -92,7 +95,7 @@ export function splitCart(cart: Cart, account: Account): CartSplit {
   const dirty = sum('dirty');
   const clean = sum('clean');
   const any = sum('any');
-  return account.hasAccount && clean + any <= account.clean
+  return clean + any <= account.clean
     ? { dirty, clean: clean + any }
     : { dirty: dirty + any, clean };
 }
@@ -114,7 +117,7 @@ export interface Paid {
 }
 
 /**
- * Paiement : compte, argent propre, argent sale, puis place dans le sac ; tout ou rien
+ * Paiement : argent propre, argent sale, puis place dans le sac ; tout ou rien
  * (un refus ne débite rien). Renvoie le sac et le solde après achat.
  */
 export function checkout(
@@ -127,7 +130,6 @@ export function checkout(
 ): Outcome<Paid> {
   if (cart.length === 0) return no('Ton panier est vide.');
   const split = splitCart(cart, account);
-  if (split.clean > 0 && !account.hasAccount) return no("Ouvre d'abord un compte.");
   if (split.clean > account.clean)
     return no(`Pas assez d'argent propre (${account.clean} $ sur ${split.clean} $).`);
   const cash = count(bag, DIRTY_CASH);

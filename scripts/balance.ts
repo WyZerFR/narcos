@@ -25,7 +25,9 @@ const kit = starterKitCost(gameData);
 console.log(
   `Kit de départ (pot + étendoir + table + ${economy.lab.starterKitSeeds} graines) : ${kit} $`,
 );
-console.log(`Argent sale de départ : ${economy.startingMoney.dirty} $\n`);
+console.log(
+  `Départ : ${economy.startingMoney.clean} $ propres (sans compte), ${economy.startingMoney.dirty} $ sales ; graines : pacte d'El Jefe (${economy.pact.startSeeds}, gratuites), plus en vente\n`,
+);
 
 for (const strain of economy.strains) {
   for (const rate of [1, lampRateMax]) {
@@ -121,7 +123,7 @@ if (trapLoc) {
 // Capacité du sac au départ : poches occupées par le kit et délai avant le sac à dos.
 const bagStart = starterBagReport(gameData);
 console.log(
-  `\nPoches : ${bagStart.slotsUsed}/${bagStart.pocketSlots} cases au départ (argent, pot, étendoir, table, graines du pacte).`,
+  `\nPoches : ${bagStart.slotsUsed}/${bagStart.pocketSlots} cases au départ (espèces s'il y en a, pot, étendoir, table, graines du pacte).`,
   `Sac à dos ${bagStart.backpackPrice} $ (${economy.bag.backpackSlots} cases) :`,
   bagStart.minutesToBackpack === 0
     ? `achetable dès le départ (reste ${bagStart.moneyAfterKit} $ après le kit).`

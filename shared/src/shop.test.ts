@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { gameData } from './data';
+import type { Shelf } from './schemas';
 import { add, count, emptyInventory, type Inventory } from './inventory';
 import {
   cartCount,
@@ -15,7 +16,17 @@ import {
 
 const items = gameData.items;
 const shelves = gameData.shops.get('shop')!.shelves;
-const seeds = shelves.find((s) => s.itemId === 'seed_base')!;
+/**
+ * Article payable seulement au sale : plus aucune étagère n'en vend (graines retirées du
+ * Bricoshop) ; étagère fictive pour tester la règle (armes plus tard).
+ */
+const seeds: Shelf = {
+  stationId: 'shelf_test_dirty',
+  itemId: 'seed_base',
+  price: 8,
+  stock: null,
+  currency: 'dirty',
+};
 const pots = shelves.find((s) => s.itemId === 'pot')!;
 const tools = shelves.find((s) => s.currency === 'clean')!;
 const grocery = gameData.shops.get('grocery')!.shelves;
@@ -98,9 +109,9 @@ describe('paiement', () => {
 });
 
 describe('deux monnaies', () => {
-  it('chaque étagère porte sa monnaie : matériel au sale, outils au propre, nourriture « any »', () => {
-    expect(seeds.currency).toBe('dirty');
-    expect(pots.currency).toBe('dirty');
+  it('chaque étagère porte sa monnaie : matériel et sac « any », outils au propre, nourriture « any »', () => {
+    expect(pots.currency).toBe('any');
+    expect(shelves.find((s) => s.itemId === 'sac_a_dos')!.currency).toBe('any');
     expect(tools.currency).toBe('clean');
     expect(food.currency).toBe('any');
     expect(water.currency).toBe('any');
@@ -128,7 +139,7 @@ describe('deux monnaies', () => {
     });
   });
 
-  it('graines toujours au sale, même avec un compte bien rempli', () => {
+  it('un article au sale reste au sale, même avec beaucoup d’argent propre', () => {
     const cart = take([], seeds, null).cart;
     expect(splitCart(cart, { clean: 1000, hasAccount: true })).toEqual({
       dirty: seeds.price,
@@ -136,10 +147,10 @@ describe('deux monnaies', () => {
     });
   });
 
-  it('article « clean » refusé sans compte, puis sans solde', () => {
+  it('article « clean » payé sans compte bancaire ; refusé seulement sans solde', () => {
     const cart = take([], tools, null).cart;
-    const r = checkout(bagWith(500), cart, NO_ACCOUNT, items);
-    expect(!r.ok && r.message).toBe("Ouvre d'abord un compte.");
+    const r = checkout(bagWith(500), cart, { clean: tools.price, hasAccount: false }, items);
+    expect(r.ok && r.value.clean).toBe(0);
     const poor = checkout(bagWith(500), cart, { clean: tools.price - 1, hasAccount: true }, items);
     expect(!poor.ok && poor.message).toMatch(/Pas assez d'argent propre/);
   });
@@ -166,16 +177,25 @@ describe('deux monnaies', () => {
 });
 
 describe('départ', () => {
-  it('150 $ sales couvrent le kit minimal et au moins 3 articles de nourriture ou boisson', () => {
+  it('150 $ propres, 0 $ sale : kit minimal + sac à dos payés en propre, sans compte', () => {
     const { economy } = gameData;
-    expect(economy.startingMoney).toEqual({ dirty: 150, clean: 0 });
-    const kit = ['pot', 'drying_rack', 'cutting_table'].map((id) =>
+    expect(economy.startingMoney).toEqual({ dirty: 0, clean: 150 });
+    const kit = ['pot', 'drying_rack', 'cutting_table', 'sac_a_dos'].map((id) =>
       shelves.find((s) => s.itemId === id)!,
     );
     let cart: CartLine[] = [];
     for (const shelf of kit) cart = take(cart, shelf, null).cart;
-    const cheapest = Math.min(...grocery.filter((s) => s.currency === 'any').map((s) => s.price));
-    expect(cartTotal(cart) + 3 * cheapest).toBeLessThanOrEqual(economy.startingMoney.dirty);
-    expect(kit.every((s) => s.currency === 'dirty')).toBe(true);
+    const account = { clean: economy.startingMoney.clean, hasAccount: false };
+    expect(splitCart(cart, account)).toEqual({ dirty: 0, clean: cartTotal(cart) });
+    const r = checkout(emptyInventory(economy.bag.pocketSlots), cart, account, items);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.value.clean).toBe(economy.startingMoney.clean - cartTotal(cart));
+  });
+
+  it('Bricoshop sans graine, plante ni pochon ; sac à dos au Bricoshop, absent de l’épicerie', () => {
+    const banned = new Set(['seed', 'plant_fresh', 'plant_dried', 'pouch']);
+    expect(shelves.some((s) => banned.has(gameData.items.get(s.itemId)!.category))).toBe(false);
+    expect(shelves.find((s) => s.itemId === 'sac_a_dos')!.price).toBe(25);
+    expect(grocery.some((s) => s.itemId === 'sac_a_dos')).toBe(false);
   });
 });

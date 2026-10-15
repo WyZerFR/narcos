@@ -22,14 +22,19 @@ describe('capacité du sac', () => {
     expect(bagCapacity(BAG, 0)).toBe(6);
     expect(bagCapacity(BAG, 1)).toBe(12);
     expect(bagFullText(0)).toBe('Poches pleines : libère une case.');
+    expect(bagFullText(1)).toBe('Sac plein : fais de la place.');
+    expect(bagFullText(0, 'impossible de récolter.')).toBe(
+      'Poches pleines : impossible de récolter.',
+    );
+    expect(bagFullText(1, 'impossible de récolter.')).toBe('Sac plein : impossible de récolter.');
   });
 
-  it('sac à dos : objet non empilable, « Équiper », vendu à l’épicerie en argent sale', () => {
+  it('sac à dos : objet non empilable, « Utiliser », vendu au Bricoshop en « any »', () => {
     const def = items.get(BAG.backpackItemId)!;
     expect(def.stackMax).toBe(1);
-    expect(def.use).toEqual({ action: 'equip_bag', label: 'Équiper' });
-    const shelf = gameData.shops.get('grocery')!.shelves.find((s) => s.itemId === def.id)!;
-    expect(shelf).toMatchObject({ currency: 'dirty', price: 25 });
+    expect(def.use).toEqual({ action: 'equip_bag', label: 'Utiliser' });
+    const shelf = gameData.shops.get('shop')!.shelves.find((s) => s.itemId === def.id)!;
+    expect(shelf).toMatchObject({ currency: 'any', price: 25 });
   });
 
   it('équiper : l’objet est consommé, 12 cases, rien n’est perdu', () => {
@@ -95,7 +100,7 @@ describe('budget et place au départ', () => {
       .map((s) => s.price)
       .sort((a, b) => a - b);
     const total = kit.reduce((a, b) => a + b, 0) + backpack + food[0]! + food[1]!;
-    expect(total).toBeLessThanOrEqual(economy.startingMoney.dirty);
+    expect(total).toBeLessThanOrEqual(economy.startingMoney.clean);
   });
 
   it('6 poches : kit + 4 graines + argent + 2 consommables identiques (2 différents : 7 cases)', () => {

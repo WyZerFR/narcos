@@ -260,8 +260,8 @@ describe('partie neuve → pochons', () => {
     client.send(ClientMsg.Debug, { cmd: 'timeScale', scale: 60 });
     await client.waitForMessage(ServerMsg.Notice);
     const p = room.state.players.get(id)!;
-    expect(count(bagOf(room, id), 'cash_dirty')).toBe(150);
-    expect([p.hasAccount, p.cleanBalance, p.pactAccepted]).toEqual([false, 0, false]);
+    expect(room.state.players.get(id)!.cleanBalance).toBe(150);
+    expect([p.hasAccount, p.cleanBalance, p.pactAccepted]).toEqual([false, 150, false]);
 
     // 1. le pacte : 4 graines
     atJefe(room, id);
@@ -300,12 +300,12 @@ describe('partie neuve → pochons', () => {
     const rack = await place('drying_rack', 1.8, -3.4);
     const table = await place('cutting_table', 4.4, 0.4, 1);
 
-    // 4. épicerie : 3 articles de nourriture ou boisson, payés en espèces (pas de compte)
+    // 4. épicerie : 3 articles de nourriture ou boisson, payés en propre (sans compte)
     await take('grocery', 'shelf_water');
     await take('grocery', 'shelf_food');
     await take('grocery', 'shelf_soda');
     goTo(room, id, 'grocery', 'counter');
-    expect((await act(client, 'counter', 'pay')).text).toMatch(/en espèces/);
+    expect((await act(client, 'counter', 'pay')).text).toMatch(/par carte/);
     for (const it of ['water', 'food', 'soda']) expect(count(bagOf(room, id), it)).toBe(1);
     expect(count(bagOf(room, id), 'cash_dirty')).toBeGreaterThanOrEqual(0);
 

@@ -123,6 +123,8 @@ export function sellPouches(
   demand: Demand,
   qty: number,
   data: Pick<GameData, 'items'>,
+  /** Refus si l'argent ne tient pas (poches ou sac, voir `bagFullText`). */
+  fullMessage = "Sac plein : pas de place pour l'argent.",
 ): SaleOutcome {
   const items: ItemLookup = data.items;
   if (!demand.interested) return { ok: false, message: 'Pas intéressé.' };
@@ -135,7 +137,7 @@ export function sellPouches(
   const without = remove(bag, pouch.id, qty, items);
   if (!without.ok) return { ok: false, message: without.message };
   const paid = add(without.inv, DIRTY_CASH, amount, items);
-  if (!paid.ok) return { ok: false, message: "Sac plein : pas de place pour l'argent." };
+  if (!paid.ok) return { ok: false, message: fullMessage };
   return { ok: true, bag: paid.inv, amount, pouchId: pouch.id };
 }
 

@@ -121,14 +121,9 @@ describe('données du jeu', () => {
 
   it('charge les magasins avec prix et stock', () => {
     const grocery = gameData.shops.get('grocery')!;
-    expect(grocery.shelves.map((s) => s.itemId).sort()).toEqual([
-      'food',
-      'sac_a_dos',
-      'soda',
-      'water',
-    ]);
+    expect(grocery.shelves.map((s) => s.itemId).sort()).toEqual(['food', 'soda', 'water']);
     expect(
-      gameData.shops.get('shop')!.shelves.find((s) => s.itemId === 'seed_base')!.price,
+      gameData.shops.get('shop')!.shelves.find((s) => s.itemId === 'sac_a_dos')!.price,
     ).toBeGreaterThan(0);
   });
 });
@@ -191,10 +186,10 @@ describe('données — monnaies et pacte', () => {
     expect(() => parseGameData(r)).toThrow(/shops\.json invalide[\s\S]*currency/);
   });
 
-  it('« any » réservé à la nourriture et aux boissons', () => {
+  it('« any » réservé à la nourriture, aux boissons, au matériel et à l’équipement', () => {
     const r = raw();
-    (r.shops as Shelves).shops[0]!.shelves.find((s) => s.itemId === 'pot')!.currency = 'any';
-    expect(() => parseGameData(r)).toThrow(/"pot" ne peut pas se payer en « any »/);
+    (r.shops as Shelves).shops[0]!.shelves.find((s) => s.itemId === 'scissors')!.currency = 'any';
+    expect(() => parseGameData(r)).toThrow(/"scissors" ne peut pas se payer en « any »/);
   });
 
   it('pacte : nombre de graines validé par zod, objet obligatoirement une graine', () => {

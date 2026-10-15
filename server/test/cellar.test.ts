@@ -29,6 +29,8 @@ import { bootOn } from './helpers';
 type SdkRoom = ClientRoom<GameState>;
 
 const CELLAR = gameData.economy.launder.venues.cellar;
+/** Solde propre de départ (economy.startingMoney.clean) : le net blanchi s'y ajoute. */
+const START = gameData.economy.startingMoney.clean;
 const BANK = gameData.economy.launder.venues.bank;
 const TRAP = gameData.locations.get('trappe_cave')!;
 /** Devant le bureau du blanchisseur, et près de l'escalier (loin de lui). */
@@ -157,7 +159,7 @@ describe('cave — blanchiment à 15 %', () => {
     const { commission, net } = launderSplit(101, CELLAR.fee);
     expect(commission).toBe(16); // 15,15 → 16
     expect(net).toBe(85);
-    expect(me.cleanBalance).toBe(85);
+    expect(me.cleanBalance).toBe(START + 85);
     expect(dirtyOf(room, id)).toBe(399);
     expect(me.cellarLaunderLog.map((e) => e.amount)).toEqual([101]);
     expect(me.launderLog.length).toBe(0);
@@ -182,7 +184,7 @@ describe('cave — blanchiment à 15 %', () => {
     expect((await launderAt(client, 50)).text).toMatch(/Trop loin/);
     place(room, id, 'bank', { x: 0, z: 0 });
     expect((await launderAt(client, 50)).text).toMatch(/pas ici/);
-    expect(me.cleanBalance).toBe(0);
+    expect(me.cleanBalance).toBe(START);
   });
 
   it('plafond glissant séparé de celui de la banque', async () => {
@@ -315,7 +317,7 @@ describe('cave — parcours complet', () => {
     place(room, id, 'cellar', AT_LAUNDERER);
     const res = await launderAt(client, dirty);
     expect(res.ok, res.text).toBe(true);
-    expect(me.cleanBalance).toBe(launderSplit(dirty, CELLAR.fee).net);
+    expect(me.cleanBalance).toBe(START + launderSplit(dirty, CELLAR.fee).net);
     expect(dirtyOf(room, id)).toBe(0);
   });
 });

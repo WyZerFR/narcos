@@ -9,6 +9,7 @@ import {
   count,
   emptyInventory,
   gameData,
+  interactionPoint,
   type FixturePlaceMessage,
   type FixtureResultMessage,
   type NoticeMessage,
@@ -72,7 +73,9 @@ async function act(
 const bagOf = (room: NarcoRoom, id: string) => readInventory(room.state.players.get(id)!.bag);
 const stockOf = (room: NarcoRoom, key: string) => room.state.shelves.get(key)!.stock;
 
+/** Espèces seulement (solde propre de départ mis à 0) : tests du paiement en argent sale. */
 function setCash(room: NarcoRoom, id: string, cash: number) {
+  room.state.players.get(id)!.cleanBalance = 0;
   const r = add(
     emptyInventory(gameData.economy.bag.pocketSlots),
     'cash_dirty',
@@ -86,14 +89,14 @@ describe('shop — panier et paiement', () => {
   it('prend 3 articles, calcule le total côté serveur, paie et range les achats', async () => {
     const { client, room } = await newGame('shop-player-0001');
     setCash(room, 'shop-player-0001', 200);
-    goTo(room, 'shop-player-0001', 'shop', 'shelf_seeds');
-    expect((await act(client, 'shelf_seeds', 'take')).ok).toBe(true);
-    expect((await act(client, 'shelf_seeds', 'take')).ok).toBe(true);
+    goTo(room, 'shop-player-0001', 'shop', 'shelf_racks');
+    expect((await act(client, 'shelf_racks', 'take')).ok).toBe(true);
+    expect((await act(client, 'shelf_racks', 'take')).ok).toBe(true);
     goTo(room, 'shop-player-0001', 'shop', 'shelf_pots');
     expect((await act(client, 'shelf_pots', 'take')).ok).toBe(true);
 
     const p = room.state.players.get('shop-player-0001')!;
-    const total = 2 * price('shelf_seeds') + price('shelf_pots');
+    const total = 2 * price('shelf_racks') + price('shelf_pots');
     expect(p.cartTotal).toBe(total);
     expect(stockOf(room, 'shop:shelf_pots')).toBe(
       shopShelves.find((s) => s.itemId === 'pot')!.stock! - 1,
@@ -104,7 +107,7 @@ describe('shop — panier et paiement', () => {
     expect(paid.ok).toBe(true);
     const bag = bagOf(room, 'shop-player-0001');
     expect(count(bag, 'cash_dirty')).toBe(200 - total);
-    expect(count(bag, 'seed_base')).toBe(2);
+    expect(count(bag, 'drying_rack')).toBe(2);
     expect(count(bag, 'pot')).toBe(1);
     expect(p.cart.length).toBe(0);
   });
@@ -128,8 +131,8 @@ describe('shop — panier et paiement', () => {
     if (r.ok) inv = r.inv;
     const filled = add(inv, 'scissors', inv.length - 1, gameData.items); // ciseaux : pile de 1
     if (filled.ok) writeInventory(room.state.players.get('shop-player-0003')!.bag, filled.inv);
-    goTo(room, 'shop-player-0003', 'shop', 'shelf_seeds');
-    await act(client, 'shelf_seeds', 'take');
+    goTo(room, 'shop-player-0003', 'shop', 'shelf_racks');
+    await act(client, 'shelf_racks', 'take');
     goTo(room, 'shop-player-0003', 'shop', 'counter');
     expect((await act(client, 'counter', 'pay')).text).toBe('Poches pleines : libère une case.');
     expect(count(bagOf(room, 'shop-player-0003'), 'cash_dirty')).toBe(500);
@@ -174,61 +177,64 @@ describe('shop — deux monnaies', () => {
   const groceryPrice = (id: string) =>
     gameData.shops.get('grocery')!.shelves.find((s) => s.stationId === id)!.price;
 
-  it('départ : 150 $ sales, pas de compte, 0 $ propre', async () => {
+  it('départ : 150 $ propres, 0 $ sale, pas de compte', async () => {
     const { room } = await newGame('shop-player-0010');
     const p = room.state.players.get('shop-player-0010')!;
-    expect(count(bagOf(room, 'shop-player-0010'), 'cash_dirty')).toBe(150);
+    expect(count(bagOf(room, 'shop-player-0010'), 'cash_dirty')).toBe(0);
     expect(p.hasAccount).toBe(false);
-    expect(p.cleanBalance).toBe(0);
+    expect(p.cleanBalance).toBe(150);
   });
 
-  it('nourriture « any » payée en espèces sans compte, en propre si le solde couvre', async () => {
+  it('« any » payé en propre sans compte si le solde couvre, en espèces sinon', async () => {
     const id = 'shop-player-0011';
     const { client, room } = await newGame(id);
     const p = room.state.players.get(id)!;
     goTo(room, id, 'grocery', 'shelf_food');
     await act(client, 'shelf_food', 'take');
-    expect([p.cartDirty, p.cartClean]).toEqual([groceryPrice('shelf_food'), 0]);
-    goTo(room, id, 'grocery', 'counter');
-    expect((await act(client, 'counter', 'pay')).text).toMatch(/en espèces/);
-    expect(count(bagOf(room, id), 'cash_dirty')).toBe(150 - groceryPrice('shelf_food'));
-
-    p.hasAccount = true;
-    p.cleanBalance = 50;
-    goTo(room, id, 'grocery', 'shelf_water');
-    await act(client, 'shelf_water', 'take');
-    expect([p.cartDirty, p.cartClean]).toEqual([0, groceryPrice('shelf_water')]);
+    expect([p.cartDirty, p.cartClean]).toEqual([0, groceryPrice('shelf_food')]);
     goTo(room, id, 'grocery', 'counter');
     expect((await act(client, 'counter', 'pay')).text).toMatch(/par carte/);
-    expect(p.cleanBalance).toBe(50 - groceryPrice('shelf_water'));
-    expect(count(bagOf(room, id), 'cash_dirty')).toBe(150 - groceryPrice('shelf_food'));
+    expect(p.cleanBalance).toBe(150 - groceryPrice('shelf_food'));
+    expect(p.hasAccount).toBe(false);
+
+    setCash(room, id, 50); // solde propre à 0, espèces seulement
+    goTo(room, id, 'grocery', 'shelf_water');
+    await act(client, 'shelf_water', 'take');
+    expect([p.cartDirty, p.cartClean]).toEqual([groceryPrice('shelf_water'), 0]);
+    goTo(room, id, 'grocery', 'counter');
+    expect((await act(client, 'counter', 'pay')).text).toMatch(/en espèces/);
+    expect(count(bagOf(room, id), 'cash_dirty')).toBe(50 - groceryPrice('shelf_water'));
     expect(count(bagOf(room, id), 'water')).toBe(1);
   });
 
-  it('article « clean » refusé sans compte ; panier mixte atomique', async () => {
+  it('article « clean » payé sans compte ; panier mixte atomique', async () => {
     const id = 'shop-player-0012';
     const { client, room } = await newGame(id);
     const p = room.state.players.get(id)!;
-    for (const shelf of ['shelf_seeds', 'shelf_tools']) {
+    for (const shelf of ['shelf_tools', 'shelf_pots']) {
       goTo(room, id, 'shop', shelf);
       await act(client, shelf, 'take');
     }
-    expect([p.cartDirty, p.cartClean]).toEqual([price('shelf_seeds'), price('shelf_tools')]);
-    goTo(room, id, 'shop', 'counter');
-    expect((await act(client, 'counter', 'pay')).text).toBe("Ouvre d'abord un compte.");
-    p.hasAccount = true;
-    expect((await act(client, 'counter', 'pay')).text).toMatch(/Pas assez d'argent propre/);
-    expect(count(bagOf(room, id), 'cash_dirty')).toBe(150);
+    // propre : outils seulement (le pot « any » ne tient plus en plus) ; sale : le pot
+    setCash(room, id, price('shelf_pots') - 1);
     p.cleanBalance = price('shelf_tools');
-    setCash(room, id, price('shelf_seeds') - 1);
+    goTo(room, id, 'shop', 'counter');
     expect((await act(client, 'counter', 'pay')).text).toMatch(/Pas assez d'argent sale/);
     expect(p.cleanBalance).toBe(price('shelf_tools'));
-    setCash(room, id, price('shelf_seeds'));
+    setCash(room, id, price('shelf_pots'));
+    p.cleanBalance = price('shelf_tools');
     expect((await act(client, 'counter', 'pay')).ok).toBe(true);
     expect(p.cleanBalance).toBe(0);
+    expect(p.hasAccount).toBe(false);
     expect(count(bagOf(room, id), 'cash_dirty')).toBe(0);
     expect(count(bagOf(room, id), 'scissors')).toBe(1);
-    expect(count(bagOf(room, id), 'seed_base')).toBe(1);
+    expect(count(bagOf(room, id), 'pot')).toBe(1);
+  });
+
+  it('Bricoshop sans graines : le rayon des graines vend le sac à dos', () => {
+    const items = shopShelves.map((s) => gameData.items.get(s.itemId)!.category);
+    expect(items).not.toContain('seed');
+    expect(shopShelves.find((s) => s.stationId === 'shelf_bags')!.itemId).toBe('sac_a_dos');
   });
 
   it('ancienne sauvegarde : panier sans monnaie chargé, payé en espèces', () => {
@@ -262,8 +268,8 @@ describe('shop — deux monnaies', () => {
     await client.waitForMessage(ServerMsg.Notice);
     client.send(ClientMsg.Debug, { cmd: 'money', amount: 50 });
     await client.waitForMessage(ServerMsg.Notice);
-    expect(room.state.players.get(id)!.cleanBalance).toBe(300);
-    expect(count(bagOf(room, id), 'cash_dirty')).toBe(200);
+    expect(room.state.players.get(id)!.cleanBalance).toBe(150 + 300);
+    expect(count(bagOf(room, id), 'cash_dirty')).toBe(50);
   });
 });
 
@@ -273,17 +279,34 @@ describe('shop → labo', () => {
     client.send(ClientMsg.Debug, { cmd: 'timeScale', scale: 60 });
     await client.waitForMessage(ServerMsg.Notice);
     expect(room.state.lab.fixtures.size).toBe(0);
-    expect(count(bagOf(room, 'shop-player-0007'), 'cash_dirty')).toBe(150);
-    // kit minimal, payé avec l'argent sale de départ uniquement
-    for (const shelf of ['shelf_seeds', 'shelf_pots', 'shelf_racks', 'shelf_tables']) {
+    const me = room.state.players.get('shop-player-0007')!;
+    expect(me.cleanBalance).toBe(150);
+    // kit minimal, payé avec l'argent propre de départ, sans compte
+    for (const shelf of ['shelf_pots', 'shelf_racks', 'shelf_tables']) {
       goTo(room, 'shop-player-0007', 'shop', shelf);
       expect((await act(client, shelf, 'take')).ok).toBe(true);
     }
     goTo(room, 'shop-player-0007', 'shop', 'counter');
     expect((await act(client, 'counter', 'pay')).ok).toBe(true);
+    // graines : seulement chez El Jefe (pacte)
+    Object.assign(me, {
+      zone: 'street',
+      ...interactionPoint(gameData.locations.get('repaire_jefe')!),
+    });
+    client.send(ClientMsg.Interact, { locationId: 'repaire_jefe' });
+    await client.waitForMessage(ServerMsg.Dialogue);
+    client.send(ClientMsg.DialogueChoose, {
+      dialogueId: 'el_jefe',
+      nodeId: 'welcome',
+      choiceId: 'accept',
+    });
+    await Promise.all([
+      client.waitForMessage(ServerMsg.Notice),
+      client.waitForMessage(ServerMsg.Dialogue),
+    ]);
     const bag = bagOf(room, 'shop-player-0007');
-    for (const id of ['seed_base', 'pot', 'drying_rack', 'cutting_table'])
-      expect(count(bag, id)).toBe(1);
+    for (const id of ['pot', 'drying_rack', 'cutting_table']) expect(count(bag, id)).toBe(1);
+    expect(count(bag, 'seed_base')).toBe(gameData.economy.pact.startSeeds);
 
     // dans le labo, le joueur pose chaque meuble où il veut (près du robinet)
     goTo(room, 'shop-player-0007', 'lab', 'water');

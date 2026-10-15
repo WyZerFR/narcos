@@ -86,13 +86,14 @@ describe('labo — validation des actions', () => {
     );
   });
 
-  it('donne l’argent de départ (150 $ sale) dans le sac', async () => {
+  it('donne l’argent de départ : 150 $ propres, 0 $ sale, sans compte', async () => {
     const { room } = await newGame('lab-player-0011');
     const { dirty, clean } = gameData.economy.startingMoney;
-    expect(dirty).toBe(150);
+    expect([dirty, clean]).toEqual([0, 150]);
     const p = room.state.players.get('lab-player-0011')!;
     expect(count(readInventory(p.bag), 'cash_dirty')).toBe(dirty);
     expect(p.cleanBalance).toBe(clean);
+    expect(p.hasAccount).toBe(false);
   });
 
   it('refuse depuis la rue, de trop loin et sans objet', async () => {
@@ -121,7 +122,8 @@ describe('labo — validation des actions', () => {
     Object.assign(cut, { playerId: p.id, strainId: 'base', qty: 2, readyAt: room.now() });
     const refused = (await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage;
     expect(refused.ok).toBe(false);
-    expect(refused.text).toMatch(/sac plein/i);
+    // sans sac à dos : « Poches pleines » (palier 0)
+    expect(refused.text).toMatch(/Poches pleines/);
     expect(cut.qty).toBe(2); // la découpe attend sur la table
     const notices: NoticeMessage[] = [];
     client.onMessage(ServerMsg.Notice, (n: NoticeMessage) => notices.push(n));

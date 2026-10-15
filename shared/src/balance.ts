@@ -20,13 +20,18 @@ export interface CycleReport {
   profitPerMinute: number;
 }
 
-function seedPrice(data: Pick<GameData, 'shops' | 'items'>, strainId: string): number {
+/**
+ * Prix d'une graine : prix en rayon si elle est vendue, 0 si c'est la graine du pacte d'El Jefe
+ * (seule source de graines, gratuite), Infinity sinon (cycle impossible à démarrer).
+ */
+function seedPrice(data: Pick<GameData, 'shops' | 'items' | 'economy'>, strainId: string): number {
   for (const shop of data.shops.values())
     for (const shelf of shop.shelves) {
       const item = data.items.get(shelf.itemId);
       if (item?.category === 'seed' && item.strain === strainId) return shelf.price;
     }
-  return Infinity; // graine introuvable : cycle impossible à démarrer
+  const pactSeed = data.items.get(data.economy.pact.seedItemId);
+  return pactSeed?.strain === strainId ? 0 : Infinity;
 }
 
 export function cycleReport(
@@ -208,10 +213,10 @@ export function launderReport(
 
 export interface StarterBagReport {
   pocketSlots: number;
-  /** Cases occupées au départ : argent, kit minimal (pot, étendoir, table), graines du pacte. */
+  /** Cases occupées au départ : espèces (s'il y en a), kit minimal, graines du pacte. */
   slotsUsed: number;
   backpackPrice: number;
-  /** Argent sale restant après le kit minimal. */
+  /** Argent (propre + sale) restant après le kit minimal. */
   moneyAfterKit: number;
   /** Minutes de jeu de production (1 pot, sans lampe) avant de pouvoir payer le sac à dos. */
   minutesToBackpack: number;
@@ -230,9 +235,14 @@ export function starterBagReport(
   const kit = ['pot', 'drying_rack', 'cutting_table'];
   // une case par objet du kit, une pour l'argent, une pour les graines (empilables)
   const seedId = economy.pact.seedItemId;
+  const cashSlots = economy.startingMoney.dirty > 0 ? 1 : 0; // espèces : une case si on en a
   const slotsUsed =
-    kit.length + 1 + Math.ceil(economy.pact.startSeeds / (items.get(seedId)?.stackMax ?? 1));
-  const moneyAfterKit = economy.startingMoney.dirty - kit.reduce((s, id) => s + priceOf(id), 0);
+    kit.length +
+    cashSlots +
+    Math.ceil(economy.pact.startSeeds / (items.get(seedId)?.stackMax ?? 1));
+  // départ : argent propre (dépensable sans compte) + espèces éventuelles
+  const start = economy.startingMoney.clean + economy.startingMoney.dirty;
+  const moneyAfterKit = start - kit.reduce((s, id) => s + priceOf(id), 0);
   const backpackPrice = priceOf(economy.bag.backpackItemId);
   const perMinute = cycleReport(data, economy.strains[0]!.id).profitPerMinute;
   const missing = Math.max(0, backpackPrice - moneyAfterKit);

@@ -141,6 +141,18 @@ async function launderAt(c: SdkRoom, amount: number, stationId = 'teller_1') {
   expect(r.requestId).toBe(requestId);
   return r;
 }
+/** Départ en argent propre, sans espèces : on donne de l'argent sale à blanchir. */
+function giveDirty(room: NarcoRoom, id: string, cash: number) {
+  const r = add(
+    emptyInventory(gameData.economy.bag.pocketSlots),
+    'cash_dirty',
+    cash,
+    gameData.items,
+  );
+  if (r.ok) writeInventory(room.state.players.get(id)!.bag, r.inv);
+}
+const START_CLEAN = gameData.economy.startingMoney.clean;
+
 const dirtyOf = (room: NarcoRoom, id: string) =>
   count(readInventory(room.state.players.get(id)!.bag), 'cash_dirty');
 
@@ -155,6 +167,7 @@ describe('banque — blanchiment au guichet', () => {
     expect((await launderAt(client, 100)).text).toBe("Ouvrez d'abord un compte.");
     const me = room.state.players.get(id)!;
     me.hasAccount = true;
+    giveDirty(room, id, 300);
     expect(await openTeller(client)).toEqual({ open: { stationId: 'teller_1', venue: 'bank' } });
     const events: LaunderedEvent[] = [];
     room.events.on(LAUNDERED, (e: LaunderedEvent) => events.push(e));
@@ -164,7 +177,7 @@ describe('banque — blanchiment au guichet', () => {
     const { net } = launderSplit(101, RULES.fee);
     expect(net).toBe(Math.floor(101 * (1 - RULES.fee)));
     expect(dirtyOf(room, id)).toBe(before - 101);
-    expect(me.cleanBalance).toBe(net);
+    expect(me.cleanBalance).toBe(START_CLEAN + net);
     expect(events).toEqual([
       { playerId: id, dirty: 101, clean: net, venue: 'bank', area: 'street' },
     ]);
@@ -176,6 +189,7 @@ describe('banque — blanchiment au guichet', () => {
     const { client, room } = await newGame(id);
     const me = room.state.players.get(id)!;
     me.hasAccount = true;
+    giveDirty(room, id, 300);
     standAt(room, id, AT_TELLER_1);
     const dirty = dirtyOf(room, id);
     expect((await launderAt(client, dirty + 1)).text).toMatch(/que \d+ \$/);
@@ -197,7 +211,7 @@ describe('banque — blanchiment au guichet', () => {
     writeInventory(me.bag, emptyInventory(gameData.economy.bag.pocketSlots));
     expect((await launderAt(client, 10)).text).toMatch(/pas d'argent sale/);
     expect(me.cleanBalance).toBe(
-      launderSplit(50, RULES.fee).net + launderSplit(100, RULES.fee).net,
+      START_CLEAN + launderSplit(50, RULES.fee).net + launderSplit(100, RULES.fee).net,
     );
   });
 

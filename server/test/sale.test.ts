@@ -181,7 +181,7 @@ describe('vente de rue', () => {
     if (r2.ok) inv = r2.inv;
     writeInventory(p.bag, inv);
     client.send(ClientMsg.SaleAccept, { npcId, qty: 1 });
-    expect((await notice(client)).text).toMatch(/Sac plein/);
+    expect((await notice(client)).text).toBe("Poches pleines : pas de place pour l'argent.");
     expect(count(readInventory(p.bag), 'pouch_base')).toBe(5);
     expect(count(readInventory(p.bag), 'cash_dirty')).toBe(0);
   });
