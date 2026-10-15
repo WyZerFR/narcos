@@ -20,6 +20,7 @@ export function interiorObstacles(interior: Interior): Rect[] {
   return [
     ...interior.obstacles.map((o) => rectFromCenter(o, o)),
     ...interior.stations.filter((s) => s.solid).map((s) => rectFromCenter(s.position, s.size)),
+    ...interior.props.filter((p) => p.solid).map((p) => rectFromCenter(p.position, p.size)),
   ];
 }
 

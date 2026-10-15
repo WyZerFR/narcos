@@ -17,6 +17,7 @@
       "landmarkLocationId": "repaire_jefe",
       "seed": "nord-1",
       "street": {
+        "axisX": 0,
         "roadWidth": 7,
         "parkingWidth": 2.2,
         "sidewalkWidth": 2.5,
@@ -76,6 +77,7 @@
       "landmarkLocationId": "local",
       "seed": "sud-1",
       "street": {
+        "axisX": 0,
         "roadWidth": 7,
         "parkingWidth": 2.2,
         "sidewalkWidth": 2.5,
@@ -127,6 +129,18 @@
         "gate": false,
         "guards": 0,
         "garlands": true
+      },
+      "hiddenCellar": {
+        "locationId": "trappe_cave",
+        "side": "west",
+        "houseIndex": 2,
+        "passageWidth": 1.6,
+        "gardenDepth": 8,
+        "fenceHeight": 1.8,
+        "trapdoor": {
+          "along": 0.7,
+          "depth": 0.55
+        }
       }
     }
   ]

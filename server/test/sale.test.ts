@@ -6,6 +6,8 @@ import {
   ROOM_NAME,
   SALE_COMPLETED,
   areaAt,
+  isFreeAt,
+  rectContainsPoint,
   ServerMsg,
   add,
   count,
@@ -17,7 +19,7 @@ import {
 } from '@narco/shared';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { NarcoRoom } from '../src/rooms/NarcoRoom';
-import { StreetNpcs } from '../src/rooms/npcs';
+import { gridOf, StreetNpcs } from '../src/rooms/npcs';
 import { GameState, Player } from '../src/rooms/schema';
 import { makeSlots, readInventory, writeInventory } from '../src/rooms/stateSync';
 import { bootOn } from './helpers';
@@ -314,6 +316,28 @@ describe('PNJ — simulation (hors réseau, hasard maîtrisé)', () => {
           const area = gameData.areas.get(sim.areaOf(id)!)!;
           expect(areaAt(AREAS, sim.positionOf(id)!)?.id ?? 'hors carte', id).toBe(area.id);
         }
+    }
+  });
+
+  it('PNJ de vente exclus du passage et du jardin de la cachette', () => {
+    const c = gameData.quartierLayouts.get('sud')!.cellar!;
+    const g = gridOf('south');
+    for (const r of [c.passage, c.garden])
+      expect(isFreeAt(g, { x: (r.minX + r.maxX) / 2, z: (r.minZ + r.maxZ) / 2 })).toBe(false);
+    const state = new GameState();
+    let seed = 11;
+    const rng = () => {
+      seed = (seed * 16807) % 2147483647;
+      return (seed - 1) / 2147483646;
+    };
+    const sim = new StreetNpcs(state, rng);
+    sim.spawnAll(0);
+    for (let t = 1; t <= 300; t++) {
+      sim.update(250, t * 250 + 10_000, t * 250);
+      for (const id of state.npcs.keys()) {
+        const p = sim.positionOf(id)!;
+        for (const r of [c.passage, c.garden]) expect(rectContainsPoint(r, p), id).toBe(false);
+      }
     }
   });
 

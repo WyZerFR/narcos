@@ -357,6 +357,131 @@
           "solid": false
         }
       ]
+    },
+    {
+      "id": "cellar",
+      "name": "Cave du blanchisseur",
+      "entranceLocationId": "trappe_cave",
+      "style": "cellar",
+      "size": {
+        "w": 8,
+        "d": 6
+      },
+      "wallHeight": 2.6,
+      "spawn": {
+        "x": 2.6,
+        "z": 1.6
+      },
+      "obstacles": [],
+      "props": [
+        {
+          "kind": "stairs",
+          "position": {
+            "x": 3.2,
+            "z": 2.3
+          },
+          "size": {
+            "w": 1.2,
+            "d": 1.2
+          },
+          "solid": false
+        },
+        {
+          "kind": "crate",
+          "position": {
+            "x": -3.3,
+            "z": -2.3
+          },
+          "size": {
+            "w": 0.9,
+            "d": 0.9
+          },
+          "solid": true
+        },
+        {
+          "kind": "crate",
+          "position": {
+            "x": -3.3,
+            "z": -1.3
+          },
+          "size": {
+            "w": 0.9,
+            "d": 0.9
+          },
+          "solid": true
+        },
+        {
+          "kind": "crate",
+          "position": {
+            "x": -2.3,
+            "z": -2.3
+          },
+          "size": {
+            "w": 0.9,
+            "d": 0.9
+          },
+          "solid": true
+        },
+        {
+          "kind": "safe",
+          "position": {
+            "x": 3.2,
+            "z": -2.3
+          },
+          "size": {
+            "w": 0.9,
+            "d": 0.8
+          },
+          "solid": true
+        },
+        {
+          "kind": "bulb",
+          "position": {
+            "x": 0,
+            "z": 0
+          },
+          "size": {
+            "w": 0.3,
+            "d": 0.3
+          },
+          "solid": false
+        }
+      ],
+      "stations": [
+        {
+          "id": "launderer",
+          "kind": "talk",
+          "label": "Blanchisseur",
+          "position": {
+            "x": 0,
+            "z": -1.7
+          },
+          "size": {
+            "w": 2.6,
+            "d": 0.9
+          },
+          "interactRadius": 1.8,
+          "solid": true,
+          "vendor": "Le Blanchisseur",
+          "dialogue": "launderer",
+          "launderVenue": "cellar"
+        },
+        {
+          "id": "exit",
+          "kind": "exit",
+          "label": "Remonter",
+          "position": {
+            "x": 3.2,
+            "z": 2.8
+          },
+          "size": {
+            "w": 1.2,
+            "d": 0.4
+          },
+          "interactRadius": 1.5,
+          "solid": false
+        }
+      ]
     }
   ]
 }

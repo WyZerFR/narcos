@@ -466,6 +466,19 @@ export const InteriorSchema = z.object({
   stations: z.array(StationSchema).min(1),
   /** On peut y poser librement des meubles (labo). */
   furnishable: z.boolean().default(false),
+  /** Ambiance de rendu : pièce carrelée (défaut) ou cave de pierre, plus sombre. */
+  style: z.enum(['default', 'cellar']).default('default'),
+  /** Décor de la pièce (caisses, coffre, escalier, ampoule) ; `solid` = obstacle. */
+  props: z
+    .array(
+      z.object({
+        kind: z.enum(['crate', 'safe', 'stairs', 'bulb']),
+        position: Vec2Schema,
+        size: z.object({ w: pos, d: pos }),
+        solid: z.boolean(),
+      }),
+    )
+    .default([]),
 });
 
 export const ZonesFileSchema = z.object({ interiors: z.array(InteriorSchema) });
@@ -574,6 +587,7 @@ export const SilhouetteSchema = z.enum([
   'kiosk',
   'alley',
   'bank',
+  'trapdoor',
 ]);
 
 export const DoorSideSchema = z.enum(['north', 'south', 'east', 'west']);
@@ -603,6 +617,8 @@ export const LocationSchema = z.object({
   dialogue: z.string().min(1).optional(),
   /** Libellé du bouton ACTION devant ce lieu (défaut « Entrer : nom »). */
   actionLabel: z.string().min(1).optional(),
+  /** Lieu caché : ni étiquette flottante, ni marqueur de mini-carte, ni bâtiment rendu. */
+  hidden: z.boolean().default(false),
   catalog: z.array(CatalogEntrySchema),
 });
 
@@ -699,6 +715,8 @@ export const QuartierSchema = z.object({
   landmarkLocationId: z.string().min(1),
   seed: z.string().min(1),
   street: z.object({
+    /** Axe de la rue de l'impasse (x), dans le prolongement de la rue centrale. */
+    axisX: z.number(),
     /** Chaussée roulante, toujours libre (≥ 6 m). */
     roadWidth: z.number().min(6),
     /** Bande de stationnement de chaque côté de la chaussée. */
@@ -755,6 +773,22 @@ export const QuartierSchema = z.object({
   }),
   /** Arche d'entrée avec enseigne néon. */
   arch: z.object({ label: z.string().min(1), height: pos }),
+  /**
+   * Cachette (Quartier Sud) : passage étroit entre les maisons `houseIndex` et `houseIndex + 1`
+   * du côté `side`, jardin arrière clos derrière elles, trappe (lieu `locationId`) dans le
+   * jardin, placée par fractions de sa longueur (`along`) et de sa profondeur (`depth`).
+   */
+  hiddenCellar: z
+    .object({
+      locationId: z.string().min(1),
+      side: z.enum(['west', 'east']),
+      houseIndex: z.number().int().nonnegative(),
+      passageWidth: pos,
+      gardenDepth: pos,
+      fenceHeight: pos,
+      trapdoor: z.object({ along: z.number().min(0).max(1), depth: z.number().min(0).max(1) }),
+    })
+    .optional(),
   /** Bâtiment du bout : portail, gardes statiques, guirlandes sur la placette. */
   landmark: z.object({
     gate: z.boolean(),

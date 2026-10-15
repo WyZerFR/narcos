@@ -225,6 +225,30 @@
       "neonColor": "#ff3e9a",
       "interactRadius": 3,
       "catalog": []
+    },
+    {
+      "id": "trappe_cave",
+      "name": "Trappe",
+      "zone": "zone1",
+      "kind": "area",
+      "function": "laundromat",
+      "silhouette": "trapdoor",
+      "hidden": true,
+      "position": {
+        "x": -23.6,
+        "z": 74.89
+      },
+      "size": {
+        "w": 1.2,
+        "d": 1.2
+      },
+      "height": 0.3,
+      "color": "#4a4038",
+      "neonColor": "#ffb347",
+      "interactRadius": 1.5,
+      "enterText": "Tu soulèves la trappe. Ça sent la lessive et la peur.",
+      "actionLabel": "Descendre",
+      "catalog": []
     }
   ],
   "blocks": [

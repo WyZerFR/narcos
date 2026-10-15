@@ -33,7 +33,7 @@ describe('données du jeu', () => {
     expect(gameData.economy.dealer.weeklyCost).toBe(100);
   });
 
-  it('ne contient que la zone 1 avec ses 9 lieux', () => {
+  it('ne contient que la zone 1 avec ses 10 lieux (dont la trappe cachée)', () => {
     expect([...gameData.zones.keys()]).toEqual(['zone1']);
     expect([...gameData.locations.keys()].sort()).toEqual(
       [
@@ -46,6 +46,7 @@ describe('données du jeu', () => {
         'ruelle_nord',
         'ruelle_sud',
         'shop',
+        'trappe_cave',
       ].sort(),
     );
     for (const loc of gameData.locations.values()) expect(loc.zone).toBe('zone1');
