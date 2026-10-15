@@ -314,12 +314,21 @@
       "fov": 35
     },
     "labelMargin": 0.35,
-    "speedSmoothing": 10,
-    "moveThreshold": 0.3,
-    "animationFadeSeconds": 0.2,
-    "bob": {
-      "height": 0.06,
-      "speed": 9
+    "locomotion": {
+      "speedSmoothing": 10,
+      "teleportSpeed": 25,
+      "walkStart": 0.4,
+      "walkStop": 0.25,
+      "runStart": 4.2,
+      "runStop": 3.6,
+      "walkClipSpeed": 2,
+      "runClipSpeed": 5,
+      "timeScale": { "min": 0.6, "max": 1.8 },
+      "crossFadeSeconds": 0.2,
+      "turnStiffness": 14,
+      "turnMinSpeed": 0.3,
+      "lean": { "perSpeed": 0.015, "max": 0.12, "stiffness": 8 },
+      "bob": { "height": 0.06, "stridesPerMeter": 0.8 }
     },
     "ring": {
       "innerRadius": 0.42,
@@ -332,7 +341,6 @@
   },
   "netSmoothing": {
     "remoteDelayMs": 100,
-    "rotationStiffness": 14,
     "correctionIgnoreDistance": 0.05,
     "correctionSnapDistance": 1.5,
     "correctionBlendStiffness": 12

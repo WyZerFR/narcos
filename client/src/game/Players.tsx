@@ -4,13 +4,11 @@ import type { Group } from 'three';
 import {
   ClientMsg,
   gameData,
-  lerpAngle,
   moveWithCollisions,
   Reconciler,
   appearanceKey,
   resolveAppearance,
   resolveCharacterId,
-  smoothFactor,
   SnapshotBuffer,
   speedFactor,
   STREET,
@@ -237,14 +235,8 @@ export function LocalPlayer({ room, info }: { room: GameRoom; info: PlayerInfo }
     }
 
     const g = ref.current;
-    if (g) {
-      g.position.set(localPlayer.x, 0, localPlayer.z);
-      g.rotation.y = lerpAngle(
-        g.rotation.y,
-        localPlayer.rotY,
-        smoothFactor(net.rotationStiffness, dt),
-      );
-    }
+    // rotation du corps : lissée par CharacterBody (locomotion), pas par le groupe
+    if (g) g.position.set(localPlayer.x, 0, localPlayer.z);
   }, FRAME_PRIORITY.actors);
 
   return (
@@ -254,6 +246,7 @@ export function LocalPlayer({ room, info }: { room: GameRoom; info: PlayerInfo }
         appearance={info.appearance}
         color={info.color}
         ghost={false}
+        heading={() => localPlayer.rotY}
       />
     </group>
   );
@@ -265,6 +258,7 @@ export function RemotePlayer({ room, info }: { room: GameRoom; info: PlayerInfo 
   // Instantanés reçus, affichés avec un léger retard fixe (interpolation, jamais de saut).
   const buffer = useRef(new SnapshotBuffer(gameData.config.room.patchRateMs));
   const last = useRef({ x: NaN, z: NaN, rotY: NaN });
+  const heading = useRef(room.state.players?.get(info.id)?.rotY ?? 0);
 
   useFrame(() => {
     const p = room.state.players?.get(info.id);
@@ -278,8 +272,9 @@ export function RemotePlayer({ room, info }: { room: GameRoom; info: PlayerInfo 
     }
     const s = buffer.current.sample(now - net.remoteDelayMs);
     if (!s) return;
+    // position interpolée : la locomotion en déduit la vitesse (pas des positions reçues)
     g.position.set(s.x, 0, s.z);
-    g.rotation.y = s.rotY;
+    heading.current = s.rotY;
   }, FRAME_PRIORITY.actors);
 
   return (
@@ -289,6 +284,7 @@ export function RemotePlayer({ room, info }: { room: GameRoom; info: PlayerInfo 
         appearance={info.appearance}
         color={info.color}
         ghost={!info.connected}
+        heading={() => heading.current}
       />
     </group>
   );

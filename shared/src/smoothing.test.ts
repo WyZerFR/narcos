@@ -39,7 +39,11 @@ describe('smoothFactor', () => {
     const rot = (fps: number) => {
       let a = 0;
       for (let i = 0; i < fps / 2; i++)
-        a = lerpAngle(a, 3, smoothFactor(net.rotationStiffness, 1 / fps));
+        a = lerpAngle(
+          a,
+          3,
+          smoothFactor(gameData.config.characters.locomotion.turnStiffness, 1 / fps),
+        );
       return a;
     };
     expect(rot(30)).toBeCloseTo(rot(60), 9);
