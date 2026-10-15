@@ -1,3 +1,4 @@
+import { characterSelectAvailable, openCharacterSelect } from './characterSelectStore';
 import { connection } from '../net/connection';
 import { QUALITY_PRESETS, updateSettings, useSettings, type Quality } from './settings';
 
@@ -61,6 +62,19 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
             onChange={(e) => updateSettings({ debug: e.target.checked })}
           />
         </label>
+
+        {characterSelectAvailable && (
+          <button
+            type="button"
+            className="btn"
+            onClick={() => {
+              onClose();
+              openCharacterSelect();
+            }}
+          >
+            Changer de personnage
+          </button>
+        )}
 
         {canFullscreen() && (
           <button type="button" className="btn" onClick={toggleFullscreen}>

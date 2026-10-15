@@ -17,6 +17,7 @@ import {
 import { resetCutout, updateCutout, useCutout } from '../game/city/cutout';
 import { DebugLabSection } from './DebugLabSection';
 import { DebugQuartierSection } from './DebugQuartierSection';
+import { DebugCharacterSection } from './DebugCharacterSection';
 
 /** Plage du zoom : large autour de la valeur de config.json. */
 const ZOOM_RANGE = { min: gameData.config.camera.zoom / 4, max: gameData.config.camera.zoom * 4 };
@@ -231,6 +232,7 @@ export function CameraPanel() {
           )}
           <DebugLabSection />
           <DebugQuartierSection />
+          <DebugCharacterSection />
         </div>
       )}
     </div>

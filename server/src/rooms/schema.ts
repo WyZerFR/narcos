@@ -1,4 +1,5 @@
 import { ArraySchema, MapSchema, Schema, type } from '@colyseus/schema';
+import { gameData } from '@narco/shared';
 
 /** Slot d'inventaire synchronisé ; `itemId === ''` = slot vide. */
 export class Slot extends Schema {
@@ -65,6 +66,8 @@ export class Player extends Schema {
   @type('float32') health = 100;
   /** Temps de jeu de la dernière mise à jour des jauges. */
   @type('float64') survivalAt = 0;
+  /** Personnage choisi (characters.json), validé par le serveur. */
+  @type('string') characterId = gameData.config.characters.defaultId;
 }
 
 /** Pot du labo (timestamps en temps de jeu, ms : float64 obligatoire). */

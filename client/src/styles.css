@@ -80,6 +80,65 @@ input {
   color: #ffb3b9;
 }
 
+/* ---------- sélection du personnage ---------- */
+.character-select {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 16px;
+  background: radial-gradient(ellipse at center, #2b241d 0%, var(--bg) 70%);
+}
+.character-select h2 {
+  margin: 0;
+}
+.character-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  width: min(720px, 100%);
+  height: min(62vh, 440px);
+}
+/* un seul canvas derrière les deux cartes : les aperçus sont centrés sur chaque colonne */
+.character-canvas {
+  position: absolute !important;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.character-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 2px solid #4a443c;
+  background: rgba(42, 37, 32, 0.35);
+}
+.character-card.selected {
+  border-color: var(--accent);
+}
+.character-stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.character-status {
+  opacity: 0.8;
+}
+.character-name {
+  font-weight: 700;
+  font-size: 18px;
+}
+
 /* ---------- lobby ---------- */
 .lobby {
   position: fixed;

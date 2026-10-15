@@ -7,6 +7,7 @@ import {
   lerpAngle,
   moveWithCollisions,
   Reconciler,
+  resolveCharacterId,
   smoothFactor,
   SnapshotBuffer,
   speedFactor,
@@ -15,6 +16,7 @@ import {
   type MoveMessage,
 } from '@narco/shared';
 import { FRAME_PRIORITY } from './framePriority';
+import { CharacterBody } from './characters/CharacterBody';
 import { connection, type GameRoom, type PlayerView } from '../net/connection';
 import { readMoveIntent } from '../input/inputState';
 import { subscribeState } from '../net/gameView';
@@ -56,6 +58,8 @@ export interface PlayerInfo {
   connected: boolean;
   /** Zone du joueur (rue ou intérieur) : on ne voit que les joueurs de sa propre zone. */
   zone: string;
+  /** Personnage choisi (characters.json), validé par le serveur. */
+  characterId: string;
 }
 
 /** Liste des joueurs pour React : ne change que si un joueur arrive/part/change de statut. */
@@ -73,10 +77,11 @@ export function useRoomPlayers(room: GameRoom | null): PlayerInfo[] {
           color: p.color,
           connected: p.connected,
           zone: p.zone,
+          characterId: resolveCharacterId(gameData, p.characterId),
         }),
       );
       const next = list
-        .map((p) => `${p.id}|${p.name}|${p.color}|${p.connected}|${p.zone}`)
+        .map((p) => `${p.id}|${p.name}|${p.color}|${p.connected}|${p.zone}|${p.characterId}`)
         .join(';');
       if (next !== signature) {
         signature = next;
@@ -93,11 +98,21 @@ export function useRoomPlayers(room: GameRoom | null): PlayerInfo[] {
  * Ancre l'étiquette DOM du joueur au-dessus de son cube, et son marqueur « caché » quand un
  * bâtiment s'interpose. Le joueur local n'en a besoin que si la découpe est désactivée.
  */
-function usePlayerLabel(id: string, ref: RefObject<Group | null>, isLocal: boolean) {
+function usePlayerLabel(
+  id: string,
+  ref: RefObject<Group | null>,
+  isLocal: boolean,
+  characterId: string,
+) {
   useEffect(() => {
+    // au-dessus de la tête du personnage (ou du cube de repli)
+    const y = Math.max(
+      SIZE * 1.7,
+      (gameData.characters.get(characterId)?.height ?? 0) + gameData.config.characters.labelMargin,
+    );
     setLabelAnchor(`player:${id}`, () => {
       const g = ref.current;
-      return g ? { x: g.position.x, y: SIZE * 1.7, z: g.position.z } : null;
+      return g ? { x: g.position.x, y, z: g.position.z } : null;
     });
     setLabelAnchor(`marker:${id}`, (camera) => {
       const g = ref.current;
@@ -110,34 +125,12 @@ function usePlayerLabel(id: string, ref: RefObject<Group | null>, isLocal: boole
       setLabelAnchor(`player:${id}`, null);
       setLabelAnchor(`marker:${id}`, null);
     };
-  }, [id, ref, isLocal]);
-}
-
-function Body({ color, ghost }: { color: string; ghost: boolean }) {
-  return (
-    <>
-      <mesh position={[0, SIZE / 2, 0]}>
-        <boxGeometry args={[SIZE, SIZE, SIZE]} />
-        <meshLambertMaterial
-          color={color}
-          emissive={color}
-          emissiveIntensity={0.45}
-          transparent={ghost}
-          opacity={ghost ? 0.35 : 1}
-        />
-      </mesh>
-      {/* « nez » : indique la direction du regard */}
-      <mesh position={[0, SIZE * 0.7, SIZE * 0.55]}>
-        <boxGeometry args={[SIZE * 0.3, SIZE * 0.2, SIZE * 0.2]} />
-        <meshLambertMaterial color={gameData.config.palette.sky} />
-      </mesh>
-    </>
-  );
+  }, [id, ref, isLocal, characterId]);
 }
 
 export function LocalPlayer({ room, info }: { room: GameRoom; info: PlayerInfo }) {
   const ref = useRef<Group>(null);
-  usePlayerLabel(info.id, ref, true);
+  usePlayerLabel(info.id, ref, true, info.characterId);
   const sendTimer = useRef(0);
   const lastSent = useRef({ x: NaN, z: NaN, rotY: NaN });
 
@@ -238,14 +231,14 @@ export function LocalPlayer({ room, info }: { room: GameRoom; info: PlayerInfo }
 
   return (
     <group ref={ref}>
-      <Body color={info.color} ghost={false} />
+      <CharacterBody characterId={info.characterId} color={info.color} ghost={false} />
     </group>
   );
 }
 
 export function RemotePlayer({ room, info }: { room: GameRoom; info: PlayerInfo }) {
   const ref = useRef<Group>(null);
-  usePlayerLabel(info.id, ref, false);
+  usePlayerLabel(info.id, ref, false, info.characterId);
   // Instantanés reçus, affichés avec un léger retard fixe (interpolation, jamais de saut).
   const buffer = useRef(new SnapshotBuffer(gameData.config.room.patchRateMs));
   const last = useRef({ x: NaN, z: NaN, rotY: NaN });
@@ -268,7 +261,7 @@ export function RemotePlayer({ room, info }: { room: GameRoom; info: PlayerInfo 
 
   return (
     <group ref={ref}>
-      <Body color={info.color} ghost={!info.connected} />
+      <CharacterBody characterId={info.characterId} color={info.color} ghost={!info.connected} />
     </group>
   );
 }

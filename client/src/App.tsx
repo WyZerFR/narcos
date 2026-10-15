@@ -11,11 +11,14 @@ import { useSettings } from './ui/settings';
 import { CameraPanel } from './ui/CameraPanel';
 import { PlacementPanel } from './ui/PlacementPanel';
 import { usePlacement } from './ui/placementStore';
+import { CharacterSelect } from './ui/CharacterSelect';
+import { offerCharacterSelect, useCharacterSelectOpen } from './ui/characterSelectStore';
 
 export function App() {
   const snapshot = useSyncExternalStore(connection.subscribe, connection.getSnapshot);
   const { debug } = useSettings();
   const placing = usePlacement() !== null;
+  const selecting = useCharacterSelectOpen();
 
   // Pendant une reconnexion on garde la dernière room affichée (figée) sous le bandeau.
   const lastRoom = useRef<GameRoom | null>(null);
@@ -25,10 +28,18 @@ export function App() {
 
   useEffect(() => bindKeyboard(), []);
   useEffect(() => connection.resumeSavedRoom(), []);
+  // Arrivée dans une partie : sélection du personnage avant d'entrer (si pas encore choisi).
+  const joinedCode = snapshot.room ? snapshot.code : null;
+  useEffect(() => {
+    if (joinedCode) offerCharacterSelect(joinedCode);
+  }, [joinedCode]);
 
   return (
     <>
-      {room ? (
+      {room && selecting ? (
+        // la scène du jeu n'est pas montée : un seul contexte WebGL (aperçus)
+        <CharacterSelect room={room} code={snapshot.code} />
+      ) : room ? (
         <>
           <Scene room={room} />
           <Hud snapshot={snapshot} room={room} />

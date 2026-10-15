@@ -1,0 +1,28 @@
+{
+  "characters": [
+    {
+      "id": "perso_1",
+      "name": "Le Costard",
+      "model": "models/characters/perso_1_suit_male.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "animations": {
+        "idle": "Idle",
+        "walk": "Walk"
+      }
+    },
+    {
+      "id": "perso_2",
+      "name": "Le Capuche",
+      "model": "models/characters/perso_2_casual_hoodie.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "animations": {
+        "idle": "Idle",
+        "walk": "Walk"
+      }
+    }
+  ]
+}

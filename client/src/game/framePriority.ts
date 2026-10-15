@@ -7,4 +7,6 @@
 export const FRAME_PRIORITY = {
   actors: -2,
   camera: -1,
+  /** Animation des personnages : après leur déplacement (vitesse mesurée sur la frame). */
+  animation: -1.5,
 } as const;

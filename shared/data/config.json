@@ -285,6 +285,36 @@
     "near": 0.5,
     "far": 300
   },
+  "characters": {
+    "locked": false,
+    "defaultId": "perso_1",
+    "budget": {
+      "maxTriangles": 15000,
+      "maxDrawCalls": 3,
+      "maxTextureSize": 2048,
+      "maxFileMB": 5
+    },
+    "previewSpinSpeed": 0.6,
+    "preview": {
+      "distance": 4.4,
+      "height": 1.3,
+      "lookY": 0.9,
+      "fov": 35
+    },
+    "labelMargin": 0.35,
+    "speedSmoothing": 10,
+    "moveThreshold": 0.3,
+    "animationFadeSeconds": 0.2,
+    "tint": 0.18,
+    "bob": {
+      "height": 0.06,
+      "speed": 9
+    },
+    "ring": {
+      "innerRadius": 0.42,
+      "outerRadius": 0.55
+    }
+  },
   "interiorFraming": {
     "followFraction": 0.15,
     "margin": 0.8

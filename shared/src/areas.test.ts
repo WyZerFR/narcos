@@ -14,6 +14,7 @@ import npcsJson from '../data/npcs.json';
 import dialoguesJson from '../data/dialogues.json';
 import areasJson from '../data/areas.json';
 import quartiersJson from '../data/quartiers.json';
+import charactersJson from '../data/characters.json';
 
 const areas = [...gameData.areas.values()];
 const at = (x: number, z: number) => areaAt(areas, { x, z })?.id ?? null;
@@ -104,6 +105,7 @@ const rawAll = {
   dialogues: dialoguesJson,
   areas: areasJson,
   quartiers: quartiersJson,
+  characters: charactersJson,
 };
 
 describe('quartiers.json : validation', () => {

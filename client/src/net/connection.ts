@@ -40,6 +40,8 @@ export interface PlayerView {
   bag: SlotView[];
   /** 0 = poches, 1 = sac à dos (economy.bag). */
   bagTier: number;
+  /** Absent d'un serveur plus ancien : personnage par défaut. */
+  characterId?: string;
   cleanBalance: number;
   hasAccount: boolean;
   pactAccepted: boolean;

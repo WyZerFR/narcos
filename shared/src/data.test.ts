@@ -9,6 +9,7 @@ import npcsJson from '../data/npcs.json';
 import dialoguesJson from '../data/dialogues.json';
 import areasJson from '../data/areas.json';
 import quartiersJson from '../data/quartiers.json';
+import charactersJson from '../data/characters.json';
 import { gameData, parseGameData, type RawGameData } from './data';
 
 const raw = (): RawGameData =>
@@ -23,6 +24,7 @@ const raw = (): RawGameData =>
     dialogues: dialoguesJson,
     areas: areasJson,
     quartiers: quartiersJson,
+    characters: charactersJson,
   });
 
 describe('données du jeu', () => {

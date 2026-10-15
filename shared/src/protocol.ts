@@ -41,6 +41,8 @@ export const ClientMsg = {
   DialogueChoose: 'dialogue.choose',
   /** Guichet : blanchir un montant d'argent sale. */
   BankLaunder: 'bank.launder',
+  /** Écran de sélection : choix du personnage (refusé si config.characters.locked). */
+  CharacterChoose: 'character.choose',
 } as const;
 
 export const ServerMsg = {
@@ -274,7 +276,13 @@ export type DebugMessage =
   | { cmd: 'teleportTrapdoor' }
   | { cmd: 'teleportGarden'; index: number }
   | { cmd: 'setBagTier'; tier: number }
-  | { cmd: 'clearBag' };
+  | { cmd: 'clearBag' }
+  /** Force le personnage d'un joueur (soi-même si `playerId` est absent), même figé. */
+  | { cmd: 'setCharacter'; characterId: string; playerId?: string };
+
+export interface CharacterChooseMessage {
+  characterId: string;
+}
 
 export const MAX_NAME_LENGTH = 16;
 
