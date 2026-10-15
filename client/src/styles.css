@@ -136,6 +136,47 @@ input {
   opacity: 0.8;
   pointer-events: none;
 }
+/* personnalisation : aperçu à gauche, une rangée de pastilles (44 px) par slot à droite */
+.character-colors {
+  display: flex;
+  gap: 16px;
+  width: min(960px, 100%);
+  min-height: 0;
+}
+.character-colors .character-stage {
+  flex: 0 0 38%;
+}
+.swatch-rows {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: min(56vh, 420px);
+  overflow-y: auto;
+}
+.swatch-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.swatch-label {
+  width: 100%;
+  font-weight: 600;
+  opacity: 0.85;
+}
+.swatch {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid #4a443c;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.swatch.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--text);
+}
 .character-count {
   margin-left: 8px;
   opacity: 0.6;

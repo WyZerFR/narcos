@@ -7,12 +7,11 @@ import {
   bagTierFor,
   fitBag,
   gameData,
-  resolveCharacterId,
   obstaclesFrom,
   resolveCircle,
   STREET,
 } from '@narco/shared';
-import { syncArea } from './rooms/stateSync';
+import { setLook, syncArea } from './rooms/stateSync';
 import type { GameState } from './rooms/schema';
 import {
   CartLine,
@@ -83,6 +82,8 @@ const StateJson = z.object({
       pactAccepted: z.boolean().optional(),
       // ajouté avec la sélection de personnage : absent d'une ancienne sauvegarde (défaut)
       characterId: z.string().optional(),
+      // ajouté avec la personnalisation : absent d'une ancienne sauvegarde (couleurs d'origine)
+      appearance: z.record(z.string(), z.string()).optional(),
       cart: z
         .array(
           z.object({
@@ -191,7 +192,6 @@ export function hydrateState(state: GameState, snap: RoomSnapshot): void {
       cleanBalance: p.cleanBalance ?? p.cleanMoney ?? 0,
       hasAccount: p.hasAccount ?? false,
       pactAccepted: p.pactAccepted ?? false,
-      characterId: resolveCharacterId(gameData, p.characterId),
       connected: false,
     });
     // palier : celui sauvegardé, sinon déduit (ancienne partie à 10 cases) ; aucun objet perdu
@@ -215,6 +215,7 @@ export function hydrateState(state: GameState, snap: RoomSnapshot): void {
     );
     Object.assign(player, { hunger: p.hunger, thirst: p.thirst, health: p.health });
     if (player.zone === STREET) Object.assign(player, streetRespawn());
+    setLook(player, p.characterId, p.appearance ?? {});
     syncArea(player);
     state.players.set(id, player);
   }

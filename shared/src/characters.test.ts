@@ -12,6 +12,7 @@ import dialoguesJson from '../data/dialogues.json';
 import areasJson from '../data/areas.json';
 import quartiersJson from '../data/quartiers.json';
 import charactersJson from '../data/characters.json';
+import palettesJson from '../data/palettes.json';
 import { resolveCharacterId } from './characters';
 import { gameData, parseGameData, type RawGameData } from './data';
 import { inspectGltf, overBudget, type GltfJson } from './modelBudget';
@@ -31,6 +32,7 @@ const raw = (): RawGameData =>
     areas: areasJson,
     quartiers: quartiersJson,
     characters: charactersJson,
+    palettes: palettesJson,
   });
 type File = { characters: { id: string; model: string; height: number }[] };
 

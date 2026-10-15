@@ -3,9 +3,11 @@ import {
   Box3,
   BufferAttribute,
   BufferGeometry,
+  Color,
   Group,
   MeshLambertMaterial,
   SkinnedMesh,
+  Vector4,
   type AnimationClip,
   type Material,
   type Object3D,
@@ -13,7 +15,7 @@ import {
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { gameData, type Character } from '@narco/shared';
+import { gameData, slotColors, type Appearance, type Character } from '@narco/shared';
 
 /**
  * Modèles des personnages (`characters.json`) : chargés une seule fois par id, à la demande
@@ -48,8 +50,40 @@ function emit(): void {
 /** Attributs gardés : la fusion exige les mêmes partout (pas d'UV, aucun modèle texturé). */
 const KEEP = ['position', 'normal', 'skinIndex', 'skinWeight'];
 
-/** Géométrie d'une primitive + couleur de son matériau en attribut de sommet. */
-function colored(mesh: SkinnedMesh): BufferGeometry | null {
+type ColoredMaterial = Material & { color?: Color };
+
+function materialOf(mesh: SkinnedMesh): ColoredMaterial | undefined {
+  return (Array.isArray(mesh.material) ? mesh.material[0] : mesh.material) as
+    ColoredMaterial | undefined;
+}
+
+const luminance = (c: Color) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+
+/**
+ * Slot de chaque part (rang dans palettes.json, 0 = couleur d'origine) d'après le nom de son
+ * matériau, et nuance relative dans son slot : luminance d'origine / plus claire du slot, pour
+ * garder les écarts de ton (cheveux / sourcils, peau / peau foncée) une fois recolorés.
+ */
+function slotShades(character: Character, list: SkinnedMesh[]): [number, number][] {
+  const slotByMaterial = new Map<string, number>();
+  for (const [slot, names] of Object.entries(character.slots)) {
+    const index = gameData.appearanceSlots.get(slot)?.index ?? 0;
+    for (const n of names) slotByMaterial.set(n, index);
+  }
+  const parts = list.map((m) => {
+    const mat = materialOf(m);
+    return {
+      slot: slotByMaterial.get(mat?.name ?? '') ?? 0,
+      lum: mat?.color ? luminance(mat.color) : 1,
+    };
+  });
+  const brightest = new Map<number, number>();
+  for (const p of parts) brightest.set(p.slot, Math.max(brightest.get(p.slot) ?? 0, p.lum));
+  return parts.map((p) => [p.slot, p.slot ? Math.min(1, p.lum / (brightest.get(p.slot) || 1)) : 1]);
+}
+
+/** Géométrie d'une primitive + couleur de son matériau, slot et nuance en attributs de sommet. */
+function colored(mesh: SkinnedMesh, [slot, shade]: [number, number]): BufferGeometry | null {
   const src = mesh.geometry;
   if (!KEEP.every((k) => src.getAttribute(k))) return null;
   // attributs recopiés à plat (ni entrelacés ni normalisés) : mêmes types pour toutes les parts
@@ -65,18 +99,65 @@ function colored(mesh: SkinnedMesh): BufferGeometry | null {
     geo.setAttribute(name, new BufferAttribute(out, a.itemSize));
   }
   if (src.index) geo.setIndex(Array.from(src.index.array));
-  const mat = (Array.isArray(mesh.material) ? mesh.material[0] : mesh.material) as
-    (Material & { color?: { r: number; g: number; b: number } }) | undefined;
-  const c = mat?.color ?? { r: 1, g: 1, b: 1 };
+  const c = materialOf(mesh)?.color ?? { r: 1, g: 1, b: 1 };
   const count = geo.getAttribute('position').count;
   const colors = new Float32Array(count * 3);
-  for (let i = 0; i < count; i++) colors.set([c.r, c.g, c.b], i * 3);
+  const slots = new Float32Array(count * 2);
+  for (let i = 0; i < count; i++) {
+    colors.set([c.r, c.g, c.b], i * 3);
+    slots.set([slot, shade], i * 2);
+  }
   geo.setAttribute('color', new BufferAttribute(colors, 3));
+  geo.setAttribute('slotShade', new BufferAttribute(slots, 2));
   return geo;
 }
 
+const SLOT_COUNT = gameData.appearanceSlots.size + 1;
+
+/**
+ * Matériau du corps fusionné : couleurs de sommets, sauf pour les slots recolorés où la teinte
+ * de la palette (uniform par slot, w = 1 si active) × la nuance d'origine les remplace. Un seul
+ * programme partagé, un seul draw call ; l'éclairage Lambert garde l'ombrage du modèle.
+ */
+export function characterMaterial(): MeshLambertMaterial {
+  const mat = new MeshLambertMaterial({ vertexColors: true });
+  const slotColors = Array.from({ length: SLOT_COUNT }, () => new Vector4(0, 0, 0, 0));
+  mat.userData.slotColors = slotColors;
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.slotColors = { value: slotColors };
+    shader.vertexShader = shader.vertexShader
+      .replace(
+        '#include <common>',
+        `#include <common>\nattribute vec2 slotShade;\nuniform vec4 slotColors[${SLOT_COUNT}];`,
+      )
+      .replace(
+        '#include <color_vertex>',
+        `#include <color_vertex>
+  vec4 slotTint = slotColors[int(slotShade.x + 0.5)];
+  vColor.rgb = mix(vColor.rgb, slotTint.rgb * slotShade.y, slotTint.w);`,
+      );
+  };
+  mat.customProgramCacheKey = () => `narco-character-${SLOT_COUNT}`;
+  return mat;
+}
+
+/** Couleurs du joueur sur une instance (slot absent = couleur d'origine). */
+export function applyAppearance(root: Object3D, appearance: Appearance): void {
+  const colors = slotColors(gameData, appearance);
+  for (const m of materialsOf(root)) {
+    const uniforms = m.userData.slotColors as Vector4[] | undefined;
+    uniforms?.forEach((u, i) => {
+      const hex = colors[i];
+      if (hex) {
+        const c = new Color(hex);
+        u.set(c.r, c.g, c.b, 1);
+      } else u.set(0, 0, 0, 0);
+    });
+  }
+}
+
 /** Fusionne les SkinnedMesh qui partagent squelette et matrice de liaison. */
-function mergeSkinned(root: Object3D): void {
+function mergeSkinned(root: Object3D, character: Character): void {
   const meshes: SkinnedMesh[] = [];
   root.traverse((o) => {
     if ((o as SkinnedMesh).isSkinnedMesh) meshes.push(o as SkinnedMesh);
@@ -88,8 +169,9 @@ function mergeSkinned(root: Object3D): void {
     groups.set(key, [...(groups.get(key) ?? []), m]);
   }
   for (const list of groups.values()) {
-    if (list.length < 2) continue;
-    const geos = list.map(colored);
+    // une seule part aussi : le matériau à slots doit être le même pour tous les modèles
+    const shades = slotShades(character, list);
+    const geos = list.map((m, i) => colored(m, shades[i]!));
     if (geos.some((g) => !g)) continue;
     // Chaque part ramenée dans l'espace de liaison de la première (v' = B0⁻¹ · Bm · v) :
     // en mode « attached », le sommet skinné vaut Σ w · os · Bm · v, donc rendu identique.
@@ -102,7 +184,7 @@ function mergeSkinned(root: Object3D): void {
     );
     if (!merged) continue;
     const first = list[0]!;
-    const mesh = new SkinnedMesh(merged, new MeshLambertMaterial({ vertexColors: true }));
+    const mesh = new SkinnedMesh(merged, characterMaterial());
     mesh.name = 'character';
     mesh.position.copy(first.position);
     mesh.quaternion.copy(first.quaternion);
@@ -120,7 +202,7 @@ export function prepare(
   character: Character,
   scene: Group,
 ): Omit<CharacterAsset, 'clips' | 'character'> {
-  mergeSkinned(scene);
+  mergeSkinned(scene, character);
   let triangles = 0;
   let drawCalls = 0;
   scene.traverse((o) => {
@@ -191,12 +273,17 @@ export function useCharacterAsset(id: string): CharacterAsset | 'loading' | 'err
   return 'loading';
 }
 
-/** Instance indépendante (squelette cloné, matériaux propres pour la transparence). */
-export function instantiate(asset: CharacterAsset): Group {
+/**
+ * Instance indépendante (squelette cloné, matériaux propres : transparence et couleurs par
+ * joueur ; `clone()` ne recopie pas le patch du shader, d'où un matériau neuf pour le corps).
+ */
+export function instantiate(asset: Pick<CharacterAsset, 'template'>): Group {
   const root = cloneSkinned(asset.template) as Group;
   root.traverse((o) => {
     const mesh = o as SkinnedMesh;
-    if (mesh.isMesh) mesh.material = (mesh.material as Material).clone();
+    if (!mesh.isMesh) return;
+    const source = mesh.material as Material;
+    mesh.material = source.userData.slotColors ? characterMaterial() : source.clone();
   });
   return root;
 }

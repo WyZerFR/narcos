@@ -10,7 +10,10 @@ import dialoguesJson from '../data/dialogues.json';
 import areasJson from '../data/areas.json';
 import quartiersJson from '../data/quartiers.json';
 import charactersJson from '../data/characters.json';
+import palettesJson from '../data/palettes.json';
 import {
+  PalettesFileSchema,
+  type Swatch,
   ConfigSchema,
   EconomySchema,
   FixtureTypeSchema,
@@ -132,6 +135,17 @@ export interface GameData {
   quartierLayouts: ReadonlyMap<string, QuartierLayout>;
   /** Personnages jouables (`characters.json`), dans l'ordre du fichier. */
   characters: ReadonlyMap<string, Character>;
+  /** Zones personnalisables (`palettes.json`), dans l'ordre du fichier. */
+  appearanceSlots: ReadonlyMap<string, AppearanceSlot>;
+}
+
+/** Zone personnalisable d'un personnage et ses teintes. */
+export interface AppearanceSlot {
+  id: string;
+  name: string;
+  /** Rang dans le shader (1..n ; 0 = couleur d'origine). */
+  index: number;
+  swatches: readonly Swatch[];
 }
 
 export interface RawGameData {
@@ -146,6 +160,7 @@ export interface RawGameData {
   areas: unknown;
   quartiers: unknown;
   characters: unknown;
+  palettes: unknown;
 }
 
 function parse<T>(file: string, schema: z.ZodType<T>, raw: unknown): T {
@@ -305,6 +320,15 @@ export function parseGameData(raw: RawGameData): GameData {
   const characters = indexById(
     'characters.json',
     parse('characters.json', CharactersFileSchema, raw.characters).characters,
+  );
+  const palettesFile = parse('palettes.json', PalettesFileSchema, raw.palettes);
+  const appearanceSlots = new Map(
+    [...indexById('palettes.json (slots)', palettesFile.slots).values()].map(
+      (s, i): [string, AppearanceSlot] => [
+        s.id,
+        { id: s.id, name: s.name, index: i + 1, swatches: palettesFile.palettes[s.palette] ?? [] },
+      ],
+    ),
   );
 
   const items = indexById('items.json', itemsFile.items);
@@ -499,6 +523,23 @@ export function parseGameData(raw: RawGameData): GameData {
     errors.push(
       `characters.json : ${characters.size} personnages, max ${config.characters.maxCount}`,
     );
+  for (const s of palettesFile.slots)
+    if (!palettesFile.palettes[s.palette])
+      errors.push(`palettes.json : slot ${s.id}, palette "${s.palette}" inconnue`);
+  for (const [name, list] of Object.entries(palettesFile.palettes))
+    if (new Set(list.map((w) => w.id)).size !== list.length)
+      errors.push(`palettes.json : palette ${name}, id de teinte en double`);
+  for (const c of characters.values()) {
+    const seen = new Set<string>();
+    for (const [slot, materials] of Object.entries(c.slots)) {
+      if (!appearanceSlots.has(slot))
+        errors.push(`characters.json : ${c.id}, slot "${slot}" absent de palettes.json`);
+      for (const m of materials) {
+        if (seen.has(m)) errors.push(`characters.json : ${c.id}, matériau "${m}" dans deux slots`);
+        seen.add(m);
+      }
+    }
+  }
   const categories = new Set(config.characters.categories.map((c) => c.id));
   for (const c of characters.values())
     if (!categories.has(c.category))
@@ -595,6 +636,7 @@ export function parseGameData(raw: RawGameData): GameData {
     quartierColliders: quartiersFile.colliders,
     quartierLayouts,
     characters,
+    appearanceSlots,
   };
 }
 
@@ -611,4 +653,5 @@ export const gameData: GameData = parseGameData({
   areas: areasJson,
   quartiers: quartiersJson,
   characters: charactersJson,
+  palettes: palettesJson,
 });

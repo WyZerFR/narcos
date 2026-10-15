@@ -43,6 +43,8 @@ export const ClientMsg = {
   BankLaunder: 'bank.launder',
   /** Écran de sélection : choix du personnage (refusé si config.characters.locked). */
   CharacterChoose: 'character.choose',
+  /** Écran de personnalisation : couleurs par slot (refusé si config.characters.locked). */
+  AppearanceSet: 'character.appearance',
 } as const;
 
 export const ServerMsg = {
@@ -282,6 +284,11 @@ export type DebugMessage =
 
 export interface CharacterChooseMessage {
   characterId: string;
+}
+
+/** Couleurs du personnage : slot → id de teinte (`palettes.json`), validé par le serveur. */
+export interface AppearanceSetMessage {
+  appearance: Record<string, string>;
 }
 
 export const MAX_NAME_LENGTH = 16;

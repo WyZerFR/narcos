@@ -75,6 +75,18 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
             Changer de personnage
           </button>
         )}
+        {characterSelectAvailable && (
+          <button
+            type="button"
+            className="btn"
+            onClick={() => {
+              onClose();
+              openCharacterSelect('colors');
+            }}
+          >
+            Couleurs du personnage
+          </button>
+        )}
 
         {canFullscreen() && (
           <button type="button" className="btn" onClick={toggleFullscreen}>

@@ -930,8 +930,33 @@ export const CharacterSchema = z.object({
   animations: z
     .object({ idle: z.string().min(1).optional(), walk: z.string().min(1).optional() })
     .default({}),
+  /**
+   * Zones personnalisables (`palettes.json` → slots) : noms des matériaux du fichier qui les
+   * composent. Les matériaux absents gardent leur couleur d'origine (yeux, détails…).
+   */
+  slots: z.record(z.string(), z.array(z.string().min(1)).min(1)).default({}),
 });
 
 export const CharactersFileSchema = z.object({ characters: z.array(CharacterSchema).min(1) });
 
 export type Character = z.infer<typeof CharacterSchema>;
+
+// ---------------------------------------------------------------- teintes (palettes.json)
+
+const slug = z.string().regex(/^[a-z0-9_]+$/);
+
+export const SwatchSchema = z.object({
+  id: slug,
+  name: z.string().min(1),
+  color: z.string().regex(/^#[0-9a-f]{6}$/i),
+});
+
+export const PalettesFileSchema = z.object({
+  /** Teintes proposées, par palette (peaux, cheveux, vêtements) : pas de couleur libre. */
+  palettes: z.record(z.string(), z.array(SwatchSchema).min(1)),
+  /** Zones d'un personnage, dans l'ordre de l'écran de personnalisation. */
+  slots: z.array(z.object({ id: slug, name: z.string().min(1), palette: z.string() })).min(1),
+});
+
+export type Swatch = z.infer<typeof SwatchSchema>;
+export type PalettesFile = z.infer<typeof PalettesFileSchema>;

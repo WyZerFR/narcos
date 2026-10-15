@@ -1,43 +1,38 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { AnimationMixer, type Group } from 'three';
-import {
-  ClientMsg,
-  gameData,
-  resolveCharacterId,
-  type CharacterChooseMessage,
-} from '@narco/shared';
+import { appearanceKey, gameData, type Appearance } from '@narco/shared';
 import type { GameRoom } from '../net/connection';
 import { subscribeState } from '../net/gameView';
 import { connection } from '../net/connection';
 import {
+  applyAppearance,
   disposeMaterials,
   instantiate,
   useCharacterAsset,
   type CharacterAsset,
 } from '../game/characters/characterAssets';
-import { closeCharacterSelect } from './characterSelectStore';
+import { lookOf } from '../game/Players';
+import { CharacterColors } from './CharacterColors';
+import { closeCharacterSelect, useCharacterSelectStep } from './characterSelectStore';
 
 const CHARACTERS = [...gameData.characters.values()];
 const { categories: CATEGORIES, previewSpinSpeed, preview: PREVIEW } = gameData.config.characters;
+const NO_COLORS: Appearance = {};
 
-/** Personnage du joueur local, suivi dans l'état du serveur. */
-function useMyCharacter(room: GameRoom): string {
-  const [id, setId] = useState(() => resolveCharacterId(gameData, undefined));
-  useEffect(
-    () =>
-      subscribeState(room, () => {
-        const me = room.state.players?.get(connection.playerId);
-        setId(resolveCharacterId(gameData, me?.characterId));
-      }),
-    [room],
-  );
-  return id;
+/** Personnage et couleurs du joueur local, suivis dans l'état du serveur. */
+function useMyLook(room: GameRoom) {
+  const read = () => lookOf(room.state.players?.get(connection.playerId) ?? {});
+  const [look, setLook] = useState(read);
+  useEffect(() => subscribeState(room, () => setLook(read())), [room]);
+  return look;
 }
 
 /** Aperçu animé qui tourne lentement, au centre du canvas. */
-function Preview({ asset }: { asset: CharacterAsset }) {
+function Preview({ asset, appearance }: { asset: CharacterAsset; appearance: Appearance }) {
   const root = useMemo(() => instantiate(asset), [asset]);
+  const look = appearanceKey(appearance);
+  useEffect(() => applyAppearance(root, appearance), [root, look]);
   const mixer = useMemo(() => {
     const m = new AnimationMixer(root);
     const idle = asset.clips.find((c) => c.name === asset.character.animations.idle);
@@ -62,7 +57,13 @@ function Preview({ asset }: { asset: CharacterAsset }) {
  * Un seul canvas léger (la scène du jeu n'est pas montée pendant ce temps : un seul contexte
  * WebGL sur iPad). Il ne capte aucun clic : R3F pose pointer-events: auto en style inline.
  */
-export function PreviewCanvas({ asset }: { asset: CharacterAsset | null }) {
+export function PreviewCanvas({
+  asset,
+  appearance = NO_COLORS,
+}: {
+  asset: CharacterAsset | null;
+  appearance?: Appearance;
+}) {
   return (
     <Canvas
       style={{ pointerEvents: 'none' }}
@@ -77,17 +78,22 @@ export function PreviewCanvas({ asset }: { asset: CharacterAsset | null }) {
     >
       <hemisphereLight args={[gameData.config.palette.sky, gameData.config.palette.ground, 2.2]} />
       <directionalLight position={[2, 5, 4]} intensity={1.6} />
-      {asset && <Preview key={asset.character.id} asset={asset} />}
+      {asset && <Preview key={asset.character.id} asset={asset} appearance={appearance} />}
     </Canvas>
   );
 }
 
 /**
  * Sélection du personnage : onglets par catégorie, carrousel à flèches, un seul modèle chargé
- * (paresseusement) à la fois.
+ * (paresseusement) à la fois ; « Choisir » ouvre ses couleurs (étape directe depuis Options).
  */
 export function CharacterSelect({ room, code }: { room: GameRoom; code: string | null }) {
-  const current = useMyCharacter(room);
+  const look = useMyLook(room);
+  const current = look.characterId;
+  const step = useCharacterSelectStep();
+  const [colorsFor, setColorsFor] = useState<string | null>(() =>
+    step === 'colors' ? current : null,
+  );
   const [index, setIndex] = useState(() =>
     Math.max(
       0,
@@ -107,12 +113,18 @@ export function CharacterSelect({ room, code }: { room: GameRoom; code: string |
   );
   const shown = CHARACTERS[index] ?? CHARACTERS[0]!;
   const asset = useCharacterAsset(shown.id);
-  const step = (d: number) => setIndex((i) => (i + d + CHARACTERS.length) % CHARACTERS.length);
-  const choose = (characterId: string) => {
-    const msg: CharacterChooseMessage = { characterId };
-    if (room.connection.isOpen) room.send(ClientMsg.CharacterChoose, msg);
-    closeCharacterSelect(code ?? undefined);
-  };
+  const turn = (d: number) => setIndex((i) => (i + d + CHARACTERS.length) % CHARACTERS.length);
+  const choose = (characterId: string) => setColorsFor(characterId);
+  if (colorsFor)
+    return (
+      <CharacterColors
+        room={room}
+        code={code}
+        characterId={colorsFor}
+        initial={colorsFor === current ? look.appearance : NO_COLORS}
+        onBack={() => setColorsFor(null)}
+      />
+    );
   return (
     <div className="character-select">
       <h2>Choisis ton personnage</h2>
@@ -134,7 +146,7 @@ export function CharacterSelect({ room, code }: { room: GameRoom; code: string |
           type="button"
           className="btn character-arrow"
           aria-label="Personnage précédent"
-          onClick={() => step(-1)}
+          onClick={() => turn(-1)}
         >
           ◀
         </button>
@@ -147,7 +159,7 @@ export function CharacterSelect({ room, code }: { room: GameRoom; code: string |
           type="button"
           className="btn character-arrow"
           aria-label="Personnage suivant"
-          onClick={() => step(1)}
+          onClick={() => turn(1)}
         >
           ▶
         </button>

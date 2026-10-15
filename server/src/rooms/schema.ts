@@ -68,6 +68,8 @@ export class Player extends Schema {
   @type('float64') survivalAt = 0;
   /** Personnage choisi (characters.json), validé par le serveur. */
   @type('string') characterId = gameData.config.characters.defaultId;
+  /** Couleurs par slot (slot → id de teinte de palettes.json), validées par le serveur. */
+  @type({ map: 'string' }) appearance = new MapSchema<string>();
 }
 
 /** Pot du labo (timestamps en temps de jeu, ms : float64 obligatoire). */

@@ -1,5 +1,5 @@
 import { ArraySchema } from '@colyseus/schema';
-import { areaAt, gameData, STREET } from '@narco/shared';
+import { areaAt, gameData, resolveAppearance, resolveCharacterId, STREET } from '@narco/shared';
 import type {
   CutJob as CutJobData,
   Inventory,
@@ -97,4 +97,18 @@ export function replaceBag(slots: ArraySchema<Slot>, inv: Inventory): void {
   slots.clear();
   for (const stack of inv)
     slots.push(Object.assign(new Slot(), { itemId: stack?.itemId ?? '', qty: stack?.qty ?? 0 }));
+}
+
+/**
+ * Personnage et couleurs d'un joueur, validés (id inconnu → défaut, teinte inconnue ou slot
+ * absent du modèle → couleur d'origine). Sans `appearance`, on garde celles qui restent valides.
+ */
+export function setLook(player: Player, characterId: unknown, appearance?: unknown): void {
+  player.characterId = resolveCharacterId(gameData, characterId);
+  const raw = appearance ?? Object.fromEntries(player.appearance.entries());
+  const next = resolveAppearance(gameData, player.characterId, raw);
+  for (const key of [...player.appearance.keys()])
+    if (!(key in next)) player.appearance.delete(key);
+  for (const [slot, swatch] of Object.entries(next))
+    if (player.appearance.get(slot) !== swatch) player.appearance.set(slot, swatch);
 }

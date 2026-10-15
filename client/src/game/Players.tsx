@@ -7,11 +7,14 @@ import {
   lerpAngle,
   moveWithCollisions,
   Reconciler,
+  appearanceKey,
+  resolveAppearance,
   resolveCharacterId,
   smoothFactor,
   SnapshotBuffer,
   speedFactor,
   STREET,
+  type Appearance,
   type Collider,
   type MoveMessage,
 } from '@narco/shared';
@@ -60,9 +63,21 @@ export interface PlayerInfo {
   zone: string;
   /** Personnage choisi (characters.json), validé par le serveur. */
   characterId: string;
+  /** Couleurs par slot (palettes.json), validées par le serveur puis ici. */
+  appearance: Appearance;
 }
 
 /** Liste des joueurs pour React : ne change que si un joueur arrive/part/change de statut. */
+/** Personnage et couleurs d'un joueur synchronisé (revalidés : serveur ancien ou données). */
+export function lookOf(p: Pick<PlayerView, 'characterId' | 'appearance'>) {
+  const characterId = resolveCharacterId(gameData, p.characterId);
+  const raw: Record<string, string> = {};
+  p.appearance?.forEach((value, key) => {
+    raw[key] = value;
+  });
+  return { characterId, appearance: resolveAppearance(gameData, characterId, raw) };
+}
+
 export function useRoomPlayers(room: GameRoom | null): PlayerInfo[] {
   const [players, setPlayers] = useState<PlayerInfo[]>([]);
   useEffect(() => {
@@ -77,11 +92,14 @@ export function useRoomPlayers(room: GameRoom | null): PlayerInfo[] {
           color: p.color,
           connected: p.connected,
           zone: p.zone,
-          characterId: resolveCharacterId(gameData, p.characterId),
+          ...lookOf(p),
         }),
       );
       const next = list
-        .map((p) => `${p.id}|${p.name}|${p.color}|${p.connected}|${p.zone}|${p.characterId}`)
+        .map(
+          (p) =>
+            `${p.id}|${p.name}|${p.color}|${p.connected}|${p.zone}|${p.characterId}|${appearanceKey(p.appearance)}`,
+        )
         .join(';');
       if (next !== signature) {
         signature = next;
@@ -231,7 +249,12 @@ export function LocalPlayer({ room, info }: { room: GameRoom; info: PlayerInfo }
 
   return (
     <group ref={ref}>
-      <CharacterBody characterId={info.characterId} color={info.color} ghost={false} />
+      <CharacterBody
+        characterId={info.characterId}
+        appearance={info.appearance}
+        color={info.color}
+        ghost={false}
+      />
     </group>
   );
 }
@@ -261,7 +284,12 @@ export function RemotePlayer({ room, info }: { room: GameRoom; info: PlayerInfo 
 
   return (
     <group ref={ref}>
-      <CharacterBody characterId={info.characterId} color={info.color} ghost={!info.connected} />
+      <CharacterBody
+        characterId={info.characterId}
+        appearance={info.appearance}
+        color={info.color}
+        ghost={!info.connected}
+      />
     </group>
   );
 }

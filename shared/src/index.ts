@@ -27,4 +27,5 @@ export * from './collisionAudit';
 export * from './smoothing';
 export * from './framing';
 export * from './characters';
+export * from './appearance';
 export * from './modelBudget';

@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { AnimationMixer, RingGeometry, Vector3, type AnimationAction, type Group } from 'three';
-import { gameData, smoothFactor } from '@narco/shared';
+import { appearanceKey, gameData, smoothFactor, type Appearance } from '@narco/shared';
 import { FRAME_PRIORITY } from '../framePriority';
 import {
+  applyAppearance,
   applyBodyState,
   disposeMaterials,
   instantiate,
@@ -20,14 +21,16 @@ const RING = new RingGeometry(rules.ring.innerRadius, rules.ring.outerRadius, 32
 /**
  * Corps d'un joueur : modèle 3D de son personnage (cloné, animé), ou cube de repli tant que le
  * modèle charge ou s'il a échoué. La couleur du joueur ne teinte que l'anneau au sol (et la
- * pastille de nom) : le corps garde les couleurs de son modèle.
+ * pastille de nom) : le corps garde les couleurs de son modèle, ou celles choisies par slot.
  */
 export function CharacterBody({
   characterId,
+  appearance,
   color,
   ghost,
 }: {
   characterId: string;
+  appearance: Appearance;
   color: string;
   ghost: boolean;
 }) {
@@ -38,7 +41,7 @@ export function CharacterBody({
         <meshBasicMaterial color={color} transparent={ghost} opacity={ghost ? 0.35 : 1} />
       </mesh>
       {typeof asset === 'object' ? (
-        <Model asset={asset} ghost={ghost} />
+        <Model asset={asset} appearance={appearance} ghost={ghost} />
       ) : (
         <CubeBody ghost={ghost} />
       )}
@@ -63,7 +66,15 @@ export function CubeBody({ ghost }: { ghost: boolean }) {
   );
 }
 
-function Model({ asset, ghost }: { asset: CharacterAsset; ghost: boolean }) {
+function Model({
+  asset,
+  appearance,
+  ghost,
+}: {
+  asset: CharacterAsset;
+  appearance: Appearance;
+  ghost: boolean;
+}) {
   const wrapper = useRef<Group>(null);
   const root = useMemo(() => instantiate(asset), [asset]);
   const anim = useMemo(() => {
@@ -81,6 +92,9 @@ function Model({ asset, ghost }: { asset: CharacterAsset; ghost: boolean }) {
 
   // Fantôme si déconnecté ; aucune teinte : le corps garde les couleurs du modèle.
   useEffect(() => applyBodyState(root, ghost), [root, ghost]);
+  // couleurs par slot : uniforms seulement, ni nouveau matériau ni recompilation
+  const look = appearanceKey(appearance);
+  useEffect(() => applyAppearance(root, appearance), [root, look]);
 
   useEffect(
     () => () => {

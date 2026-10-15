@@ -11,6 +11,13 @@
       "animations": {
         "idle": "Idle",
         "walk": "Walk"
+      },
+      "slots": {
+        "skin": ["Face"],
+        "hair": ["Hair"],
+        "top": ["Skin"],
+        "bottom": ["Black"],
+        "accessory": ["Shirt"]
       }
     },
     {
@@ -24,6 +31,13 @@
       "animations": {
         "idle": "Idle",
         "walk": "Walk"
+      },
+      "slots": {
+        "skin": ["Skin"],
+        "hair": ["Hair", "Eyebrows"],
+        "top": ["Purple"],
+        "bottom": ["LightBlue"],
+        "shoes": ["White"]
       }
     },
     {
@@ -37,6 +51,13 @@
       "animations": {
         "idle": "Idle",
         "walk": "Walk"
+      },
+      "slots": {
+        "skin": ["Skin", "Skin_Darker"],
+        "hair": ["Hair", "Eyebrows"],
+        "top": ["LightBrown"],
+        "bottom": ["LightBlue"],
+        "shoes": ["Red_Dark"]
       }
     },
     {
@@ -50,6 +71,13 @@
       "animations": {
         "idle": "Idle",
         "walk": "Walk"
+      },
+      "slots": {
+        "skin": ["Skin"],
+        "hair": ["Red", "Red_Dark", "Eyebrows"],
+        "top": ["Black"],
+        "bottom": ["LightBlue"],
+        "accessory": ["White", "Earrings"]
       }
     },
     {
@@ -63,6 +91,13 @@
       "animations": {
         "idle": "Idle",
         "walk": "Walk"
+      },
+      "slots": {
+        "skin": ["Skin"],
+        "hair": ["Hair", "Eyebrows"],
+        "top": ["LightBrown"],
+        "bottom": ["Red_Dark"],
+        "accessory": ["Earrings"]
       }
     },
     {
@@ -76,6 +111,13 @@
       "animations": {
         "idle": "Idle",
         "walk": "Walk"
+      },
+      "slots": {
+        "skin": ["Skin"],
+        "hair": ["Hair_Blond", "Hair_Brown"],
+        "top": ["White"],
+        "bottom": ["Orange"],
+        "shoes": ["Grey"]
       }
     },
     {
@@ -89,6 +131,12 @@
       "animations": {
         "idle": "Idle",
         "walk": "Walk"
+      },
+      "slots": {
+        "skin": ["Skin"],
+        "hair": ["Hair_Blond", "Hair_Brown"],
+        "top": ["Black"],
+        "accessory": ["White"]
       }
     },
     {
@@ -102,6 +150,12 @@
       "animations": {
         "idle": "Idle",
         "walk": "Walk"
+      },
+      "slots": {
+        "skin": ["Skin"],
+        "hair": ["Pink", "Hair_Brown"],
+        "top": ["Black"],
+        "shoes": ["Grey"]
       }
     },
     {
@@ -115,6 +169,14 @@
       "animations": {
         "idle": "Idle",
         "walk": "Walk"
+      },
+      "slots": {
+        "skin": ["Skin"],
+        "hair": ["DarkBrown"],
+        "top": ["Worker_Vest"],
+        "bottom": ["Brown_02"],
+        "shoes": ["Black"],
+        "accessory": ["Worker_Yellow"]
       }
     },
     {
@@ -128,6 +190,11 @@
       "animations": {
         "idle": "Idle",
         "walk": "Walk"
+      },
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Clothes", "DarkClothes"],
+        "bottom": ["Pants"]
       }
     },
     {
@@ -141,6 +208,10 @@
       "animations": {
         "idle": "Idle",
         "walk": "Walk"
+      },
+      "slots": {
+        "skin": ["Skin"],
+        "bottom": ["Pants"]
       }
     },
     {
@@ -154,6 +225,12 @@
       "animations": {
         "idle": "Idle",
         "walk": "Walk"
+      },
+      "slots": {
+        "skin": ["Beige", "Brown"],
+        "top": ["Skin"],
+        "bottom": ["Black"],
+        "accessory": ["Shirt"]
       }
     }
   ]

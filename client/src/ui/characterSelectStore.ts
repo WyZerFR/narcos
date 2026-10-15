@@ -8,7 +8,9 @@ import { gameData } from '@narco/shared';
  */
 
 const KEY = 'narco.characterChosen';
-let open = false;
+/** Étape ouverte : choix du modèle ou couleurs du modèle actuel ; null = fermé. */
+export type CharacterSelectStep = 'model' | 'colors';
+let open: CharacterSelectStep | null = null;
 const listeners = new Set<() => void>();
 
 function emit(): void {
@@ -31,9 +33,9 @@ export function offerCharacterSelect(code: string): void {
   if (characterSelectAvailable && !chosenCodes().includes(code)) openCharacterSelect();
 }
 
-export function openCharacterSelect(): void {
+export function openCharacterSelect(step: CharacterSelectStep = 'model'): void {
   if (!characterSelectAvailable || open) return;
-  open = true;
+  open = step;
   emit();
 }
 
@@ -50,7 +52,7 @@ export function closeCharacterSelect(code?: string): void {
       // stockage indisponible (navigation privée) : l'écran reviendra à la prochaine connexion
     }
   }
-  open = false;
+  open = null;
   emit();
 }
 
@@ -60,6 +62,16 @@ export function useCharacterSelectOpen(): boolean {
       listeners.add(fn);
       return () => listeners.delete(fn);
     },
-    () => open,
+    () => open !== null,
+  );
+}
+
+export function useCharacterSelectStep(): CharacterSelectStep {
+  return useSyncExternalStore(
+    (fn) => {
+      listeners.add(fn);
+      return () => listeners.delete(fn);
+    },
+    () => open ?? 'model',
   );
 }
