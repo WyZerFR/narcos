@@ -1,6 +1,7 @@
 {
   "room": {
     "maxPlayers": 3,
+    "maxRooms": 5,
     "codeLength": 4,
     "codeAlphabet": "ABCDEFGHJKLMNPQRSTUVWXYZ",
     "emptyRoomTtlSeconds": 900,

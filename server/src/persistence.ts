@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { dataDir } from './env';
 import { z } from 'zod';
 import type { GameState } from './rooms/schema';
 import {
@@ -30,10 +30,10 @@ import {
 /** Version courante du contenu d'une partie sauvegardée. */
 export const SNAPSHOT_SCHEMA_VERSION = 4;
 
-export const DEFAULT_SNAPSHOT_FILE = resolve(
-  process.env.NARCO_DATA_DIR ?? resolve(dirname(fileURLToPath(import.meta.url)), '..', '.data'),
-  'rooms.json',
-);
+/** Fichier des parties sauvegardées, dans `NARCO_DATA_DIR` (défaut server/.data). */
+export function snapshotFile(): string {
+  return resolve(dataDir(), 'rooms.json');
+}
 
 const SlotJson = z.object({ itemId: z.string(), qty: z.number().int().nonnegative() });
 

@@ -32,6 +32,7 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
     >
       <div className="modal">
         <h2>Options</h2>
+        <p className="app-version">Version {__APP_VERSION__}</p>
 
         <div className="setting">
           <span>Qualité graphique</span>

@@ -17,7 +17,14 @@ import {
   type JoinOptions,
 } from '@narco/shared';
 import { syncClock } from './gameView';
-import { getPlayerId, getSavedName, getSavedRoomCode, saveName, saveRoomCode } from './identity';
+import {
+  getAccessCode,
+  getPlayerId,
+  getSavedName,
+  getSavedRoomCode,
+  saveName,
+  saveRoomCode,
+} from './identity';
 
 /** Vue client du state serveur (`server/src/rooms/schema.ts`), décodé par réflexion. */
 export interface PlayerView {
@@ -120,6 +127,18 @@ const { room: roomCfg, net } = gameData.config;
 /** Masqué plus longtemps que ça, on considère le socket comme suspect (iOS) et on le renouvelle. */
 const STALE_AFTER_HIDDEN_MS = 3000;
 
+/** Le serveur demande-t-il un code d'accès ? (même origine que le jeu) */
+export async function fetchServerInfo(): Promise<{ accessRequired: boolean }> {
+  try {
+    const res = await fetch(`${location.origin}/colyseus/info`, { cache: 'no-store' });
+    if (!res.ok) return { accessRequired: false };
+    const info = (await res.json()) as { accessRequired?: unknown };
+    return { accessRequired: info.accessRequired === true };
+  } catch {
+    return { accessRequired: false };
+  }
+}
+
 function endpoint(): string {
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
   return `${proto}://${location.host}/colyseus`;
@@ -143,9 +162,7 @@ type NoticeListener = (n: NoticeMessage) => void;
 type MoveResultListener = (r: MoveResultMessage) => void;
 type FixtureResultListener = (r: FixtureResultMessage) => void;
 type DialogueListener = (n: DialogueNodeMessage) => void;
-type LaunderListener = (
-  e: { open: LaunderOpenMessage } | { result: LaunderResultMessage },
-) => void;
+type LaunderListener = (e: { open: LaunderOpenMessage } | { result: LaunderResultMessage }) => void;
 type SaleListener = (e: { offer: SaleOfferMessage } | { closed: SaleClosedMessage }) => void;
 
 class Connection {
@@ -237,7 +254,8 @@ class Connection {
   }
 
   private joinOptions(): JoinOptions {
-    return { playerId: getPlayerId(), name: getSavedName() };
+    const accessCode = getAccessCode();
+    return { playerId: getPlayerId(), name: getSavedName(), ...(accessCode ? { accessCode } : {}) };
   }
 
   // ---------- actions du lobby ----------

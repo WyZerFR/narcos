@@ -273,7 +273,15 @@ function bank(ctx: Ctx, loc: GameLocation, rng: () => number) {
   const h = loc.height;
   const f = faceOf(r, loc.door ?? 'south');
   const stone = shade(loc.color, 1.25);
-  ctx.solid.block(loc.position.x, 0, loc.position.z, loc.size.w, h, loc.size.d, shade(loc.color, 1));
+  ctx.solid.block(
+    loc.position.x,
+    0,
+    loc.position.z,
+    loc.size.w,
+    h,
+    loc.size.d,
+    shade(loc.color, 1),
+  );
   parapet(ctx, r, h, shade(loc.color, 0.8));
   // marches
   ctx.solid.faceBox(f, 0, 0.1, f.len * 0.8, 0.2, 0.6, shade(palette.ground, 1.4), 0.3);

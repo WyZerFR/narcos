@@ -49,8 +49,7 @@ export function availableChoices(node: DialogueNode, ctx: DialogueContext): Dial
 }
 
 export type ChooseResult =
-  | { ok: true; next: string | null; action?: DialogueAction }
-  | { ok: false; message: string };
+  { ok: true; next: string | null; action?: DialogueAction } | { ok: false; message: string };
 
 /** Valide un choix sur le nœud courant. */
 export function chooseInDialogue(

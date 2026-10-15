@@ -73,6 +73,8 @@ export const CutoutSchema = z.object({
 
 export const ConfigSchema = z.object({
   room: z.object({
+    /** Parties simultanées au plus sur le serveur (les parties restaurées comptent). */
+    maxRooms: z.number().int().positive(),
     maxPlayers: z.number().int().min(1).max(8),
     codeLength: z.number().int().min(3).max(8),
     codeAlphabet: z.string().min(10),

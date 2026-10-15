@@ -1,11 +1,15 @@
+import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { matchMaker } from '@colyseus/core';
 import { ROOM_NAME, gameData } from '@narco/shared';
 import { createGameServer } from './app';
-import { DEFAULT_SNAPSHOT_FILE, readSnapshotFile, writeSnapshotFile } from './persistence';
+import { readSnapshotFile, snapshotFile, writeSnapshotFile } from './persistence';
+import { accessCode, debugEnabled, serverHost, serverPort, staticDir } from './env';
 import { liveRooms } from './rooms/NarcoRoom';
 
-const PORT = Number(process.env.NARCO_SERVER_PORT ?? 2567);
-const HOST = process.env.NARCO_SERVER_HOST ?? '0.0.0.0';
+const PORT = serverPort();
+const HOST = serverHost();
+const SNAPSHOT_FILE = snapshotFile();
 
 function logDataSummary(): void {
   const { economy, items, locations, zones, interiors } = gameData;
@@ -20,7 +24,7 @@ function logDataSummary(): void {
 function saveAll(): void {
   try {
     writeSnapshotFile(
-      DEFAULT_SNAPSHOT_FILE,
+      SNAPSHOT_FILE,
       [...liveRooms].map((r) => r.snapshot()),
     );
   } catch (err) {
@@ -31,10 +35,15 @@ function saveAll(): void {
 logDataSummary();
 const gameServer = createGameServer();
 await gameServer.listen(PORT, HOST);
-console.log(`[narco] serveur Colyseus sur ws://${HOST}:${PORT}`);
+console.log(
+  `[narco] serveur sur http://${HOST}:${PORT} (client : ${staticDir()}, sauvegardes : ${SNAPSHOT_FILE}, ` +
+    `code d'accès : ${accessCode() ? 'oui' : 'non'}, debug : ${debugEnabled() ? 'oui' : 'non'})`,
+);
+// dossier des sauvegardes créé dès le démarrage (volume monté vide)
+mkdirSync(dirname(SNAPSHOT_FILE), { recursive: true });
 
 // Les parties sauvegardées reviennent avec leur code : les clients s'y reconnectent seuls.
-for (const snap of readSnapshotFile(DEFAULT_SNAPSHOT_FILE)) {
+for (const snap of readSnapshotFile(SNAPSHOT_FILE)) {
   await matchMaker.createRoom(ROOM_NAME, { restore: snap });
 }
 

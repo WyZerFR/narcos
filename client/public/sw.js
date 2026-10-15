@@ -1,6 +1,9 @@
 // Service worker minimal : network-first sur les ressources de l'app, cache en secours hors ligne.
 // Le jeu est multijoueur, donc rien n'est servi depuis le cache tant que le réseau répond.
-const CACHE = 'narco-shell-v1';
+// __APP_VERSION__ est remplacé à chaque build (vite.config.ts) : un nouveau déploiement change
+// ce fichier, le navigateur installe le nouveau service worker et l'ancien cache est vidé.
+const VERSION = '__APP_VERSION__';
+const CACHE = `narco-shell-${VERSION}`;
 
 self.addEventListener('install', () => self.skipWaiting());
 

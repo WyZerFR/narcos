@@ -137,8 +137,9 @@ describe('dialogues.json et banque', () => {
 
   it('refuse un dialogue mal formé : nœud suivant inconnu, variable inconnue, action inconnue', () => {
     const r = raw();
-    (r.dialogues as { dialogues: { nodes: { choices: { next: string }[] }[] }[] }).dialogues[0]!
-      .nodes[0]!.choices[0]!.next = 'nulle_part';
+    (
+      r.dialogues as { dialogues: { nodes: { choices: { next: string }[] }[] }[] }
+    ).dialogues[0]!.nodes[0]!.choices[0]!.next = 'nulle_part';
     expect(() => parseGameData(r)).toThrow(/nœud inconnu "nulle_part"/);
     const r2 = raw();
     (r2.dialogues as { dialogues: { nodes: { text: string }[] }[] }).dialogues[0]!.nodes[0]!.text =

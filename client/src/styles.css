@@ -1222,3 +1222,9 @@ input {
   min-height: 44px;
   padding: 0 8px;
 }
+
+.app-version {
+  margin: -6px 0 10px;
+  font-size: 12px;
+  opacity: 0.6;
+}

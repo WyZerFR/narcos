@@ -17,7 +17,10 @@ if (
   (import.meta.env.PROD || import.meta.env.MODE === 'https')
 ) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch((err) => console.warn('[pwa] SW refusé', err));
+    navigator.serviceWorker
+      .register('/sw.js', { updateViaCache: 'none' })
+      .then((reg) => reg.update())
+      .catch((err) => console.warn('[pwa] SW refusé', err));
   });
 }
 

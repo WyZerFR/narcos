@@ -64,6 +64,7 @@ import {
 import { pay, putBack, returnCart, stockShelves, takeItem } from './shop';
 import { StreetNpcs } from './npcs';
 import { DialogueDesk } from './dialogues';
+import { accessGranted, debugEnabled } from '../env';
 import { freezeLaunderWindows, launder, openTeller, resetLaunderCap } from './bank';
 import { SALE_COMPLETED, type SaleClosedMessage, type SaleCompletedEvent } from '@narco/shared';
 import { GameState, Player } from './schema';
@@ -115,6 +116,7 @@ function parseJoinOptions(options: unknown): JoinOptions {
   if (typeof o.playerId !== 'string' || !PLAYER_ID_RE.test(o.playerId)) {
     throw new ServerError(400, 'playerId invalide');
   }
+  if (!accessGranted(o.accessCode)) throw new ServerError(401, "Code d'accès incorrect.");
   return { playerId: o.playerId, name: sanitizeName(o.name, '') };
 }
 
@@ -123,6 +125,8 @@ const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'obj
 export interface NarcoRoomOptions {
   /** Partie à restaurer depuis la sauvegarde JSON. */
   restore?: RoomSnapshot;
+  /** Code d'accès du lobby (`NARCO_ACCESS_CODE`), vérifié dès la création. */
+  accessCode?: unknown;
 }
 
 export class NarcoRoom extends Room<GameState> {
@@ -157,6 +161,10 @@ export class NarcoRoom extends Room<GameState> {
       stockShelves(this.state, false);
       console.log(`[room ${this.roomId}] restaurée (${this.state.players.size} joueur(s))`);
     } else {
+      // refus avant tout : une partie créée sans joueur occuperait une place
+      if (!accessGranted(options.accessCode)) throw new ServerError(401, "Code d'accès incorrect.");
+      if (liveRooms.size >= config.room.maxRooms)
+        throw new ServerError(503, 'Trop de parties en cours : réessaie plus tard.');
       this.roomId = await uniqueRoomCode();
       this.state.code = this.roomId;
       stockShelves(this.state);
@@ -759,7 +767,7 @@ export class NarcoRoom extends Room<GameState> {
   private handleDebug(client: Client, msg: unknown): void {
     const who = this.playerOf(client);
     if (!who || !isObject(msg)) return;
-    if (!config.debug.commands) return this.notify(client, false, 'Commandes debug désactivées.');
+    if (!debugEnabled()) return this.notify(client, false, 'Commandes debug désactivées.');
     const { player } = who;
     switch (msg.cmd) {
       case 'give': {

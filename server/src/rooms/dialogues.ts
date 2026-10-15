@@ -82,7 +82,11 @@ export class DialogueDesk {
     }
     const close = (text: string): DialogueReply => {
       this.talks.delete(playerId);
-      return { ok: false, text, node: { dialogueId: d.id, stationId: talk.stationId, nodeId: null } };
+      return {
+        ok: false,
+        text,
+        node: { dialogueId: d.id, stationId: talk.stationId, nodeId: null },
+      };
     };
     const station = gameData.interiors
       .get(player.zone)

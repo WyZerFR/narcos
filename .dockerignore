@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+dist
+**/dist
+.shots
+server/.data
+.git
+.env
+.env.*
+*.log
+coverage
+.vite
+.claude

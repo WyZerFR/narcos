@@ -1,10 +1,34 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 
 const SERVER_PORT = Number(process.env.NARCO_SERVER_PORT ?? 2567);
+
+/** Version du build : version du paquet + commit (Railway / CI) ou date de build. */
+const APP_VERSION = (() => {
+  const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf8')) as {
+    version: string;
+  };
+  const commit = process.env.NARCO_COMMIT || process.env.RAILWAY_GIT_COMMIT_SHA;
+  const stamp = commit
+    ? commit.slice(0, 7)
+    : new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
+  return `${pkg.version}+${stamp}`;
+})();
+
+/** Build : grave la version dans dist/sw.js (nouveau service worker à chaque déploiement). */
+function versionServiceWorker(): Plugin {
+  return {
+    name: 'narco-sw-version',
+    apply: 'build',
+    writeBundle(options) {
+      const file = resolve(options.dir ?? resolve(__dirname, 'dist'), 'sw.js');
+      writeFileSync(file, readFileSync(file, 'utf8').replaceAll('__APP_VERSION__', APP_VERSION));
+    },
+  };
+}
 
 /**
  * Dev uniquement : POST /__shot (corps = data URL d'image) enregistre une capture du canvas
@@ -46,7 +70,13 @@ function debugShots(): Plugin {
 }
 
 export default defineConfig(({ mode }) => ({
-  plugins: [react(), debugShots(), ...(mode === 'https' ? [basicSsl()] : [])],
+  plugins: [
+    react(),
+    debugShots(),
+    versionServiceWorker(),
+    ...(mode === 'https' ? [basicSsl()] : []),
+  ],
+  define: { __APP_VERSION__: JSON.stringify(APP_VERSION) },
   server: {
     host: '0.0.0.0',
     port: 5173,

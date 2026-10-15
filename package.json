@@ -11,6 +11,7 @@
     "dev": "concurrently -k -n server,client -c magenta,cyan \"npm:dev -w server\" \"npm:dev -w client\"",
     "dev:https": "concurrently -k -n server,client -c magenta,cyan \"npm:dev -w server\" \"npm:dev:https -w client\"",
     "build": "npm run -s build -w client",
+    "start": "npm run -s start -w server",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint . --quiet",

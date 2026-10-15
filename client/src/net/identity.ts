@@ -54,3 +54,7 @@ export const saveName = (name: string): void => safeSet('name', name);
 /** Dernière room rejointe : permet de revenir automatiquement après un rechargement. */
 export const getSavedRoomCode = (): string | null => safeGet('roomCode');
 export const saveRoomCode = (code: string | null): void => safeSet('roomCode', code);
+
+/** Code d'accès du serveur (si demandé), gardé pour les reconnexions. */
+export const getAccessCode = (): string => safeGet('accessCode') ?? '';
+export const saveAccessCode = (code: string): void => safeSet('accessCode', code || null);

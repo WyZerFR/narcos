@@ -6,6 +6,8 @@ export const ROOM_NAME = 'narco';
 export interface JoinOptions {
   playerId: string;
   name: string;
+  /** Code d'accès du serveur (si `NARCO_ACCESS_CODE` est défini). */
+  accessCode?: string;
 }
 
 export const ClientMsg = {
