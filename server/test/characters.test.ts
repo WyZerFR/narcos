@@ -57,6 +57,23 @@ describe('sélection de personnage', () => {
     await b.leave();
   });
 
+  it('perso_2 de bout en bout : état du client, serveur, snapshot puis reprise', async () => {
+    const a = await colyseus.sdk.create<GameState>(ROOM_NAME, {
+      playerId: 'chr-player-000d',
+      name: 'D',
+    });
+    const room = colyseus.getRoomById<GameState>(a.roomId) as ServerRoom<GameState> as NarcoRoom;
+    await until(() => a.state.players?.get('chr-player-000d')?.characterId === DEFAULT);
+    a.send(ClientMsg.CharacterChoose, { characterId: 'perso_2' } satisfies CharacterChooseMessage);
+    // le client voit son propre choix (l'écran de sélection et le rendu lisent cet état)
+    await until(() => a.state.players?.get('chr-player-000d')?.characterId === 'perso_2');
+    expect(room.state.players.get('chr-player-000d')!.characterId).toBe('perso_2');
+    const snap = RoomSnapshotSchema.parse(JSON.parse(JSON.stringify(room.snapshot())));
+    const restored = new GameState();
+    hydrateState(restored, snap);
+    expect(restored.players.get('chr-player-000d')!.characterId).toBe('perso_2');
+  });
+
   it('id inconnu : remplacé par le défaut', async () => {
     const a = await colyseus.sdk.create<GameState>(ROOM_NAME, {
       playerId: 'chr-player-000c',

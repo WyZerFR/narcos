@@ -171,8 +171,6 @@ export const ConfigSchema = z.object({
     moveThreshold: pos,
     /** Fondu entre deux animations (s). */
     animationFadeSeconds: z.number().nonnegative(),
-    /** Teinte émissive à la couleur du joueur (0 = aucune), pour la lisibilité de nuit. */
-    tint: z.number().min(0).max(1),
     /** Balancement de repli quand le modèle n'a pas d'animation. */
     bob: z.object({ height: z.number().nonnegative(), speed: pos }),
     /** Anneau au sol à la couleur du joueur (distingue 3 joueurs au même modèle). */

@@ -305,7 +305,6 @@
     "speedSmoothing": 10,
     "moveThreshold": 0.3,
     "animationFadeSeconds": 0.2,
-    "tint": 0.18,
     "bob": {
       "height": 0.06,
       "speed": 9

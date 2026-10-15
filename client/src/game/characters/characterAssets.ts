@@ -200,3 +200,25 @@ export function instantiate(asset: CharacterAsset): Group {
   });
   return root;
 }
+
+function materialsOf(root: Object3D): Material[] {
+  const list: Material[] = [];
+  root.traverse((o) => {
+    const m = (o as { material?: Material }).material;
+    if (m) list.push(m);
+  });
+  return list;
+}
+
+/** Transparence « fantôme » (joueur déconnecté) ; couleur et émissif du modèle intacts. */
+export function applyBodyState(root: Object3D, ghost: boolean): void {
+  for (const m of materialsOf(root)) {
+    m.transparent = ghost;
+    m.opacity = ghost ? 0.35 : 1;
+    m.needsUpdate = true;
+  }
+}
+
+export function disposeMaterials(root: Object3D): void {
+  for (const m of materialsOf(root)) m.dispose();
+}

@@ -109,6 +109,9 @@ export function CharacterSelect({ room, code }: { room: GameRoom; code: string |
       <div className="character-grid">
         <Canvas
           className="character-canvas"
+          // R3F pose pointer-events: auto en style inline : sans ceci, le canvas posé sur les
+          // cartes captait les clics et aucun bouton « Choisir » ne répondait
+          style={{ pointerEvents: 'none' }}
           dpr={Math.min(1.5, window.devicePixelRatio || 1)}
           camera={{
             position: [0, PREVIEW.height, PREVIEW.distance],
