@@ -13,20 +13,10 @@
   "quartiers": [
     {
       "id": "nord",
-      "areaId": "north",
+      "areaId": "cartel",
+      "layout": "u",
       "landmarkLocationId": "repaire_jefe",
       "seed": "nord-1",
-      "street": {
-        "axisX": 0,
-        "roadWidth": 7,
-        "parkingWidth": 2.2,
-        "sidewalkWidth": 2.5,
-        "entranceClear": 3,
-        "housesLength": 64,
-        "plazaDepth": 12,
-        "plazaWidth": 26,
-        "npcWaypointSpacing": 12
-      },
       "houses": {
         "perSide": [6, 8],
         "width": [6, 9],
@@ -62,31 +52,34 @@
         "garlandSpacing": 0
       },
       "arch": {
-        "label": "QUARTIER NORD — Chez El Jefe",
+        "label": "EL JEFE — Territoire du cartel",
         "height": 5.5
       },
       "landmark": {
         "gate": true,
         "guards": 2,
         "garlands": false
-      }
-    },
-    {
-      "id": "sud",
-      "areaId": "south",
-      "landmarkLocationId": "local",
-      "seed": "sud-1",
+      },
       "street": {
-        "axisX": 0,
+        "opening": "north",
+        "axisX": 175,
+        "islandCore": 1.6,
         "roadWidth": 7,
         "parkingWidth": 2.2,
         "sidewalkWidth": 2.5,
         "entranceClear": 3,
         "housesLength": 64,
-        "plazaDepth": 12,
-        "plazaWidth": 26,
+        "plazaDepth": 16,
+        "plazaWidth": 58,
         "npcWaypointSpacing": 12
-      },
+      }
+    },
+    {
+      "id": "sud",
+      "areaId": "chez_nous",
+      "layout": "u",
+      "landmarkLocationId": "local",
+      "seed": "sud-1",
       "houses": {
         "perSide": [6, 8],
         "width": [6, 9],
@@ -122,7 +115,7 @@
         "garlandSpacing": 10
       },
       "arch": {
-        "label": "QUARTIER SUD — Chez nous",
+        "label": "CHEZ NOUS — Bas-fonds",
         "height": 5.5
       },
       "landmark": {
@@ -168,7 +161,20 @@
             "depth": 0.45
           }
         }
-      ]
+      ],
+      "street": {
+        "opening": "north",
+        "axisX": -95,
+        "islandCore": 1.6,
+        "roadWidth": 7,
+        "parkingWidth": 2.2,
+        "sidewalkWidth": 2.5,
+        "entranceClear": 3,
+        "housesLength": 64,
+        "plazaDepth": 16,
+        "plazaWidth": 58,
+        "npcWaypointSpacing": 12
+      }
     }
   ]
 }

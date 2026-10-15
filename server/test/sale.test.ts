@@ -110,9 +110,9 @@ describe('vente de rue', () => {
       npcId,
       qty: offer.maxQty,
       amount: offer.maxQty * offer.unitPrice,
-      area: 'street',
+      area: 'bas_fonds',
     });
-    expect(offer).toMatchObject({ area: 'street', priceMultiplier: 1 });
+    expect(offer).toMatchObject({ area: 'bas_fonds', priceMultiplier: 1 });
     // cooldown : il n'achète plus
     const npc = room.state.npcs.get(npcId)!;
     expect(npc.interested).toBe(false);
@@ -121,19 +121,19 @@ describe('vente de rue', () => {
     expect((await notice(client)).text).toMatch(/pas intéressé/);
   });
 
-  it('quartier nord : prix × priceMultiplier de l’area du PNJ, bonus et area dans l’événement', async () => {
+  it('quartier d’El Jefe : prix × priceMultiplier de l’area du PNJ, bonus et area dans l’événement', async () => {
     const id = 'sale-player-0030';
     const { client, room } = await newGame(id);
     setBag(room, id, 5);
-    const north = gameData.areas.get('north')!;
+    const north = gameData.areas.get('cartel')!;
     const nord = gameData.quartierLayouts.get('nord')!;
     const p = room.state.players.get(id)!;
-    Object.assign(p, { x: nord.frame.axisX, z: nord.waypoints[2]!.z, rotY: 0 });
+    Object.assign(p, { x: nord.waypoints[2]!.x, z: nord.waypoints[2]!.z, rotY: 0 });
     const events: SaleCompletedEvent[] = [];
     room.events.on(SALE_COMPLETED, (e: SaleCompletedEvent) => events.push(e));
     const npcId = await buyer(client, room);
     const offer = await open(client, npcId);
-    expect(offer).toMatchObject({ area: 'north', priceMultiplier: north.priceMultiplier });
+    expect(offer).toMatchObject({ area: 'cartel', priceMultiplier: north.priceMultiplier });
     const base = gameData.economy.strains[0]!.pouchSellPrice;
     const v = gameData.economy.sale.priceVariance;
     expect(offer.unitPrice).toBeGreaterThanOrEqual(
@@ -142,7 +142,7 @@ describe('vente de rue', () => {
     expect(offer.unitPrice).toBeLessThanOrEqual(Math.round(base * (1 + v) * north.priceMultiplier));
     client.send(ClientMsg.SaleAccept, { npcId, qty: 1 });
     expect((await notice(client)).ok).toBe(true);
-    expect(events[0]).toMatchObject({ area: 'north', amount: offer.unitPrice });
+    expect(events[0]).toMatchObject({ area: 'cartel', amount: offer.unitPrice });
   });
 
   it('refuse : hors de la rue, trop loin, pas assez de pochons, sac plein, quantité hors offre', async () => {
@@ -300,7 +300,7 @@ describe('PNJ — simulation (hors réseau, hasard maîtrisé)', () => {
     }
   });
 
-  it('chaque PNJ reste dans le rectangle de son area en marchant', () => {
+  it('chaque PNJ reste dans le polygone de son area en marchant', () => {
     const state = new GameState();
     let seed = 7;
     const rng = () => {
@@ -324,7 +324,7 @@ describe('PNJ — simulation (hors réseau, hasard maîtrisé)', () => {
     const zones = gameData.quartierLayouts
       .get('sud')!
       .gardens.flatMap((g) => [g.passage, g.garden]);
-    const g = gridOf('south');
+    const g = gridOf('chez_nous');
     for (const r of zones)
       expect(isFreeAt(g, { x: (r.minX + r.maxX) / 2, z: (r.minZ + r.maxZ) / 2 })).toBe(false);
     const state = new GameState();

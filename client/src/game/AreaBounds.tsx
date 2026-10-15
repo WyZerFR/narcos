@@ -29,17 +29,11 @@ export function AreaBounds() {
     const pos: number[] = [];
     const col: number[] = [];
     for (const area of gameData.areas.values()) {
-      const { minX, maxX, minZ, maxZ } = area.bounds;
       const c = new Color(area.themeColor);
-      const corners = [
-        [minX, minZ],
-        [maxX, minZ],
-        [maxX, maxZ],
-        [minX, maxZ],
-      ] as const;
-      corners.forEach(([x, z], i) => {
-        const [nx, nz] = corners[(i + 1) % 4]!;
-        pos.push(x, Y, z, nx, Y, nz);
+      const corners = area.polygon;
+      corners.forEach(({ x, z }, i) => {
+        const next = corners[(i + 1) % corners.length]!;
+        pos.push(x, Y, z, next.x, Y, next.z);
         col.push(c.r, c.g, c.b, c.r, c.g, c.b);
       });
     }

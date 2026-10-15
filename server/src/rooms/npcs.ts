@@ -1,6 +1,7 @@
 import {
   bagFullText,
   areaAt,
+  areaWaypoints,
   createNavGrid,
   distance,
   distancesFrom,
@@ -8,6 +9,7 @@ import {
   gameData,
   isFreeAt,
   obstaclesFrom,
+  outsideAreas,
   pickName,
   pickProfile,
   buyerProfile,
@@ -31,7 +33,7 @@ import { readInventory, writeInventory } from './stateSync';
  * ne vendent jamais au même PNJ. Après une vente ou un refus, il s'éloigne puis revient avec
  * une nouvelle demande. Positions écrites dans l'état à `broadcastHz` seulement.
  * Chaque PNJ vit dans son area (`areas.json`) : sa grille de navigation est bornée au
- * rectangle de l'area, ses points de passage y sont, sa demande suit le marché de l'area.
+ * polygone de l'area, ses points de passage y sont, sa demande suit le marché de l'area.
  */
 
 const { config, npcs: NPCS, economy, items } = gameData;
@@ -41,17 +43,8 @@ const AREAS = [...gameData.areas.values()];
 const grids = new Map<string, NavGrid>();
 const fields = new Map<string, Float64Array>();
 
-/** Points de passage d'une area : ceux de npcs.json pour la rue, ceux générés pour une impasse. */
-const WAYPOINTS = new Map<string, Vec2[]>(
-  AREAS.map((a) => [
-    a.id,
-    a.id === 'street'
-      ? NPCS.waypoints.filter((wp) => areaAt(AREAS, wp)?.id === 'street')
-      : [...gameData.quartierLayouts.values()]
-          .filter((l) => l.areaId === a.id)
-          .flatMap((l) => l.waypoints),
-  ]),
-);
+/** Points de passage d'une area : ceux de npcs.json qui y tombent et ceux de son quartier. */
+const WAYPOINTS = new Map<string, Vec2[]>(AREAS.map((a) => [a.id, areaWaypoints(gameData, a.id)]));
 const waypointsOf = (areaId: string) => WAYPOINTS.get(areaId) ?? [];
 
 /** Zones interdites aux PNJ de vente (passage et jardin de la cachette du Quartier Sud). */
@@ -64,9 +57,11 @@ const NPC_BLOCKED = [...gameData.quartierLayouts.values()].flatMap((l) => l.npcB
 export function gridOf(areaId: string): NavGrid {
   let g = grids.get(areaId);
   if (!g) {
+    const area = gameData.areas.get(areaId)!;
     g = createNavGrid(
-      gameData.areas.get(areaId)!.bounds,
-      [...obstaclesFrom(gameData), ...NPC_BLOCKED],
+      area.bounds,
+      // hors du polygone de l'area (areas en L) : bloqué, le PNJ reste chez lui
+      [...obstaclesFrom(gameData), ...NPC_BLOCKED, ...outsideAreas([area], area.bounds)],
       NPC.radius,
       NPC.navCellSize,
     );

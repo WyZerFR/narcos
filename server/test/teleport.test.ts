@@ -99,7 +99,8 @@ describe('NarcoRoom — mouvement autoritaire', () => {
       seq: 2,
     });
     await client.waitForMessage(ServerMsg.Correction);
-    expect(p.x).toBe(config.world.bounds.maxX);
+    // bord de la carte = côte de l'île : le corps entier reste sur la terre
+    expect(p.x).toBeCloseTo(config.world.bounds.maxX - config.world.playerRadius, 6);
   });
 });
 

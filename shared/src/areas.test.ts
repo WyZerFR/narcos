@@ -1,9 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { gameData, parseGameData } from './data';
-import { areaAt, areasEnvelope, dangerAt, outsideAreas } from './areas';
+import {
+  areaAt,
+  areaRects,
+  areasEnvelope,
+  dangerAt,
+  outsideAreas,
+  polygonContainsPoint,
+  walkableAreas,
+} from './areas';
 import { areaSalesReport } from './balance';
 import { rectContainsPoint } from './geometry';
-import type { Area } from './schemas';
 import configJson from '../data/config.json';
 import economyJson from '../data/economy.json';
 import itemsJson from '../data/items.json';
@@ -21,77 +28,131 @@ const areas = [...gameData.areas.values()];
 const at = (x: number, z: number) => areaAt(areas, { x, z })?.id ?? null;
 const byId = (id: string) => gameData.areas.get(id)!;
 
-describe('areas', () => {
-  it('trois areas : rue centrale, quartiers Nord et Sud, réglages des JSON', () => {
-    expect(areas.map((a) => a.id)).toEqual(['street', 'north', 'south']);
-    expect(byId('street').priceMultiplier).toBe(1);
-    expect(byId('north').priceMultiplier).toBeGreaterThan(byId('south').priceMultiplier);
-    expect(byId('south').priceMultiplier).toBeGreaterThan(1);
-    expect([byId('street'), byId('north'), byId('south')].map((a) => a.dangerLevel)).toEqual([
-      3, 1, 1,
+describe('areas de l’île', () => {
+  it('six areas du sud-ouest au nord-est, réglages des JSON', () => {
+    expect(areas.map((a) => a.id)).toEqual([
+      'bas_fonds',
+      'chez_nous',
+      'centre_ville',
+      'commercial',
+      'cartel',
+      'aeroport',
     ]);
-    expect(byId('north').controlledBy).toBe('eljefe');
-    expect(byId('south').controlledBy).toBe('cartel');
-    expect(byId('street').controlledBy).toBeNull();
+    const danger = Object.fromEntries(areas.map((a) => [a.id, a.dangerLevel]));
+    expect(danger).toEqual({
+      bas_fonds: 3,
+      chez_nous: 1,
+      centre_ville: 5,
+      commercial: 3,
+      cartel: 1,
+      aeroport: 5,
+    });
+    expect(byId('chez_nous').priceMultiplier).toBe(1.3);
+    expect(byId('cartel').priceMultiplier).toBe(1.3);
+    expect(byId('centre_ville').priceMultiplier).toBe(1);
+    expect(byId('commercial').priceMultiplier).toBe(1.15);
+    expect(byId('chez_nous').controlledBy).toBe('cartel');
+    expect(byId('cartel').controlledBy).toBe('eljefe');
+    expect(areas.filter((a) => a.locked).map((a) => a.id)).toEqual(['aeroport']);
+    expect(areas.reduce((n, a) => n + a.npcCount, 0)).toBeLessThanOrEqual(14);
   });
 
-  it('areaAt : un point dans chaque area', () => {
-    expect(at(0, 0)).toBe('street');
-    expect(at(30, -30)).toBe('street');
-    expect(at(0, -100)).toBe('north');
-    expect(at(0, 100)).toBe('south');
+  it('areaAt : un point dans chaque area, et le polygone en L du commercial', () => {
+    expect(at(-60, 5)).toBe('bas_fonds');
+    expect(at(-95, 100)).toBe('chez_nous');
+    expect(at(0, 0)).toBe('centre_ville');
+    expect(at(75, -13)).toBe('commercial');
+    expect(at(180, -20)).toBe('commercial'); // bras est, au-dessus du cartel
+    expect(at(175, 60)).toBe('cartel');
+    expect(at(0, -100)).toBe('aeroport');
+    expect(at(100, 60)).toBeNull(); // creux du L : la mer
   });
 
-  it('areaAt : frontières (la rue l’emporte sur l’entrée des impasses)', () => {
-    const n = byId('north').bounds;
-    expect(at(0, n.maxZ)).toBe('street');
-    expect(at(0, n.maxZ - 0.01)).toBe('north');
-    expect(at(n.minX, -100)).toBe('north');
-    expect(at(n.minX - 0.01, -100)).toBeNull();
-    const s = byId('south').bounds;
-    expect(at(0, s.minZ + 0.01)).toBe('south');
-    expect(at(s.maxX, s.maxZ)).toBe('south');
+  it('areaAt : frontières (la première déclarée l’emporte, bord compris)', () => {
+    expect(at(-95, 35)).toBe('bas_fonds');
+    expect(at(-95, 35.01)).toBe('chez_nous');
+    expect(at(-45, 0)).toBe('bas_fonds');
+    expect(at(-44.99, 0)).toBe('centre_ville');
+    expect(at(150, 10)).toBe('commercial');
+    expect(at(150, 10.01)).toBe('cartel');
+    expect(at(135, 30)).toBe('commercial');
+    expect(at(134.99, 30)).toBe('commercial');
+    expect(at(135.01, 30)).toBe('cartel');
+    expect(at(0, -45)).toBe('centre_ville');
+    expect(at(0, -45.01)).toBe('aeroport');
   });
 
-  it('areaAt : hors carte et hors impasses → null', () => {
+  it('areaAt : en mer → null', () => {
     expect(at(1000, 0)).toBeNull();
-    expect(at(40, -100)).toBeNull(); // à côté de l'impasse nord
-    expect(at(0, 141)).toBeNull();
+    expect(at(-100, -60)).toBeNull(); // au nord des Bas-fonds
+    expect(at(0, 60)).toBeNull(); // au sud du centre-ville
+    expect(at(-145.01, 0)).toBeNull();
   });
 
   it('dangerAt suit l’area', () => {
-    expect(dangerAt(areas, { x: 0, z: 0 })).toBe(3);
-    expect(dangerAt(areas, { x: 0, z: -100 })).toBe(1);
+    expect(dangerAt(areas, { x: -60, z: 5 })).toBe(3);
+    expect(dangerAt(areas, { x: 0, z: 0 })).toBe(5);
+    expect(dangerAt(areas, { x: 175, z: 60 })).toBe(1);
     expect(dangerAt(areas, { x: 500, z: 0 })).toBeNull();
   });
 
   it('carte = enveloppe des areas ; le hors-zone couvre exactement le reste', () => {
     expect(areasEnvelope(areas)).toEqual(gameData.config.world.bounds);
-    const outside = outsideAreas(areas, gameData.config.world.bounds);
-    expect(outside).toHaveLength(4);
+    const world = gameData.config.world.bounds;
+    const outside = outsideAreas(areas, world);
+    const inSea = (p: { x: number; z: number }) => outside.some((r) => rectContainsPoint(r, p));
     for (const p of [
-      { x: 40, z: -100 },
-      { x: -40, z: 100 },
+      { x: 100, z: 60 },
+      { x: -100, z: -60 },
+      { x: 0, z: 100 },
     ])
-      expect(outside.some((r) => rectContainsPoint(r, p))).toBe(true);
+      expect(inSea(p)).toBe(true);
     for (const p of [
       { x: 0, z: -100 },
       { x: 30, z: 0 },
+      { x: 180, z: -20 },
     ])
-      expect(outside.some((r) => rectContainsPoint(r, p))).toBe(false);
+      expect(inSea(p)).toBe(false);
+    // pavage exact : aires des areas + hors-zone = aire de la carte
+    const surface = (rs: { minX: number; maxX: number; minZ: number; maxZ: number }[]) =>
+      rs.reduce((s, r) => s + (r.maxX - r.minX) * (r.maxZ - r.minZ), 0);
+    expect(surface(outside) + surface(areas.flatMap(areaRects))).toBeCloseTo(surface([world]));
+    // l'aéroport verrouillé est hors-zone pour la collision
+    expect(walkableAreas(areas).map((a) => a.id)).not.toContain('aeroport');
+  });
+
+  it('polygone rectiligne : point dedans, sur un bord, dans le creux d’un L', () => {
+    const L = [
+      { x: 0, z: 0 },
+      { x: 10, z: 0 },
+      { x: 10, z: 5 },
+      { x: 5, z: 5 },
+      { x: 5, z: 10 },
+      { x: 0, z: 10 },
+    ];
+    expect(polygonContainsPoint(L, { x: 2, z: 8 })).toBe(true);
+    expect(polygonContainsPoint(L, { x: 8, z: 2 })).toBe(true);
+    expect(polygonContainsPoint(L, { x: 8, z: 8 })).toBe(false);
+    expect(polygonContainsPoint(L, { x: 5, z: 7 })).toBe(true);
+    expect(polygonContainsPoint(L, { x: 10, z: 5 })).toBe(true);
   });
 
   it('zod : areas.json invalide refusé ; chevauchement et carte incohérente refusés', () => {
     const raw = () => structuredClone(rawAll);
+    type Raw = { areas: { dangerLevel: number; polygon: { x: number; z: number }[] }[] };
     const r1 = raw();
-    (r1.areas as { areas: Area[] }).areas[1]!.dangerLevel = 9;
+    (r1.areas as Raw).areas[1]!.dangerLevel = 9;
     expect(() => parseGameData(r1)).toThrow(/areas\.json invalide[\s\S]*dangerLevel/);
     const r2 = raw();
-    (r2.areas as { areas: Area[] }).areas[1]!.bounds.maxZ = -40;
-    expect(() => parseGameData(r2)).toThrow(/"street" chevauche "north"/);
+    // le quartier chez nous remonte dans les Bas-fonds
+    for (const p of (r2.areas as Raw).areas[1]!.polygon) if (p.z === 35) p.z = 30;
+    expect(() => parseGameData(r2)).toThrow(/"bas_fonds" chevauche "chez_nous"/);
     const r3 = raw();
     (r3.config as { world: { bounds: { maxZ: number } } }).world.bounds.maxZ = 150;
     expect(() => parseGameData(r3)).toThrow(/world\.bounds doit valoir l'enveloppe/);
+    const r4 = raw();
+    (r4.areas as Raw).areas[0]!.polygon[1] = { x: -40, z: -30 };
+    expect(() => parseGameData(r4)).toThrow(/areas\.json invalide[\s\S]*rectiligne/);
   });
 });
 
@@ -123,14 +184,14 @@ describe('quartiers.json : validation', () => {
     expect(() => parseGameData(r2)).toThrow(/quartiers\.json invalide[\s\S]*roofs/);
   });
 
-  it('bâtiment du bout : au fond de l’impasse, porte vers la rue', () => {
+  it('bâtiment du bout : au fond du U, porte vers l’entrée', () => {
     const jefe = gameData.locations.get('repaire_jefe')!;
     const local = gameData.locations.get('local')!;
-    expect(areaAt(areas, jefe.position)?.id).toBe('north');
-    expect(areaAt(areas, local.position)?.id).toBe('south');
+    expect(areaAt(areas, jefe.position)?.id).toBe('cartel');
+    expect(areaAt(areas, local.position)?.id).toBe('chez_nous');
     const r = structuredClone(rawAll);
     const loc = (r.locations as L).locations.find((l) => l.id === 'repaire_jefe')!;
-    loc.door = 'north';
+    loc.door = 'south';
     loc.position.z += 5;
     expect(() => parseGameData(r)).toThrow(/porte de "repaire_jefe" doit regarder la rue/);
     expect(() => parseGameData(r)).toThrow(/façade de "repaire_jefe" doit être en z/);
@@ -138,10 +199,10 @@ describe('quartiers.json : validation', () => {
 });
 
 describe('équilibrage par area', () => {
-  it('les quartiers rapportent plus que la rue, par pochon et par minute', () => {
+  it('les quartiers en U rapportent plus que la rue des Bas-fonds, par pochon et par minute', () => {
     const report = areaSalesReport(gameData);
-    const street = report.find((r) => r.areaId === 'street')!;
-    for (const id of ['north', 'south']) {
+    const street = report.find((r) => r.areaId === 'bas_fonds')!;
+    for (const id of ['chez_nous', 'cartel']) {
       const r = report.find((x) => x.areaId === id)!;
       expect(r.priceVsStreet).toBeGreaterThan(1);
       expect(r.revenuePerMinute).toBeGreaterThan(street.revenuePerMinute);

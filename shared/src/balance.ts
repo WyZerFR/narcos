@@ -149,7 +149,8 @@ export function areaSalesReport(
   const [c0, c1] = data.config.npc.cooldownSeconds;
   const cooldownMin = (c0 + c1) / 2 / 60;
   const base = data.economy.strains[0]!.pouchSellPrice;
-  const street = data.areas.get('street')?.priceMultiplier ?? 1;
+  // référence : la première area (rue de départ)
+  const street = [...data.areas.values()][0]?.priceMultiplier ?? 1;
   return [...data.areas.values()].map((a) => {
     const perVisit = profiles.reduce(
       (s, p) =>

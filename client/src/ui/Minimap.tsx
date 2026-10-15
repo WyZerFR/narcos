@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import {
+  areaRects,
   footprint,
   gameData,
   obstaclesFrom,
@@ -28,7 +29,7 @@ const mapD = bounds.maxZ - bounds.minZ;
 const LAYOUTS = [...gameData.quartierLayouts.values()];
 const ROADS = [
   ...config.map.roads.map((r) => rectFromCenter(r, r)),
-  ...LAYOUTS.flatMap((l) => [l.road, ...l.parking, l.plaza]),
+  ...LAYOUTS.flatMap((l) => [...l.roads, ...l.parking, l.plaza]),
 ];
 const AREAS = [...gameData.areas.values()];
 const SOLIDS = obstaclesFrom(gameData);
@@ -70,9 +71,9 @@ export function Minimap({ room }: { room: GameRoom }) {
       ctx.translate(-(bounds.minX + mapW / 2), -(bounds.minZ + mapD / 2));
 
       rect(bounds, palette.sky);
-      // une teinte par area (rue, quartier nord, quartier sud)
+      // une teinte par area (pavage exact du polygone)
       ctx.globalAlpha = 0.28;
-      for (const a of AREAS) rect(a.bounds, a.themeColor);
+      for (const a of AREAS) for (const r of areaRects(a)) rect(r, a.themeColor);
       ctx.globalAlpha = 1;
       for (const r of ROADS) rect(r, palette.street);
       for (const r of SOLIDS) rect(r, palette.wall);

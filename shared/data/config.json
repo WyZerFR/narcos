@@ -16,10 +16,10 @@
   },
   "world": {
     "bounds": {
-      "minX": -45,
-      "maxX": 45,
-      "minZ": -140,
-      "maxZ": 140
+      "minX": -145,
+      "maxX": 215,
+      "minZ": -135,
+      "maxZ": 130
     },
     "playerSize": 1,
     "playerRadius": 0.45,
@@ -34,7 +34,7 @@
   "players": {
     "colors": ["#e63946", "#2a9d8f", "#f4c430"],
     "spawn": {
-      "x": 38,
+      "x": -60,
       "z": 5.3
     },
     "spawnSpread": 1.5
@@ -47,15 +47,17 @@
     "neon": "#ffc56b",
     "vegetation": "#2f7d5b",
     "ok": "#5be37d",
-    "danger": "#ff4d5e"
+    "danger": "#ff4d5e",
+    "sea": "#10283d",
+    "sand": "#8f7f62"
   },
   "map": {
     "roads": [
       {
         "id": "avenue",
-        "x": 0,
+        "x": 35,
         "z": 0,
-        "w": 90,
+        "w": 360,
         "d": 8
       },
       {
@@ -64,6 +66,34 @@
         "z": 0,
         "w": 8,
         "d": 90
+      },
+      {
+        "id": "rue_chez_nous_ouest",
+        "x": -115,
+        "z": 15.5,
+        "w": 11.4,
+        "d": 39
+      },
+      {
+        "id": "rue_chez_nous_est",
+        "x": -75,
+        "z": 15.5,
+        "w": 11.4,
+        "d": 39
+      },
+      {
+        "id": "rue_cartel_ouest",
+        "x": 155,
+        "z": 3,
+        "w": 11.4,
+        "d": 14
+      },
+      {
+        "id": "rue_cartel_est",
+        "x": 195,
+        "z": 3,
+        "w": 11.4,
+        "d": 14
       }
     ],
     "sidewalkWidth": 2.5,
@@ -97,6 +127,16 @@
         "width": 3
       }
     ]
+  },
+  "island": {
+    "seaLevel": -1.4,
+    "seaMargin": 120,
+    "beachWidth": 6,
+    "beachChance": 0.55,
+    "minBeachLength": 30,
+    "palmSpacing": 9,
+    "palmChance": 0.55,
+    "seed": "ile-1"
   },
   "decor": {
     "windowLitRatio": 0.55,
@@ -261,7 +301,7 @@
     ],
     "cartons": [
       {
-        "x": 40.5,
+        "x": -57.5,
         "z": 5.6
       }
     ]
@@ -296,9 +336,18 @@
       "run": "Run"
     },
     "categories": [
-      { "id": "homme", "name": "Hommes" },
-      { "id": "femme", "name": "Femmes" },
-      { "id": "autre", "name": "Autres" }
+      {
+        "id": "homme",
+        "name": "Hommes"
+      },
+      {
+        "id": "femme",
+        "name": "Femmes"
+      },
+      {
+        "id": "autre",
+        "name": "Autres"
+      }
     ],
     "budget": {
       "maxTriangles": 15000,
@@ -323,12 +372,22 @@
       "runStop": 3.6,
       "walkClipSpeed": 2,
       "runClipSpeed": 5,
-      "timeScale": { "min": 0.6, "max": 1.8 },
+      "timeScale": {
+        "min": 0.6,
+        "max": 1.8
+      },
       "crossFadeSeconds": 0.2,
       "turnStiffness": 14,
       "turnMinSpeed": 0.3,
-      "lean": { "perSpeed": 0.015, "max": 0.12, "stiffness": 8 },
-      "bob": { "height": 0.06, "stridesPerMeter": 0.8 }
+      "lean": {
+        "perSpeed": 0.015,
+        "max": 0.12,
+        "stiffness": 8
+      },
+      "bob": {
+        "height": 0.06,
+        "stridesPerMeter": 0.8
+      }
     },
     "ring": {
       "innerRadius": 0.42,

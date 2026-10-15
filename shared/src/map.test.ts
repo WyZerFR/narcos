@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { isBlocked, obstaclesFrom } from './collision';
 import { gameData } from './data';
 import { interactionPoint } from './locations';
-import { cellIndex, createNavGrid, distancesFrom, isFreeAt } from './navgrid';
+import { cellCenter, cellIndex, createNavGrid, distancesFrom, isFreeAt } from './navgrid';
 import { areaAt } from './areas';
 
 const { config } = gameData;
@@ -12,54 +12,74 @@ const grid = createNavGrid(config.world.bounds, obstacles, radius, 0.5);
 const locations = [...gameData.locations.values()];
 const walk = config.movement.walkSpeed;
 const fromSpawn = distancesFrom(grid, config.players.spawn);
-const metersFromSpawn = (id: string) =>
-  fromSpawn[cellIndex(grid, interactionPoint(gameData.locations.get(id)!))]!;
+const secondsFromSpawn = (id: string) =>
+  fromSpawn[cellIndex(grid, interactionPoint(gameData.locations.get(id)!))]! / walk;
 
-/** Limites demandées : départ → bout d'impasse < 45 s, bout à bout < 60 s, centre < 45 s. */
-const MAX_TO_END_SECONDS = 45;
-const MAX_END_TO_END_SECONDS = 60;
+/** Temps à pied (walkSpeed) demandés depuis le départ, en secondes. */
+const MAX_FROM_SPAWN: Record<string, number> = {
+  shop: 45, // Bricoshop, quartier commercial
+  banque: 45, // centre-ville
+  repaire_jefe: 90, // fond du U d'El Jefe
+  local: 30, // fond de notre U
+};
+const MAX_CROSSING_SECONDS = 150;
 
-describe('carte : rue centrale et impasses', () => {
-  it('le point de départ est libre, dans la rue centrale', () => {
+/** Case accessible la plus éloignée d'un champ de distances. */
+function farthest(dist: Float64Array): { index: number; meters: number } {
+  let index = -1;
+  let meters = 0;
+  dist.forEach((d, i) => {
+    if (Number.isFinite(d) && d > meters) [index, meters] = [i, d];
+  });
+  return { index, meters };
+}
+
+describe('carte de l’île', () => {
+  it('le point de départ est libre, dans les Bas-fonds', () => {
     expect(isBlocked(config.players.spawn, radius, obstacles)).toBe(false);
     expect(isFreeAt(grid, config.players.spawn)).toBe(true);
-    expect(areaAt(gameData.areas.values(), config.players.spawn)?.id).toBe('street');
+    expect(areaAt(gameData.areas.values(), config.players.spawn)?.id).toBe('bas_fonds');
   });
 
   it('chaque lieu a un point d’interaction libre et accessible depuis le départ', () => {
     for (const loc of locations) {
       const p = interactionPoint(loc);
       expect(isBlocked(p, radius, obstacles), `${loc.id} enfermé dans un obstacle`).toBe(false);
-      expect(Number.isFinite(metersFromSpawn(loc.id)), `${loc.id} inaccessible`).toBe(true);
+      expect(Number.isFinite(secondsFromSpawn(loc.id)), `${loc.id} inaccessible`).toBe(true);
     }
   });
 
-  it(`bout de chaque impasse à moins de ${MAX_TO_END_SECONDS} s du départ à pied`, () => {
-    for (const q of gameData.quartiers.values()) {
-      const s = metersFromSpawn(q.landmarkLocationId) / walk;
-      expect(s, `${q.landmarkLocationId} : ${s.toFixed(1)} s`).toBeLessThan(MAX_TO_END_SECONDS);
-    }
+  it('chaque lieu est dans l’area prévue', () => {
+    const areaOf = (id: string) =>
+      areaAt(gameData.areas.values(), gameData.locations.get(id)!.position)?.id;
+    expect(areaOf('epicerie')).toBe('bas_fonds');
+    expect(areaOf('local')).toBe('chez_nous');
+    expect(areaOf('trappe_cave')).toBe('chez_nous');
+    expect(areaOf('repaire_jefe')).toBe('cartel');
+    expect(areaOf('banque')).toBe('centre_ville');
+    expect(areaOf('shop')).toBe('commercial');
   });
 
-  it(`d’un bout d’impasse à l’autre en moins de ${MAX_END_TO_END_SECONDS} s à pied`, () => {
-    const [a, b] = [...gameData.quartiers.values()].map((q) =>
-      interactionPoint(gameData.locations.get(q.landmarkLocationId)!),
-    );
-    const m = distancesFrom(grid, a!)[cellIndex(grid, b!)]!;
-    expect(Number.isFinite(m)).toBe(true);
-    expect(m / walk).toBeLessThan(MAX_END_TO_END_SECONDS);
+  for (const [id, max] of Object.entries(MAX_FROM_SPAWN))
+    it(`départ → ${id} en moins de ${max} s à pied`, () => {
+      const s = secondsFromSpawn(id);
+      expect(s, `${id} : ${s.toFixed(1)} s`).toBeLessThan(max);
+    });
+
+  it(`traversée complète de l’île en moins de ${MAX_CROSSING_SECONDS} s à pied`, () => {
+    // double balayage : point le plus loin du départ, puis le plus loin de celui-là
+    const a = farthest(fromSpawn);
+    const b = farthest(distancesFrom(grid, cellCenter(grid, a.index)));
+    expect(b.meters / walk).toBeLessThan(MAX_CROSSING_SECONDS);
   });
 
-  it(`lieux de la rue centrale reliés entre eux en moins de ${MAX_TO_END_SECONDS} s`, () => {
-    const central = locations.filter(
-      (l) => areaAt(gameData.areas.values(), l.position)?.id === 'street',
-    );
-    for (const a of central) {
-      const dist = distancesFrom(grid, interactionPoint(a));
-      for (const b of central) {
-        const m = dist[cellIndex(grid, interactionPoint(b))]!;
-        expect(m / walk, `${a.id} → ${b.id}`).toBeLessThan(MAX_TO_END_SECONDS);
-      }
+  it('chaque area marchable est atteignable depuis le départ, l’aéroport verrouillé ne l’est pas', () => {
+    for (const area of gameData.areas.values()) {
+      let reached = false;
+      fromSpawn.forEach((d, i) => {
+        if (!reached && Number.isFinite(d)) reached = areaAt([area], cellCenter(grid, i)) !== null;
+      });
+      expect(reached, area.id).toBe(!area.locked);
     }
   });
 });

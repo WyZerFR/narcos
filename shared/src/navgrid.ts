@@ -24,13 +24,21 @@ export function createNavGrid(
   const cols = Math.floor((bounds.maxX - bounds.minX) / cellSize);
   const rows = Math.floor((bounds.maxZ - bounds.minZ) / cellSize);
   const free = new Uint8Array(cols * rows).fill(1);
-  const inflated = obstacles.map((o) => expandRect(o, radius));
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      const x = bounds.minX + (col + 0.5) * cellSize;
-      const z = bounds.minZ + (row + 0.5) * cellSize;
-      if (inflated.some((r) => x > r.minX && x < r.maxX && z > r.minZ && z < r.maxZ)) {
-        free[row * cols + col] = 0;
+  // chaque obstacle gonflé bloque les cases dont le centre est strictement dedans (balayage
+  // de sa seule emprise : l'île entière reste rapide à construire)
+  const center = (i: number, min: number) => min + (i + 0.5) * cellSize;
+  for (const o of obstacles) {
+    const r = expandRect(o, radius);
+    const c0 = Math.max(0, Math.floor((r.minX - bounds.minX) / cellSize - 0.5));
+    const c1 = Math.min(cols - 1, Math.ceil((r.maxX - bounds.minX) / cellSize - 0.5));
+    const r0 = Math.max(0, Math.floor((r.minZ - bounds.minZ) / cellSize - 0.5));
+    const r1 = Math.min(rows - 1, Math.ceil((r.maxZ - bounds.minZ) / cellSize - 0.5));
+    for (let row = r0; row <= r1; row++) {
+      const z = center(row, bounds.minZ);
+      if (!(z > r.minZ && z < r.maxZ)) continue;
+      for (let col = c0; col <= c1; col++) {
+        const x = center(col, bounds.minX);
+        if (x > r.minX && x < r.maxX) free[row * cols + col] = 0;
       }
     }
   }

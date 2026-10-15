@@ -1,6 +1,6 @@
 import type { Color } from 'three';
 import {
-  outsideAreas,
+  areaRects,
   type GameData,
   type House,
   type QuartierLayout,
@@ -42,12 +42,8 @@ function furniture(b: Batches, build: () => void): void {
 }
 
 export function buildQuartiers(b: Batches, data: GameData): void {
-  const { palette, world } = data.config;
-  // hors des areas (autour des impasses) : terrain vague sombre, infranchissable
-  b.solid.cuttable = false;
-  for (const r of outsideAreas(data.areas.values(), world.bounds))
-    b.solid.floor(r, 0.004, shade(palette.ground, 0.4));
-  b.solid.cuttable = true;
+  // hors des areas : la mer, posée par buildCity
+  const { palette } = data.config;
   for (const layout of data.quartierLayouts.values()) {
     const q = data.quartiers.get(layout.id)!;
     ground(b, layout, q, data);
@@ -60,8 +56,7 @@ function ground(b: Batches, l: QuartierLayout, q: QuartierParams, data: GameData
   const p = q.palette;
   const area = data.areas.get(l.areaId)!;
   b.solid.cuttable = false;
-  b.solid.floor(area.bounds, 0.006, shade(p.ground, 1));
-  b.solid.floor(l.road, 0.02, shade(p.road, 1));
+  for (const r of areaRects(area)) b.solid.floor(r, 0.006, shade(p.ground, 1));
   for (const r of l.parking) b.solid.floor(r, 0.021, shade(p.road, 1.35));
   for (const r of l.sidewalks) {
     const cx = (r.minX + r.maxX) / 2;
@@ -69,15 +64,36 @@ function ground(b: Batches, l: QuartierLayout, q: QuartierParams, data: GameData
     b.solid.block(cx, 0, cz, r.maxX - r.minX, 0.12, r.maxZ - r.minZ, shade(p.sidewalk, 1));
   }
   b.solid.floor(l.plaza, 0.03, shade(p.sidewalk, 1.15));
-  // marquage central en pointillés, couleur néon du quartier
-  const { road } = l;
-  const cx = (road.minX + road.maxX) / 2;
-  for (let z = road.minZ + 1; z + 2 < road.maxZ; z += 4)
-    b.solid.floor(
-      { minX: cx - 0.08, maxX: cx + 0.08, minZ: z, maxZ: z + 2 },
-      0.03,
-      shade(p.neon, 0.5),
+  // chaussées (la traversée du U passe sur la place), marquage central en pointillés néon
+  for (const road of l.roads) {
+    b.solid.floor(road, 0.032, shade(p.road, 1));
+    const alongX = road.maxX - road.minX > road.maxZ - road.minZ;
+    const c = alongX ? (road.minZ + road.maxZ) / 2 : (road.minX + road.maxX) / 2;
+    const [lo, hi] = alongX ? [road.minX, road.maxX] : [road.minZ, road.maxZ];
+    for (let t = lo + 1; t + 2 < hi; t += 4)
+      b.solid.floor(
+        alongX
+          ? { minX: t, maxX: t + 2, minZ: c - 0.08, maxZ: c + 0.08 }
+          : { minX: c - 0.08, maxX: c + 0.08, minZ: t, maxZ: t + 2 },
+        0.034,
+        shade(p.neon, 0.5),
+      );
+  }
+  if (l.islandCore) {
+    // cœur de l'îlot du U : haie basse, sans découpe (mobilier)
+    const r = l.islandCore;
+    const cx = (r.minX + r.maxX) / 2;
+    const cz = (r.minZ + r.maxZ) / 2;
+    b.solid.block(
+      cx,
+      0,
+      cz,
+      r.maxX - r.minX,
+      1.2,
+      r.maxZ - r.minZ,
+      shade(data.config.palette.vegetation, 0.7),
     );
+  }
   b.solid.cuttable = true;
 }
 

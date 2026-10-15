@@ -47,17 +47,17 @@ describe('quartiers — état et déplacements', () => {
     const id = 'quartier-player-0001';
     const { client, room } = await newGame(id);
     const p = room.state.players.get(id)!;
-    expect(p.area).toBe('street');
-    // au bord de l'impasse nord, un pas vers le fond
-    const start = { x: nord.frame.axisX, z: nord.frame.entranceZ + 0.2 };
+    expect(p.area).toBe('bas_fonds');
+    // au bord du U d'El Jefe (avenue du quartier commercial), un pas vers le fond
+    const start = { x: nord.frame.legs[0]!, z: nord.frame.entranceZ - 0.2 };
     Object.assign(p, start);
-    client.send(ClientMsg.Move, { zone: 'street', x: start.x, z: start.z - 0.5, rotY: 0, seq: 1 });
+    client.send(ClientMsg.Move, { zone: 'street', x: start.x, z: start.z + 0.5, rotY: 0, seq: 1 });
     await room.waitForNextMessage();
-    expect(p.z).toBeCloseTo(start.z - 0.5, 3);
-    expect(p.area).toBe('north');
+    expect(p.z).toBeCloseTo(start.z + 0.5, 3);
+    expect(p.area).toBe('cartel');
   });
 
-  it('collisions serveur : on ne traverse pas une maison du quartier sud', async () => {
+  it('collisions serveur : on ne traverse pas une maison de notre quartier', async () => {
     const id = 'quartier-player-0002';
     const { client, room } = await newGame(id);
     const p = room.state.players.get(id)!;
@@ -76,7 +76,7 @@ describe('quartiers — état et déplacements', () => {
     expect(p.x >= h.rect.minX && p.x <= h.rect.maxX).toBe(false);
   });
 
-  it('Le Local au bout de l’impasse sud : on entre, la sortie ramène devant sa porte', async () => {
+  it('Le Local au fond de notre U : on entre, la sortie ramène devant sa porte', async () => {
     const id = 'quartier-player-0003';
     const { client, room } = await newGame(id);
     const p = room.state.players.get(id)!;
@@ -94,7 +94,7 @@ describe('quartiers — état et déplacements', () => {
     expect(n.ok, n.text).toBe(true);
     expect(p.zone).toBe('street');
     expect({ x: p.x, z: p.z }).toEqual(door);
-    expect(p.area).toBe('south');
+    expect(p.area).toBe('chez_nous');
   });
 });
 
@@ -133,7 +133,7 @@ describe('quartiers — migration d’une ancienne partie', () => {
     const p = state.players.get('old')!;
     const spawn = config.players.spawn;
     expect(Math.hypot(p.x - spawn.x, p.z - spawn.z)).toBeLessThan(1);
-    expect(p.area).toBe('street');
+    expect(p.area).toBe('bas_fonds');
     expect(count(readInventory(p.bag), 'pouch_base')).toBe(7);
     expect([p.hasAccount, p.cleanBalance, p.pactAccepted]).toEqual([true, 120, true]);
     expect(state.lab.fixtures.size).toBe(2);
@@ -158,36 +158,36 @@ describe('quartiers — migration d’une ancienne partie', () => {
 });
 
 describe('quartiers — debug', () => {
-  it('téléportation vers le nord, le sud et le centre', async () => {
+  it('téléportation vers El Jefe, chez nous et le départ', async () => {
     const id = 'quartier-player-0010';
     const { client, room } = await newGame(id);
     const p = room.state.players.get(id)!;
     for (const [areaId, locId] of [
-      ['north', 'repaire_jefe'],
-      ['south', 'local'],
+      ['cartel', 'repaire_jefe'],
+      ['chez_nous', 'local'],
     ] as const) {
       client.send(ClientMsg.Debug, { cmd: 'teleport', areaId });
       expect(((await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage).ok).toBe(true);
       expect({ x: p.x, z: p.z }).toEqual(interactionPoint(gameData.locations.get(locId)!));
       expect(p.area).toBe(areaId);
     }
-    client.send(ClientMsg.Debug, { cmd: 'teleport', areaId: 'street' });
+    client.send(ClientMsg.Debug, { cmd: 'teleport', areaId: 'bas_fonds' });
     await client.waitForMessage(ServerMsg.Notice);
-    expect(p.area).toBe('street');
+    expect(p.area).toBe('bas_fonds');
   });
 
   it('multiplicateur de prix modifiable à chaud, valeur hors bornes refusée', async () => {
     const id = 'quartier-player-0011';
     const { client } = await newGame(id);
-    const south = gameData.areas.get('south')!;
-    const before = south.priceMultiplier;
-    client.send(ClientMsg.Debug, { cmd: 'priceMultiplier', areaId: 'south', value: 1.5 });
+    const ours = gameData.areas.get('chez_nous')!;
+    const before = ours.priceMultiplier;
+    client.send(ClientMsg.Debug, { cmd: 'priceMultiplier', areaId: 'chez_nous', value: 1.5 });
     expect(((await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage).ok).toBe(true);
-    expect(south.priceMultiplier).toBe(1.5);
-    client.send(ClientMsg.Debug, { cmd: 'priceMultiplier', areaId: 'south', value: 99 });
+    expect(ours.priceMultiplier).toBe(1.5);
+    client.send(ClientMsg.Debug, { cmd: 'priceMultiplier', areaId: 'chez_nous', value: 99 });
     expect(((await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage).ok).toBe(false);
-    expect(south.priceMultiplier).toBe(1.5);
-    south.priceMultiplier = before;
+    expect(ours.priceMultiplier).toBe(1.5);
+    ours.priceMultiplier = before;
   });
 });
 

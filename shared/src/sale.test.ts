@@ -173,8 +173,8 @@ describe('équilibrage', () => {
 describe('vente par area', () => {
   const profile = npcs.profiles[0]!;
   const fixed = (v: number) => () => v;
-  const north = gameData.areas.get('north')!;
-  const south = gameData.areas.get('south')!;
+  const north = gameData.areas.get('cartel')!;
+  const south = gameData.areas.get('chez_nous')!;
 
   it('prix multiplié par l’area du PNJ, arrondi une seule fois au dollar le plus proche', () => {
     const sale = gameData.economy.sale;
@@ -186,7 +186,7 @@ describe('vente par area', () => {
     const street = rollDemand(profile, gameData.economy, fixed(0.5));
     const nord = rollDemand(profile, gameData.economy, fixed(0.5), north);
     expect(street.area).toBe('street');
-    expect(nord.area).toBe('north');
+    expect(nord.area).toBe('cartel');
     expect(nord.priceMultiplier).toBe(north.priceMultiplier);
     const base = gameData.economy.strains.find((s) => s.id === street.strainId)!.pouchSellPrice;
     expect(nord.unitPrice).toBe(Math.round(base * north.priceMultiplier));

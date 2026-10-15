@@ -87,7 +87,7 @@ describe('données du jeu', () => {
   });
 
   it('valide palette, carte et décor de config.json', () => {
-    expect(Object.keys(gameData.config.palette)).toHaveLength(8);
+    expect(Object.keys(gameData.config.palette)).toHaveLength(10);
     expect(gameData.config.map.roads.length).toBeGreaterThan(0);
     expect(gameData.config.camera.type).toBe('perspective');
     expect(gameData.blocks.length).toBeGreaterThan(0);
@@ -96,7 +96,7 @@ describe('données du jeu', () => {
   it('refuse deux bâtiments qui se chevauchent', () => {
     const r = raw();
     const locs = r.locations as { blocks: { position: { x: number; z: number } }[] };
-    locs.blocks[0]!.position = { x: 0, z: 129 }; // pile sur le local
+    locs.blocks[0]!.position = { x: -95, z: 123 }; // pile sur le local
     expect(() => parseGameData(r)).toThrow(/chevauche "local"|"local" chevauche/);
   });
 

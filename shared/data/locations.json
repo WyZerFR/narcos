@@ -5,10 +5,10 @@
       "name": "Le Quartier",
       "unlockAct": 1,
       "bounds": {
-        "minX": -45,
-        "maxX": 45,
-        "minZ": -140,
-        "maxZ": 140
+        "minX": -145,
+        "maxX": 215,
+        "minZ": -135,
+        "maxZ": 130
       }
     }
   ],
@@ -21,8 +21,8 @@
       "function": "base",
       "silhouette": "warehouse",
       "position": {
-        "x": 0,
-        "z": 129
+        "x": -95,
+        "z": 123
       },
       "size": {
         "w": 15,
@@ -44,8 +44,8 @@
       "function": "grocery",
       "silhouette": "corner_shop",
       "position": {
-        "x": 14,
-        "z": -13
+        "x": -62,
+        "z": -11
       },
       "size": {
         "w": 10,
@@ -67,8 +67,8 @@
       "function": "supplier",
       "silhouette": "villa_tower",
       "position": {
-        "x": 0,
-        "z": -131
+        "x": 175,
+        "z": 100
       },
       "size": {
         "w": 14,
@@ -77,7 +77,7 @@
       "height": 18,
       "color": "#2b2a3d",
       "neonColor": "#ffcc33",
-      "door": "south",
+      "door": "north",
       "interactRadius": 3,
       "dialogue": "el_jefe",
       "actionLabel": "Parler à El Jefe",
@@ -126,8 +126,8 @@
       "function": "shop",
       "silhouette": "hardware",
       "position": {
-        "x": 20,
-        "z": 14
+        "x": 75,
+        "z": -13
       },
       "size": {
         "w": 14,
@@ -136,7 +136,7 @@
       "height": 7,
       "color": "#6b4f2d",
       "neonColor": "#ff8a1f",
-      "door": "north",
+      "door": "south",
       "interactRadius": 3,
       "enterText": "Bricoshop : tout pour le jardinage. Surtout pour le jardinage.",
       "catalog": []
@@ -235,8 +235,8 @@
       "silhouette": "trapdoor",
       "hidden": true,
       "position": {
-        "x": -23.6,
-        "z": 74.89
+        "x": -138.6,
+        "z": 64.89
       },
       "size": {
         "w": 1.2,
@@ -383,6 +383,210 @@
         "d": 14
       },
       "height": 12
+    },
+    {
+      "id": "c_ancienne_epicerie",
+      "position": {
+        "x": 14,
+        "z": -13
+      },
+      "size": {
+        "w": 10,
+        "d": 8
+      },
+      "height": 12
+    },
+    {
+      "id": "c_ancien_bricoshop",
+      "position": {
+        "x": 20,
+        "z": 14
+      },
+      "size": {
+        "w": 14,
+        "d": 9
+      },
+      "height": 13
+    },
+    {
+      "id": "bf_nord_ouest",
+      "position": {
+        "x": -130,
+        "z": -16
+      },
+      "size": {
+        "w": 20,
+        "d": 14
+      },
+      "height": 9
+    },
+    {
+      "id": "bf_nord_milieu",
+      "position": {
+        "x": -105,
+        "z": -15
+      },
+      "size": {
+        "w": 18,
+        "d": 12
+      },
+      "height": 8
+    },
+    {
+      "id": "bf_nord_est",
+      "position": {
+        "x": -85,
+        "z": -18
+      },
+      "size": {
+        "w": 14,
+        "d": 18
+      },
+      "height": 10
+    },
+    {
+      "id": "bf_angle",
+      "position": {
+        "x": -52,
+        "z": -15
+      },
+      "size": {
+        "w": 8,
+        "d": 10
+      },
+      "height": 9
+    },
+    {
+      "id": "bf_sud_ouest",
+      "position": {
+        "x": -134,
+        "z": 20
+      },
+      "size": {
+        "w": 16,
+        "d": 24
+      },
+      "height": 8
+    },
+    {
+      "id": "bf_sud_ilot",
+      "position": {
+        "x": -95,
+        "z": 20.5
+      },
+      "size": {
+        "w": 18,
+        "d": 25
+      },
+      "height": 7
+    },
+    {
+      "id": "bf_sud_est",
+      "position": {
+        "x": -55,
+        "z": 21
+      },
+      "size": {
+        "w": 12,
+        "d": 20
+      },
+      "height": 9
+    },
+    {
+      "id": "co_ouest",
+      "position": {
+        "x": 58,
+        "z": -15
+      },
+      "size": {
+        "w": 10,
+        "d": 12
+      },
+      "height": 10
+    },
+    {
+      "id": "co_milieu",
+      "position": {
+        "x": 95,
+        "z": -16
+      },
+      "size": {
+        "w": 14,
+        "d": 14
+      },
+      "height": 12
+    },
+    {
+      "id": "co_est",
+      "position": {
+        "x": 120,
+        "z": -15
+      },
+      "size": {
+        "w": 16,
+        "d": 12
+      },
+      "height": 11
+    },
+    {
+      "id": "co_sud_ouest",
+      "position": {
+        "x": 65,
+        "z": 20
+      },
+      "size": {
+        "w": 30,
+        "d": 20
+      },
+      "height": 9
+    },
+    {
+      "id": "co_sud_est",
+      "position": {
+        "x": 110,
+        "z": 20
+      },
+      "size": {
+        "w": 30,
+        "d": 20
+      },
+      "height": 10
+    },
+    {
+      "id": "co_bras_ouest",
+      "position": {
+        "x": 150,
+        "z": -20
+      },
+      "size": {
+        "w": 20,
+        "d": 20
+      },
+      "height": 12
+    },
+    {
+      "id": "co_bras_milieu",
+      "position": {
+        "x": 177,
+        "z": -22
+      },
+      "size": {
+        "w": 20,
+        "d": 20
+      },
+      "height": 14
+    },
+    {
+      "id": "co_bras_est",
+      "position": {
+        "x": 205,
+        "z": -20
+      },
+      "size": {
+        "w": 10,
+        "d": 20
+      },
+      "height": 10
     }
   ]
 }
