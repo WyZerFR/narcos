@@ -5,12 +5,15 @@ import { footprint } from './locations';
 import type { Bounds } from './schemas';
 
 /** Données dont dépend la carte de la rue (obstacles, navigation). */
-export type MapData = Pick<GameData, 'config' | 'locations' | 'blocks' | 'areas'>;
+export type MapData = Pick<
+  GameData,
+  'config' | 'locations' | 'blocks' | 'areas' | 'quartierLayouts'
+>;
 
 /**
  * Obstacles solides de la carte : bâtiments (lieux `building`), immeubles de remplissage,
- * voitures garées, et tout ce qui n'est dans aucune area (autour des impasses). Les ruelles
- * (`area`) et le petit décor de la rue centrale restent traversables.
+ * voitures garées, maisons et décor solide des impasses, et tout ce qui n'est dans aucune area.
+ * Les ruelles (`area`) et le petit décor de la rue centrale restent traversables.
  */
 export function obstaclesFrom(data: MapData): Rect[] {
   const rects: Rect[] = outsideAreas(data.areas.values(), data.config.world.bounds);
@@ -22,6 +25,8 @@ export function obstaclesFrom(data: MapData): Rect[] {
     const size = car.rotation === 0 ? { w: length, d: width } : { w: width, d: length };
     rects.push(rectFromCenter(car, size));
   }
+  // impasses : maisons et décor solide (lampadaires, troncs, poubelles, caisses, clôtures, voitures)
+  for (const layout of data.quartierLayouts.values()) rects.push(...layout.colliders);
   return rects;
 }
 

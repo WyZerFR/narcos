@@ -49,7 +49,7 @@ import { interiorBounds, interiorObstacles } from './zones';
 import { obstaclesFrom } from './collision';
 import { dialogueVars, textVars } from './dialogue';
 import { areaAt, areasEnvelope } from './areas';
-import { checkQuartier } from './quartiers';
+import { checkQuartier, generateQuartier, quartierFrame, type QuartierLayout } from './quartiers';
 
 /** Catégories d'objets payables en « any » (compte ou espèces) : nourriture et boissons. */
 const ANY_CURRENCY_CATEGORIES: ReadonlySet<string> = new Set(['food', 'drink', 'water']);
@@ -116,6 +116,8 @@ export interface GameData {
   quartiers: ReadonlyMap<string, QuartierParams>;
   /** Emprises de collision du décor des quartiers. */
   quartierColliders: QuartierColliders;
+  /** Impasses générées (même graine = même résultat sur client et serveur), par id de quartier. */
+  quartierLayouts: ReadonlyMap<string, QuartierLayout>;
 }
 
 export interface RawGameData {
@@ -288,6 +290,17 @@ export function parseGameData(raw: RawGameData): GameData {
   const dialogues = indexById('dialogues.json', dialoguesFile.dialogues);
   const areas = indexById('areas.json', areasFile.areas);
   const quartiers = indexById('quartiers.json', quartiersFile.quartiers);
+  const quartierLayouts = new Map<string, QuartierLayout>();
+  const streetArea = areas.get('street');
+  for (const q of quartiers.values()) {
+    const area = areas.get(q.areaId);
+    const frame = area && streetArea ? quartierFrame(q, area.bounds, streetArea.bounds) : null;
+    if (frame)
+      quartierLayouts.set(
+        q.id,
+        generateQuartier(q, frame, quartiersFile.colliders, config.decor.carSize),
+      );
+  }
 
   const errors: string[] = [];
   for (const item of items.values()) {
@@ -375,9 +388,13 @@ export function parseGameData(raw: RawGameData): GameData {
         errors.push(`npcs.json : "${profile.id}" veut la variété inconnue "${id}"`);
   if (!npcs.profiles.some((p) => p.interestChance > 0))
     errors.push("npcs.json : aucun profil n'achète jamais rien");
-  const streetObstacles = obstaclesFrom({ config, locations, blocks: locFile.blocks, areas }).map(
-    (r) => expandRect(r, config.npc.radius),
-  );
+  const streetObstacles = obstaclesFrom({
+    config,
+    locations,
+    blocks: locFile.blocks,
+    areas,
+    quartierLayouts,
+  }).map((r) => expandRect(r, config.npc.radius));
   for (const [i, wp] of npcs.waypoints.entries())
     if (
       !rectContainsPoint(config.world.bounds, wp) ||
@@ -398,6 +415,16 @@ export function parseGameData(raw: RawGameData): GameData {
   if (config.movement.runSpeed < config.movement.walkSpeed)
     errors.push('config.json : runSpeed doit être >= walkSpeed');
   errors.push(...checkAreas(config, areas, locFile.locations, quartiers));
+  for (const layout of quartierLayouts.values()) {
+    const area = areas.get(layout.areaId)!.bounds;
+    const solids = [...locFile.locations.filter((l) => l.kind === 'building'), ...locFile.blocks];
+    for (const r of layout.colliders) {
+      if (!rectContainsRect(area, r))
+        errors.push(`quartiers.json : "${layout.id}" : un élément sort de l'area`);
+      if (solids.some((s) => rectsOverlap(footprint(s), r)))
+        errors.push(`quartiers.json : "${layout.id}" : un élément chevauche un bâtiment`);
+    }
+  }
   if (errors.length > 0) throw new Error(`[data] incohérences :\n  - ${errors.join('\n  - ')}`);
 
   return {
@@ -414,6 +441,7 @@ export function parseGameData(raw: RawGameData): GameData {
     areas,
     quartiers,
     quartierColliders: quartiersFile.colliders,
+    quartierLayouts,
   };
 }
 
