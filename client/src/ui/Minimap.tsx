@@ -5,15 +5,24 @@ import { connection } from '../net/connection';
 import { getCamera } from '../game/cameraState';
 import { localPlayer } from '../game/localPlayer';
 
-/** Taille affichée (px CSS) et cadence de rafraîchissement : décor de HUD, pas besoin de 60 Hz. */
-const SIZE = 120;
+/**
+ * Taille affichée (px CSS) et cadence de rafraîchissement : décor de HUD, pas besoin de 60 Hz.
+ * Plus haute que large : la rue centrale et ses deux impasses (nord / sud) y tiennent.
+ */
+const WIDTH = 104;
+const HEIGHT = 168;
 const REFRESH_MS = 100;
 
 const { config } = gameData;
 const { bounds } = config.world;
 const mapW = bounds.maxX - bounds.minX;
 const mapD = bounds.maxZ - bounds.minZ;
-const ROADS = config.map.roads.map((r) => rectFromCenter(r, r));
+const LAYOUTS = [...gameData.quartierLayouts.values()];
+const ROADS = [
+  ...config.map.roads.map((r) => rectFromCenter(r, r)),
+  ...LAYOUTS.flatMap((l) => [l.road, ...l.parking, l.plaza]),
+];
+const AREAS = [...gameData.areas.values()];
 const SOLIDS = obstaclesFrom(gameData);
 const PLACES = [...gameData.locations.values()];
 
@@ -29,9 +38,8 @@ export function Minimap({ room }: { room: GameRoom }) {
     const ctx = canvas?.getContext('2d');
     if (!canvas || !ctx) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = SIZE * dpr;
-    canvas.height = SIZE * dpr;
-    const scale = (SIZE * 0.9) / Math.max(mapW, mapD);
+    canvas.width = WIDTH * dpr;
+    canvas.height = HEIGHT * dpr;
     const { palette } = config;
 
     const rect = (r: Rect, color: string) => {
@@ -41,14 +49,23 @@ export function Minimap({ room }: { room: GameRoom }) {
 
     const draw = () => {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, SIZE, SIZE);
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);
       ctx.save();
-      ctx.translate(SIZE / 2, SIZE / 2);
-      ctx.rotate((getCamera().rotation * Math.PI) / 180);
+      ctx.translate(WIDTH / 2, HEIGHT / 2);
+      const angle = (getCamera().rotation * Math.PI) / 180;
+      ctx.rotate(angle);
+      // échelle : la carte tournée tient entière dans le cadre
+      const c = Math.abs(Math.cos(angle));
+      const s = Math.abs(Math.sin(angle));
+      const scale = 0.92 * Math.min(WIDTH / (mapW * c + mapD * s), HEIGHT / (mapW * s + mapD * c));
       ctx.scale(scale, scale);
       ctx.translate(-(bounds.minX + mapW / 2), -(bounds.minZ + mapD / 2));
 
       rect(bounds, palette.sky);
+      // une teinte par area (rue, quartier nord, quartier sud)
+      ctx.globalAlpha = 0.28;
+      for (const a of AREAS) rect(a.bounds, a.themeColor);
+      ctx.globalAlpha = 1;
       for (const r of ROADS) rect(r, palette.street);
       for (const r of SOLIDS) rect(r, palette.wall);
       for (const loc of PLACES) rect(footprint(loc), loc.neonColor);
@@ -77,5 +94,5 @@ export function Minimap({ room }: { room: GameRoom }) {
     return () => clearInterval(id);
   }, [room]);
 
-  return <canvas ref={ref} className="minimap" style={{ width: SIZE, height: SIZE }} />;
+  return <canvas ref={ref} className="minimap" style={{ width: WIDTH, height: HEIGHT }} />;
 }

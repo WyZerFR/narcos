@@ -140,6 +140,8 @@ export const ConfigSchema = z.object({
     moveTimeoutMs: pos,
     /** Meuble lâché à une position refusée : durée du retour animé à l'origine (ms). */
     returnMs: pos,
+    /** Durée d'affichage du message d'entrée dans une area (ms). */
+    areaBannerMs: pos,
   }),
   dialogue: z.object({
     /** Le pacte d'El Jefe est-il exigé par les choix `requires: pact` ? (pas encore en jeu) */

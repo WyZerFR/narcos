@@ -334,6 +334,7 @@
     "longPressMs": 350,
     "dragCancelPx": 8,
     "moveTimeoutMs": 3000,
-    "returnMs": 280
+    "returnMs": 280,
+    "areaBannerMs": 3000
   }
 }

@@ -6,6 +6,7 @@ import { useRoomPlayers } from '../game/Players';
 import { LabelLayer } from '../game/labels';
 import { SettingsPanel } from './SettingsPanel';
 import { Minimap } from './Minimap';
+import { AreaBanner } from './AreaBanner';
 import { StatusPanel } from './StatusPanel';
 import { CartPanel } from './CartPanel';
 import { InventoryPanel } from './InventoryPanel';
@@ -69,6 +70,7 @@ export function Hud({ snapshot, room }: { snapshot: Snapshot; room: GameRoom }) 
         <div className="banner">Reconnexion… (tentative {snapshot.attempt})</div>
       )}
 
+      {myZone === STREET && <AreaBanner />}
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
       {inventory && <InventoryPanel room={room} />}
       <SalePanel room={room} />
