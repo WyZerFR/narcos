@@ -42,6 +42,8 @@ export interface PlayerView {
   bagTier: number;
   /** Absent d'un serveur plus ancien : personnage par défaut. */
   characterId?: string;
+  /** Absent d'un serveur plus ancien : couleurs d'origine. */
+  appearance?: { forEach(cb: (value: string, key: string) => void): void };
   cleanBalance: number;
   hasAccount: boolean;
   pactAccepted: boolean;

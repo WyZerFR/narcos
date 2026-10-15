@@ -24,7 +24,6 @@ import {
   interiorForLocation,
   interiorPlaces,
   resolveCircle,
-  resolveCharacterId,
   sanitizeName,
   setClockScale,
   validateMove,
@@ -83,7 +82,14 @@ import {
 } from './bank';
 import { SALE_COMPLETED, type SaleClosedMessage, type SaleCompletedEvent } from '@narco/shared';
 import { GameState, Player } from './schema';
-import { makeSlots, readInventory, replaceBag, syncArea, writeInventory } from './stateSync';
+import {
+  makeSlots,
+  readInventory,
+  replaceBag,
+  setLook,
+  syncArea,
+  writeInventory,
+} from './stateSync';
 
 const { config, economy, items } = gameData;
 const SURVIVAL = economy.survival;
@@ -212,7 +218,13 @@ export class NarcoRoom extends Room<GameState> {
       const who = this.playerOf(client);
       if (!who || !isObject(msg)) return;
       if (config.characters.locked) return this.notify(client, false, 'Personnage figé.');
-      who.player.characterId = resolveCharacterId(gameData, msg.characterId);
+      setLook(who.player, msg.characterId);
+    });
+    this.onMessage(ClientMsg.AppearanceSet, (client, msg: unknown) => {
+      const who = this.playerOf(client);
+      if (!who || !isObject(msg)) return;
+      if (config.characters.locked) return this.notify(client, false, 'Personnage figé.');
+      setLook(who.player, who.player.characterId, isObject(msg.appearance) ? msg.appearance : {});
     });
     this.onMessage(ClientMsg.Use, (client, msg: unknown) => this.handleUse(client, msg));
     this.onMessage(ClientMsg.InventoryMove, (client, msg: unknown) =>
@@ -844,7 +856,7 @@ export class NarcoRoom extends Room<GameState> {
       case 'setCharacter': {
         const target = this.state.players.get(String(msg.playerId ?? who.playerId));
         if (!target) return this.notify(client, false, '[debug] joueur inconnu');
-        target.characterId = resolveCharacterId(gameData, msg.characterId);
+        setLook(target, msg.characterId);
         return this.notify(client, true, `[debug] ${target.name} → ${target.characterId}`);
       }
       case 'give': {

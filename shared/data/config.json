@@ -288,9 +288,15 @@
   "characters": {
     "locked": false,
     "defaultId": "perso_1",
+    "maxCount": 12,
+    "categories": [
+      { "id": "homme", "name": "Hommes" },
+      { "id": "femme", "name": "Femmes" },
+      { "id": "autre", "name": "Autres" }
+    ],
     "budget": {
       "maxTriangles": 15000,
-      "maxDrawCalls": 3,
+      "maxDrawCalls": 1,
       "maxTextureSize": 2048,
       "maxFileMB": 5
     },
@@ -305,7 +311,6 @@
     "speedSmoothing": 10,
     "moveThreshold": 0.3,
     "animationFadeSeconds": 0.2,
-    "tint": 0.18,
     "bob": {
       "height": 0.06,
       "speed": 9

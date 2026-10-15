@@ -1,19 +1,16 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import {
-  AnimationMixer,
-  Color,
-  RingGeometry,
-  Vector3,
-  type AnimationAction,
-  type Group,
-  type Material,
-  type MeshLambertMaterial,
-  type Object3D,
-} from 'three';
-import { gameData, smoothFactor } from '@narco/shared';
+import { AnimationMixer, RingGeometry, Vector3, type AnimationAction, type Group } from 'three';
+import { appearanceKey, gameData, smoothFactor, type Appearance } from '@narco/shared';
 import { FRAME_PRIORITY } from '../framePriority';
-import { instantiate, useCharacterAsset, type CharacterAsset } from './characterAssets';
+import {
+  applyAppearance,
+  applyBodyState,
+  disposeMaterials,
+  instantiate,
+  useCharacterAsset,
+  type CharacterAsset,
+} from './characterAssets';
 
 const { world, characters: rules, palette } = gameData.config;
 const SIZE = world.playerSize;
@@ -23,14 +20,17 @@ const RING = new RingGeometry(rules.ring.innerRadius, rules.ring.outerRadius, 32
 
 /**
  * Corps d'un joueur : modèle 3D de son personnage (cloné, animé), ou cube de repli tant que le
- * modèle charge ou s'il a échoué. Anneau au sol à la couleur du joueur dans tous les cas.
+ * modèle charge ou s'il a échoué. La couleur du joueur ne teinte que l'anneau au sol (et la
+ * pastille de nom) : le corps garde les couleurs de son modèle, ou celles choisies par slot.
  */
 export function CharacterBody({
   characterId,
+  appearance,
   color,
   ghost,
 }: {
   characterId: string;
+  appearance: Appearance;
   color: string;
   ghost: boolean;
 }) {
@@ -41,27 +41,21 @@ export function CharacterBody({
         <meshBasicMaterial color={color} transparent={ghost} opacity={ghost ? 0.35 : 1} />
       </mesh>
       {typeof asset === 'object' ? (
-        <Model asset={asset} color={color} ghost={ghost} />
+        <Model asset={asset} appearance={appearance} ghost={ghost} />
       ) : (
-        <CubeBody color={color} ghost={ghost} />
+        <CubeBody ghost={ghost} />
       )}
     </>
   );
 }
 
-/** Cube historique : repli sans modèle. */
-export function CubeBody({ color, ghost }: { color: string; ghost: boolean }) {
+/** Cube historique : repli sans modèle, neutre (la couleur du joueur est sur l'anneau). */
+export function CubeBody({ ghost }: { ghost: boolean }) {
   return (
     <>
       <mesh position={[0, SIZE / 2, 0]}>
         <boxGeometry args={[SIZE, SIZE, SIZE]} />
-        <meshLambertMaterial
-          color={color}
-          emissive={color}
-          emissiveIntensity={0.45}
-          transparent={ghost}
-          opacity={ghost ? 0.35 : 1}
-        />
+        <meshLambertMaterial color={palette.wall} transparent={ghost} opacity={ghost ? 0.35 : 1} />
       </mesh>
       {/* « nez » : indique la direction du regard */}
       <mesh position={[0, SIZE * 0.7, SIZE * 0.55]}>
@@ -72,16 +66,15 @@ export function CubeBody({ color, ghost }: { color: string; ghost: boolean }) {
   );
 }
 
-function materialsOf(root: Object3D): MeshLambertMaterial[] {
-  const list: MeshLambertMaterial[] = [];
-  root.traverse((o) => {
-    const m = (o as { material?: Material }).material;
-    if (m) list.push(m as MeshLambertMaterial);
-  });
-  return list;
-}
-
-function Model({ asset, color, ghost }: { asset: CharacterAsset; color: string; ghost: boolean }) {
+function Model({
+  asset,
+  appearance,
+  ghost,
+}: {
+  asset: CharacterAsset;
+  appearance: Appearance;
+  ghost: boolean;
+}) {
   const wrapper = useRef<Group>(null);
   const root = useMemo(() => instantiate(asset), [asset]);
   const anim = useMemo(() => {
@@ -97,22 +90,17 @@ function Model({ asset, color, ghost }: { asset: CharacterAsset; color: string; 
   }, [asset, root]);
   const motion = useRef({ last: new Vector3(NaN, 0, 0), speed: 0, time: 0 });
 
-  // Teinte légère à la couleur du joueur (lisible de nuit) ; fantôme si déconnecté.
-  useEffect(() => {
-    for (const m of materialsOf(root)) {
-      m.emissive = new Color(color);
-      m.emissiveIntensity = rules.tint;
-      m.transparent = ghost;
-      m.opacity = ghost ? 0.35 : 1;
-      m.needsUpdate = true;
-    }
-  }, [root, color, ghost]);
+  // Fantôme si déconnecté ; aucune teinte : le corps garde les couleurs du modèle.
+  useEffect(() => applyBodyState(root, ghost), [root, ghost]);
+  // couleurs par slot : uniforms seulement, ni nouveau matériau ni recompilation
+  const look = appearanceKey(appearance);
+  useEffect(() => applyAppearance(root, appearance), [root, look]);
 
   useEffect(
     () => () => {
       anim.mixer.stopAllAction();
       anim.mixer.uncacheRoot(root);
-      for (const m of materialsOf(root)) m.dispose();
+      disposeMaterials(root);
     },
     [anim, root],
   );

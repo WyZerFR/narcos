@@ -152,6 +152,12 @@ export const ConfigSchema = z.object({
     locked: z.boolean(),
     /** Personnage d'un joueur qui n'a rien choisi (ou d'un id inconnu). */
     defaultId: z.string().min(1),
+    /** Nombre maximal de personnages dans characters.json (taille du dépôt, écran de choix). */
+    maxCount: z.number().int().positive(),
+    /** Catégories de l'écran de sélection, dans l'ordre d'affichage. */
+    categories: z
+      .array(z.object({ id: z.string().regex(/^[a-z0-9_]+$/), name: z.string().min(1) }))
+      .min(1),
     /** Budget iPad par modèle (vérifié par `scripts/check-models.mjs` et les tests). */
     budget: z.object({
       maxTriangles: z.number().int().positive(),
@@ -171,8 +177,6 @@ export const ConfigSchema = z.object({
     moveThreshold: pos,
     /** Fondu entre deux animations (s). */
     animationFadeSeconds: z.number().nonnegative(),
-    /** Teinte émissive à la couleur du joueur (0 = aucune), pour la lisibilité de nuit. */
-    tint: z.number().min(0).max(1),
     /** Balancement de repli quand le modèle n'a pas d'animation. */
     bob: z.object({ height: z.number().nonnegative(), speed: pos }),
     /** Anneau au sol à la couleur du joueur (distingue 3 joueurs au même modèle). */
@@ -912,6 +916,8 @@ export type QuartierColliders = QuartiersFile['colliders'];
 export const CharacterSchema = z.object({
   id: z.string().regex(/^[a-z0-9_]+$/),
   name: z.string().min(1),
+  /** Catégorie de l'écran de sélection (`config.characters.categories`). */
+  category: z.string().min(1),
   /** Chemin du modèle glTF, relatif à `client/public`. */
   model: z.string().regex(/^[\w-]+(\/[\w-]+)*\.(gltf|glb)$/i),
   /** Multiplicateur après normalisation à `height`. */
@@ -924,8 +930,33 @@ export const CharacterSchema = z.object({
   animations: z
     .object({ idle: z.string().min(1).optional(), walk: z.string().min(1).optional() })
     .default({}),
+  /**
+   * Zones personnalisables (`palettes.json` → slots) : noms des matériaux du fichier qui les
+   * composent. Les matériaux absents gardent leur couleur d'origine (yeux, détails…).
+   */
+  slots: z.record(z.string(), z.array(z.string().min(1)).min(1)).default({}),
 });
 
 export const CharactersFileSchema = z.object({ characters: z.array(CharacterSchema).min(1) });
 
 export type Character = z.infer<typeof CharacterSchema>;
+
+// ---------------------------------------------------------------- teintes (palettes.json)
+
+const slug = z.string().regex(/^[a-z0-9_]+$/);
+
+export const SwatchSchema = z.object({
+  id: slug,
+  name: z.string().min(1),
+  color: z.string().regex(/^#[0-9a-f]{6}$/i),
+});
+
+export const PalettesFileSchema = z.object({
+  /** Teintes proposées, par palette (peaux, cheveux, vêtements) : pas de couleur libre. */
+  palettes: z.record(z.string(), z.array(SwatchSchema).min(1)),
+  /** Zones d'un personnage, dans l'ordre de l'écran de personnalisation. */
+  slots: z.array(z.object({ id: slug, name: z.string().min(1), palette: z.string() })).min(1),
+});
+
+export type Swatch = z.infer<typeof SwatchSchema>;
+export type PalettesFile = z.infer<typeof PalettesFileSchema>;

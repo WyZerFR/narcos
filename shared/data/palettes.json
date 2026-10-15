@@ -1,0 +1,192 @@
+{
+  "palettes": {
+    "peaux": [
+      {
+        "id": "peau_1",
+        "name": "Porcelaine",
+        "color": "#f6dcc3"
+      },
+      {
+        "id": "peau_2",
+        "name": "Clair",
+        "color": "#eecaa6"
+      },
+      {
+        "id": "peau_3",
+        "name": "Beige",
+        "color": "#e0b48c"
+      },
+      {
+        "id": "peau_4",
+        "name": "Doré",
+        "color": "#d29f74"
+      },
+      {
+        "id": "peau_5",
+        "name": "Caramel",
+        "color": "#c08a5d"
+      },
+      {
+        "id": "peau_6",
+        "name": "Ambré",
+        "color": "#a87249"
+      },
+      {
+        "id": "peau_7",
+        "name": "Cannelle",
+        "color": "#8d5a37"
+      },
+      {
+        "id": "peau_8",
+        "name": "Moka",
+        "color": "#714528"
+      },
+      {
+        "id": "peau_9",
+        "name": "Cacao",
+        "color": "#57331c"
+      },
+      {
+        "id": "peau_10",
+        "name": "Ébène",
+        "color": "#3d2414"
+      }
+    ],
+    "cheveux": [
+      {
+        "id": "cheveux_1",
+        "name": "Noir",
+        "color": "#141110"
+      },
+      {
+        "id": "cheveux_2",
+        "name": "Brun foncé",
+        "color": "#2e1f15"
+      },
+      {
+        "id": "cheveux_3",
+        "name": "Brun",
+        "color": "#4b321e"
+      },
+      {
+        "id": "cheveux_4",
+        "name": "Châtain",
+        "color": "#7a5230"
+      },
+      {
+        "id": "cheveux_5",
+        "name": "Châtain clair",
+        "color": "#a5793f"
+      },
+      {
+        "id": "cheveux_6",
+        "name": "Blond",
+        "color": "#d6b56b"
+      },
+      {
+        "id": "cheveux_7",
+        "name": "Platine",
+        "color": "#f0dfa6"
+      },
+      {
+        "id": "cheveux_8",
+        "name": "Roux",
+        "color": "#a8402a"
+      },
+      {
+        "id": "cheveux_9",
+        "name": "Gris",
+        "color": "#b5b5b5"
+      },
+      {
+        "id": "cheveux_10",
+        "name": "Violet",
+        "color": "#6a2c8f"
+      }
+    ],
+    "vetements": [
+      {
+        "id": "tissu_1",
+        "name": "Noir",
+        "color": "#1c1c1c"
+      },
+      {
+        "id": "tissu_2",
+        "name": "Blanc",
+        "color": "#f2f2f2"
+      },
+      {
+        "id": "tissu_3",
+        "name": "Gris",
+        "color": "#6e6e6e"
+      },
+      {
+        "id": "tissu_4",
+        "name": "Marine",
+        "color": "#1f3a5f"
+      },
+      {
+        "id": "tissu_5",
+        "name": "Bleu",
+        "color": "#3b6fb6"
+      },
+      {
+        "id": "tissu_6",
+        "name": "Vert",
+        "color": "#2f6b3a"
+      },
+      {
+        "id": "tissu_7",
+        "name": "Bordeaux",
+        "color": "#8f1d21"
+      },
+      {
+        "id": "tissu_8",
+        "name": "Rouge",
+        "color": "#d6402f"
+      },
+      {
+        "id": "tissu_9",
+        "name": "Moutarde",
+        "color": "#e0a526"
+      },
+      {
+        "id": "tissu_10",
+        "name": "Marron",
+        "color": "#8a5a3b"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "id": "skin",
+      "name": "Peau",
+      "palette": "peaux"
+    },
+    {
+      "id": "hair",
+      "name": "Cheveux",
+      "palette": "cheveux"
+    },
+    {
+      "id": "top",
+      "name": "Haut",
+      "palette": "vetements"
+    },
+    {
+      "id": "bottom",
+      "name": "Bas",
+      "palette": "vetements"
+    },
+    {
+      "id": "shoes",
+      "name": "Chaussures",
+      "palette": "vetements"
+    },
+    {
+      "id": "accessory",
+      "name": "Accessoire",
+      "palette": "vetements"
+    }
+  ]
+}

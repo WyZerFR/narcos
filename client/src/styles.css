@@ -95,44 +95,92 @@ input {
 .character-select h2 {
   margin: 0;
 }
-.character-grid {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  width: min(720px, 100%);
-  height: min(62vh, 440px);
-}
-/* un seul canvas derrière les deux cartes : les aperçus sont centrés sur chaque colonne */
-.character-canvas {
-  position: absolute !important;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-}
-.character-card {
-  position: relative;
+.character-tabs,
+.character-actions {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 10px;
-  padding: 12px;
+}
+/* carrousel : flèches de part et d'autre d'un seul canvas (un seul modèle chargé à la fois) */
+.character-carousel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(720px, 100%);
+}
+.character-arrow {
+  flex: none;
+  min-width: 56px;
+  min-height: 56px;
+  font-size: 22px;
+}
+.character-stage {
+  position: relative;
+  flex: 1;
+  height: min(46vh, 360px);
   border-radius: 14px;
   border: 2px solid #4a443c;
   background: rgba(42, 37, 32, 0.35);
+  overflow: hidden;
 }
-.character-card.selected {
+.character-stage.selected {
   border-color: var(--accent);
 }
-.character-stage {
-  flex: 1;
+.character-status {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.character-status {
   opacity: 0.8;
+  pointer-events: none;
+}
+/* personnalisation : aperçu à gauche, une rangée de pastilles (44 px) par slot à droite */
+.character-colors {
+  display: flex;
+  gap: 16px;
+  width: min(960px, 100%);
+  min-height: 0;
+}
+.character-colors .character-stage {
+  flex: 0 0 38%;
+}
+.swatch-rows {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: min(56vh, 420px);
+  overflow-y: auto;
+}
+.swatch-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.swatch-label {
+  width: 100%;
+  font-weight: 600;
+  opacity: 0.85;
+}
+.swatch {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid #4a443c;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.swatch.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--text);
+}
+.character-count {
+  margin-left: 8px;
+  opacity: 0.6;
+  font-weight: 400;
 }
 .character-name {
   font-weight: 700;
