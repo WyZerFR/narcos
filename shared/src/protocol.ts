@@ -271,7 +271,8 @@ export type DebugMessage =
   | { cmd: 'priceMultiplier'; areaId: string; value: number }
   | { cmd: 'resetLaunderCap'; venue?: LaunderVenue }
   | { cmd: 'launderFee'; venue: LaunderVenue; value: number }
-  | { cmd: 'teleportTrapdoor' };
+  | { cmd: 'teleportTrapdoor' }
+  | { cmd: 'teleportGarden'; index: number };
 
 export const MAX_NAME_LENGTH = 16;
 

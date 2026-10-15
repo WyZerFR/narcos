@@ -108,7 +108,7 @@ for (const o of launderReport(gameData, dirtyPerHour))
     `  ${o.label} : ${o.dirtyPerHour.toFixed(0)} $ sales/h blanchis → ${o.cleanPerHour.toFixed(0)} $ propres/h`,
   );
 const trapLoc = [...gameData.quartiers.values()]
-  .map((q) => q.hiddenCellar && gameData.locations.get(q.hiddenCellar.locationId))
+  .map((q) => q.cellarLocationId && gameData.locations.get(q.cellarLocationId))
   .find((l) => l);
 if (trapLoc) {
   const m = fromSpawn[cellIndex(grid, interactionPoint(trapLoc))]!;

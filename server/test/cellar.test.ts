@@ -225,6 +225,20 @@ describe('cave — blanchiment à 15 %', () => {
     expect({ x: me.x, z: me.z }).toEqual(interactionPoint(TRAP));
   });
 
+  it('debug : téléportation dans chaque jardin caché (vrai et leurres)', async () => {
+    const id = 'cellar-player-0024';
+    const { client, room } = await newGame(id);
+    const me = room.state.players.get(id)!;
+    const gardens = gameData.quartierLayouts.get('sud')!.gardens;
+    for (const [index, g] of gardens.entries()) {
+      client.send(ClientMsg.Debug, { cmd: 'teleportGarden', index });
+      expect(((await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage).ok).toBe(true);
+      const r = g.garden;
+      expect(me.x >= r.minX && me.x <= r.maxX && me.z >= r.minZ && me.z <= r.maxZ).toBe(true);
+      expect(me.area).toBe('south');
+    }
+  });
+
   it('ancienne sauvegarde sans journal de cave : chargée, journal vide', () => {
     const snap = RoomSnapshotSchema.parse({
       code: 'ABCD',

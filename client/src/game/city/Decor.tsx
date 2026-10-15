@@ -297,7 +297,7 @@ export function Decor({
         material: solidMaterial,
         items: at([
           ...decor.bins,
-          ...quartierPlacements(data, (l) => [...l.bins, ...(l.cellar?.bins ?? [])]),
+          ...quartierPlacements(data, (l) => [...l.bins, ...l.gardens.flatMap((g) => g.bins)]),
         ]),
       },
       {
@@ -306,7 +306,7 @@ export function Decor({
         material: solidMaterial,
         items: at([
           ...decor.crates,
-          ...quartierPlacements(data, (l) => [...l.crates, ...(l.cellar?.crates ?? [])]),
+          ...quartierPlacements(data, (l) => [...l.crates, ...l.gardens.flatMap((g) => g.crates)]),
         ]),
       },
       {

@@ -904,9 +904,22 @@ export class NarcoRoom extends Room<GameState> {
           `[debug] commission ${venue.data} = ${Math.round(fee.data * 100)} %`,
         );
       }
+      case 'teleportGarden': {
+        // jardins cachés (vrai et leurres), dans l'ordre de quartiers.json
+        const gardens = [...gameData.quartierLayouts.values()].flatMap((l) => l.gardens);
+        const g = gardens[Math.floor(Number(msg.index))];
+        if (!g) return this.notify(client, false, '[debug] jardin inconnu');
+        // au débouché du passage, dans le jardin
+        const at = {
+          x: g.side < 0 ? g.garden.maxX - 0.75 : g.garden.minX + 0.75,
+          z: (g.passage.minZ + g.passage.maxZ) / 2,
+        };
+        this.moveToZone(who.playerId, player, STREET, at);
+        return this.notify(client, true, `[debug] jardin ${g.kind === 'real' ? 'vrai' : 'leurre'}`);
+      }
       case 'teleportTrapdoor': {
-        const q = [...gameData.quartiers.values()].find((x) => x.hiddenCellar);
-        const trap = q && gameData.locations.get(q.hiddenCellar!.locationId);
+        const q = [...gameData.quartiers.values()].find((x) => x.cellarLocationId);
+        const trap = q && gameData.locations.get(q.cellarLocationId!);
         if (!trap) return this.notify(client, false, '[debug] pas de trappe');
         this.moveToZone(who.playerId, player, STREET, interactionPoint(trap));
         return this.notify(client, true, '[debug] devant la trappe');

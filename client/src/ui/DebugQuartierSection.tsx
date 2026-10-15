@@ -4,6 +4,7 @@ import { connection } from '../net/connection';
 import { setAreaBoundsVisible, useAreaBoundsVisible } from '../game/AreaBounds';
 
 const AREAS = [...gameData.areas.values()];
+const GARDENS = [...gameData.quartierLayouts.values()].flatMap((l) => l.gardens);
 /** Pas de réglage du multiplicateur de prix (debug). */
 const PRICE_STEP = 0.05;
 /** Pas de réglage de la commission du blanchisseur (debug). */
@@ -50,6 +51,16 @@ export function DebugQuartierSection() {
         <button type="button" className="btn" onClick={() => send({ cmd: 'teleportTrapdoor' })}>
           → Trappe
         </button>
+        {GARDENS.map((g, index) => (
+          <button
+            key={index}
+            type="button"
+            className="btn"
+            onClick={() => send({ cmd: 'teleportGarden', index })}
+          >
+            → Jardin {index + 1} ({g.kind === 'real' ? 'vrai' : 'leurre'})
+          </button>
+        ))}
         <button
           type="button"
           className="btn"

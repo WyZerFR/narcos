@@ -319,10 +319,13 @@ describe('PNJ — simulation (hors réseau, hasard maîtrisé)', () => {
     }
   });
 
-  it('PNJ de vente exclus du passage et du jardin de la cachette', () => {
-    const c = gameData.quartierLayouts.get('sud')!.cellar!;
+  it('PNJ de vente exclus des passages et des jardins cachés (vrai et leurres)', () => {
+    // tous les jardins cachés (vrai et leurres) et leurs passages
+    const zones = gameData.quartierLayouts
+      .get('sud')!
+      .gardens.flatMap((g) => [g.passage, g.garden]);
     const g = gridOf('south');
-    for (const r of [c.passage, c.garden])
+    for (const r of zones)
       expect(isFreeAt(g, { x: (r.minX + r.maxX) / 2, z: (r.minZ + r.maxZ) / 2 })).toBe(false);
     const state = new GameState();
     let seed = 11;
@@ -336,7 +339,7 @@ describe('PNJ — simulation (hors réseau, hasard maîtrisé)', () => {
       sim.update(250, t * 250 + 10_000, t * 250);
       for (const id of state.npcs.keys()) {
         const p = sim.positionOf(id)!;
-        for (const r of [c.passage, c.garden]) expect(rectContainsPoint(r, p), id).toBe(false);
+        for (const r of zones) expect(rectContainsPoint(r, p), id).toBe(false);
       }
     }
   });

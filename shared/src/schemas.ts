@@ -774,21 +774,30 @@ export const QuartierSchema = z.object({
   /** Arche d'entrée avec enseigne néon. */
   arch: z.object({ label: z.string().min(1), height: pos }),
   /**
-   * Cachette (Quartier Sud) : passage étroit entre les maisons `houseIndex` et `houseIndex + 1`
-   * du côté `side`, jardin arrière clos derrière elles, trappe (lieu `locationId`) dans le
-   * jardin, placée par fractions de sa longueur (`along`) et de sa profondeur (`depth`).
+   * Jardins cachés (Quartier Sud) : chacun derrière les maisons `houseIndex` et `houseIndex + 1`
+   * du côté `side`, atteint par un passage étroit entre elles. Exactement un `real` (trappe de la
+   * cave, lieu `cellarLocationId`), les autres sont des leurres identiques sans trappe. `spot`
+   * place la trappe (ou le coffre cassé d'un leurre) en fractions de longueur et de profondeur.
    */
-  hiddenCellar: z
-    .object({
-      locationId: z.string().min(1),
-      side: z.enum(['west', 'east']),
-      houseIndex: z.number().int().nonnegative(),
-      passageWidth: pos,
-      gardenDepth: pos,
-      fenceHeight: pos,
-      trapdoor: z.object({ along: z.number().min(0).max(1), depth: z.number().min(0).max(1) }),
-    })
-    .optional(),
+  hiddenGardens: z
+    .array(
+      z.object({
+        kind: z.enum(['real', 'decoy']),
+        side: z.enum(['west', 'east']),
+        houseIndex: z.number().int().nonnegative(),
+        passageWidth: pos,
+        gardenDepth: pos,
+        fenceHeight: pos,
+        spot: z.object({ along: z.number().min(0).max(1), depth: z.number().min(0).max(1) }),
+      }),
+    )
+    .default([])
+    .refine(
+      (list) => list.length === 0 || list.filter((g) => g.kind === 'real').length === 1,
+      'exactement un jardin "real"',
+    ),
+  /** Lieu caché (locations.json) de la trappe du jardin `real`. */
+  cellarLocationId: z.string().min(1).optional(),
   /** Bâtiment du bout : portail, gardes statiques, guirlandes sur la placette. */
   landmark: z.object({
     gate: z.boolean(),
