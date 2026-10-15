@@ -21,24 +21,27 @@ export function buildRoom(interior: Interior, data: GameData = gameData): RoomGe
   const glow = new Batch();
   const { w, d } = interior.size;
   const h = interior.wallHeight;
-  const wall = shade(entrance.color, 1.6);
+  const cellar = interior.style === 'cellar';
+  const wall = shade(entrance.color, cellar ? 1.1 : 1.6);
 
-  // sol carrelé en damier (deux tons du sol de la palette)
+  // sol carrelé en damier (deux tons du sol de la palette) ; cave : dalles de pierre sombres
   solid.floor(
     { minX: -w / 2 - WALL, maxX: w / 2 + WALL, minZ: -d / 2 - WALL, maxZ: d / 2 + WALL },
     0,
-    shade(palette.ground, 0.9),
+    shade(palette.ground, cellar ? 0.5 : 0.9),
   );
-  for (let x = -w / 2; x < w / 2; x += 1) {
-    for (let z = -d / 2; z < d / 2; z += 1) {
-      if ((Math.round(x) + Math.round(z)) % 2 === 0) continue;
-      solid.floor(
-        { minX: x, maxX: x + 1, minZ: z, maxZ: z + 1 },
-        0.005,
-        shade(palette.ground, 1.25),
-      );
+  if (cellar) stoneFloor(solid, w, d, data);
+  else
+    for (let x = -w / 2; x < w / 2; x += 1) {
+      for (let z = -d / 2; z < d / 2; z += 1) {
+        if ((Math.round(x) + Math.round(z)) % 2 === 0) continue;
+        solid.floor(
+          { minX: x, maxX: x + 1, minZ: z, maxZ: z + 1 },
+          0.005,
+          shade(palette.ground, 1.25),
+        );
+      }
     }
-  }
 
   // murs (percés par la découpe quand ils cachent le joueur) + plinthe
   const walls = [
@@ -52,13 +55,14 @@ export function buildRoom(interior: Interior, data: GameData = gameData): RoomGe
     solid.block(wl.x, 0, wl.z, wl.sx + 0.06, 0.25, wl.sz + 0.06, shade(entrance.color, 0.6));
   }
 
-  // éclairage chaud : bandeau lumineux en haut du mur du fond
-  glow.box(0, h - 0.35, -d / 2 + 0.02, w * 0.85, 0.12, 0.08, shade(palette.neon, 1));
+  // éclairage chaud : bandeau lumineux en haut du mur du fond (la cave n'a que son ampoule)
+  if (!cellar) glow.box(0, h - 0.35, -d / 2 + 0.02, w * 0.85, 0.12, 0.08, shade(palette.neon, 1));
   // Mobilier et déco : jamais percés par la découpe (seuls les murs le sont).
   solid.cuttable = false;
   glow.cuttable = false;
 
   for (const st of interior.stations) buildStation(st, solid, glow, data, entrance.neonColor);
+  for (const prop of interior.props) buildProp(prop, h, solid, glow, data, entrance.neonColor);
 
   // la porte fait partie du mur : elle redevient découpable
   solid.cuttable = true;
@@ -146,6 +150,72 @@ function buildStation(st: Station, solid: Batch, glow: Batch, data: GameData, ne
       glow.box(x, 1.55, z - d * 0.2, w * 0.9, 1, 0.04, shade(neon, 0.45));
       return;
     case 'exit':
+      return;
+  }
+}
+
+/** Dalles de pierre irrégulières (rangées décalées, deux tons du sol de la palette). */
+function stoneFloor(solid: Batch, w: number, d: number, data: GameData) {
+  const { palette } = data.config;
+  const rng = seeded('cave');
+  const step = 1.2;
+  for (let row = 0, z = -d / 2; z < d / 2 - 0.01; row++, z += step) {
+    const z1 = Math.min(d / 2, z + step);
+    for (let x = -w / 2 - (row % 2) * (step / 2); x < w / 2 - 0.01; x += step) {
+      const x0 = Math.max(-w / 2, x) + 0.04;
+      const x1 = Math.min(w / 2, x + step) - 0.04;
+      if (x1 <= x0) continue;
+      const k = 0.62 + rng() * 0.18;
+      solid.floor(
+        { minX: x0, maxX: x1, minZ: z + 0.04, maxZ: z1 - 0.04 },
+        0.005,
+        shade(palette.ground, k),
+      );
+    }
+  }
+}
+
+/** Décor d'une pièce (`interior.props`) : caisses, coffre, escalier, ampoule nue. */
+function buildProp(
+  prop: Interior['props'][number],
+  wallH: number,
+  solid: Batch,
+  glow: Batch,
+  data: GameData,
+  neon: string,
+) {
+  const { palette } = data.config;
+  const { x, z } = prop.position;
+  const { w, d } = prop.size;
+  switch (prop.kind) {
+    case 'crate':
+      solid.block(x, 0, z, w, w * 0.9, d, shade(palette.neon, 0.38));
+      solid.block(x, w * 0.9, z, w + 0.04, 0.05, d + 0.04, shade(palette.neon, 0.3));
+      return;
+    case 'safe':
+      solid.block(x, 0, z, w, 1.1, d, shade(palette.sky, 1.6));
+      solid.block(x, 0.55, z + d / 2 + 0.01, 0.2, 0.2, 0.04, shade(palette.sky, 2.6));
+      glow.box(x + 0.25, 0.85, z + d / 2 + 0.02, 0.06, 0.06, 0.02, shade(neon, 1));
+      return;
+    case 'stairs': {
+      // marches qui montent vers la trappe (contre le mur, côté sortie)
+      const steps = 5;
+      for (let i = 0; i < steps; i++)
+        solid.block(
+          x,
+          0,
+          z - d / 2 + (d / steps) * (i + 0.5),
+          w,
+          ((i + 1) * wallH) / (steps + 1),
+          d / steps,
+          shade(palette.ground, 0.85 - i * 0.04),
+        );
+      return;
+    }
+    case 'bulb':
+      // fil et ampoule nue : la seule lumière (chaude) de la cave
+      solid.block(x, wallH - 0.6, z, 0.02, 0.6, 0.02, shade(palette.sky, 0.6));
+      glow.box(x, wallH - 0.72, z, 0.18, 0.22, 0.18, shade(neon, 1.4));
       return;
   }
 }

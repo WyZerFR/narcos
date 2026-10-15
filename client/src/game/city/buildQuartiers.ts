@@ -7,7 +7,7 @@ import {
   type QuartierParams,
   type Vec2,
 } from '@narco/shared';
-import { faceOf, shade, type Batch, type Face } from './batch';
+import { faceOf, mix, shade, type Batch, type Face } from './batch';
 
 /**
  * Impasses générées (`gameData.quartierLayouts`) fusionnées dans les deux géométries de la
@@ -186,8 +186,13 @@ function decor(b: Batches, l: QuartierLayout, q: QuartierParams, data: GameData)
   for (const r of l.fences) {
     const cx = (r.minX + r.maxX) / 2;
     const cz = (r.minZ + r.maxZ) / 2;
-    b.solid.block(cx, 0, cz, r.maxX - r.minX, FENCE_H, r.maxZ - r.minZ, shade(p.roofs[0]!, 0.9));
+    // clôtures du jardin caché : plus hautes, planches plus sombres
+    const high = l.cellar?.fences.includes(r) ?? false;
+    const h = high ? l.cellar!.fenceHeight : FENCE_H;
+    const color = shade(p.roofs[0]!, high ? 0.6 : 0.9);
+    b.solid.block(cx, 0, cz, r.maxX - r.minX, h, r.maxZ - r.minZ, color);
   }
+  if (l.cellar) hiddenCellar(b, l.cellar, q, data);
   // arche d'entrée : deux piliers, poutre, enseigne néon (texte en étiquette DOM)
   const { arch } = l;
   const archColor = shade(p.roofs[0]!, 0.8);
@@ -229,4 +234,48 @@ function bulbs(glow: Batch, a: Vec2, bEnd: Vec2, y: number, q: QuartierParams) {
     const color = shade(i % 2 === 0 ? q.palette.neon : q.palette.windows, 1);
     glow.box(a.x + (bEnd.x - a.x) * t, y - sag, a.z + (bEnd.z - a.z) * t, 0.14, 0.14, 0.14, color);
   }
+}
+
+/**
+ * Cachette du blanchisseur : passage dans l'ombre, jardin d'herbe sèche, remblai sombre,
+ * trappe en bois à poignée métallique, lueur discrète qui filtre, ampoule nue, vieux fauteuil.
+ * Caisses et poubelle du jardin sont instanciées avec le décor (Decor.tsx).
+ */
+function hiddenCellar(
+  b: Batches,
+  c: NonNullable<QuartierLayout['cellar']>,
+  q: QuartierParams,
+  data: GameData,
+) {
+  const { palette } = data.config;
+  const trapLoc = data.locations.get(q.hiddenCellar!.locationId)!;
+  const glowColor = trapLoc.neonColor;
+  b.solid.floor(c.passage, 0.04, shade(palette.ground, 0.35));
+  b.solid.floor(c.garden, 0.04, mix(palette.vegetation, palette.neon, 0.45).multiplyScalar(0.55));
+  for (const r of c.backfill) b.solid.floor(r, 0.03, shade(palette.ground, 0.4));
+  // touffes d'herbe sèche (déterministes : sur une grille du jardin)
+  for (let x = c.garden.minX + 0.7; x < c.garden.maxX - 0.5; x += 1.9)
+    for (let z = c.garden.minZ + 0.9; z < c.garden.maxZ - 0.5; z += 2.3) {
+      if (Math.hypot(x - c.trapdoor.x, z - c.trapdoor.z) < 1.4) continue;
+      b.solid.block(x, 0, z, 0.35, 0.25, 0.35, mix(palette.vegetation, palette.neon, 0.6));
+    }
+  // trappe : plateau, lattes, poignée ; fente lumineuse sur un bord (se devine depuis la rue)
+  const t = c.trapdoor;
+  b.solid.block(t.x, 0, t.z, 1.2, 0.08, 1.2, shade(palette.neon, 0.4));
+  for (const dz of [-0.3, 0, 0.3])
+    b.solid.block(t.x, 0.08, t.z + dz, 1.15, 0.02, 0.08, shade(palette.neon, 0.3));
+  b.solid.block(t.x + 0.4, 0.1, t.z, 0.1, 0.08, 0.35, shade(palette.sky, 2.2));
+  b.glow.block(t.x, 0.005, t.z - 0.64, 1.2, 0.03, 0.08, shade(glowColor, 0.7));
+  b.glow.block(t.x - 0.64, 0.005, t.z, 0.08, 0.03, 1.2, shade(glowColor, 0.5));
+  // ampoule nue sur un poteau, fil compris
+  const pole = { x: t.x + 1.4, z: t.z };
+  b.solid.block(pole.x, 0, pole.z, 0.1, 2.6, 0.1, shade(palette.sky, 1.4));
+  b.solid.block((pole.x + t.x + 0.6) / 2, 2.55, t.z, 0.8, 0.03, 0.03, shade(palette.sky, 0.8));
+  b.glow.block(t.x + 0.6, 2.2, t.z, 0.16, 0.2, 0.16, shade(glowColor, 1.2));
+  // vieux fauteuil défoncé
+  const a = c.armchair;
+  const seat = shade(q.palette.doors[0]!, 0.55);
+  b.solid.block(a.x, 0, a.z, 0.9, 0.45, 0.8, seat);
+  b.solid.block(a.x, 0.45, a.z + 0.32, 0.9, 0.55, 0.16, seat);
+  for (const dx of [-0.42, 0.42]) b.solid.block(a.x + dx, 0.45, a.z, 0.12, 0.25, 0.8, seat);
 }

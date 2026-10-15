@@ -1,5 +1,12 @@
 import { useEffect, useRef } from 'react';
-import { footprint, gameData, obstaclesFrom, rectFromCenter, type Rect } from '@narco/shared';
+import {
+  footprint,
+  gameData,
+  obstaclesFrom,
+  rectFromCenter,
+  visibleLocations,
+  type Rect,
+} from '@narco/shared';
 import type { GameRoom, PlayerView } from '../net/connection';
 import { connection } from '../net/connection';
 import { getCamera } from '../game/cameraState';
@@ -24,7 +31,7 @@ const ROADS = [
 ];
 const AREAS = [...gameData.areas.values()];
 const SOLIDS = obstaclesFrom(gameData);
-const PLACES = [...gameData.locations.values()];
+const PLACES = visibleLocations(gameData.locations.values()); // jamais la trappe cachée
 
 /**
  * Mini-carte : toute la zone, tournée comme la caméra (le haut de la carte = le haut de l'écran).

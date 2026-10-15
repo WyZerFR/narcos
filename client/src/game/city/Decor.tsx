@@ -295,13 +295,19 @@ export function Decor({
         key: 'bins',
         geometry: bin.build(),
         material: solidMaterial,
-        items: at([...decor.bins, ...quartierPlacements(data, (l) => l.bins)]),
+        items: at([
+          ...decor.bins,
+          ...quartierPlacements(data, (l) => [...l.bins, ...(l.cellar?.bins ?? [])]),
+        ]),
       },
       {
         key: 'crates',
         geometry: crate.build(),
         material: solidMaterial,
-        items: at([...decor.crates, ...quartierPlacements(data, (l) => l.crates)]),
+        items: at([
+          ...decor.crates,
+          ...quartierPlacements(data, (l) => [...l.crates, ...(l.cellar?.crates ?? [])]),
+        ]),
       },
       {
         key: 'cartons',

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { gameData } from './data';
-import { footprint, interactionPoint, nearestLocation } from './locations';
+import { footprint, interactionPoint, nearestLocation, visibleLocations } from './locations';
 import { locationInteraction } from './zones';
 
 const locations = [...gameData.locations.values()];
@@ -47,5 +47,25 @@ describe('interactions des lieux', () => {
       expect(Boolean(loc.enterText), loc.id).toBe(kind === 'enter');
       if (kind === 'talk') expect(gameData.dialogues.has(loc.dialogue!), loc.id).toBe(true);
     }
+  });
+});
+
+describe('trappe cachée', () => {
+  const trap = gameData.locations.get('trappe_cave')!;
+  const interactive = locations.filter((l) => locationInteraction(gameData, l) !== null);
+
+  it('aucune étiquette, aucun marqueur de mini-carte, aucun bâtiment : lieu absent des visibles', () => {
+    const visible = visibleLocations(gameData.locations.values()).map((l) => l.id);
+    expect(visible).not.toContain('trappe_cave');
+    expect(visible).toContain('local');
+    expect(visible).toHaveLength(locations.length - 1);
+  });
+
+  it('« Descendre » seulement à 1,5 m de la trappe : présent à 1,4 m, absent à 1,6 m', () => {
+    expect(trap.actionLabel).toBe('Descendre');
+    expect(locationInteraction(gameData, trap)).toBe('enter');
+    const at = (d: number) => ({ x: trap.position.x + d, z: trap.position.z });
+    expect(nearestLocation(at(1.4), interactive)?.id).toBe('trappe_cave');
+    expect(nearestLocation(at(1.6), interactive)).toBeNull();
   });
 });

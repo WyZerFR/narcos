@@ -43,3 +43,12 @@ export function nearestLocation(
   }
   return best;
 }
+
+/**
+ * Lieux visibles sur la carte : étiquette flottante, marqueur de mini-carte, bâtiment rendu.
+ * Un lieu `hidden` (trappe de la cave) n'apparaît nulle part ; seul le bouton ACTION, à
+ * portée, le révèle.
+ */
+export function visibleLocations(locations: Iterable<GameLocation>): GameLocation[] {
+  return [...locations].filter((loc) => !loc.hidden);
+}
