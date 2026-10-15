@@ -18,8 +18,8 @@
     "bounds": {
       "minX": -45,
       "maxX": 45,
-      "minZ": -45,
-      "maxZ": 45
+      "minZ": -140,
+      "maxZ": 140
     },
     "playerSize": 1,
     "playerRadius": 0.45,

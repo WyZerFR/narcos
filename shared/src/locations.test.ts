@@ -9,9 +9,10 @@ describe('lieux', () => {
   it('place le point d’interaction d’un bâtiment devant sa porte, hors de l’emprise', () => {
     const p = interactionPoint(local);
     const r = footprint(local);
-    expect(local.door).toBe('south');
+    // au bout de l'impasse sud, porte tournée vers la rue (nord = -Z)
+    expect(local.door).toBe('north');
     expect(p.x).toBe(local.position.x);
-    expect(p.z).toBeGreaterThan(r.maxZ);
+    expect(p.z).toBeLessThan(r.minZ);
   });
 
   it('place le point d’interaction d’une ruelle en son centre', () => {

@@ -1,0 +1,114 @@
+{
+  "colliders": {
+    "lampSize": 0.4,
+    "trunkSize": 0.6,
+    "binSize": { "w": 0.8, "d": 0.7 },
+    "crateSize": 0.9,
+    "fenceThickness": 0.15,
+    "fenceDoorGap": 2.4
+  },
+  "quartiers": [
+    {
+      "id": "nord",
+      "areaId": "north",
+      "landmarkLocationId": "repaire_jefe",
+      "seed": "nord-1",
+      "street": {
+        "roadWidth": 7,
+        "parkingWidth": 2.2,
+        "sidewalkWidth": 2.5,
+        "entranceClear": 3,
+        "housesLength": 64,
+        "plazaDepth": 12,
+        "plazaWidth": 26
+      },
+      "houses": {
+        "perSide": [6, 8],
+        "width": [6, 9],
+        "gap": [1, 2.5],
+        "depth": [6, 8.5],
+        "height": [3.6, 4.4],
+        "setback": [1.2, 2.5],
+        "roofs": ["flat", "gable", "sawtooth"],
+        "porchChance": 0.4,
+        "garageChance": 0.35,
+        "storeyChance": 0.5,
+        "storeyHeight": 3,
+        "windowLitChance": 0.6
+      },
+      "palette": {
+        "facades": ["#e8b33a", "#d9962b", "#f2c94c", "#c98a2e"],
+        "roofs": ["#8a5a1e", "#a8742a", "#6e4716"],
+        "doors": ["#4a2e12", "#2f1d0b", "#5c3a17"],
+        "neon": "#fff44f",
+        "windows": "#ffd98a",
+        "lamp": "#ffb347",
+        "ground": "#4a4132",
+        "sidewalk": "#7a6b52",
+        "road": "#2b261f"
+      },
+      "decor": {
+        "streetlightSpacing": 14,
+        "binChance": 0.5,
+        "carChance": 0.35,
+        "treeChance": 0.45,
+        "crateChance": 0.2,
+        "fenceChance": 0.5,
+        "garlandSpacing": 0
+      },
+      "arch": { "label": "QUARTIER NORD — Chez El Jefe", "height": 5.5 },
+      "landmark": { "gate": true, "guards": 2, "garlands": false }
+    },
+    {
+      "id": "sud",
+      "areaId": "south",
+      "landmarkLocationId": "local",
+      "seed": "sud-1",
+      "street": {
+        "roadWidth": 7,
+        "parkingWidth": 2.2,
+        "sidewalkWidth": 2.5,
+        "entranceClear": 3,
+        "housesLength": 64,
+        "plazaDepth": 12,
+        "plazaWidth": 26
+      },
+      "houses": {
+        "perSide": [6, 8],
+        "width": [6, 9],
+        "gap": [1, 2.5],
+        "depth": [6, 8.5],
+        "height": [3.6, 4.4],
+        "setback": [1.2, 2.5],
+        "roofs": ["flat", "gable", "sawtooth"],
+        "porchChance": 0.3,
+        "garageChance": 0.4,
+        "storeyChance": 0.45,
+        "storeyHeight": 3,
+        "windowLitChance": 0.5
+      },
+      "palette": {
+        "facades": ["#1f4e5a", "#24606b", "#183f4a", "#2b5d6e"],
+        "roofs": ["#3a2450", "#4b2c63", "#2c1b3d"],
+        "doors": ["#ff3e9a", "#b13cff", "#12232b"],
+        "neon": "#ff3e9a",
+        "windows": "#c9a8ff",
+        "lamp": "#b13cff",
+        "ground": "#22313a",
+        "sidewalk": "#3e5560",
+        "road": "#171f26"
+      },
+      "decor": {
+        "streetlightSpacing": 14,
+        "binChance": 0.55,
+        "carChance": 0.4,
+        "treeChance": 0.35,
+        "crateChance": 0.3,
+        "fenceChance": 0.35,
+        "garlandSpacing": 10
+      },
+      "arch": { "label": "QUARTIER SUD — Chez nous", "height": 5.5 },
+      "landmark": { "gate": false, "guards": 0, "garlands": true }
+    }
+  ]
+}
