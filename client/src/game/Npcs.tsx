@@ -38,7 +38,7 @@ const off = new Vector3();
 export function Npcs({ room }: { room: GameRoom }) {
   const bodyRef = useRef<InstancedMesh>(null);
   const headRef = useRef<InstancedMesh>(null);
-  const capacity = NPC.count;
+  const capacity = NPC.maxTotal; // plafond serveur (somme des npcCount de areas.json)
 
   const { bodyGeo, headGeo, material } = useMemo(
     () => ({

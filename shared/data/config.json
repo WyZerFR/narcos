@@ -18,8 +18,8 @@
     "bounds": {
       "minX": -45,
       "maxX": 45,
-      "minZ": -45,
-      "maxZ": 45
+      "minZ": -140,
+      "maxZ": 140
     },
     "playerSize": 1,
     "playerRadius": 0.45,
@@ -305,7 +305,7 @@
     }
   },
   "npc": {
-    "count": 8,
+    "maxTotal": 14,
     "speed": 1.4,
     "radius": 0.4,
     "broadcastHz": 4,
@@ -334,6 +334,7 @@
     "longPressMs": 350,
     "dragCancelPx": 8,
     "moveTimeoutMs": 3000,
-    "returnMs": 280
+    "returnMs": 280,
+    "areaBannerMs": 3000
   }
 }

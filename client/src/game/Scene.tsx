@@ -12,6 +12,7 @@ import { QUALITY_PRESETS, useSettings } from '../ui/settings';
 import { debugStats } from '../ui/DebugOverlay';
 import { localPlayer, resetLocalPlayer } from './localPlayer';
 import { City, NightAmbience } from './city/City';
+import { AreaBounds } from './AreaBounds';
 import { LabelProjector } from './labels';
 import { Bloom, EffectComposer } from '@react-three/postprocessing';
 import { cameraOffset, getCamera, orthoViewHeight, setCameraKind, useCamera } from './cameraState';
@@ -115,6 +116,7 @@ function World({ room, glowBoost }: { room: GameRoom; glowBoost: number }) {
       {/* La ville reste montée (pas de reconstruction) mais n'est pas dessinée à l'intérieur. */}
       <group visible={inStreet}>
         <City glowBoost={glowBoost} />
+        <AreaBounds />
       </group>
       {inStreet && <Npcs room={room} />}
       {!inStreet && gameData.interiors.has(myZone) && (

@@ -55,6 +55,7 @@ docs/notes/      notes détaillées (voir plus bas)
 - `docs/notes/economie.md` — lire seulement si tu touches à l'argent, aux magasins, à la survie ou à la vente de rue.
 - `docs/notes/reseau.md` — lire seulement si tu touches au réseau, aux zones, au mouvement ou à la sauvegarde.
 - `docs/notes/debug.md` — lire seulement si tu touches aux outils debug ou aux tests serveur.
+- `docs/notes/quartiers.md` — lire seulement si tu touches aux areas, aux impasses générées ou à la vente par area.
 
 ## Économie de tokens
 

@@ -1,4 +1,4 @@
-import { obstaclesFrom } from './collision';
+import { obstaclesFrom, type MapData } from './collision';
 import type { GameData } from './data';
 import { distance, rectFromCenter, type Rect, type Vec2 } from './geometry';
 import type { Interior, Station } from './schemas';
@@ -30,7 +30,7 @@ export interface ZoneArea {
 
 /** Bornes + obstacles de la zone (rue ou intérieur). `null` si la zone est inconnue. */
 export function zoneArea(
-  data: Pick<GameData, 'config' | 'locations' | 'blocks' | 'interiors'>,
+  data: MapData & Pick<GameData, 'interiors'>,
   zoneId: string,
   /** Obstacles dynamiques en plus (mobilier installé). */
   extra: readonly Rect[] = [],

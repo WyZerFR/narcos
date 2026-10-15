@@ -7,6 +7,8 @@ import zonesJson from '../data/zones.json';
 import shopsJson from '../data/shops.json';
 import npcsJson from '../data/npcs.json';
 import dialoguesJson from '../data/dialogues.json';
+import areasJson from '../data/areas.json';
+import quartiersJson from '../data/quartiers.json';
 import { gameData, parseGameData, type RawGameData } from './data';
 
 const raw = (): RawGameData =>
@@ -19,6 +21,8 @@ const raw = (): RawGameData =>
     shops: shopsJson,
     npcs: npcsJson,
     dialogues: dialoguesJson,
+    areas: areasJson,
+    quartiers: quartiersJson,
   });
 
 describe('données du jeu', () => {
@@ -86,7 +90,7 @@ describe('données du jeu', () => {
   it('refuse deux bâtiments qui se chevauchent', () => {
     const r = raw();
     const locs = r.locations as { blocks: { position: { x: number; z: number } }[] };
-    locs.blocks[0]!.position = { x: -22.5, z: -15 }; // pile sur le local
+    locs.blocks[0]!.position = { x: 0, z: 129 }; // pile sur le local
     expect(() => parseGameData(r)).toThrow(/chevauche "local"|"local" chevauche/);
   });
 

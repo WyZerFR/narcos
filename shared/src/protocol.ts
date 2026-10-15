@@ -73,6 +73,8 @@ export interface SaleCompletedEvent {
   amount: number;
   x: number;
   z: number;
+  /** Area du PNJ (`areas.json`) : la police et le conflit la liront. */
+  area: string;
 }
 
 /** Événement serveur émis à chaque blanchiment (pour le Heat plus tard). */
@@ -229,6 +231,9 @@ export interface SaleOfferMessage {
   unitPrice: number;
   /** Fin de sa patience (temps de jeu, ms). */
   expiresAt: number;
+  /** Area du PNJ et multiplicateur de prix déjà appliqué à `unitPrice`. */
+  area: string;
+  priceMultiplier: number;
 }
 
 export interface SaleClosedMessage {
@@ -256,6 +261,8 @@ export type DebugMessage =
   | { cmd: 'openAccount' }
   | { cmd: 'setClean'; amount: number }
   | { cmd: 'giveClean'; amount: number }
+  | { cmd: 'teleport'; areaId: string }
+  | { cmd: 'priceMultiplier'; areaId: string; value: number }
   | { cmd: 'resetLaunderCap' };
 
 export const MAX_NAME_LENGTH = 16;

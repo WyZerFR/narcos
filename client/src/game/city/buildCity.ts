@@ -11,6 +11,7 @@ import {
   type Rect,
 } from '@narco/shared';
 import { Batch, faceOf, mix, seeded, shade, SIDES, type Face } from './batch';
+import { buildQuartiers } from './buildQuartiers';
 
 /**
  * Génère toute la ville en deux géométries fusionnées :
@@ -42,6 +43,7 @@ export function buildCity(data: GameData): CityGeometry {
   buildGround(ctx);
   for (const loc of data.locations.values()) buildLocation(ctx, loc);
   for (const block of data.blocks) buildFiller(ctx, block);
+  buildQuartiers(ctx, data);
   return { solid: ctx.solid.build(), glow: ctx.glow.build() };
 }
 

@@ -20,7 +20,10 @@ import {
   rectFromCenter,
   rectContainsPoint,
   type GameData,
+  type QuartierLayout,
+  type QuartierParams,
   type Rect,
+  type Vec2,
 } from '@narco/shared';
 import { Batch, shade } from './batch';
 
@@ -74,6 +77,16 @@ function streetlightPlacements(data: GameData): Placement[] {
     });
   });
   return out;
+}
+
+/** Points de décor des impasses générées, avec leur quartier et l'axe de la rue. */
+function quartierPlacements(
+  data: GameData,
+  of: (l: QuartierLayout) => Vec2[],
+): (Vec2 & { q: QuartierParams; axisX: number })[] {
+  return [...data.quartierLayouts.values()].flatMap((l) =>
+    of(l).map((p) => ({ ...p, q: data.quartiers.get(l.id)!, axisX: l.frame.axisX })),
+  );
 }
 
 /** Halo de lumière au sol (texture radiale générée, aucun fichier). */
@@ -146,19 +159,28 @@ export function Decor({
     const pole = new Batch();
     pole.block(0, 0, 0, 0.16, LAMP_H, 0.16, shade(palette.sky, 1.4));
     pole.box(0, LAMP_H - 0.1, ARM / 2, 0.1, 0.1, ARM, shade(palette.sky, 1.4));
+    // tête et halo blancs, teintés par instance (néon de la rue, lampe du quartier)
     const head = new Batch();
-    head.box(0, LAMP_H - 0.25, ARM, 0.5, 0.18, 0.35, shade(palette.neon, 1.2));
+    head.box(0, LAMP_H - 0.25, ARM, 0.5, 0.18, 0.35, white);
     const pool = new PlaneGeometry(6, 6).rotateX(-Math.PI / 2).translate(0, 0.05, ARM);
     const poolMaterial = new MeshBasicMaterial({
       map: makeGlowTexture(),
-      color: shade(palette.neon, 1),
+      color: white,
       transparent: true,
       opacity: 0.32,
       depthWrite: false,
       blending: AdditiveBlending,
       toneMapped: false,
     });
-    const lamps = streetlightPlacements(data);
+    const streetLamp = shade(palette.neon, 1.2);
+    const lamps: Placement[] = [
+      ...streetlightPlacements(data).map((l) => ({ ...l, color: streetLamp })),
+      ...quartierPlacements(data, (l) => l.lamps).map((p) => ({
+        ...p,
+        rotY: p.x < p.axisX ? Math.PI / 2 : -Math.PI / 2, // bras vers l'axe de l'impasse
+        color: shade(p.q.palette.lamp, 1.2),
+      })),
+    ];
 
     // arbre low-poly : tronc + houppier à facettes
     const tree = new Batch();
@@ -211,12 +233,24 @@ export function Decor({
         shade(palette.neon, 0.45),
       );
     }
-    const cars: Placement[] = decor.cars.map((c) => ({
-      x: c.x,
-      z: c.z,
-      rotY: c.rotation === 90 ? Math.PI / 2 : 0,
-      color: shade(palette[c.color], c.color === 'neon' ? 0.9 : 1.6),
-    }));
+    const cars: Placement[] = [
+      ...decor.cars.map((c) => ({
+        x: c.x,
+        z: c.z,
+        rotY: c.rotation === 90 ? Math.PI / 2 : 0,
+        color: shade(palette[c.color], c.color === 'neon' ? 0.9 : 1.6),
+      })),
+      // voitures garées des impasses : teinte d'une façade du quartier
+      ...[...data.quartierLayouts.values()].flatMap((l) => {
+        const facades = data.quartiers.get(l.id)!.palette.facades;
+        return l.cars.map((c, i) => ({
+          x: c.x,
+          z: c.z,
+          rotY: c.rotY,
+          color: shade(facades[i % facades.length]!, 0.8),
+        }));
+      }),
+    ];
 
     // poubelle avec couvercle, caisse en bois, carton de départ
     const bin = new Batch();
@@ -233,14 +267,22 @@ export function Decor({
     const at = (list: { x: number; z: number }[]): Placement[] =>
       list.map((p, i) => ({ ...p, rotY: i * 0.7 }));
     return [
-      { key: 'poles', geometry: pole.build(), material: solidMaterial, items: lamps },
+      {
+        key: 'poles',
+        geometry: pole.build(),
+        material: solidMaterial,
+        items: lamps.map(({ color: _c, ...p }) => p),
+      },
       { key: 'heads', geometry: head.build(), material: glowMaterial, items: lamps },
       { key: 'pools', geometry: pool, material: poolMaterial, items: lamps },
       {
         key: 'trees',
         geometry: tree.build(),
         material: solidMaterial,
-        items: decor.trees.map((t, i) => ({ ...t, rotY: i })),
+        items: [
+          ...decor.trees,
+          ...quartierPlacements(data, (l) => l.trees).map((t) => ({ x: t.x, z: t.z })),
+        ].map((t, i) => ({ ...t, rotY: i })),
       },
       { key: 'cars', geometry: car.build(), material: solidMaterial, items: cars },
       {
@@ -249,8 +291,18 @@ export function Decor({
         material: glowMaterial,
         items: cars.map(({ color: _c, ...p }) => p),
       },
-      { key: 'bins', geometry: bin.build(), material: solidMaterial, items: at(decor.bins) },
-      { key: 'crates', geometry: crate.build(), material: solidMaterial, items: at(decor.crates) },
+      {
+        key: 'bins',
+        geometry: bin.build(),
+        material: solidMaterial,
+        items: at([...decor.bins, ...quartierPlacements(data, (l) => l.bins)]),
+      },
+      {
+        key: 'crates',
+        geometry: crate.build(),
+        material: solidMaterial,
+        items: at([...decor.crates, ...quartierPlacements(data, (l) => l.crates)]),
+      },
       {
         key: 'cartons',
         geometry: carton.build(),

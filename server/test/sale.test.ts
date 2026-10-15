@@ -5,6 +5,7 @@ import {
   ClientMsg,
   ROOM_NAME,
   SALE_COMPLETED,
+  areaAt,
   ServerMsg,
   add,
   count,
@@ -23,6 +24,8 @@ import { bootOn } from './helpers';
 
 type SdkRoom = ClientRoom<GameState>;
 const NPC = gameData.config.npc;
+const AREAS = [...gameData.areas.values()];
+const NPC_TOTAL = AREAS.reduce((n, a) => n + a.npcCount, 0);
 
 let colyseus: ColyseusTestServer;
 
@@ -71,7 +74,7 @@ async function open(client: SdkRoom, npcId: string): Promise<SaleOfferMessage> {
 describe('vente de rue', () => {
   it('fait apparaître la population de PNJ et les fait marcher', async () => {
     const { room } = await newGame('sale-player-0001');
-    expect(room.state.npcs.size).toBe(NPC.count);
+    expect(room.state.npcs.size).toBe(NPC_TOTAL);
     const before = [...room.state.npcs.values()].map((n) => `${n.x},${n.z}`).join(';');
     await new Promise((r) => setTimeout(r, (NPC.pauseSeconds[1] + 1.5) * 1000));
     const after = [...room.state.npcs.values()].map((n) => `${n.x},${n.z}`).join(';');
@@ -105,13 +108,39 @@ describe('vente de rue', () => {
       npcId,
       qty: offer.maxQty,
       amount: offer.maxQty * offer.unitPrice,
+      area: 'street',
     });
+    expect(offer).toMatchObject({ area: 'street', priceMultiplier: 1 });
     // cooldown : il n'achète plus
     const npc = room.state.npcs.get(npcId)!;
     expect(npc.interested).toBe(false);
     expect(npc.busyWith).toBe('');
     client.send(ClientMsg.SaleOpen, { npcId });
     expect((await notice(client)).text).toMatch(/pas intéressé/);
+  });
+
+  it('quartier nord : prix × priceMultiplier de l’area du PNJ, bonus et area dans l’événement', async () => {
+    const id = 'sale-player-0030';
+    const { client, room } = await newGame(id);
+    setBag(room, id, 5);
+    const north = gameData.areas.get('north')!;
+    const nord = gameData.quartierLayouts.get('nord')!;
+    const p = room.state.players.get(id)!;
+    Object.assign(p, { x: nord.frame.axisX, z: nord.waypoints[2]!.z, rotY: 0 });
+    const events: SaleCompletedEvent[] = [];
+    room.events.on(SALE_COMPLETED, (e: SaleCompletedEvent) => events.push(e));
+    const npcId = await buyer(client, room);
+    const offer = await open(client, npcId);
+    expect(offer).toMatchObject({ area: 'north', priceMultiplier: north.priceMultiplier });
+    const base = gameData.economy.strains[0]!.pouchSellPrice;
+    const v = gameData.economy.sale.priceVariance;
+    expect(offer.unitPrice).toBeGreaterThanOrEqual(
+      Math.round(base * (1 - v) * north.priceMultiplier),
+    );
+    expect(offer.unitPrice).toBeLessThanOrEqual(Math.round(base * (1 + v) * north.priceMultiplier));
+    client.send(ClientMsg.SaleAccept, { npcId, qty: 1 });
+    expect((await notice(client)).ok).toBe(true);
+    expect(events[0]).toMatchObject({ area: 'north', amount: offer.unitPrice });
   });
 
   it('refuse : hors de la rue, trop loin, pas assez de pochons, sac plein, quantité hors offre', async () => {
@@ -233,7 +262,7 @@ describe('PNJ — simulation (hors réseau, hasard maîtrisé)', () => {
     };
     const sim = new StreetNpcs(state, rng);
     sim.spawnAll(0);
-    expect(state.npcs.size).toBe(NPC.count);
+    expect(state.npcs.size).toBe(NPC_TOTAL);
     const player = new Player();
     player.id = 'p';
     player.zone = 'street';
@@ -255,6 +284,37 @@ describe('PNJ — simulation (hors réseau, hasard maîtrisé)', () => {
     expect(npc.busyWith).toBe('');
     // la demande a été retirée : visible si intéressé, avec une offre complète
     if (npc.interested) expect(npc.qty * npc.unitPrice).toBeGreaterThan(0);
+  });
+
+  it('population par area : nombre de areas.json, au plus config.npc.maxTotal', () => {
+    const state = new GameState();
+    const sim = new StreetNpcs(state, () => 0.42);
+    sim.spawnAll(0);
+    expect(NPC_TOTAL).toBeLessThanOrEqual(NPC.maxTotal);
+    expect(NPC_TOTAL).toBe(14);
+    for (const area of AREAS) {
+      const ids = [...state.npcs.keys()].filter((id) => sim.areaOf(id) === area.id);
+      expect(ids, area.id).toHaveLength(area.npcCount);
+    }
+  });
+
+  it('chaque PNJ reste dans le rectangle de son area en marchant', () => {
+    const state = new GameState();
+    let seed = 7;
+    const rng = () => {
+      seed = (seed * 16807) % 2147483647;
+      return (seed - 1) / 2147483646;
+    };
+    const sim = new StreetNpcs(state, rng);
+    sim.spawnAll(0);
+    for (let t = 1; t <= 400; t++) {
+      sim.update(250, t * 250 + 10_000, t * 250);
+      if (t % 40 === 0)
+        for (const id of state.npcs.keys()) {
+          const area = gameData.areas.get(sim.areaOf(id)!)!;
+          expect(areaAt(AREAS, sim.positionOf(id)!)?.id ?? 'hors carte', id).toBe(area.id);
+        }
+    }
   });
 
   it('les PNJ restent sur des cases libres de la rue en marchant', () => {

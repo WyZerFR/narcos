@@ -140,6 +140,8 @@ export const ConfigSchema = z.object({
     moveTimeoutMs: pos,
     /** Meuble lâché à une position refusée : durée du retour animé à l'origine (ms). */
     returnMs: pos,
+    /** Durée d'affichage du message d'entrée dans une area (ms). */
+    areaBannerMs: pos,
   }),
   dialogue: z.object({
     /** Le pacte d'El Jefe est-il exigé par les choix `requires: pact` ? (pas encore en jeu) */
@@ -181,7 +183,8 @@ export const ConfigSchema = z.object({
   }),
   /** PNJ de la rue (acheteurs) : simulés par le serveur, diffusés à cadence réduite. */
   npc: z.object({
-    count: z.number().int().min(6).max(10),
+    /** Plafond de PNJ simulés (somme des `npcCount` de areas.json) : CPU du serveur. */
+    maxTotal: z.number().int().positive(),
     /** Vitesse de marche (m/s, temps réel). */
     speed: pos,
     radius: pos,
@@ -635,3 +638,128 @@ export type DialogueChoice = z.infer<typeof DialogueChoiceSchema>;
 export type DialogueNode = z.infer<typeof DialogueNodeSchema>;
 export type Dialogue = z.infer<typeof DialogueSchema>;
 export type BankRules = Economy['bank'];
+
+// ---------- areas.json ----------
+/** Qui tient une area (lu plus tard par le conflit et la police) ; null = personne. */
+export const AreaControlSchema = z.enum(['eljefe', 'cartel']).nullable();
+
+/**
+ * Area de la rue : rectangle aligné sur la grille, thème, et réglages de vente / danger.
+ * `street` = la rue centrale ; les quartiers (impasses) sont générés via `quartiers.json`.
+ */
+export const AreaSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  /** Message affiché en haut de l'écran en entrant dans l'area. */
+  banner: z.string().min(1),
+  bounds: BoundsSchema,
+  themeColor: hexColor,
+  /** Multiplicateur du prix proposé par les PNJ de l'area. */
+  priceMultiplier: z.number().min(0.5).max(3),
+  npcCount: z.number().int().nonnegative(),
+  /** Multiplicateur de la chance qu'un PNJ soit intéressé (plafonnée à 1). */
+  demandRate: z.number().min(0).max(3),
+  /** 0 (calme) à 5 (très dangereux) : lu par la police plus tard. */
+  dangerLevel: z.number().int().min(0).max(5),
+  controlledBy: AreaControlSchema,
+});
+
+export const AreasFileSchema = z.object({ areas: z.array(AreaSchema).min(1) });
+
+// ---------- quartiers.json ----------
+const chance = z.number().min(0).max(1);
+export const RoofSchema = z.enum(['flat', 'gable', 'sawtooth']);
+
+/** Paramètres du générateur d'une impasse (logique pure, déterministe par `seed`). */
+export const QuartierSchema = z.object({
+  id: z.string().min(1),
+  /** Area (areas.json) que l'impasse remplit ; elle doit toucher la rue au nord ou au sud. */
+  areaId: z.string().min(1),
+  /** Lieu au bout de l'impasse (porte tournée vers la rue). */
+  landmarkLocationId: z.string().min(1),
+  seed: z.string().min(1),
+  street: z.object({
+    /** Chaussée roulante, toujours libre (≥ 6 m). */
+    roadWidth: z.number().min(6),
+    /** Bande de stationnement de chaque côté de la chaussée. */
+    parkingWidth: nonNeg,
+    sidewalkWidth: pos,
+    /** Bande libre entre le bord de l'area et la première maison. */
+    entranceClear: nonNeg,
+    /** Longueur de la rangée de maisons. */
+    housesLength: pos,
+    /** Placette dégagée entre les dernières maisons et le bâtiment du bout. */
+    plazaDepth: pos,
+    plazaWidth: pos,
+    /** Points de passage des PNJ sur la chaussée, tous les N m. */
+    npcWaypointSpacing: pos,
+  }),
+  houses: z.object({
+    perSide: minMax(z.number().int().positive()),
+    width: minMax(pos),
+    gap: minMax(pos),
+    depth: minMax(pos),
+    /** Hauteur du rez-de-chaussée. */
+    height: minMax(pos),
+    /** Retrait de la façade derrière le trottoir (jardinet). */
+    setback: minMax(pos),
+    roofs: z.array(RoofSchema).min(1),
+    porchChance: chance,
+    garageChance: chance,
+    storeyChance: chance,
+    storeyHeight: pos,
+    windowLitChance: chance,
+  }),
+  palette: z.object({
+    facades: z.array(hexColor).min(1),
+    roofs: z.array(hexColor).min(1),
+    doors: z.array(hexColor).min(1),
+    neon: hexColor,
+    windows: hexColor,
+    lamp: hexColor,
+    ground: hexColor,
+    sidewalk: hexColor,
+    road: hexColor,
+  }),
+  decor: z.object({
+    /** Distance minimale entre deux lampadaires (m). */
+    streetlightSpacing: pos,
+    /** Probabilités par maison. */
+    binChance: chance,
+    carChance: chance,
+    treeChance: chance,
+    crateChance: chance,
+    fenceChance: chance,
+    /** Guirlandes au-dessus de la chaussée tous les N m (0 = aucune). */
+    garlandSpacing: nonNeg,
+  }),
+  /** Arche d'entrée avec enseigne néon. */
+  arch: z.object({ label: z.string().min(1), height: pos }),
+  /** Bâtiment du bout : portail, gardes statiques, guirlandes sur la placette. */
+  landmark: z.object({
+    gate: z.boolean(),
+    guards: z.number().int().min(0).max(4),
+    garlands: z.boolean(),
+  }),
+});
+
+export const QuartiersFileSchema = z.object({
+  /** Emprises de collision du décor des quartiers (m). */
+  colliders: z.object({
+    lampSize: pos,
+    trunkSize: pos,
+    binSize: z.object({ w: pos, d: pos }),
+    crateSize: pos,
+    fenceThickness: pos,
+    /** Passage laissé dans la clôture devant la porte. */
+    fenceDoorGap: pos,
+  }),
+  quartiers: z.array(QuartierSchema),
+});
+
+export type AreaControl = z.infer<typeof AreaControlSchema>;
+export type Area = z.infer<typeof AreaSchema>;
+export type Roof = z.infer<typeof RoofSchema>;
+export type QuartierParams = z.infer<typeof QuartierSchema>;
+export type QuartiersFile = z.infer<typeof QuartiersFileSchema>;
+export type QuartierColliders = QuartiersFile['colliders'];

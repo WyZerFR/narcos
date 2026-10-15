@@ -44,6 +44,21 @@ La coop naît de la **rareté partagée**, pas de rôles :
 | **Zone 2** | Acte III                      | Laverie, banque, concessionnaire, premiers magasins             |
 | **Zone 3** | Acte IV (via concessionnaire) | Usine, armurier, commerces lourds, aéroport                     |
 
+### 3.2 bis Quartiers (areas de la zone 1)
+
+La rue centrale (banque, Bricoshop, épicerie, point relais, ruelles) dessert deux impasses de maisons générées (`areas.json`, `quartiers.json`) :
+
+| Area                        | Ambiance                        | Bout de l'impasse                  | Prix PNJ | Danger (0-5) | Tenue par        |
+| --------------------------- | ------------------------------- | ---------------------------------- | -------- | ------------ | ---------------- |
+| **Centre-ville** (`street`) | rue animée, exposée             | —                                  | ×1,00    | 3            | personne         |
+| **Quartier Nord** (`north`) | maisons jaunes, néons citron    | maison d'El Jefe (gardes, portail) | ×1,30    | 1            | El Jefe          |
+| **Quartier Sud** (`south`)  | sarcelle sombre, rose et violet | notre Local (labo)                 | ×1,25    | 1            | le cartel (nous) |
+
+- **Dealer** : dans les quartiers, les PNJ paient plus (`priceMultiplier`) et sont plus souvent intéressés (`demandRate`) ; la rue centrale, plus dangereuse, paiera moins une fois la police arrivée.
+- **Danger** : `dangerLevel` affiché dans le HUD, lu par `dangerAt(position)` ; aucun effet pour l'instant.
+- **Rôle futur** : conflit avec El Jefe pour le Nord (`controlledBy`), patrouilles de police pondérées par le danger, rachat de maisons des impasses (planques, fronts).
+- Trajets : départ → bout d'une impasse < 45 s à pied, bout à bout < 60 s.
+
 ### 3.3 Lieux et fonction de gameplay
 
 | Lieu                           | Zone | Fonction                                                                                                                        |

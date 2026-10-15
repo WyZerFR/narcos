@@ -115,3 +115,54 @@ export function survivalCostReport(
     pouchesPerHour: (perHour * dirtyPerClean) / strains[0]!.pouchSellPrice,
   };
 }
+
+export interface AreaSalesReport {
+  areaId: string;
+  name: string;
+  npcCount: number;
+  priceMultiplier: number;
+  /** Prix moyen d'un pochon de base dans l'area ($). */
+  avgPrice: number;
+  /** Pochons achetés par minute de jeu au mieux (chaque acheteur trouvé). */
+  pouchesPerMinute: number;
+  revenuePerMinute: number;
+  /** Revenu d'un pochon comparé à la rue centrale (1 = pareil). */
+  priceVsStreet: number;
+}
+
+/**
+ * Débouché de la vente par area, depuis les JSON : PNJ de l'area × pochons par passage
+ * (chance d'intérêt × demandRate, plafonnée à 1) / cooldown moyen, au prix × multiplicateur.
+ */
+export function areaSalesReport(
+  data: Pick<GameData, 'economy' | 'npcs' | 'areas' | 'config'>,
+): AreaSalesReport[] {
+  const { profiles } = data.npcs;
+  const totalWeight = profiles.reduce((s, p) => s + p.weight, 0);
+  const [c0, c1] = data.config.npc.cooldownSeconds;
+  const cooldownMin = (c0 + c1) / 2 / 60;
+  const base = data.economy.strains[0]!.pouchSellPrice;
+  const street = data.areas.get('street')?.priceMultiplier ?? 1;
+  return [...data.areas.values()].map((a) => {
+    const perVisit = profiles.reduce(
+      (s, p) =>
+        s +
+        (p.weight / totalWeight) *
+          Math.min(1, p.interestChance * a.demandRate) *
+          ((p.qty[0] + p.qty[1]) / 2),
+      0,
+    );
+    const pouchesPerMinute = (a.npcCount * perVisit) / cooldownMin;
+    const avgPrice = base * a.priceMultiplier;
+    return {
+      areaId: a.id,
+      name: a.name,
+      npcCount: a.npcCount,
+      priceMultiplier: a.priceMultiplier,
+      avgPrice,
+      pouchesPerMinute,
+      revenuePerMinute: pouchesPerMinute * avgPrice,
+      priceVsStreet: a.priceMultiplier / street,
+    };
+  });
+}

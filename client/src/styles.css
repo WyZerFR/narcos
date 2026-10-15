@@ -219,6 +219,23 @@ input {
   font-weight: 700;
   z-index: 30;
 }
+/* Entrée dans une area (ui/AreaBanner.tsx) : haut de l'écran, n'intercepte aucun toucher. */
+.area-banner {
+  position: fixed;
+  top: calc(12px + var(--safe-t));
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(520px, 60vw);
+  padding: 8px 16px;
+  border: 2px solid;
+  border-radius: 10px;
+  background: rgba(10, 8, 20, 0.78);
+  font-weight: 800;
+  text-align: center;
+  text-shadow: 0 0 6px currentColor;
+  pointer-events: none;
+  z-index: 20;
+}
 .player-label {
   padding: 2px 8px;
   border-radius: 6px;
@@ -526,6 +543,21 @@ input {
   white-space: nowrap;
   text-shadow: 0 0 6px currentColor;
   box-shadow: 0 0 10px -2px currentColor;
+}
+
+/* Enseigne d'entrée d'impasse et gardes (game/labels.tsx). */
+.quartier-sign {
+  font-size: 15px;
+  letter-spacing: 1px;
+}
+.guard-label {
+  padding: 1px 6px;
+  border: 1px solid;
+  border-radius: 6px;
+  background: rgba(10, 8, 20, 0.7);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 /* Calque des étiquettes flottantes, positionnées par projection (game/labels.tsx). */
@@ -1228,4 +1260,22 @@ input {
   margin: -6px 0 10px;
   font-size: 12px;
   opacity: 0.6;
+}
+
+/* Indicateur de danger de l'area (ui/StatusPanel.tsx) : 5 barres, vert → rouge. */
+.danger-meter {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 4px;
+}
+.danger-meter i {
+  width: 12px;
+  height: 10px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.15);
+}
+.sale-bonus {
+  color: var(--accent);
+  font-weight: 700;
 }

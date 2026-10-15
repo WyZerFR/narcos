@@ -7,8 +7,8 @@
       "bounds": {
         "minX": -45,
         "maxX": 45,
-        "minZ": -45,
-        "maxZ": 45
+        "minZ": -140,
+        "maxZ": 140
       }
     }
   ],
@@ -21,8 +21,8 @@
       "function": "base",
       "silhouette": "warehouse",
       "position": {
-        "x": -22.5,
-        "z": -15
+        "x": 0,
+        "z": 129
       },
       "size": {
         "w": 15,
@@ -31,7 +31,7 @@
       "height": 5,
       "color": "#5b5148",
       "neonColor": "#ff3e9a",
-      "door": "south",
+      "door": "north",
       "interactRadius": 3,
       "enterText": "Le local. Ça sent la moisissure et l'ambition.",
       "catalog": []
@@ -67,8 +67,8 @@
       "function": "supplier",
       "silhouette": "villa_tower",
       "position": {
-        "x": -26,
-        "z": 24
+        "x": 0,
+        "z": -131
       },
       "size": {
         "w": 14,
@@ -77,7 +77,7 @@
       "height": 18,
       "color": "#2b2a3d",
       "neonColor": "#ffcc33",
-      "door": "north",
+      "door": "south",
       "interactRadius": 3,
       "enterText": "Un garde te fouille du regard. El Jefe n'aime pas les visites surprises.",
       "dialogue": "el_jefe",
@@ -340,6 +340,30 @@
         "d": 12
       },
       "height": 14
+    },
+    {
+      "id": "nw_ancien_local",
+      "position": {
+        "x": -22.5,
+        "z": -15
+      },
+      "size": {
+        "w": 15,
+        "d": 10
+      },
+      "height": 10
+    },
+    {
+      "id": "sw_ancien_repaire",
+      "position": {
+        "x": -26,
+        "z": 24
+      },
+      "size": {
+        "w": 14,
+        "d": 14
+      },
+      "height": 12
     }
   ]
 }

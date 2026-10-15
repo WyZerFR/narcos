@@ -43,7 +43,33 @@ const OCCLUDERS: Box[] = [
     .filter((l) => l.kind === 'building')
     .map((l) => ({ rect: footprint(l), height: l.height })),
   ...gameData.blocks.map((b) => ({ rect: footprint(b), height: b.height })),
+  ...[...gameData.quartierLayouts.values()].flatMap((l) =>
+    l.houses.map((h) => ({ rect: h.rect, height: h.height })),
+  ),
 ];
+
+/** Enseignes des arches d'entrée et gardes des impasses (décor, étiquettes fixes). */
+const QUARTIER_SIGNS = [...gameData.quartierLayouts.values()].flatMap((l) => {
+  const q = gameData.quartiers.get(l.id)!;
+  const { arch } = l;
+  return [
+    {
+      id: `arch:${l.id}`,
+      text: arch.label,
+      color: q.palette.neon,
+      className: 'place-label quartier-sign',
+      at: { x: (arch.left.x + arch.right.x) / 2, y: arch.height + 0.8, z: arch.left.z },
+    },
+    ...l.guards.map((g, i) => ({
+      id: `guard:${l.id}:${i}`,
+      text: 'Garde',
+      color: q.palette.neon,
+      className: 'guard-label',
+      at: { x: g.x, y: 2.1, z: g.z },
+    })),
+  ];
+});
+for (const s of QUARTIER_SIGNS) setLabelAnchor(s.id, () => s.at);
 
 /** Un bâtiment coupe-t-il la ligne de vue caméra → point ? */
 export function isOccluded(from: Point3, to: Point3): boolean {
@@ -172,6 +198,17 @@ export function LabelLayer({
             style={{ borderColor: loc.neonColor, color: loc.neonColor }}
           >
             {loc.name}
+          </div>
+        ))}
+      {zone === STREET &&
+        QUARTIER_SIGNS.map((s) => (
+          <div
+            key={s.id}
+            ref={bindElement(s.id)}
+            className={s.className}
+            style={{ borderColor: s.color, color: s.color }}
+          >
+            {s.text}
           </div>
         ))}
       {[...(gameData.interiors.get(zone)?.stations ?? []), ...fixtures].map((st) => (
