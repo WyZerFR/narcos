@@ -118,6 +118,10 @@ export function moveWithCollisions(
         settle({ x: at.x, z: at.z + sz }, r, rects, bounds, at),
       ])
         if (progress(alt) > progress(next)) next = alt;
+    // Poussée dans un renfoncement (deux coins proches) : la résolution peut renvoyer en
+    // arrière, puis de nouveau en avant à la frame suivante → tremblement. Depuis une position
+    // libre, un sous-pas qui recule est refusé : on reste contre l'obstacle.
+    if (progress(next) < -EPS_PROGRESS && !isBlocked(at, r, rects)) next = at;
     p = next;
   }
   return p;
@@ -125,6 +129,8 @@ export function moveWithCollisions(
 
 /** Sous-pas qui avance de moins de cette fraction du voulu : essai par axes séparés. */
 const SLIDE_FALLBACK = 0.5;
+/** Recul toléré (m) d'un sous-pas avant de le refuser (bruit numérique). */
+const EPS_PROGRESS = 1e-6;
 
 /**
  * Place un cercle hors des obstacles ET dans les bornes. Les deux contraintes sont résolues

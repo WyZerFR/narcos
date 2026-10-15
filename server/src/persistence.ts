@@ -7,6 +7,7 @@ import {
   bagTierFor,
   fitBag,
   gameData,
+  resolveCharacterId,
   obstaclesFrom,
   resolveCircle,
   STREET,
@@ -80,6 +81,8 @@ const StateJson = z.object({
       hasAccount: z.boolean().optional(),
       // ajouté avec le pacte d'El Jefe : une ancienne sauvegarde se charge sans pacte
       pactAccepted: z.boolean().optional(),
+      // ajouté avec la sélection de personnage : absent d'une ancienne sauvegarde (défaut)
+      characterId: z.string().optional(),
       cart: z
         .array(
           z.object({
@@ -188,6 +191,7 @@ export function hydrateState(state: GameState, snap: RoomSnapshot): void {
       cleanBalance: p.cleanBalance ?? p.cleanMoney ?? 0,
       hasAccount: p.hasAccount ?? false,
       pactAccepted: p.pactAccepted ?? false,
+      characterId: resolveCharacterId(gameData, p.characterId),
       connected: false,
     });
     // palier : celui sauvegardé, sinon déduit (ancienne partie à 10 cases) ; aucun objet perdu

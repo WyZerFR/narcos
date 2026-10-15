@@ -24,3 +24,7 @@ export * from './areas';
 export * from './quartiers';
 export * from './bag';
 export * from './collisionAudit';
+export * from './smoothing';
+export * from './framing';
+export * from './characters';
+export * from './modelBudget';

@@ -5,6 +5,7 @@ import { isBlocked } from './collision';
 import type { Rect } from './geometry';
 import { createNavGrid, distancesFrom, cellIndex, cellCenter } from './navgrid';
 import { interiorBounds, interiorObstacles, zoneArea } from './zones';
+import { fitInteriorZoom } from './framing';
 
 const { config } = gameData;
 const R = config.world.playerRadius;
@@ -39,6 +40,52 @@ describe('magasins agrandis', () => {
       expect(raw.layoutScale).toBeGreaterThan(1);
       expect(interior.size.w).toBeCloseTo(raw.size.w * raw.layoutScale!);
       expect(interior.size.d).toBeCloseTo(raw.size.d * raw.layoutScale!);
+    });
+
+    it(`${id} : surface = surface d'origine × facteur², rendu et collisions sur la même pièce`, () => {
+      const k = raw.layoutScale!;
+      expect(interior.size.w * interior.size.d).toBeCloseTo(raw.size.w * raw.size.d * k * k);
+      // le rendu (buildRoom) dessine sol et murs depuis `size` ; les collisions depuis les bornes
+      expect(bounds.maxX - bounds.minX).toBeCloseTo(interior.size.w);
+      expect(bounds.maxZ - bounds.minZ).toBeCloseTo(interior.size.d);
+      expect(zoneArea(gameData, id)!.bounds).toEqual(bounds);
+      // apparition, postes et obstacles dans la pièce agrandie
+      const inside = (p: { x: number; z: number }) =>
+        p.x > bounds.minX && p.x < bounds.maxX && p.z > bounds.minZ && p.z < bounds.maxZ;
+      expect(inside(interior.spawn)).toBe(true);
+      for (const st of interior.stations) expect(inside(st.position), st.id).toBe(true);
+      for (const o of obstacles) {
+        expect(o.minX).toBeGreaterThanOrEqual(bounds.minX - 1e-6);
+        expect(o.maxX).toBeLessThanOrEqual(bounds.maxX + 1e-6);
+        expect(o.minZ).toBeGreaterThanOrEqual(bounds.minZ - 1e-6);
+        expect(o.maxZ).toBeLessThanOrEqual(bounds.maxZ + 1e-6);
+      }
+      // l'aménagement occupe toute la pièce : les postes s'écartent du centre avec le facteur
+      const spread = (xs: number[]) => Math.max(...xs) - Math.min(...xs);
+      const solid = interior.stations.filter((s) => s.solid);
+      const rawSolid = raw.stations.filter((s) => solid.some((t) => t.id === s.id));
+      expect(spread(solid.map((s) => s.position.x))).toBeGreaterThan(
+        spread(rawSolid.map((s) => s.position.x)),
+      );
+    });
+
+    it(`${id} : la caméra intérieure cadre toute la pièce agrandie`, () => {
+      const cam = config.cameraInterior;
+      const zoom = Math.max(
+        cam.zoom,
+        fitInteriorZoom(interior, cam, 4 / 3, config.interiorFraming),
+      );
+      const rawZoom = Math.max(
+        cam.zoom,
+        fitInteriorZoom({ ...interior, size: raw.size }, cam, 4 / 3, config.interiorFraming),
+      );
+      // vue plus large que la pièce d'origine : l'agrandissement se voit
+      expect(zoom).toBeGreaterThan(rawZoom);
+      const visibleH = 2 * zoom * Math.tan((cam.fov * Math.PI) / 360);
+      expect(visibleH).toBeGreaterThanOrEqual(
+        interior.size.d * Math.sin((cam.elevation * Math.PI) / 180),
+      );
+      expect(visibleH * (4 / 3)).toBeGreaterThanOrEqual(interior.size.w);
     });
 
     it(`${id} : couloirs d'au moins diamètre + marge entre postes et murs`, () => {

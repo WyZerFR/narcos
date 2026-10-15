@@ -6,7 +6,14 @@ import {
   PerspectiveCamera as PerspectiveCameraImpl,
   Vector3,
 } from 'three';
-import { gameData, STREET } from '@narco/shared';
+import {
+  fitInteriorZoom,
+  gameData,
+  interiorCameraTarget,
+  smoothFactor,
+  STREET,
+} from '@narco/shared';
+import { FRAME_PRIORITY } from './framePriority';
 import { connection, type GameRoom } from '../net/connection';
 import { QUALITY_PRESETS, useSettings } from '../ui/settings';
 import { debugStats } from '../ui/DebugOverlay';
@@ -21,7 +28,7 @@ import { LocalPlayer, RemotePlayer, useRoomPlayers } from './Players';
 import { Npcs } from './Npcs';
 import { getPlacement } from '../ui/placementStore';
 
-const { cameraRig } = gameData.config;
+const { cameraRig, interiorFraming } = gameData.config;
 const placementCamera = gameData.config.placement.camera;
 
 /** Caméra 3/4 vue de dessus : suit le joueur local, réglages lus à chaque frame (live). */
@@ -29,6 +36,7 @@ function CameraRig() {
   const { type, fov } = useCamera();
   const camera = useThree((s) => s.camera);
   const height = useThree((s) => s.size.height);
+  const width = useThree((s) => s.size.width);
   const target = useRef(new Vector3());
   const zone = useRef('');
 
@@ -44,9 +52,16 @@ function CameraRig() {
     // (glisser direct d'un meuble : la caméra ne bouge pas sous le doigt)
     const pl = getPlacement();
     const placing = pl && !pl.direct ? pl : null;
-    const c = placing ? { ...getCamera(), ...placementCamera } : getCamera();
-    const follow = placing ?? localPlayer;
-    const t = 1 - Math.exp(-cameraRig.followStiffness * Math.min(dt, 0.1));
+    const interior = gameData.interiors.get(localPlayer.zone);
+    let c = placing ? { ...getCamera(), ...placementCamera } : getCamera();
+    let follow: { x: number; z: number } = placing ?? localPlayer;
+    // Intérieur : la pièce entière reste lisible, quelle que soit sa taille (layoutScale).
+    if (interior && !placing) {
+      const fit = fitInteriorZoom(interior, c, width / height, interiorFraming);
+      if (fit > c.zoom) c = { ...c, zoom: fit };
+      follow = interiorCameraTarget(localPlayer, interiorFraming);
+    }
+    const t = smoothFactor(cameraRig.followStiffness, Math.min(dt, 0.1));
     target.current.x += (follow.x - target.current.x) * t;
     target.current.z += (follow.z - target.current.z) * t;
     const o = cameraOffset(c);
@@ -63,7 +78,9 @@ function CameraRig() {
         camera.updateProjectionMatrix();
       }
     }
-  });
+    // matrices à jour tout de suite : les étiquettes DOM sont projetées dans cette même frame
+    camera.updateMatrixWorld();
+  }, FRAME_PRIORITY.camera);
 
   return type === 'ortho' ? (
     <OrthographicCamera makeDefault near={cameraRig.near} far={cameraRig.far} />

@@ -20,7 +20,8 @@
     "icons": "node scripts/make-icons.mjs",
     "balance": "tsx scripts/balance.ts",
     "check": "node scripts/check.mjs",
-    "collisions": "tsx scripts/collisions.ts"
+    "collisions": "tsx scripts/collisions.ts",
+    "models": "tsx scripts/check-models.ts"
   },
   "engines": {
     "node": ">=20"

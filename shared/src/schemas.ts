@@ -146,6 +146,56 @@ export const ConfigSchema = z.object({
   /** Caméra dans les intérieurs (pièces plus petites, vue plus plongeante). */
   cameraInterior: CameraSchema,
   cameraRig: z.object({ followStiffness: pos, near: pos, far: pos }),
+  /** Personnages jouables (`characters.json`) : choix, budget des modèles, rendu. */
+  characters: z.object({
+    /** Choix figé : l'écran de sélection n'est plus proposé et le serveur refuse tout changement. */
+    locked: z.boolean(),
+    /** Personnage d'un joueur qui n'a rien choisi (ou d'un id inconnu). */
+    defaultId: z.string().min(1),
+    /** Budget iPad par modèle (vérifié par `scripts/check-models.mjs` et les tests). */
+    budget: z.object({
+      maxTriangles: z.number().int().positive(),
+      maxDrawCalls: z.number().int().positive(),
+      maxTextureSize: z.number().int().positive(),
+      maxFileMB: pos,
+    }),
+    /** Rotation des aperçus de l'écran de sélection (rad/s). */
+    previewSpinSpeed: pos,
+    /** Caméra des aperçus : distance et hauteur (m), hauteur visée (m), champ (degrés). */
+    preview: z.object({ distance: pos, height: pos, lookY: pos, fov: range(CAMERA_LIMITS.fov) }),
+    /** Hauteur des étiquettes de nom au-dessus de la tête (m). */
+    labelMargin: z.number().nonnegative(),
+    /** Raideur (1/s) du lissage de la vitesse mesurée (marche / attente sans clignoter). */
+    speedSmoothing: pos,
+    /** Vitesse (m/s) au-delà de laquelle l'animation de marche remplace l'attente. */
+    moveThreshold: pos,
+    /** Fondu entre deux animations (s). */
+    animationFadeSeconds: z.number().nonnegative(),
+    /** Teinte émissive à la couleur du joueur (0 = aucune), pour la lisibilité de nuit. */
+    tint: z.number().min(0).max(1),
+    /** Balancement de repli quand le modèle n'a pas d'animation. */
+    bob: z.object({ height: z.number().nonnegative(), speed: pos }),
+    /** Anneau au sol à la couleur du joueur (distingue 3 joueurs au même modèle). */
+    ring: z.object({ innerRadius: pos, outerRadius: pos }),
+  }),
+  /** Intérieurs : la pièce entière tient à l'écran, la caméra suit le joueur en partie. */
+  interiorFraming: z.object({
+    followFraction: z.number().min(0).max(1),
+    margin: z.number().nonnegative(),
+  }),
+  /** Lissage réseau côté client (indépendant du framerate). */
+  netSmoothing: z.object({
+    /** Retard d'affichage des joueurs distants (ms), interpolés entre deux instantanés. */
+    remoteDelayMs: pos,
+    /** Raideur (1/s) de la rotation affichée des personnages. */
+    rotationStiffness: pos,
+    /** Écart (m) sous lequel une correction du serveur est ignorée. */
+    correctionIgnoreDistance: z.number().nonnegative(),
+    /** Écart (m) au-delà duquel le client se recale d'un coup ; en dessous, fondu. */
+    correctionSnapDistance: pos,
+    /** Raideur (1/s) du fondu de correction. */
+    correctionBlendStiffness: pos,
+  }),
   cutout: CutoutSchema,
   ui: z.object({
     /** Appui long avant de détacher un objet de l'inventaire (ms). */
@@ -856,3 +906,26 @@ export type Roof = z.infer<typeof RoofSchema>;
 export type QuartierParams = z.infer<typeof QuartierSchema>;
 export type QuartiersFile = z.infer<typeof QuartiersFileSchema>;
 export type QuartierColliders = QuartiersFile['colliders'];
+
+// ---------------------------------------------------------------- personnages (characters.json)
+
+export const CharacterSchema = z.object({
+  id: z.string().regex(/^[a-z0-9_]+$/),
+  name: z.string().min(1),
+  /** Chemin du modèle glTF, relatif à `client/public`. */
+  model: z.string().regex(/^[\w-]+(\/[\w-]+)*\.(gltf|glb)$/i),
+  /** Multiplicateur après normalisation à `height`. */
+  scale: z.number().positive(),
+  /** Rotation corrective (degrés) pour que le modèle regarde vers +z. */
+  rotationY: z.number().min(-180).max(180),
+  /** Hauteur affichée (m) : le modèle est mis à cette taille au chargement. */
+  height: z.number().positive(),
+  /** Noms des animations du fichier (absentes = léger balancement). */
+  animations: z
+    .object({ idle: z.string().min(1).optional(), walk: z.string().min(1).optional() })
+    .default({}),
+});
+
+export const CharactersFileSchema = z.object({ characters: z.array(CharacterSchema).min(1) });
+
+export type Character = z.infer<typeof CharacterSchema>;

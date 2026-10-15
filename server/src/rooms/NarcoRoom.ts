@@ -24,6 +24,7 @@ import {
   interiorForLocation,
   interiorPlaces,
   resolveCircle,
+  resolveCharacterId,
   sanitizeName,
   setClockScale,
   validateMove,
@@ -206,6 +207,13 @@ export class NarcoRoom extends Room<GameState> {
     this.onMessage(ClientMsg.Station, (client, msg: unknown) => this.handleStation(client, msg));
 
     this.onMessage(ClientMsg.Debug, (client, msg: unknown) => this.handleDebug(client, msg));
+    // Personnage : purement visuel (sac, comptes et meubles intacts), diffusé par l'état.
+    this.onMessage(ClientMsg.CharacterChoose, (client, msg: unknown) => {
+      const who = this.playerOf(client);
+      if (!who || !isObject(msg)) return;
+      if (config.characters.locked) return this.notify(client, false, 'Personnage figé.');
+      who.player.characterId = resolveCharacterId(gameData, msg.characterId);
+    });
     this.onMessage(ClientMsg.Use, (client, msg: unknown) => this.handleUse(client, msg));
     this.onMessage(ClientMsg.InventoryMove, (client, msg: unknown) =>
       this.handleInventoryMove(client, msg),
@@ -833,6 +841,12 @@ export class NarcoRoom extends Room<GameState> {
     if (!debugEnabled()) return this.notify(client, false, 'Commandes debug désactivées.');
     const { player } = who;
     switch (msg.cmd) {
+      case 'setCharacter': {
+        const target = this.state.players.get(String(msg.playerId ?? who.playerId));
+        if (!target) return this.notify(client, false, '[debug] joueur inconnu');
+        target.characterId = resolveCharacterId(gameData, msg.characterId);
+        return this.notify(client, true, `[debug] ${target.name} → ${target.characterId}`);
+      }
       case 'give': {
         const r = add(readInventory(player.bag), String(msg.itemId), Number(msg.qty), items);
         if (!r.ok) return this.notify(client, false, r.message);

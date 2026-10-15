@@ -9,6 +9,7 @@ import npcsJson from '../data/npcs.json';
 import dialoguesJson from '../data/dialogues.json';
 import areasJson from '../data/areas.json';
 import quartiersJson from '../data/quartiers.json';
+import charactersJson from '../data/characters.json';
 import {
   ConfigSchema,
   EconomySchema,
@@ -21,6 +22,8 @@ import {
   DialoguesFileSchema,
   AreasFileSchema,
   QuartiersFileSchema,
+  CharactersFileSchema,
+  type Character,
   type Area,
   type QuartierParams,
   type QuartierColliders,
@@ -127,6 +130,8 @@ export interface GameData {
   quartierColliders: QuartierColliders;
   /** Impasses générées (même graine = même résultat sur client et serveur), par id de quartier. */
   quartierLayouts: ReadonlyMap<string, QuartierLayout>;
+  /** Personnages jouables (`characters.json`), dans l'ordre du fichier. */
+  characters: ReadonlyMap<string, Character>;
 }
 
 export interface RawGameData {
@@ -140,6 +145,7 @@ export interface RawGameData {
   dialogues: unknown;
   areas: unknown;
   quartiers: unknown;
+  characters: unknown;
 }
 
 function parse<T>(file: string, schema: z.ZodType<T>, raw: unknown): T {
@@ -296,6 +302,10 @@ export function parseGameData(raw: RawGameData): GameData {
   const dialoguesFile = parse('dialogues.json', DialoguesFileSchema, raw.dialogues);
   const areasFile = parse('areas.json', AreasFileSchema, raw.areas);
   const quartiersFile = parse('quartiers.json', QuartiersFileSchema, raw.quartiers);
+  const characters = indexById(
+    'characters.json',
+    parse('characters.json', CharactersFileSchema, raw.characters).characters,
+  );
 
   const items = indexById('items.json', itemsFile.items);
   const zones = indexById('locations.json (zones)', locFile.zones);
@@ -478,6 +488,16 @@ export function parseGameData(raw: RawGameData): GameData {
       errors.push(`items.json : "${it.id}" s'équipe comme sac mais n'est pas bag.backpackItemId`);
   if (config.movement.runSpeed < config.movement.walkSpeed)
     errors.push('config.json : runSpeed doit être >= walkSpeed');
+  const net = config.netSmoothing;
+  if (net.remoteDelayMs < config.room.patchRateMs)
+    errors.push('config.json : netSmoothing.remoteDelayMs doit couvrir au moins room.patchRateMs');
+  if (net.correctionIgnoreDistance >= net.correctionSnapDistance)
+    errors.push('config.json : correctionIgnoreDistance doit être < correctionSnapDistance');
+  if (!characters.has(config.characters.defaultId))
+    errors.push(`config.json : characters.defaultId "${config.characters.defaultId}" inconnu`);
+  const ring = config.characters.ring;
+  if (ring.innerRadius >= ring.outerRadius)
+    errors.push('config.json : characters.ring.innerRadius doit être < outerRadius');
   errors.push(...checkAreas(config, areas, locFile.locations, quartiers));
   // écarts : deux obstacles se touchent ou laissent un vrai passage (diamètre + marge)
   const minGap = 2 * config.world.playerRadius + config.collision.passageMargin;
@@ -566,6 +586,7 @@ export function parseGameData(raw: RawGameData): GameData {
     quartiers,
     quartierColliders: quartiersFile.colliders,
     quartierLayouts,
+    characters,
   };
 }
 
@@ -581,4 +602,5 @@ export const gameData: GameData = parseGameData({
   dialogues: dialoguesJson,
   areas: areasJson,
   quartiers: quartiersJson,
+  characters: charactersJson,
 });
