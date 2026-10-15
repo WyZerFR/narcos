@@ -30,8 +30,9 @@ export interface PlayerView {
   connected: boolean;
   zone: string;
   bag: SlotView[];
-  cleanMoney: number;
+  cleanBalance: number;
   hasAccount: boolean;
+  launderLog: { at: number; amount: number }[];
   cart: CartLineView[];
   cartTotal: number;
   hunger: number;

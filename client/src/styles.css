@@ -1208,3 +1208,14 @@ input {
   min-height: 44px;
   text-align: left;
 }
+
+/* ---------- guichet de la banque ---------- */
+.launder-panel .launder-quick {
+  display: flex;
+  gap: 8px;
+}
+.launder-panel .launder-quick .btn {
+  flex: 1;
+  min-height: 44px;
+  padding: 0 8px;
+}

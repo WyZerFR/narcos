@@ -110,6 +110,26 @@ export function DebugLabSection() {
           Réappro.
         </button>
       </div>
+
+      <div className="cam-section">Debug banque</div>
+      <div className="cam-actions">
+        <button type="button" className="btn" onClick={() => send({ cmd: 'openAccount' })}>
+          Ouvrir le compte
+        </button>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => send({ cmd: 'setClean', amount: 10000 })}
+        >
+          Propre = 10 000 $
+        </button>
+        <button type="button" className="btn" onClick={() => send({ cmd: 'setClean', amount: 0 })}>
+          Propre = 0
+        </button>
+        <button type="button" className="btn" onClick={() => send({ cmd: 'resetLaunderCap' })}>
+          Plafond à zéro
+        </button>
+      </div>
       <div className="cam-actions">
         <button type="button" className="btn" onClick={() => send({ cmd: 'vitals', mode: 'fill' })}>
           Jauges pleines

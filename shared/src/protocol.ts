@@ -250,7 +250,10 @@ export type DebugMessage =
   | { cmd: 'survivalScale'; scale: number }
   | { cmd: 'equipLab' }
   | { cmd: 'clearLab' }
-  | { cmd: 'spawnBuyer' };
+  | { cmd: 'spawnBuyer' }
+  | { cmd: 'openAccount' }
+  | { cmd: 'setClean'; amount: number }
+  | { cmd: 'resetLaunderCap' };
 
 export const MAX_NAME_LENGTH = 16;
 

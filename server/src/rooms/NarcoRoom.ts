@@ -23,6 +23,10 @@ import {
   zoneArea,
   type CorrectionMessage,
   type DialogueNodeMessage,
+  type LaunderedEvent,
+  type LaunderOpenMessage,
+  type LaunderResultMessage,
+  LAUNDERED,
   type FixtureResultMessage,
   type GameClock,
   type JoinOptions,
@@ -60,6 +64,7 @@ import {
 import { pay, putBack, returnCart, stockShelves, takeItem } from './shop';
 import { StreetNpcs } from './npcs';
 import { DialogueDesk } from './dialogues';
+import { freezeLaunderWindows, launder, openTeller, resetLaunderCap } from './bank';
 import { SALE_COMPLETED, type SaleClosedMessage, type SaleCompletedEvent } from '@narco/shared';
 import { GameState, Player } from './schema';
 import { makeSlots, readInventory, writeInventory } from './stateSync';
@@ -137,6 +142,8 @@ export class NarcoRoom extends Room<GameState> {
   /** Événements de jeu côté serveur (`sale_completed`…), pour le Heat et la police plus tard. */
   readonly events = new EventEmitter();
   private npcTickAt = Date.now();
+  /** Temps de jeu depuis lequel aucun joueur n'est connecté (fenêtre du plafond gelée). */
+  private emptySince: number | null = null;
 
   override async onCreate(options: NarcoRoomOptions = {}): Promise<void> {
     if (options.restore) {
@@ -155,6 +162,7 @@ export class NarcoRoom extends Room<GameState> {
       stockShelves(this.state);
     }
     this.publishClock();
+    this.emptySince = this.now();
     await this.setPrivate(true);
     this.setPatchRate(config.room.patchRateMs);
 
@@ -190,6 +198,9 @@ export class NarcoRoom extends Room<GameState> {
     this.clock.setInterval(() => this.npcTick(), 1000 / config.npc.broadcastHz);
     this.onMessage(ClientMsg.DialogueChoose, (client, msg: unknown) =>
       this.handleDialogueChoose(client, msg),
+    );
+    this.onMessage(ClientMsg.BankLaunder, (client, msg: unknown) =>
+      this.handleLaunder(client, msg),
     );
     this.onMessage(ClientMsg.SaleOpen, (client, msg: unknown) => this.handleSaleOpen(client, msg));
     this.onMessage(ClientMsg.SaleAccept, (client, msg: unknown) =>
@@ -227,6 +238,10 @@ export class NarcoRoom extends Room<GameState> {
       this.state.players.set(playerId, player);
     }
 
+    if (this.emptySince !== null) {
+      freezeLaunderWindows(this.state, this.now() - this.emptySince);
+      this.emptySince = null;
+    }
     this.sessions.set(client.sessionId, playerId);
     // Hors ligne, les jauges sont figées : on repart de maintenant.
     player.survivalAt = this.now();
@@ -306,7 +321,7 @@ export class NarcoRoom extends Room<GameState> {
       items,
     );
     writeInventory(player.bag, start.ok ? start.inv : emptyInventory(config.inventory.bagSlots));
-    player.cleanMoney = economy.startingMoney.clean;
+    player.cleanBalance = economy.startingMoney.clean;
     Object.assign(player, SURVIVAL.start);
     // Autour du carton de départ, jamais dans un mur.
     const pos = resolveCircle(
@@ -462,6 +477,15 @@ export class NarcoRoom extends Room<GameState> {
       const r = this.dialogues.start(playerId, player, station);
       if (r.ok) client.send(ServerMsg.Dialogue, r.node);
       else this.notify(client, false, r.text);
+      return;
+    }
+    if (station.kind === 'teller') {
+      const r =
+        action === 'launder'
+          ? openTeller(player)
+          : { ok: false, text: `Impossible ici : ${station.label}` };
+      if (!r.ok) return this.notify(client, false, r.text);
+      client.send(ServerMsg.LaunderOpen, { stationId: station.id } satisfies LaunderOpenMessage);
       return;
     }
     if (station.kind === 'shelf' || station.kind === 'counter') {
@@ -664,6 +688,29 @@ export class NarcoRoom extends Room<GameState> {
     if (node) client.send(ServerMsg.Dialogue, node);
   }
 
+  /** Guichet : blanchit un montant ; réponse dédiée + notice, événement `laundered`. */
+  private handleLaunder(client: Client, msg: unknown): void {
+    const who = this.playerOf(client);
+    if (!who || !isObject(msg)) return;
+    const { playerId, player } = who;
+    const r = launder(
+      player,
+      { stationId: String(msg.stationId ?? ''), amount: Number(msg.amount) },
+      this.now(),
+      (st) => this.isNear(player, st),
+    );
+    const res: LaunderResultMessage = {
+      requestId: Number(msg.requestId) || 0,
+      ok: r.ok,
+      text: r.text,
+    };
+    client.send(ServerMsg.LaunderResult, res);
+    this.notify(client, r.ok, r.text);
+    if (!r.ok) return;
+    const event: LaunderedEvent = { playerId, dirty: r.dirty ?? 0, clean: r.clean ?? 0 };
+    this.events.emit(LAUNDERED, event);
+  }
+
   /** Panier rendu au rayon (sortie du magasin, déconnexion, KO). */
   private emptyCart(player: Player): void {
     if (player.cart.length > 0 && gameData.shops.has(player.zone))
@@ -747,6 +794,17 @@ export class NarcoRoom extends Room<GameState> {
         this.state.clock.survivalScale = scale;
         return this.notify(client, true, `[debug] survie x${scale}`);
       }
+      case 'openAccount':
+        player.hasAccount = true;
+        return this.notify(client, true, '[debug] compte ouvert');
+      case 'setClean': {
+        const amount = Math.max(0, Math.floor(Number(msg.amount) || 0));
+        player.cleanBalance = amount;
+        return this.notify(client, true, `[debug] solde propre = ${amount} $`);
+      }
+      case 'resetLaunderCap':
+        resetLaunderCap(player);
+        return this.notify(client, true, '[debug] plafond de blanchiment remis à zéro');
       case 'restock':
         stockShelves(this.state);
         return this.notify(client, true, '[debug] étagères réapprovisionnées');

@@ -11,6 +11,7 @@ import { CartPanel } from './CartPanel';
 import { InventoryPanel } from './InventoryPanel';
 import { SalePanel } from './SalePanel';
 import { DialoguePanel } from './DialoguePanel';
+import { LaunderPanel } from './LaunderPanel';
 import { openInventory, useInventoryMode } from './uiStore';
 
 export function Hud({ snapshot, room }: { snapshot: Snapshot; room: GameRoom }) {
@@ -72,6 +73,7 @@ export function Hud({ snapshot, room }: { snapshot: Snapshot; room: GameRoom }) 
       {inventory && <InventoryPanel room={room} />}
       <SalePanel room={room} />
       <DialoguePanel room={room} />
+      <LaunderPanel room={room} />
     </>
   );
 }

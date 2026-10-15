@@ -19,6 +19,12 @@ export class ShelfState extends Schema {
   @type('int32') stock = -1;
 }
 
+/** Un blanchiment passé : plafond sur fenêtre glissante (temps de jeu, ms). */
+export class LaunderEntry extends Schema {
+  @type('float64') at = 0;
+  @type('uint32') amount = 0;
+}
+
 export class Player extends Schema {
   @type('string') id = '';
   @type('string') name = '';
@@ -30,10 +36,12 @@ export class Player extends Schema {
   /** Zone courante : 'street' ou l'id d'un intérieur (zones.json). */
   @type('string') zone = 'street';
   @type([Slot]) bag = new ArraySchema<Slot>();
-  /** Argent propre : compte numérique, non confiscable (la laverie viendra plus tard). */
-  @type('uint32') cleanMoney = 0;
+  /** Argent propre : solde du compte en banque, non confiscable. */
+  @type('uint32') cleanBalance = 0;
   /** Compte ouvert à la banque (dialogue du courtier) : condition pour blanchir. */
   @type('boolean') hasAccount = false;
+  /** Blanchiments dans la fenêtre du plafond (purgés à chaque blanchiment). */
+  @type([LaunderEntry]) launderLog = new ArraySchema<LaunderEntry>();
   /** Panier dans le magasin courant (réservé en rayon), total calculé par le serveur. */
   @type([CartLine]) cart = new ArraySchema<CartLine>();
   @type('uint32') cartTotal = 0;

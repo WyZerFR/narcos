@@ -38,7 +38,7 @@ export function StatusPanel({ room }: { room: GameRoom }) {
     <div className="status-panel">
       <div className="money">
         <span title="Argent sale (dans le sac)">💵 {dirty} $</span>
-        <span title="Argent propre (compte)">🏦 {me.cleanMoney} $</span>
+        <span title="Argent propre (compte)">🏦 {me.cleanBalance} $</span>
       </div>
       <Gauge
         icon="🍔"

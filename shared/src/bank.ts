@@ -15,7 +15,7 @@ export interface LaunderEntry {
 
 export function launderSplit(amount: number, fee: number): { commission: number; net: number } {
   // epsilon : 0.3 × 100 = 30.000000000000004 ne doit pas devenir 31
-  const commission = Math.min(amount, Math.ceil(amount * fee - 1e-9));
+  const commission = Math.min(amount, Math.max(0, Math.ceil(amount * fee - 1e-9)));
   return { commission, net: amount - commission };
 }
 

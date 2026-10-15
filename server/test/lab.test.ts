@@ -92,7 +92,7 @@ describe('labo — validation des actions', () => {
     expect(dirty).toBe(1000);
     const p = room.state.players.get('lab-player-0011')!;
     expect(count(readInventory(p.bag), 'cash_dirty')).toBe(dirty);
-    expect(p.cleanMoney).toBe(clean);
+    expect(p.cleanBalance).toBe(clean);
   });
 
   it('refuse depuis la rue, de trop loin et sans objet', async () => {

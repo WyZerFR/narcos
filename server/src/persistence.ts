@@ -7,6 +7,7 @@ import {
   CartLine,
   CutJob,
   InstalledFixture,
+  LaunderEntry,
   Player,
   Pot,
   RackEntry,
@@ -57,7 +58,10 @@ const StateJson = z.object({
       rotY: z.number().default(0),
       zone: z.string().default('street'),
       bag: z.array(SlotJson).default([]),
-      cleanMoney: z.number().nonnegative().default(0),
+      /** Ancien nom du solde propre (sauvegardes d'avant la banque). */
+      cleanMoney: z.number().nonnegative().optional(),
+      cleanBalance: z.number().nonnegative().optional(),
+      launderLog: z.array(z.object({ at: z.number(), amount: z.number() })).optional(),
       // ajouté après la v4 : une ancienne sauvegarde se charge avec le compte fermé
       hasAccount: z.boolean().optional(),
       cart: z
@@ -149,13 +153,16 @@ export function hydrateState(state: GameState, snap: RoomSnapshot): void {
       z: p.z,
       rotY: p.rotY,
       zone: p.zone,
-      cleanMoney: p.cleanMoney,
+      cleanBalance: p.cleanBalance ?? p.cleanMoney ?? 0,
       hasAccount: p.hasAccount ?? false,
       connected: false,
     });
     player.bag.push(...slotsFrom(p.bag));
     player.cart.push(...p.cart.map((l) => Object.assign(new CartLine(), l)));
     player.cartTotal = p.cartTotal;
+    player.launderLog.push(
+      ...(p.launderLog ?? []).map((e) => Object.assign(new LaunderEntry(), e)),
+    );
     Object.assign(player, { hunger: p.hunger, thirst: p.thirst, health: p.health });
     state.players.set(id, player);
   }
