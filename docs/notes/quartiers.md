@@ -7,3 +7,4 @@
 - **Collisions** : maisons, lampadaires (`colliders.lampSize`), troncs, poubelles, caisses, clôtures (passage `fenceDoorGap` devant la porte), voitures garées → `obstaclesFrom` (joueurs, prédiction, PNJ). Arche, gardes, portail, guirlandes : décor sans collision.
 - **Serveur** : `Player.area` (`syncArea`), PNJ par area sur une grille bornée à l'area, prix × `priceMultiplier`, `sale_completed.area`. Reprise d'une partie : joueurs de la rue replacés au départ.
 - **Debug** (`?debug=1`, panneau caméra) : téléportation centre / Nord / Sud, frontières des areas, multiplicateur de prix à chaud (processus entier, prochaines demandes).
+- **Lieux de la rue** : `locationInteraction` (shared/zones.ts) → `enter` (intérieur), `talk` (dialogue) ou rien. Sans interaction (ruelles, point relais) : étiquette de repère seulement, pas de bouton ACTION, le serveur répond « Rien à faire ici. ». `enterText` n'existe que pour un lieu à intérieur (vérifié par `data.ts`).

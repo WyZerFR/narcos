@@ -1,7 +1,7 @@
 import { obstaclesFrom, type MapData } from './collision';
 import type { GameData } from './data';
 import { distance, rectFromCenter, type Rect, type Vec2 } from './geometry';
-import type { Interior, Station } from './schemas';
+import type { GameLocation, Interior, Station } from './schemas';
 
 /**
  * Zones de jeu : la rue (carte du quartier) ou un intérieur (`zones.json`). Chaque joueur est
@@ -66,4 +66,20 @@ export function nearestStation(pos: Vec2, interior: Interior, tolerance = 0): St
     }
   }
   return best;
+}
+
+/** Ce que fait le bouton ACTION devant un lieu de la rue : entrer, parler, ou rien (repère). */
+export type LocationInteraction = 'enter' | 'talk';
+
+/**
+ * Interaction d'un lieu : `enter` s'il mène à un intérieur, `talk` s'il porte un dialogue,
+ * null sinon (ruelle, point relais… : simple repère, aucun bouton ACTION).
+ */
+export function locationInteraction(
+  data: Pick<GameData, 'interiors'>,
+  loc: Pick<GameLocation, 'id' | 'dialogue'>,
+): LocationInteraction | null {
+  if (interiorForLocation(data, loc.id)) return 'enter';
+  if (loc.dialogue) return 'talk';
+  return null;
 }

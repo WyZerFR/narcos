@@ -578,8 +578,11 @@ export const LocationSchema = z.object({
   /** Face portant la porte (obligatoire pour un bâtiment). Nord = -Z. */
   door: DoorSideSchema.optional(),
   interactRadius: pos,
-  /** Réplique renvoyée par le serveur quand on entre. */
-  enterText: z.string().min(1),
+  /**
+   * Réplique renvoyée en entrant : seulement pour un lieu à intérieur (zones.json). Un lieu
+   * sans intérieur ni dialogue n'est qu'un repère (étiquette, pas de bouton ACTION).
+   */
+  enterText: z.string().min(1).optional(),
   /** Lieu sans intérieur où l'on parle à quelqu'un depuis la rue (dialogues.json). */
   dialogue: z.string().min(1).optional(),
   /** Libellé du bouton ACTION devant ce lieu (défaut « Entrer : nom »). */

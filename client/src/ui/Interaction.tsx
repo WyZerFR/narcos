@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   ClientMsg,
   gameData,
+  locationInteraction,
   nearestLocation,
   nearestPlace,
   STREET,
@@ -22,7 +23,10 @@ import { getPlacement, startPlacement, usePlacement } from './placementStore';
 import { npcSmoothed } from '../game/npcState';
 
 const getPlacementActive = () => getPlacement() !== null;
-const LOCATIONS = [...gameData.locations.values()];
+/** Lieux à bouton ACTION (intérieur ou dialogue) ; les autres ne sont que des repères. */
+const LOCATIONS = [...gameData.locations.values()].filter(
+  (loc) => locationInteraction(gameData, loc) !== null,
+);
 /** Fréquence de recherche de la cible proche (pas besoin de 60 Hz pour un libellé). */
 const PROBE_MS = 160;
 const TOAST_MS = 3500;
@@ -107,7 +111,11 @@ function findTarget(room: GameRoom): Target | null {
     return loc
       ? {
           key: `loc:${loc.id}`,
-          label: loc.actionLabel ?? `Entrer : ${loc.name}`,
+          label:
+            loc.actionLabel ??
+            (locationInteraction(gameData, loc) === 'talk'
+              ? `Parler : ${loc.name}`
+              : `Entrer : ${loc.name}`),
           active: true,
           message: { type: ClientMsg.Interact, body: { locationId: loc.id } },
         }

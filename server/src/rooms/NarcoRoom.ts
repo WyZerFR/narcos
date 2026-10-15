@@ -14,6 +14,7 @@ import {
   gameData,
   generateRoomCode,
   interactionPoint,
+  locationInteraction,
   AreaSchema,
   interiorForLocation,
   interiorPlaces,
@@ -457,21 +458,22 @@ export class NarcoRoom extends Room<GameState> {
     if (!who || !isObject(msg)) return;
     const { playerId, player } = who;
     const loc = gameData.locations.get(String(msg.locationId ?? ''));
-    if (!loc) return this.notify(client, false, "Ce lieu n'existe pas (encore).");
+    const action = loc ? locationInteraction(gameData, loc) : null;
+    if (!loc || !action) return this.notify(client, false, 'Rien à faire ici.');
     if (player.zone !== STREET) return this.notify(client, false, "Sors d'abord d'ici.");
     const d = distance(player, interactionPoint(loc));
     if (d > loc.interactRadius + config.world.interactTolerance)
       return this.notify(client, false, `Trop loin de : ${loc.name}`, { locationId: loc.id });
-    if (loc.dialogue) {
+    if (action === 'talk') {
       // lieu sans intérieur où l'on parle depuis la rue (repaire d'El Jefe)
       const r = this.dialogues.start(playerId, player, loc.id);
       if (r.ok) client.send(ServerMsg.Dialogue, r.node);
       else this.notify(client, false, r.text);
       return;
     }
-    const interior = interiorForLocation(gameData, loc.id);
-    if (interior) this.moveToZone(playerId, player, interior.id, interior.spawn);
-    this.notify(client, true, loc.enterText, { locationId: loc.id });
+    const interior = interiorForLocation(gameData, loc.id)!;
+    this.moveToZone(playerId, player, interior.id, interior.spawn);
+    this.notify(client, true, loc.enterText ?? loc.name, { locationId: loc.id });
   }
 
   /** Action sur un poste d'intérieur : zone, poste, distance, puis logique du labo. */

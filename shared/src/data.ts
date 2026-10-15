@@ -425,6 +425,12 @@ export function parseGameData(raw: RawGameData): GameData {
   }
   errors.push(...checkDialogues(dialogues, interiors, dialogueVars(economy)));
   for (const loc of locations.values()) {
+    // un lieu interactif doit faire quelque chose ; la réplique d'entrée va avec un intérieur
+    const enters = zonesFile.interiors.some((i) => i.entranceLocationId === loc.id);
+    if (enters !== Boolean(loc.enterText))
+      errors.push(
+        `locations.json : "${loc.id}" : enterText seulement (et obligatoire) pour un lieu à intérieur`,
+      );
     if (loc.dialogue && !dialogues.has(loc.dialogue))
       errors.push(`locations.json : "${loc.id}" : dialogue inconnu "${loc.dialogue}"`);
     if (loc.dialogue && zonesFile.interiors.some((i) => i.entranceLocationId === loc.id))
