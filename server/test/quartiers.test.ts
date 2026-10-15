@@ -7,6 +7,8 @@ import {
   emptyInventory,
   gameData,
   interactionPoint,
+  isBlocked,
+  obstaclesFrom,
   interiorForLocation,
   locationInteraction,
   ROOM_NAME,
@@ -215,5 +217,109 @@ describe('lieux de la rue : chaque interaction a un effet', () => {
         }
       }
     }
+  });
+});
+
+describe('île — debug sur toutes les areas', () => {
+  it('téléportation vers chaque area : point libre, dans l’area (devant le portail si verrouillée)', async () => {
+    const id = 'quartier-player-0020';
+    const { client, room } = await newGame(id);
+    const p = room.state.players.get(id)!;
+    const obstacles = obstaclesFrom(gameData);
+    for (const area of gameData.areas.values()) {
+      client.send(ClientMsg.Debug, { cmd: 'teleport', areaId: area.id });
+      const n = (await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage;
+      expect(n.ok, n.text).toBe(true);
+      const radius = gameData.config.world.playerRadius;
+      expect(isBlocked(p, radius, obstacles), area.id).toBe(false);
+      expect(p.area, area.id).toBe(area.locked ? 'centre_ville' : area.id);
+      // jamais ramené au départ (sauf pour l'area du départ)
+      if (area.id !== 'bas_fonds') expect(p.area).not.toBe('bas_fonds');
+    }
+  });
+
+  it('déverrouillage de l’aéroport : état diffusé, passage du portail, puis reverrouillage', async () => {
+    const id = 'quartier-player-0021';
+    const { client, room } = await newGame(id);
+    const p = room.state.players.get(id)!;
+    const { airport } = gameData.config;
+    expect(room.state.areaLocks.get(airport.areaId)).toBe(true);
+    client.send(ClientMsg.Debug, { cmd: 'setAreaLocked', areaId: airport.areaId, locked: false });
+    expect(((await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage).ok).toBe(true);
+    expect(room.state.areaLocks.get(airport.areaId)).toBe(false);
+    // le portail franchi pas à pas : aucune correction, le joueur arrive dans l'aéroport
+    Object.assign(p, { x: airport.gate.x, z: airport.gate.z + 1.2 });
+    client.send(ClientMsg.Move, {
+      zone: 'street',
+      x: airport.gate.x,
+      z: airport.gate.z - 1.2,
+      rotY: 0,
+      seq: 1,
+    });
+    await new Promise((r) => setTimeout(r, 150));
+    expect(p.z).toBeCloseTo(airport.gate.z - 1.2, 3);
+    expect(p.area).toBe(airport.areaId);
+    // reverrouillé : le joueur est remis devant le portail, côté ville
+    client.send(ClientMsg.Debug, { cmd: 'setAreaLocked', areaId: airport.areaId, locked: true });
+    expect(((await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage).ok).toBe(true);
+    expect(gameData.areas.get(airport.areaId)!.locked).toBe(true);
+    expect(p.area).toBe('centre_ville');
+  });
+});
+
+describe('île — migration des positions', () => {
+  const restore = (x: number, z: number, zone = 'street') => {
+    const snap = RoomSnapshotSchema.parse({
+      code: 'ABCD',
+      schemaVersion: SNAPSHOT_SCHEMA_VERSION,
+      savedAt: 0,
+      clock: { now: 0, scale: 1 },
+      state: {
+        ...new GameState().toJSON(),
+        code: 'ABCD',
+        players: {
+          p: {
+            id: 'p',
+            name: 'P',
+            color: '#ffffff',
+            x,
+            z,
+            zone,
+            characterId: gameData.config.characters.defaultId,
+            hasAccount: true,
+            cleanBalance: 42,
+            pactAccepted: true,
+          },
+        },
+      },
+    });
+    const state = new GameState();
+    hydrateState(state, snap);
+    return state.players.get('p')!;
+  };
+  const spawn = gameData.config.players.spawn;
+  const nearSpawn = (p: { x: number; z: number }) => Math.hypot(p.x - spawn.x, p.z - spawn.z) < 1;
+
+  it('position valide gardée (centre-ville), area recalculée', () => {
+    const g = gameData.config.map.areaGates.find((x) => x.areaId === 'centre_ville')!;
+    const p = restore(g.x, g.z);
+    expect({ x: p.x, z: p.z }).toEqual({ x: g.x, z: g.z });
+    expect(p.area).toBe('centre_ville');
+    expect([p.hasAccount, p.cleanBalance, p.pactAccepted]).toEqual([true, 42, true]);
+    expect(p.characterId).toBe(gameData.config.characters.defaultId);
+  });
+
+  it('position invalide (mer, aéroport verrouillé) : replacée au départ ; intérieur disparu : rue', () => {
+    const { airport } = gameData.config;
+    for (const p of [
+      restore(-300, 0),
+      restore(airport.runway.x, airport.runway.z),
+    ]) {
+      expect(nearSpawn(p)).toBe(true);
+      expect(p.zone).toBe('street');
+      expect(p.area).toBe('bas_fonds');
+    }
+    const lost = restore(-300, 0, 'interieur_disparu');
+    expect([lost.zone, lost.area, nearSpawn(lost)]).toEqual(['street', 'bas_fonds', true]);
   });
 });

@@ -41,10 +41,16 @@ function furniture(b: Batches, build: () => void): void {
   b.glow.cuttable = true;
 }
 
-export function buildQuartiers(b: Batches, data: GameData): void {
+export function buildQuartiers(
+  b: Batches,
+  data: GameData,
+  /** Appelé avant chaque quartier : aiguillage vers les batches de son area. */
+  enterArea?: (areaId: string) => void,
+): void {
   // hors des areas : la mer, posée par buildCity
   const { palette } = data.config;
   for (const layout of data.quartierLayouts.values()) {
+    enterArea?.(layout.areaId);
     const q = data.quartiers.get(layout.id)!;
     ground(b, layout, q, data);
     for (const h of layout.houses) house(b, h, q, palette.sky);

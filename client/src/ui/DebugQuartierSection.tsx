@@ -4,6 +4,7 @@ import { connection } from '../net/connection';
 import { setAreaBoundsVisible, useAreaBoundsVisible } from '../game/AreaBounds';
 
 const AREAS = [...gameData.areas.values()];
+const AIRPORT_ID = gameData.config.airport.areaId;
 const GARDENS = [...gameData.quartierLayouts.values()].flatMap((l) => l.gardens);
 /** Pas de réglage du multiplicateur de prix (debug). */
 const PRICE_STEP = 0.05;
@@ -18,6 +19,9 @@ function send(msg: DebugMessage): void {
 /** Debug quartiers : téléportation, frontières des areas, multiplicateur de prix à chaud. */
 export function DebugQuartierSection() {
   const bounds = useAreaBoundsVisible();
+  const [airportLocked, setAirportLocked] = useState(
+    () => gameData.areas.get(AIRPORT_ID)?.locked ?? true,
+  );
   const [prices, setPrices] = useState<Record<string, number>>(() =>
     Object.fromEntries(AREAS.map((a) => [a.id, a.priceMultiplier])),
   );
@@ -48,6 +52,16 @@ export function DebugQuartierSection() {
             → {a.name}
           </button>
         ))}
+        <button
+          type="button"
+          className={`btn${airportLocked ? '' : ' primary'}`}
+          onClick={() => {
+            send({ cmd: 'setAreaLocked', areaId: AIRPORT_ID, locked: !airportLocked });
+            setAirportLocked(!airportLocked);
+          }}
+        >
+          {airportLocked ? 'Déverrouiller l’aéroport' : 'Reverrouiller l’aéroport'}
+        </button>
         <button
           type="button"
           className="btn"

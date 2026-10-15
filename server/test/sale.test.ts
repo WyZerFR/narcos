@@ -74,9 +74,13 @@ async function open(client: SdkRoom, npcId: string): Promise<SaleOfferMessage> {
 }
 
 describe('vente de rue', () => {
-  it('fait apparaître la population de PNJ et les fait marcher', async () => {
+  it('peuple seulement l’area occupée par un joueur et fait marcher ses PNJ', async () => {
     const { room } = await newGame('sale-player-0001');
-    expect(room.state.npcs.size).toBe(NPC_TOTAL);
+    const home = room.state.players.get('sale-player-0001')!.area;
+    await new Promise((r) => setTimeout(r, 2000 / NPC.broadcastHz));
+    const areas = [...room.state.npcs.values()].map((n) => room.npcs.areaOf(n.id));
+    expect(areas).toHaveLength(gameData.areas.get(home)!.npcCount);
+    expect(new Set(areas)).toEqual(new Set([home]));
     const before = [...room.state.npcs.values()].map((n) => `${n.x},${n.z}`).join(';');
     await new Promise((r) => setTimeout(r, (NPC.pauseSeconds[1] + 1.5) * 1000));
     const after = [...room.state.npcs.values()].map((n) => `${n.x},${n.z}`).join(';');
@@ -357,5 +361,30 @@ describe('PNJ — simulation (hors réseau, hasard maîtrisé)', () => {
       expect(npc.z).toBeGreaterThanOrEqual(b.minZ);
       expect(npc.z).toBeLessThanOrEqual(b.maxZ);
     }
+  });
+});
+
+describe('PNJ — areas occupées seulement', () => {
+  it('peuple à l’arrivée, retire après le délai, plafond global respecté', () => {
+    const state = new GameState();
+    const sim = new StreetNpcs(state, () => 0.42);
+    const count = (areaId: string) =>
+      [...state.npcs.keys()].filter((id) => sim.areaOf(id) === areaId).length;
+    sim.syncOccupancy(new Set(['bas_fonds', 'commercial']), 0);
+    expect(count('bas_fonds')).toBe(gameData.areas.get('bas_fonds')!.npcCount);
+    expect(count('commercial')).toBe(gameData.areas.get('commercial')!.npcCount);
+    expect(count('cartel')).toBe(0);
+    // tout le monde part : les PNJ restent le temps du délai, puis disparaissent
+    const delay = NPC.despawnDelaySeconds * 1000;
+    sim.syncOccupancy(new Set(['commercial']), 1000);
+    sim.syncOccupancy(new Set(['commercial']), 1000 + delay - 1);
+    expect(count('bas_fonds')).toBeGreaterThan(0);
+    sim.syncOccupancy(new Set(['commercial']), 1000 + delay);
+    expect(count('bas_fonds')).toBe(0);
+    // toutes les areas occupées : jamais plus que le plafond
+    sim.syncOccupancy(new Set(AREAS.map((a) => a.id)), 2 * delay);
+    expect(state.npcs.size).toBeLessThanOrEqual(NPC.maxTotal);
+    expect(state.npcs.size).toBe(NPC_TOTAL);
+    expect(count(gameData.config.airport.areaId)).toBe(0);
   });
 });

@@ -262,7 +262,8 @@
         "w": 8,
         "d": 10
       },
-      "height": 11
+      "height": 11,
+      "style": "tower_lot"
     },
     {
       "id": "nw_angle",
@@ -286,7 +287,8 @@
         "w": 30,
         "d": 12
       },
-      "height": 15
+      "height": 15,
+      "style": "tower_lot"
     },
     {
       "id": "ne_fond",
@@ -298,7 +300,8 @@
         "w": 30,
         "d": 14
       },
-      "height": 16
+      "height": 16,
+      "style": "tower_lot"
     },
     {
       "id": "sw_angle",
@@ -310,7 +313,8 @@
         "w": 6,
         "d": 12
       },
-      "height": 9
+      "height": 9,
+      "style": "tower_lot"
     },
     {
       "id": "sw_ouest",
@@ -322,7 +326,8 @@
         "w": 8,
         "d": 12
       },
-      "height": 10
+      "height": 10,
+      "style": "tower_lot"
     },
     {
       "id": "sw_fond",
@@ -334,7 +339,8 @@
         "w": 6,
         "d": 12
       },
-      "height": 11
+      "height": 11,
+      "style": "tower_lot"
     },
     {
       "id": "se_est",
@@ -346,7 +352,8 @@
         "w": 10,
         "d": 9
       },
-      "height": 12
+      "height": 12,
+      "style": "tower_lot"
     },
     {
       "id": "se_fond",
@@ -358,7 +365,12 @@
         "w": 30,
         "d": 12
       },
-      "height": 14
+      "height": 9,
+      "style": "police",
+      "sign": "PD · POLICE",
+      "neonColor": "#4d7dff",
+      "door": "north",
+      "color": "#3d4a66"
     },
     {
       "id": "nw_ancien_local",
@@ -370,7 +382,8 @@
         "w": 15,
         "d": 10
       },
-      "height": 10
+      "height": 10,
+      "style": "tower_lot"
     },
     {
       "id": "sw_ancien_repaire",
@@ -382,7 +395,8 @@
         "w": 14,
         "d": 14
       },
-      "height": 12
+      "height": 12,
+      "style": "tower_lot"
     },
     {
       "id": "c_ancienne_epicerie",
@@ -394,7 +408,8 @@
         "w": 10,
         "d": 8
       },
-      "height": 12
+      "height": 12,
+      "style": "tower_lot"
     },
     {
       "id": "c_ancien_bricoshop",
@@ -406,7 +421,12 @@
         "w": 14,
         "d": 9
       },
-      "height": 13
+      "height": 6,
+      "style": "dealership",
+      "sign": "AUTO DELUXE",
+      "neonColor": "#33d6ff",
+      "door": "north",
+      "color": "#5a6478"
     },
     {
       "id": "bf_nord_ouest",
@@ -502,7 +522,12 @@
         "w": 10,
         "d": 12
       },
-      "height": 10
+      "height": 7,
+      "style": "laundry",
+      "sign": "LAVERIE",
+      "neonColor": "#7ee8ff",
+      "door": "south",
+      "color": "#6a7f8c"
     },
     {
       "id": "co_milieu",
@@ -514,7 +539,12 @@
         "w": 14,
         "d": 14
       },
-      "height": 12
+      "height": 8,
+      "style": "gunshop",
+      "sign": "AMMU-NATION",
+      "neonColor": "#ff4d5e",
+      "door": "south",
+      "color": "#4a4a44"
     },
     {
       "id": "co_est",
@@ -526,7 +556,12 @@
         "w": 16,
         "d": 12
       },
-      "height": 11
+      "height": 8,
+      "style": "barber",
+      "sign": "BARBIER",
+      "neonColor": "#ff3e9a",
+      "door": "south",
+      "color": "#6b4a52"
     },
     {
       "id": "co_sud_ouest",
@@ -538,19 +573,46 @@
         "w": 30,
         "d": 20
       },
-      "height": 9
+      "height": 2.2,
+      "style": "parking",
+      "sign": "PARKING",
+      "neonColor": "#4dd2ff",
+      "door": "north",
+      "color": "#3a3a44"
     },
     {
       "id": "co_sud_est",
       "position": {
-        "x": 110,
+        "x": 101,
         "z": 20
       },
       "size": {
-        "w": 30,
+        "w": 12,
         "d": 20
       },
-      "height": 10
+      "height": 7,
+      "style": "kebab",
+      "sign": "KEBAB",
+      "neonColor": "#ffc56b",
+      "door": "north",
+      "color": "#7a5a3a"
+    },
+    {
+      "id": "co_sud_est_bazar",
+      "position": {
+        "x": 116,
+        "z": 20
+      },
+      "size": {
+        "w": 18,
+        "d": 20
+      },
+      "height": 9,
+      "style": "store",
+      "sign": "ÉLECTRO DISCOUNT",
+      "neonColor": "#3dff8f",
+      "door": "north",
+      "color": "#4f5a6a"
     },
     {
       "id": "co_bras_ouest",
@@ -562,7 +624,12 @@
         "w": 20,
         "d": 20
       },
-      "height": 12
+      "height": 9,
+      "style": "store",
+      "sign": "PRÊTEUR SUR GAGES",
+      "neonColor": "#ffcc33",
+      "door": "south",
+      "color": "#5b4f3a"
     },
     {
       "id": "co_bras_milieu",
@@ -574,7 +641,8 @@
         "w": 20,
         "d": 20
       },
-      "height": 14
+      "height": 14,
+      "style": "tower_lot"
     },
     {
       "id": "co_bras_est",
@@ -586,7 +654,12 @@
         "w": 10,
         "d": 20
       },
-      "height": 10
+      "height": 8,
+      "style": "store",
+      "sign": "TABAC",
+      "neonColor": "#ff8a1f",
+      "door": "south",
+      "color": "#5a4b5e"
     }
   ]
 }

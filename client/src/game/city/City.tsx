@@ -1,9 +1,11 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { MeshBasicMaterial, MeshLambertMaterial, Vector2, Vector3, type Camera } from 'three';
 import { gameData } from '@narco/shared';
 import { localPlayer } from '../localPlayer';
 import { buildCity } from './buildCity';
+import { SEA_GROUP } from './areaBatches';
+import { useLoadedAreas } from '../areaStreaming';
 import { Decor } from './Decor';
 import { shade } from './batch';
 import { applyCutout, cutoutUniforms, getCutout } from './cutout';
@@ -72,9 +74,23 @@ function CutoutDriver() {
   return null;
 }
 
-/** Le quartier : 2 géométries fusionnées (murs + lumières) + décor instancié. */
-export function City({ glowBoost }: { glowBoost: number }) {
-  const geometry = useMemo(() => buildCity(gameData), []);
+/** Images rendues avec toute l'île visible au montage : géométries envoyées au GPU d'avance. */
+const WARMUP_FRAMES = 2;
+
+/**
+ * L'île : 2 géométries fusionnées (murs + lumières) par area, seules l'area du joueur et ses
+ * voisines directes sont dessinées (la mer toujours) ; décor instancié filtré de même.
+ * `lockVersion` : reconstruction quand le verrou d'une area change (portail de l'aéroport).
+ */
+export function City({ glowBoost, lockVersion }: { glowBoost: number; lockVersion: number }) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- lockVersion : gameData muté en place
+  const geometry = useMemo(() => buildCity(gameData), [lockVersion]);
+  const loaded = useLoadedAreas();
+  const [warm, setWarm] = useState(false);
+  const frames = useRef(0);
+  useFrame(() => {
+    if (!warm && ++frames.current > WARMUP_FRAMES) setWarm(true);
+  });
   // Bâtiments : découpe devant le joueur. Décor (bas) : matériaux sans découpe.
   const materials = useMemo(
     () => ({
@@ -94,18 +110,33 @@ export function City({ glowBoost }: { glowBoost: number }) {
 
   useEffect(
     () => () => {
-      geometry.solid.dispose();
-      geometry.glow.dispose();
+      for (const g of geometry.values()) {
+        g.solid?.dispose();
+        g.glow?.dispose();
+      }
+    },
+    [geometry],
+  );
+  useEffect(
+    () => () => {
       for (const m of Object.values(materials)) m.dispose();
     },
-    [geometry, materials],
+    [materials],
   );
 
   return (
     <>
-      <mesh geometry={geometry.solid} material={materials.solid} />
-      <mesh geometry={geometry.glow} material={materials.glow} />
+      {[...geometry].map(([key, g]) => {
+        const visible = !warm || key === SEA_GROUP || loaded.has(key);
+        return (
+          <group key={key} visible={visible}>
+            {g.solid && <mesh geometry={g.solid} material={materials.solid} />}
+            {g.glow && <mesh geometry={g.glow} material={materials.glow} />}
+          </group>
+        );
+      })}
       <Decor
+        loaded={warm ? loaded : null}
         data={gameData}
         solidMaterial={materials.decorSolid}
         glowMaterial={materials.decorGlow}

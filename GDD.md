@@ -44,20 +44,25 @@ La coop naît de la **rareté partagée**, pas de rôles :
 | **Zone 2** | Acte III                      | Laverie, banque, concessionnaire, premiers magasins             |
 | **Zone 3** | Acte IV (via concessionnaire) | Usine, armurier, commerces lourds, aéroport                     |
 
-### 3.2 bis Quartiers (areas de la zone 1)
+### 3.2 bis Île
 
-La rue centrale (banque, Bricoshop, épicerie, point relais, ruelles) dessert deux impasses de maisons générées (`areas.json`, `quartiers.json`) :
+La carte est une île (`areas.json`), d'ouest en est. Chaque area a son nom, son bandeau d'entrée, sa teinte de mini-carte, son prix, sa demande et son danger. Les valeurs ci-dessous sont lues dans le JSON, rien n'est en dur :
 
-| Area                        | Ambiance                        | Bout de l'impasse                  | Prix PNJ | Danger (0-5) | Tenue par        |
-| --------------------------- | ------------------------------- | ---------------------------------- | -------- | ------------ | ---------------- |
-| **Centre-ville** (`street`) | rue animée, exposée             | —                                  | ×1,00    | 3            | personne         |
-| **Quartier Nord** (`north`) | maisons jaunes, néons citron    | maison d'El Jefe (gardes, portail) | ×1,30    | 1            | El Jefe          |
-| **Quartier Sud** (`south`)  | sarcelle sombre, rose et violet | notre Local (labo)                 | ×1,25    | 1            | le cartel (nous) |
+| Area                                   | Contenu                                                                 | Prix PNJ | Danger (0-5) | Tenue par |
+| -------------------------------------- | ----------------------------------------------------------------------- | -------- | ------------ | --------- |
+| **Bas-fonds** (`bas_fonds`)            | départ, carton, épicerie de Momo ; référence des prix                   | ×1,00    | 3            | personne  |
+| **Chez nous** (`chez_nous`)            | notre U de maisons, le Local, la cave du blanchisseur                   | ×1,30    | 1            | nous      |
+| **Centre-ville** (`centre_ville`)      | tours seedées, carrefour, banque, commissariat, concessionnaire         | ×1,00    | 5            | personne  |
+| **Quartier commercial** (`commercial`) | Bricoshop, AMMU-NATION, laverie, barbier, kebab, commerces, parking     | ×1,15    | 3            | personne  |
+| **Quartier d'El Jefe** (`cartel`)      | le U d'El Jefe, son repaire                                             | ×1,30    | 1            | El Jefe   |
+| **Aéroport** (`aeroport`)              | piste, hangars, avions, conteneurs, clôture et portail ; **verrouillé** | —        | 5            | —         |
 
-- **Dealer** : dans les quartiers, les PNJ paient plus (`priceMultiplier`) et sont plus souvent intéressés (`demandRate`) ; la rue centrale, plus dangereuse, paiera moins une fois la police arrivée.
-- **Danger** : `dangerLevel` affiché dans le HUD, lu par `dangerAt(position)` ; aucun effet pour l'instant.
-- **Rôle futur** : conflit avec El Jefe pour le Nord (`controlledBy`), patrouilles de police pondérées par le danger, rachat de maisons des impasses (planques, fronts).
-- Trajets : départ → bout d'une impasse < 45 s à pied, bout à bout < 60 s.
+- **Interactions** : seuls les lieux à intérieur ou à dialogue ont un bouton ACTION (banque, Bricoshop, épicerie, Local, repaire, cave). Commissariat, concession, armurerie, laverie, barbier, kebab, tours et commerces sont des façades de repère avec une enseigne.
+- **Aéroport** : on le voit depuis la ville et on bute sur son portail. Le champ `locked` est lu par la collision et le rendu : son déblocage (acte IV) n'est qu'un changement de données.
+- **PNJ** : simulés seulement dans les areas où se trouve un joueur (au plus 14 au total, serveur à 0,1 CPU).
+- **HUD** : bandeau à l'entrée d'une area, mini-carte de toute l'île teintée par area, pastille de danger et de bonus de prix.
+- **Trajets** : depuis le départ, la banque et le Bricoshop sont à moins de 45 s à pied, et l'île se traverse en moins de 150 s (`npm run balance` donne le détail par lieu et par area).
+- **Rôle futur** : la police sera pondérée par `dangerLevel`, le conflit avec El Jefe passera par `controlledBy`, et l'aéroport s'ouvrira à l'acte IV.
 
 ### 3.2 ter Blanchisseur du Sud
 

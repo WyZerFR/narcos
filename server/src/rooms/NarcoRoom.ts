@@ -14,6 +14,7 @@ import {
   gameData,
   generateRoomCode,
   interactionPoint,
+  areaSpot,
   locationInteraction,
   AreaSchema,
   bagCapacity,
@@ -94,9 +95,12 @@ import {
 const { config, economy, items } = gameData;
 const SURVIVAL = economy.survival;
 
-/** Règles de mouvement par zone (rue, intérieurs), sans le mobilier installé, calculées une fois. */
+/**
+ * Règles de mouvement par zone (rue, intérieurs), sans le mobilier installé, calculées une fois
+ * (la rue est recalculée quand le verrou d'une area change).
+ */
 const MOVE_RULES = new Map<string, MoveRules>();
-for (const zoneId of [STREET, ...gameData.interiors.keys()]) {
+function computeRules(zoneId: string): void {
   const area = zoneArea(gameData, zoneId)!;
   MOVE_RULES.set(zoneId, {
     maxSpeed: config.movement.runSpeed,
@@ -112,17 +116,23 @@ for (const zoneId of [STREET, ...gameData.interiors.keys()]) {
     },
   });
 }
-const STREET_RULES = MOVE_RULES.get(STREET)!;
+for (const zoneId of [STREET, ...gameData.interiors.keys()]) computeRules(zoneId);
+const streetRules = () => MOVE_RULES.get(STREET)!;
 
 function rulesFor(zoneId: string): MoveRules {
-  return MOVE_RULES.get(zoneId) ?? STREET_RULES;
+  return MOVE_RULES.get(zoneId) ?? streetRules();
 }
 
-/** Debug : point d'arrivée d'une téléportation (départ pour la rue, porte du bout d'impasse). */
+/**
+ * Debug : point d'arrivée d'une téléportation, pour toute area (bout d'impasse, panneau
+ * d'entrée, case libre ; devant le portail d'une area verrouillée), sinon le départ.
+ */
 function debugAreaSpot(areaId: string): { x: number; z: number } {
-  const q = [...gameData.quartiers.values()].find((x) => x.areaId === areaId);
-  const loc = q && gameData.locations.get(q.landmarkLocationId);
-  return loc ? interactionPoint(loc) : { ...config.players.spawn };
+  return (
+    areaSpot(gameData, areaId, streetRules().collision!.obstacles) ?? {
+      ...config.players.spawn,
+    }
+  );
 }
 
 const PLAYER_ID_RE = /^[A-Za-z0-9-]{8,64}$/;
@@ -246,10 +256,10 @@ export class NarcoRoom extends Room<GameState> {
     this.onMessage(ClientMsg.CartRemove, (client, msg: unknown) =>
       this.handleCartRemove(client, msg),
     );
+    for (const a of gameData.areas.values()) this.state.areaLocks.set(a.id, a.locked);
     this.clock.setInterval(() => this.tick(), TICK_MS);
     this.clock.setInterval(() => this.publishClock(), CLOCK_BROADCAST_MS);
     this.clock.setInterval(() => this.settleAllVitals(), CLOCK_BROADCAST_MS);
-    this.npcs.spawnAll(Date.now());
     this.clock.setInterval(() => this.npcTick(), 1000 / config.npc.broadcastHz);
     this.onMessage(ClientMsg.DialogueChoose, (client, msg: unknown) =>
       this.handleDialogueChoose(client, msg),
@@ -384,8 +394,8 @@ export class NarcoRoom extends Room<GameState> {
         x: spawn.x + Math.cos(angle) * config.players.spawnSpread,
         z: spawn.z + Math.sin(angle) * config.players.spawnSpread,
       },
-      STREET_RULES.collision!.radius,
-      STREET_RULES.collision!.obstacles,
+      streetRules().collision!.radius,
+      streetRules().collision!.obstacles,
     );
     player.x = pos.x;
     player.z = pos.z;
@@ -642,8 +652,8 @@ export class NarcoRoom extends Room<GameState> {
     player.survivalAt = this.now();
     const spawn = resolveCircle(
       config.players.spawn,
-      STREET_RULES.collision!.radius,
-      STREET_RULES.collision!.obstacles,
+      streetRules().collision!.radius,
+      streetRules().collision!.obstacles,
     );
     this.moveToZone(playerId, player, STREET, spawn);
     this.notifyPlayer(
@@ -688,6 +698,10 @@ export class NarcoRoom extends Room<GameState> {
     const realNow = Date.now();
     const dt = Math.min(1000, realNow - this.npcTickAt);
     this.npcTickAt = realNow;
+    // PNJ simulés seulement dans les areas où se trouve un joueur (dans la rue)
+    const occupied = new Set<string>();
+    for (const p of this.state.players.values()) if (p.area) occupied.add(p.area);
+    this.npcs.syncOccupancy(occupied, realNow);
     for (const { playerId, npcId } of this.npcs.update(dt, realNow, this.now())) {
       const name = this.state.npcs.get(npcId)?.name ?? 'Le client';
       this.sendToPlayer(playerId, ServerMsg.SaleClosed, { npcId } satisfies SaleClosedMessage);
@@ -911,6 +925,24 @@ export class NarcoRoom extends Room<GameState> {
         if (!area) return this.notify(client, false, '[debug] area inconnue');
         this.moveToZone(who.playerId, player, STREET, debugAreaSpot(area.id));
         return this.notify(client, true, `[debug] téléporté : ${area.name}`);
+      }
+      case 'setAreaLocked': {
+        const area = gameData.areas.get(String(msg.areaId));
+        if (!area) return this.notify(client, false, '[debug] area inconnue');
+        // réglage à chaud du processus (comme les prix) : collisions de la rue recalculées,
+        // diffusé à toutes les parties pour que les clients suivent
+        area.locked = Boolean(msg.locked);
+        computeRules(STREET);
+        for (const room of liveRooms) room.state.areaLocks.set(area.id, area.locked);
+        // reverrouillée : personne ne reste enfermé dedans
+        if (area.locked)
+          for (const [pid, p] of this.state.players)
+            if (p.area === area.id) this.moveToZone(pid, p, STREET, debugAreaSpot(area.id));
+        return this.notify(
+          client,
+          true,
+          `[debug] ${area.name} ${area.locked ? 'verrouillée' : 'déverrouillée'}`,
+        );
       }
       case 'priceMultiplier': {
         const area = gameData.areas.get(String(msg.areaId));

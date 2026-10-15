@@ -16,8 +16,10 @@ import {
   type Material,
 } from 'three';
 import {
+  airportLayout,
   expandRect,
   interactionPoint,
+  lotCars,
   rectFromCenter,
   rectContainsPoint,
   type GameData,
@@ -27,11 +29,13 @@ import {
   type Vec2,
 } from '@narco/shared';
 import { Batch, shade } from './batch';
+import { areaIdNear } from '../areaStreaming';
 
-/** Une instance : position au sol, rotation Y, échelle uniforme, teinte optionnelle. */
+/** Une instance : position (au sol sauf `y`), rotation Y, échelle uniforme, teinte optionnelle. */
 interface Placement {
   x: number;
   z: number;
+  y?: number;
   rotY?: number;
   scale?: number;
   color?: Color;
@@ -117,27 +121,114 @@ interface Kit {
   items: Placement[];
 }
 
+/**
+ * Aéroport : avions de ligne (fuselage, ailes, dérive, hublots allumés) et conteneurs empilés,
+ * un InstancedMesh par pièce (`config.airport`).
+ */
+function airportKits(data: GameData, solidMaterial: Material, glowMaterial: Material): Kit[] {
+  const { palette, airport } = data.config;
+  const area = data.areas.get(airport.areaId);
+  if (!area) return [];
+  const layout = airportLayout(airport, area);
+  const { length, span, height } = airport.planeSize;
+  const hull = shade(palette.neon, 2.2);
+  const plane = new Batch();
+  const r = height * 0.28;
+  plane.block(0, height * 0.25, 0, length, r * 2, r * 2, hull);
+  plane.block(length * 0.52, height * 0.3, 0, length * 0.06, r * 1.4, r * 1.4, hull);
+  plane.block(length * 0.05, height * 0.3, 0, length * 0.18, 0.3, span, shade(palette.wall, 1.6));
+  plane.block(
+    -length * 0.42,
+    height * 0.3,
+    0,
+    length * 0.1,
+    0.25,
+    span * 0.35,
+    shade(palette.wall, 1.6),
+  );
+  plane.block(
+    -length * 0.43,
+    height * 0.25 + r * 2,
+    0,
+    length * 0.1,
+    height * 0.45,
+    0.3,
+    shade(area.themeColor, 1),
+  );
+  for (const s of [-1, 1])
+    plane.block(
+      length * 0.08,
+      0,
+      (s * span) / 4,
+      1.2,
+      height * 0.25,
+      1.2,
+      shade(palette.street, 0.8),
+    );
+  const windows = new Batch();
+  for (const s of [-1, 1])
+    windows.block(
+      0,
+      height * 0.25 + r * 1.1,
+      s * (r + 0.02),
+      length * 0.7,
+      0.25,
+      0.04,
+      shade(palette.neon, 1),
+    );
+  const planes: Placement[] = layout.planes.map((p) => ({ x: p.x, z: p.z, rotY: p.rotY }));
+
+  const c = airport.containerSize;
+  const box = new Batch();
+  const white = new Color(1, 1, 1);
+  box.block(0, 0, 0, c.length, c.height, c.width, white);
+  for (let u = -c.length / 2 + 0.4; u < c.length / 2; u += 0.6)
+    for (const s of [-1, 1])
+      box.block(u, 0.05, (s * c.width) / 2, 0.08, c.height - 0.1, 0.06, shade(palette.sky, 2));
+  const containers: Placement[] = layout.containers.flatMap((k) =>
+    Array.from({ length: k.stack }, (_, i) => ({
+      x: k.x,
+      z: k.z,
+      y: i * c.height,
+      rotY: k.rotY,
+      color: shade(k.color, 1 - i * 0.08),
+    })),
+  );
+  return [
+    { key: 'planes', geometry: plane.build(), material: solidMaterial, items: planes },
+    { key: 'planeWindows', geometry: windows.build(), material: glowMaterial, items: planes },
+    { key: 'containers', geometry: box.build(), material: solidMaterial, items: containers },
+  ];
+}
+
 const tmpM = new Matrix4();
 const tmpQ = new Quaternion();
 const tmpE = new Euler();
 const tmpP = new Vector3();
 const tmpS = new Vector3();
 
-function Instances({ kit }: { kit: Kit }) {
+/**
+ * Un InstancedMesh par pièce de décor : seules les instances des areas chargées sont écrites
+ * (`count` réduit), un seul draw call quel que soit le nombre d'areas chargées.
+ */
+function Instances({ kit, loaded }: { kit: Kit; loaded: ReadonlySet<string> | null }) {
   const ref = useRef<InstancedMesh>(null);
+  const areas = useMemo(() => kit.items.map((it) => areaIdNear(it)), [kit]);
   useLayoutEffect(() => {
     const mesh = ref.current;
     if (!mesh) return;
-    kit.items.forEach((it, i) => {
+    const items = loaded ? kit.items.filter((_, i) => loaded.has(areas[i]!)) : kit.items;
+    mesh.count = items.length;
+    items.forEach((it, i) => {
       tmpQ.setFromEuler(tmpE.set(0, it.rotY ?? 0, 0));
       const s = it.scale ?? 1;
-      mesh.setMatrixAt(i, tmpM.compose(tmpP.set(it.x, 0, it.z), tmpQ, tmpS.set(s, s, s)));
+      mesh.setMatrixAt(i, tmpM.compose(tmpP.set(it.x, it.y ?? 0, it.z), tmpQ, tmpS.set(s, s, s)));
       if (it.color) mesh.setColorAt(i, it.color);
     });
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     mesh.computeBoundingSphere();
-  }, [kit]);
+  }, [kit, areas, loaded]);
   if (kit.items.length === 0) return null;
   return (
     <instancedMesh
@@ -150,16 +241,20 @@ function Instances({ kit }: { kit: Kit }) {
 
 export function Decor({
   data,
+  loaded,
   solidMaterial,
   glowMaterial,
 }: {
   data: GameData;
+  /** Areas chargées (null : toute l'île, au montage). */
+  loaded: ReadonlySet<string> | null;
   solidMaterial: Material;
   glowMaterial: Material;
 }) {
   const kits = useMemo<Kit[]>(() => {
     const { palette, decor } = data.config;
     const white = new Color(1, 1, 1);
+    const lotTints = [palette.neon, palette.wall, palette.vegetation, palette.danger, palette.ok];
 
     // lampadaire : mât + bras (orienté vers la route)
     const pole = new Batch();
@@ -277,6 +372,17 @@ export function Decor({
           color: shade(facades[i % facades.length]!, 0.8),
         }));
       }),
+      // concession et parking : voitures rangées dans l'emprise (déjà solide), teintes de la palette
+      ...data.blocks
+        .filter((b) => b.style === 'dealership' || b.style === 'parking')
+        .flatMap((b) =>
+          lotCars(b, decor.carSize, data.config.city.lotCars).map((c) => ({
+            x: c.x,
+            z: c.z,
+            rotY: c.rotY,
+            color: shade(lotTints[c.tint % lotTints.length]!, 1.4),
+          })),
+        ),
     ];
 
     // poubelle avec couvercle, caisse en bois, carton de départ
@@ -342,6 +448,7 @@ export function Decor({
           ...quartierPlacements(data, (l) => [...l.crates, ...l.gardens.flatMap((g) => g.crates)]),
         ]),
       },
+      ...airportKits(data, solidMaterial, glowMaterial),
       {
         key: 'cartons',
         geometry: carton.build(),
@@ -364,7 +471,7 @@ export function Decor({
   return (
     <>
       {kits.map((k) => (
-        <Instances key={k.key} kit={k} />
+        <Instances key={k.key} kit={k} loaded={loaded} />
       ))}
     </>
   );

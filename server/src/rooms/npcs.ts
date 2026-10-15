@@ -108,19 +108,55 @@ export type SaleResult =
 export class StreetNpcs {
   private sims = new Map<string, Sim>();
   private nextId = 1;
+  /** Depuis quand (ms réels) une area peuplée n'a plus de joueur. */
+  private emptySince = new Map<string, number>();
 
   constructor(
     private readonly state: GameState,
     private readonly rng: Rng = Math.random,
   ) {}
 
-  /** Fait apparaître la population de chaque area (sur ses points de passage, au hasard). */
+  /** Fait apparaître la population de toutes les areas (tests, debug). */
   spawnAll(realNow: number): void {
-    for (const area of AREAS) {
-      const living = () => [...this.sims.values()].filter((s) => s.area.id === area.id).length;
-      while (living() < area.npcCount) this.spawn(area, this.randomWaypoint(area.id), realNow);
-    }
+    for (const area of AREAS) this.populate(area, realNow);
     this.publish();
+  }
+
+  private living(areaId: string): number {
+    let n = 0;
+    for (const s of this.sims.values()) if (s.area.id === areaId) n++;
+    return n;
+  }
+
+  /** Complète la population d'une area (points de passage au hasard), plafond global compris. */
+  private populate(area: Area, realNow: number): void {
+    if (waypointsOf(area.id).length === 0) return;
+    while (this.living(area.id) < area.npcCount && this.sims.size < NPC.maxTotal)
+      this.spawn(area, this.randomWaypoint(area.id), realNow);
+  }
+
+  /**
+   * Seules les areas occupées par un joueur (rue) sont simulées : population complétée à
+   * l'arrivée, PNJ retirés `despawnDelaySeconds` après le départ du dernier joueur (sauf en
+   * pleine négociation). Économise le CPU du serveur.
+   */
+  syncOccupancy(occupied: ReadonlySet<string>, realNow: number): void {
+    for (const area of AREAS) {
+      if (occupied.has(area.id)) {
+        this.emptySince.delete(area.id);
+        this.populate(area, realNow);
+        continue;
+      }
+      if (this.living(area.id) === 0) continue;
+      const since = this.emptySince.get(area.id) ?? realNow;
+      this.emptySince.set(area.id, since);
+      if (realNow - since < NPC.despawnDelaySeconds * 1000) continue;
+      for (const [id, sim] of this.sims)
+        if (sim.area.id === area.id && !sim.lock) {
+          this.sims.delete(id);
+          this.state.npcs.delete(id);
+        }
+    }
   }
 
   private randomIndex(areaId: string): number {
@@ -341,6 +377,7 @@ export class StreetNpcs {
   spawnBuyerNear(player: Player): string | null {
     const area = areaAt(AREAS, player);
     if (!area) return null;
+    this.populate(area, Date.now()); // area pas encore simulée (téléportation, tests)
     const g = gridOf(area.id);
     for (let k = 0; k < 16; k++) {
       const a = player.rotY + (k * Math.PI) / 8;

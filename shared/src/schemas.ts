@@ -147,8 +147,68 @@ export const ConfigSchema = z.object({
     crosswalks: z.array(
       z.object({ x: z.number(), z: z.number(), axis: z.enum(['x', 'z']), length: pos, width: pos }),
     ),
+    /**
+     * Panneaux d'entrée d'area au-dessus d'une route (`axis` = sens de la route) : décor sans
+     * collision, étiquette au nom de l'area. Les impasses ont déjà leur arche (`quartiers.json`).
+     */
+    areaGates: z.array(
+      Vec2Schema.extend({
+        areaId: z.string().min(1),
+        axis: z.enum(['x', 'z']),
+        span: pos,
+        height: pos,
+      }),
+    ),
   }),
   island: IslandSchema,
+  /**
+   * Centre-ville et commerces : tours tirées par la graine (largeurs, hauteurs, enseignes) et
+   * voitures rangées dans l'emprise de la concession et du parking (décor sans collision
+   * propre : l'emprise est déjà solide).
+   */
+  /**
+   * Aéroport (area `areaId`, verrouillée) : clôture en retrait du bord, portail sur la clôture
+   * face à une area marchable, piste, hangars, avions et conteneurs. Le champ `locked` de l'area
+   * est lu par la collision (`airportObstacles`) et par le rendu (portail fermé ou ouvert).
+   */
+  airport: z.object({
+    areaId: z.string().min(1),
+    fence: z.object({ inset: pos, height: pos, thickness: pos, postSpacing: pos }),
+    /** Portail : centre sur la clôture, `axis` = sens de la clôture à cet endroit. */
+    gate: Vec2Schema.extend({ axis: z.enum(['x', 'z']), width: pos, depth: pos, height: pos }),
+    runway: RectSchema,
+    hangars: z.array(RectSchema.extend({ height: pos })),
+    planeSize: z.object({ length: pos, span: pos, height: pos }),
+    /** Avions au sol, cap en degrés (0 = nez vers +X). */
+    planes: z.array(Vec2Schema.extend({ heading: z.number() })),
+    containerSize: z.object({ length: pos, width: pos, height: pos }),
+    containers: z.array(
+      Vec2Schema.extend({
+        rotation: z.union([z.literal(0), z.literal(90)]),
+        stack: z.number().int().min(1).max(3),
+        color: hexColor,
+      }),
+    ),
+  }),
+  city: z.object({
+    towers: z.object({
+      seed: z.string().min(1),
+      minWidth: pos,
+      maxWidth: pos,
+      heights: z.tuple([pos, pos]),
+      signChance: z.number().min(0).max(1),
+      signs: z.array(z.string().min(1)).min(1),
+      neonColors: z.array(hexColor).min(1),
+    }),
+    lotCars: z.object({
+      seed: z.string().min(1),
+      /** Marge (m) entre les voitures et le bord de l'emprise. */
+      margin: nonNeg,
+      /** Écart (m) entre deux voitures voisines. */
+      gap: nonNeg,
+      fillChance: z.number().min(0).max(1),
+    }),
+  }),
   decor: z.object({
     /** Part des fenêtres allumées (0-1). */
     windowLitRatio: z.number().min(0).max(1),
@@ -323,6 +383,8 @@ export const ConfigSchema = z.object({
     navCellSize: pos,
     /** Acheteur de debug : distance d'apparition devant le joueur (m). */
     debugSpawnDistance: pos,
+    /** Délai (s réelles) avant de retirer les PNJ d'une area que tous les joueurs ont quittée. */
+    despawnDelaySeconds: nonNeg,
   }),
 });
 
@@ -760,13 +822,38 @@ export const LocationSchema = z.object({
   catalog: z.array(CatalogEntrySchema),
 });
 
-/** Immeuble de remplissage (sans fonction) : ferme les îlots, crée les ruelles. */
+/**
+ * Style d'un immeuble décoratif. `tower_lot` est un îlot découpé en tours contiguës au
+ * chargement (`expandBlocks`, graine `config.city.towers.seed`) ; les autres sont des façades
+ * de repère (commissariat, concession, armurerie…) : extérieur seulement, jamais d'ACTION.
+ */
+export const BlockStyleSchema = z.enum([
+  'filler',
+  'tower',
+  'tower_lot',
+  'police',
+  'dealership',
+  'gunshop',
+  'laundry',
+  'barber',
+  'kebab',
+  'store',
+  'parking',
+]);
+
+/** Immeuble sans fonction : ferme les îlots, crée les ruelles, donne son visage au quartier. */
 export const BlockSchema = z.object({
   id: z.string().min(1),
   position: Vec2Schema,
   size: z.object({ w: pos, d: pos }),
   height: pos,
   color: hexColor.optional(),
+  style: BlockStyleSchema.default('filler'),
+  /** Enseigne néon (étiquette lisible depuis la caméra de jeu), sans interaction. */
+  sign: z.string().min(1).optional(),
+  neonColor: hexColor.optional(),
+  /** Façade de l'enseigne et de la vitrine (défaut : la plus proche d'une route). */
+  door: DoorSideSchema.optional(),
 });
 
 export const LocationsFileSchema = z.object({
@@ -789,6 +876,9 @@ export type CatalogEntry = z.infer<typeof CatalogEntrySchema>;
 export type Zone = z.infer<typeof ZoneSchema>;
 export type GameLocation = z.infer<typeof LocationSchema>;
 export type Block = z.infer<typeof BlockSchema>;
+export type BlockStyle = z.infer<typeof BlockStyleSchema>;
+export type CityParams = GameConfig['city'];
+export type AirportParams = GameConfig['airport'];
 export type Palette = z.infer<typeof PaletteSchema>;
 export type PaletteKey = z.infer<typeof PaletteKeySchema>;
 export type Silhouette = z.infer<typeof SilhouetteSchema>;
@@ -856,6 +946,8 @@ export const AreaSchema = z.object({
 
 /** Boîte englobante du polygone, calculée au chargement (`bounds`). */
 export const AreasFileSchema = z.object({
+  /** Area de référence des prix (multiplicateur et demande à 1) : Bas-fonds. */
+  referenceAreaId: z.string().min(1),
   areas: z
     .array(
       AreaSchema.transform((a) => ({

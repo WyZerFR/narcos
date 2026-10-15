@@ -133,8 +133,8 @@ export interface AreaSalesReport {
   /** Pochons achetés par minute de jeu au mieux (chaque acheteur trouvé). */
   pouchesPerMinute: number;
   revenuePerMinute: number;
-  /** Revenu d'un pochon comparé à la rue centrale (1 = pareil). */
-  priceVsStreet: number;
+  /** Revenu d'un pochon comparé à l'area de référence (Bas-fonds, 1 = pareil). */
+  priceVsReference: number;
 }
 
 /**
@@ -142,15 +142,15 @@ export interface AreaSalesReport {
  * (chance d'intérêt × demandRate, plafonnée à 1) / cooldown moyen, au prix × multiplicateur.
  */
 export function areaSalesReport(
-  data: Pick<GameData, 'economy' | 'npcs' | 'areas' | 'config'>,
+  data: Pick<GameData, 'economy' | 'npcs' | 'areas' | 'config' | 'marketReference'>,
 ): AreaSalesReport[] {
   const { profiles } = data.npcs;
   const totalWeight = profiles.reduce((s, p) => s + p.weight, 0);
   const [c0, c1] = data.config.npc.cooldownSeconds;
   const cooldownMin = (c0 + c1) / 2 / 60;
   const base = data.economy.strains[0]!.pouchSellPrice;
-  // référence : la première area (rue de départ)
-  const street = [...data.areas.values()][0]?.priceMultiplier ?? 1;
+  // référence des prix : Bas-fonds (areas.json referenceAreaId, multiplicateur 1)
+  const reference = data.marketReference.priceMultiplier;
   return [...data.areas.values()].map((a) => {
     const perVisit = profiles.reduce(
       (s, p) =>
@@ -170,7 +170,7 @@ export function areaSalesReport(
       avgPrice,
       pouchesPerMinute,
       revenuePerMinute: pouchesPerMinute * avgPrice,
-      priceVsStreet: a.priceMultiplier / street,
+      priceVsReference: a.priceMultiplier / reference,
     };
   });
 }

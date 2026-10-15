@@ -105,3 +105,51 @@ export function outsideAreas(areas: Iterable<Area>, world: Bounds): Rect[] {
 export function areaContainsRect(area: Area, r: Rect): boolean {
   return gridRects([area.polygon], r, (p) => !polygonContainsPoint(area.polygon, p)).length === 0;
 }
+
+/** Deux rectangles partagent un bord de longueur non nulle (contact franc, pas un coin). */
+function shareEdge(a: Rect, b: Rect): boolean {
+  const overlapX = Math.min(a.maxX, b.maxX) - Math.max(a.minX, b.minX);
+  const overlapZ = Math.min(a.maxZ, b.maxZ) - Math.max(a.minZ, b.minZ);
+  return (
+    ((a.maxX === b.minX || b.maxX === a.minX) && overlapZ > 0) ||
+    ((a.maxZ === b.minZ || b.maxZ === a.minZ) && overlapX > 0)
+  );
+}
+
+/**
+ * Voisines directes de chaque area (bord commun) : le client garde chargées l'area du joueur et
+ * celles-ci, le reste de l'île est déchargé.
+ */
+export function areaNeighbors(areas: Iterable<Area>): Map<string, string[]> {
+  const list = [...areas];
+  const tiles = new Map(list.map((a) => [a.id, areaRects(a)]));
+  const out = new Map<string, string[]>();
+  for (const a of list)
+    out.set(
+      a.id,
+      list
+        .filter(
+          (b) =>
+            b !== a && tiles.get(a.id)!.some((r) => tiles.get(b.id)!.some((o) => shareEdge(r, o))),
+        )
+        .map((b) => b.id),
+    );
+  return out;
+}
+
+/** Area contenant `p`, sinon la plus proche (bord de mer, plage) : rattache le décor côtier. */
+export function nearestArea(areas: Iterable<Area>, p: Vec2): Area | null {
+  const list = [...areas];
+  const inside = areaAt(list, p);
+  if (inside) return inside;
+  let best: Area | null = null;
+  let bestD = Infinity;
+  for (const a of list)
+    for (const r of areaRects(a)) {
+      const dx = Math.max(r.minX - p.x, 0, p.x - r.maxX);
+      const dz = Math.max(r.minZ - p.z, 0, p.z - r.maxZ);
+      const d = Math.hypot(dx, dz);
+      if (d < bestD) [best, bestD] = [a, d];
+    }
+  return best;
+}

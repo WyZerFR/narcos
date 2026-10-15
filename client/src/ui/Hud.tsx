@@ -7,6 +7,7 @@ import { LabelLayer } from '../game/labels';
 import { SettingsPanel } from './SettingsPanel';
 import { Minimap } from './Minimap';
 import { AreaBanner } from './AreaBanner';
+import { AreaStatus } from './AreaStatus';
 import { StatusPanel } from './StatusPanel';
 import { CartPanel } from './CartPanel';
 import { InventoryPanel } from './InventoryPanel';
@@ -45,6 +46,7 @@ export function Hud({ snapshot, room }: { snapshot: Snapshot; room: GameRoom }) 
           </div>
           {gameData.shops.has(myZone) && <CartPanel room={room} interiorId={myZone} />}
           {myZone === STREET && <Minimap room={room} />}
+          {myZone === STREET && <AreaStatus />}
         </div>
         <div className="hud-right">
           <button

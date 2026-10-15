@@ -126,6 +126,40 @@
         "length": 8,
         "width": 3
       }
+    ],
+    "areaGates": [
+      {
+        "areaId": "bas_fonds",
+        "x": -52,
+        "z": 0,
+        "axis": "x",
+        "span": 12,
+        "height": 5.5
+      },
+      {
+        "areaId": "centre_ville",
+        "x": -41,
+        "z": 0,
+        "axis": "x",
+        "span": 12,
+        "height": 6
+      },
+      {
+        "areaId": "centre_ville",
+        "x": 41,
+        "z": 0,
+        "axis": "x",
+        "span": 12,
+        "height": 6
+      },
+      {
+        "areaId": "commercial",
+        "x": 50,
+        "z": 0,
+        "axis": "x",
+        "span": 12,
+        "height": 6
+      }
     ]
   },
   "island": {
@@ -137,6 +171,154 @@
     "palmSpacing": 9,
     "palmChance": 0.55,
     "seed": "ile-1"
+  },
+  "airport": {
+    "areaId": "aeroport",
+    "fence": {
+      "inset": 1.5,
+      "height": 3,
+      "thickness": 0.3,
+      "postSpacing": 4
+    },
+    "gate": {
+      "x": 0,
+      "z": -46.5,
+      "axis": "x",
+      "width": 10,
+      "depth": 0.6,
+      "height": 4.2
+    },
+    "runway": {
+      "x": 0,
+      "z": -112,
+      "w": 124,
+      "d": 14
+    },
+    "hangars": [
+      {
+        "x": -48,
+        "z": -72,
+        "w": 26,
+        "d": 20,
+        "height": 11
+      },
+      {
+        "x": -18,
+        "z": -72,
+        "w": 22,
+        "d": 20,
+        "height": 10
+      }
+    ],
+    "planeSize": {
+      "length": 22,
+      "span": 20,
+      "height": 6
+    },
+    "planes": [
+      {
+        "x": 32,
+        "z": -112,
+        "heading": 0
+      },
+      {
+        "x": -48,
+        "z": -94,
+        "heading": 0
+      },
+      {
+        "x": 30,
+        "z": -84,
+        "heading": 180
+      }
+    ],
+    "containerSize": {
+      "length": 6,
+      "width": 2.4,
+      "height": 2.6
+    },
+    "containers": [
+      {
+        "x": 24,
+        "z": -56,
+        "rotation": 0,
+        "stack": 2,
+        "color": "#b5452f"
+      },
+      {
+        "x": 31,
+        "z": -56,
+        "rotation": 0,
+        "stack": 1,
+        "color": "#2f6fb5"
+      },
+      {
+        "x": 38,
+        "z": -56,
+        "rotation": 0,
+        "stack": 3,
+        "color": "#c9a227"
+      },
+      {
+        "x": 24,
+        "z": -52,
+        "rotation": 0,
+        "stack": 1,
+        "color": "#3f8a5a"
+      },
+      {
+        "x": 38,
+        "z": -52,
+        "rotation": 0,
+        "stack": 2,
+        "color": "#b5452f"
+      },
+      {
+        "x": 56,
+        "z": -62,
+        "rotation": 90,
+        "stack": 2,
+        "color": "#2f6fb5"
+      },
+      {
+        "x": 60,
+        "z": -62,
+        "rotation": 90,
+        "stack": 1,
+        "color": "#c9a227"
+      },
+      {
+        "x": -40,
+        "z": -54,
+        "rotation": 0,
+        "stack": 1,
+        "color": "#3f8a5a"
+      },
+      {
+        "x": -33,
+        "z": -54,
+        "rotation": 0,
+        "stack": 2,
+        "color": "#b5452f"
+      }
+    ]
+  },
+  "city": {
+    "towers": {
+      "seed": "tours-1",
+      "minWidth": 6,
+      "maxWidth": 11,
+      "heights": [12, 28],
+      "signChance": 0.45,
+      "signs": ["HÔTEL", "CLUB", "BAR", "LOFTS", "NIGHT", "CASINO", "KARAOKÉ", "PHARMACIE"],
+      "neonColors": ["#ff3e9a", "#33d6ff", "#b45cff", "#3dff8f", "#ffc56b"]
+    },
+    "lotCars": {
+      "seed": "voitures-1",
+      "margin": 1.2,
+      "gap": 0.8,
+      "fillChance": 0.7
+    }
   },
   "decor": {
     "windowLitRatio": 0.55,
@@ -438,7 +620,8 @@
     "saleRadius": 2,
     "cooldownSeconds": [60, 150],
     "navCellSize": 0.5,
-    "debugSpawnDistance": 1.2
+    "debugSpawnDistance": 1.2,
+    "despawnDelaySeconds": 20
   },
   "inventory": {
     "stockSlots": 60
