@@ -81,13 +81,13 @@ describe('poches et sac à dos', () => {
     expect(p.bagTier).toBe(0);
   });
 
-  it('achat au Bricoshop puis équipement (« Utiliser ») : 12 cases, objet consommé ; double équipement refusé', async () => {
+  it('achat chez Momo puis équipement (« Utiliser ») : 12 cases, objet consommé ; double équipement refusé', async () => {
     const id = 'bag-player-0002';
     const { client, room } = await newGame(id);
     const p = room.state.players.get(id)!;
-    goTo(room, id, 'shop', 'shelf_bags');
+    goTo(room, id, 'grocery', 'shelf_bags');
     expect((await act(client, 'shelf_bags', 'take')).ok).toBe(true);
-    goTo(room, id, 'shop', 'counter');
+    goTo(room, id, 'grocery', 'counter');
     expect((await act(client, 'counter', 'pay')).ok).toBe(true);
     expect(count(bagOf(room, id), BACKPACK)).toBe(1);
     const n = await useSlot(client, slotOf(room, id, BACKPACK));
@@ -111,9 +111,9 @@ describe('poches et sac à dos', () => {
       { itemId: 'cash_dirty', qty: 100 },
       ...Array.from({ length: 5 }, () => ({ itemId: 'scissors', qty: 1 })),
     ]);
-    goTo(room, id, 'shop', 'shelf_bags');
+    goTo(room, id, 'grocery', 'shelf_bags');
     await act(client, 'shelf_bags', 'take');
-    goTo(room, id, 'shop', 'counter');
+    goTo(room, id, 'grocery', 'counter');
     expect((await act(client, 'counter', 'pay')).text).toBe('Poches pleines : libère une case.');
     expect(count(bagOf(room, id), 'cash_dirty')).toBe(100);
   });
@@ -250,16 +250,16 @@ describe('poches → pochons', () => {
     const p = room.state.players.get(id)!;
     client.send(ClientMsg.Debug, { cmd: 'timeScale', scale: 60 });
     await client.waitForMessage(ServerMsg.Notice);
-    // kit minimal + lampe au Bricoshop, puis le sac à dos, avec les 150 $ de départ
+    // kit minimal + lampe au Bricoshop, puis le sac à dos chez Momo, avec les 150 $ de départ
     for (const shelf of ['shelf_pots', 'shelf_racks', 'shelf_tables', 'shelf_lamps']) {
       goTo(room, id, 'shop', shelf);
       expect((await act(client, shelf, 'take')).ok).toBe(true);
     }
     goTo(room, id, 'shop', 'counter');
     expect((await act(client, 'counter', 'pay')).ok).toBe(true);
-    goTo(room, id, 'shop', 'shelf_bags');
+    goTo(room, id, 'grocery', 'shelf_bags');
     await act(client, 'shelf_bags', 'take');
-    goTo(room, id, 'shop', 'counter');
+    goTo(room, id, 'grocery', 'counter');
     expect((await act(client, 'counter', 'pay')).ok).toBe(true);
     expect((await useSlot(client, slotOf(room, id, BACKPACK))).ok).toBe(true);
     expect(p.bag.length).toBe(BAG.backpackSlots);

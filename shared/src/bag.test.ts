@@ -29,11 +29,11 @@ describe('capacité du sac', () => {
     expect(bagFullText(1, 'impossible de récolter.')).toBe('Sac plein : impossible de récolter.');
   });
 
-  it('sac à dos : objet non empilable, « Utiliser », vendu au Bricoshop en « any »', () => {
+  it('sac à dos : objet non empilable, « Utiliser », vendu chez Momo en « any »', () => {
     const def = items.get(BAG.backpackItemId)!;
     expect(def.stackMax).toBe(1);
     expect(def.use).toEqual({ action: 'equip_bag', label: 'Utiliser' });
-    const shelf = gameData.shops.get('shop')!.shelves.find((s) => s.itemId === def.id)!;
+    const shelf = gameData.shops.get('grocery')!.shelves.find((s) => s.itemId === def.id)!;
     expect(shelf).toMatchObject({ currency: 'any', price: 25 });
   });
 

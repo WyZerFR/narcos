@@ -232,10 +232,12 @@ describe('shop — deux monnaies', () => {
     expect(count(bagOf(room, id), 'pot')).toBe(1);
   });
 
-  it('Bricoshop sans graines : le rayon des graines vend le sac à dos', () => {
+  it('Bricoshop sans graines ni sac à dos : le sac est chez Momo', () => {
     const items = shopShelves.map((s) => gameData.items.get(s.itemId)!.category);
     expect(items).not.toContain('seed');
-    expect(shopShelves.find((s) => s.stationId === 'shelf_bags')!.itemId).toBe('sac_a_dos');
+    expect(shopShelves.some((s) => s.itemId === 'sac_a_dos')).toBe(false);
+    const momo = gameData.shops.get('grocery')!.shelves;
+    expect(momo.find((s) => s.stationId === 'shelf_bags')!.itemId).toBe('sac_a_dos');
   });
 
   it('ancienne sauvegarde : panier sans monnaie chargé, payé en espèces', () => {

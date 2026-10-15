@@ -121,10 +121,13 @@ describe('données du jeu', () => {
 
   it('charge les magasins avec prix et stock', () => {
     const grocery = gameData.shops.get('grocery')!;
-    expect(grocery.shelves.map((s) => s.itemId).sort()).toEqual(['food', 'soda', 'water']);
-    expect(
-      gameData.shops.get('shop')!.shelves.find((s) => s.itemId === 'sac_a_dos')!.price,
-    ).toBeGreaterThan(0);
+    expect(grocery.shelves.map((s) => s.itemId).sort()).toEqual([
+      'food',
+      'sac_a_dos',
+      'soda',
+      'water',
+    ]);
+    expect(grocery.shelves.find((s) => s.itemId === 'sac_a_dos')!.price).toBeGreaterThan(0);
   });
 });
 

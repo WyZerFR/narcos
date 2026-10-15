@@ -65,21 +65,6 @@
       "obstacles": [],
       "stations": [
         {
-          "id": "shelf_bags",
-          "kind": "shelf",
-          "label": "Sacs",
-          "position": {
-            "x": -2.2,
-            "z": -3.65
-          },
-          "size": {
-            "w": 2.2,
-            "d": 0.7
-          },
-          "interactRadius": 1.6,
-          "solid": true
-        },
-        {
           "id": "shelf_pots",
           "kind": "shelf",
           "label": "Pots",
@@ -240,6 +225,21 @@
           "position": {
             "x": 2.2,
             "z": -3.65
+          },
+          "size": {
+            "w": 2.2,
+            "d": 0.7
+          },
+          "interactRadius": 1.6,
+          "solid": true
+        },
+        {
+          "id": "shelf_bags",
+          "kind": "shelf",
+          "label": "Sacs",
+          "position": {
+            "x": 0,
+            "z": -0.9
           },
           "size": {
             "w": 2.2,

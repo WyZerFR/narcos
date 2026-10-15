@@ -4,13 +4,6 @@
       "interiorId": "shop",
       "shelves": [
         {
-          "stationId": "shelf_bags",
-          "itemId": "sac_a_dos",
-          "price": 25,
-          "stock": 6,
-          "currency": "any"
-        },
-        {
           "stationId": "shelf_pots",
           "itemId": "pot",
           "price": 15,
@@ -69,6 +62,13 @@
           "itemId": "soda",
           "price": 3,
           "stock": 10,
+          "currency": "any"
+        },
+        {
+          "stationId": "shelf_bags",
+          "itemId": "sac_a_dos",
+          "price": 25,
+          "stock": 6,
           "currency": "any"
         }
       ]
