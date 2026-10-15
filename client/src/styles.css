@@ -878,6 +878,9 @@ input {
   font-weight: 700;
   font-size: 14px;
 }
+.money .money-dirty {
+  color: #ff8a8a;
+}
 .gauge {
   display: flex;
   align-items: center;

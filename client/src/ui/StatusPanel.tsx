@@ -27,7 +27,7 @@ function Gauge({
   );
 }
 
-/** Argent (sale dans le sac, propre sur le compte) et jauges de survie, lus dans l'état serveur. */
+/** Argent (en banque si compte ouvert, sale en espèces dans le sac) et jauges de survie, lus dans l'état serveur. */
 export function StatusPanel({ room }: { room: GameRoom }) {
   useRoomVersion(room);
   const me = room.state.players?.get(connection.playerId);
@@ -37,8 +37,12 @@ export function StatusPanel({ room }: { room: GameRoom }) {
   return (
     <div className="status-panel">
       <div className="money">
-        <span title="Argent sale (dans le sac)">💵 {dirty} $</span>
-        <span title="Argent propre (compte)">🏦 {me.cleanBalance} $</span>
+        <span className="money-clean" title="Argent en banque (propre)">
+          💳 {me.hasAccount ? `${me.cleanBalance} $` : '—'}
+        </span>
+        <span className="money-dirty" title="Argent sale (espèces du sac)">
+          💵 {dirty} $
+        </span>
       </div>
       <Gauge
         icon="🍔"
