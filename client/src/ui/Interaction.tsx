@@ -107,7 +107,7 @@ function findTarget(room: GameRoom): Target | null {
     return loc
       ? {
           key: `loc:${loc.id}`,
-          label: `Entrer : ${loc.name}`,
+          label: loc.actionLabel ?? `Entrer : ${loc.name}`,
           active: true,
           message: { type: ClientMsg.Interact, body: { locationId: loc.id } },
         }

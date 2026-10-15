@@ -3,8 +3,17 @@
     {
       "id": "banker",
       "start": [
-        { "node": "already_open", "requires": ["account"] },
-        { "node": "hello" }
+        {
+          "node": "already_open",
+          "requires": ["account"]
+        },
+        {
+          "node": "no_pact",
+          "requires": ["no_pact"]
+        },
+        {
+          "node": "hello"
+        }
       ],
       "nodes": [
         {
@@ -18,7 +27,11 @@
               "next": "references",
               "requires": ["no_account"]
             },
-            { "id": "nothing", "label": "Rien, merci.", "next": null }
+            {
+              "id": "nothing",
+              "label": "Rien, merci.",
+              "next": null
+            }
           ]
         },
         {
@@ -32,7 +45,11 @@
               "next": "offer",
               "requires": ["pact"]
             },
-            { "id": "never_mind", "label": "Finalement, non.", "next": null }
+            {
+              "id": "never_mind",
+              "label": "Finalement, non.",
+              "next": null
+            }
           ]
         },
         {
@@ -47,26 +64,129 @@
               "requires": ["no_account"],
               "action": "open_account"
             },
-            { "id": "refuse", "label": "Refuser", "next": "refused" }
+            {
+              "id": "refuse",
+              "label": "Refuser",
+              "next": "refused"
+            }
           ]
         },
         {
           "id": "welcome",
           "speaker": "M. Lenoir",
           "text": "Parfait. Bienvenue chez nous. Les guichets sont à votre service.",
-          "choices": [{ "id": "end", "label": "Merci.", "next": null }]
+          "choices": [
+            {
+              "id": "end",
+              "label": "Merci.",
+              "next": null
+            }
+          ]
         },
         {
           "id": "refused",
           "speaker": "M. Lenoir",
           "text": "Ma proposition tient toujours. Si vous changez d'avis, n'hésitez pas.",
-          "choices": [{ "id": "end", "label": "Au revoir.", "next": null }]
+          "choices": [
+            {
+              "id": "end",
+              "label": "Au revoir.",
+              "next": null
+            }
+          ]
         },
         {
           "id": "already_open",
           "speaker": "M. Lenoir",
           "text": "Votre compte est ouvert. Les guichets sont à votre service.",
-          "choices": [{ "id": "end", "label": "Merci.", "next": null }]
+          "choices": [
+            {
+              "id": "end",
+              "label": "Merci.",
+              "next": null
+            }
+          ]
+        },
+        {
+          "id": "no_pact",
+          "speaker": "M. Lenoir",
+          "text": "Je ne travaille qu'avec les amis d'El Jefe. Allez le voir.",
+          "choices": [
+            {
+              "id": "end",
+              "label": "J'y vais.",
+              "next": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "el_jefe",
+      "start": [
+        {
+          "node": "reminder",
+          "requires": ["pact"]
+        },
+        {
+          "node": "welcome"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "welcome",
+          "speaker": "El Jefe",
+          "text": "Entre, entre. Tu as la tête de quelqu'un qui n'a plus rien à perdre : c'est mon profil préféré. Tu veux bosser pour moi ?",
+          "choices": [
+            {
+              "id": "accept",
+              "label": "Accepter",
+              "next": "deal",
+              "requires": ["no_pact"],
+              "action": "accept_pact"
+            },
+            {
+              "id": "refuse",
+              "label": "Refuser",
+              "next": "refused"
+            }
+          ]
+        },
+        {
+          "id": "deal",
+          "speaker": "El Jefe",
+          "text": "Bienvenue dans la famille. Voilà {pactSeeds} graines : plante, arrose, vends. Et si tu me voles, on t'enterre avec. Tu peux dire à M. Lenoir, à la banque, que tu viens de ma part.",
+          "choices": [
+            {
+              "id": "end",
+              "label": "Compris, patron.",
+              "next": null
+            }
+          ]
+        },
+        {
+          "id": "refused",
+          "speaker": "El Jefe",
+          "text": "La porte reste ouverte. Pas longtemps.",
+          "choices": [
+            {
+              "id": "end",
+              "label": "Au revoir.",
+              "next": null
+            }
+          ]
+        },
+        {
+          "id": "reminder",
+          "speaker": "El Jefe",
+          "text": "Encore toi ? Les graines ne poussent pas pendant que tu me regardes. Au travail, et passe voir M. Lenoir à la banque.",
+          "choices": [
+            {
+              "id": "end",
+              "label": "J'y retourne.",
+              "next": null
+            }
+          ]
         }
       ]
     }

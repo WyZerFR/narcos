@@ -106,6 +106,13 @@ export function DebugLabSection() {
         >
           +1000 $ sale
         </button>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => send({ cmd: 'giveClean', amount: 1000 })}
+        >
+          +1000 $ propre
+        </button>
         <button type="button" className="btn" onClick={() => send({ cmd: 'restock' })}>
           Réappro.
         </button>

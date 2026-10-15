@@ -309,8 +309,8 @@ const SkillSchema = z.object({ maxRank: z.number().int().positive(), effectPerRa
 
 export const EconomySchema = z.object({
   calendar: z.object({ realMinutesPerGameDay: pos, gameDaysPerWeek: z.number().int().positive() }),
-  /** Argent de départ par joueur ; `_comment` documente une valeur provisoire. */
-  startingMoney: z.object({ _comment: z.string().optional(), dirty: nonNeg, clean: nonNeg }),
+  /** Argent de départ par joueur : sale dans le sac, propre sur un compte (fermé au départ). */
+  startingMoney: z.object({ dirty: nonNeg, clean: nonNeg }),
   survival: z.object({
     max: pos,
     hungerPerMinute: nonNeg,
@@ -326,7 +326,9 @@ export const EconomySchema = z.object({
     koDirtyCashLossPercent: z.number().min(0).max(100),
   }),
   strains: z.array(StrainSchema).min(1),
-  elJefe: z.object({ salesTaxRate: z.number().min(0).max(1), starterSeeds: nonNeg }),
+  elJefe: z.object({ salesTaxRate: z.number().min(0).max(1) }),
+  /** Pacte d'El Jefe : graines données une fois par joueur à l'acceptation. */
+  pact: z.object({ startSeeds: z.number().int().positive(), seedItemId: z.string().min(1) }),
   dealer: z.object({
     weeklyCost: nonNeg,
     pouchesSoldPerGameDay: nonNeg,
@@ -452,12 +454,19 @@ export const InteriorSchema = z.object({
 export const ZonesFileSchema = z.object({ interiors: z.array(InteriorSchema) });
 
 // ---------- shops.json ----------
+/**
+ * Monnaie d'un article : `dirty` = espèces du sac, `clean` = compte en banque,
+ * `any` = compte s'il couvre, sinon espèces (voir `splitCart`).
+ */
+export const CurrencySchema = z.enum(['dirty', 'clean', 'any']);
+
 /** Une étagère vend un objet ; `stock: null` = illimité. Le prix ne vit qu'ici (et côté serveur). */
 export const ShelfSchema = z.object({
   stationId: z.string().min(1),
   itemId: z.string().min(1),
   price: z.number().int().nonnegative(),
   stock: z.number().int().nonnegative().nullable(),
+  currency: CurrencySchema.default('dirty'),
 });
 
 export const ShopSchema = z.object({
@@ -470,11 +479,12 @@ export const ShopsFileSchema = z.object({ shops: z.array(ShopSchema) });
 // ---------- dialogues.json ----------
 /**
  * Conditions d'un choix : `account` = compte ouvert, `no_account` = pas de compte,
- * `pact` = pacte d'El Jefe (toujours vrai tant que config.dialogue.requirePact est faux).
+ * `pact` / `no_pact` = pacte d'El Jefe conclu ou non (toujours conclu si
+ * config.dialogue.requirePact est faux).
  */
-export const DialogueConditionSchema = z.enum(['account', 'no_account', 'pact']);
+export const DialogueConditionSchema = z.enum(['account', 'no_account', 'pact', 'no_pact']);
 /** Actions exécutées par le serveur quand le choix est validé. */
-export const DialogueActionSchema = z.enum(['open_account']);
+export const DialogueActionSchema = z.enum(['open_account', 'accept_pact']);
 
 export const DialogueChoiceSchema = z.object({
   id: z.string().min(1),
@@ -567,6 +577,10 @@ export const LocationSchema = z.object({
   interactRadius: pos,
   /** Réplique renvoyée par le serveur quand on entre. */
   enterText: z.string().min(1),
+  /** Lieu sans intérieur où l'on parle à quelqu'un depuis la rue (dialogues.json). */
+  dialogue: z.string().min(1).optional(),
+  /** Libellé du bouton ACTION devant ce lieu (défaut « Entrer : nom »). */
+  actionLabel: z.string().min(1).optional(),
   catalog: z.array(CatalogEntrySchema),
 });
 
@@ -610,6 +624,7 @@ export type Interior = z.infer<typeof InteriorSchema>;
 export type FixtureType = z.infer<typeof FixtureTypeSchema>;
 export type Placeable = z.infer<typeof PlaceableSchema>;
 export type Shelf = z.infer<typeof ShelfSchema>;
+export type Currency = z.infer<typeof CurrencySchema>;
 export type NpcProfile = z.infer<typeof NpcProfileSchema>;
 export type NpcsFile = z.infer<typeof NpcsFileSchema>;
 export type Shop = z.infer<typeof ShopSchema>;

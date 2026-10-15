@@ -64,6 +64,8 @@ const StateJson = z.object({
       launderLog: z.array(z.object({ at: z.number(), amount: z.number() })).optional(),
       // ajouté après la v4 : une ancienne sauvegarde se charge avec le compte fermé
       hasAccount: z.boolean().optional(),
+      // ajouté avec le pacte d'El Jefe : une ancienne sauvegarde se charge sans pacte
+      pactAccepted: z.boolean().optional(),
       cart: z
         .array(
           z.object({
@@ -71,10 +73,14 @@ const StateJson = z.object({
             itemId: z.string(),
             qty: z.number(),
             unitPrice: z.number(),
+            // ajouté avec les deux monnaies : un ancien panier était payé en espèces
+            currency: z.enum(['dirty', 'clean', 'any']).default('dirty'),
           }),
         )
         .default([]),
       cartTotal: z.number().nonnegative().default(0),
+      cartDirty: z.number().nonnegative().optional(),
+      cartClean: z.number().nonnegative().optional(),
       hunger: z.number().default(100),
       thirst: z.number().default(100),
       health: z.number().default(100),
@@ -155,11 +161,14 @@ export function hydrateState(state: GameState, snap: RoomSnapshot): void {
       zone: p.zone,
       cleanBalance: p.cleanBalance ?? p.cleanMoney ?? 0,
       hasAccount: p.hasAccount ?? false,
+      pactAccepted: p.pactAccepted ?? false,
       connected: false,
     });
     player.bag.push(...slotsFrom(p.bag));
     player.cart.push(...p.cart.map((l) => Object.assign(new CartLine(), l)));
     player.cartTotal = p.cartTotal;
+    player.cartDirty = p.cartDirty ?? p.cartTotal;
+    player.cartClean = p.cartClean ?? 0;
     player.launderLog.push(
       ...(p.launderLog ?? []).map((e) => Object.assign(new LaunderEntry(), e)),
     );

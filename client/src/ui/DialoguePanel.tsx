@@ -6,6 +6,7 @@ import {
   dialogueVars,
   fillText,
   gameData,
+  hasPact,
   type DialogueChooseMessage,
   type DialogueContext,
   type DialogueNodeMessage,
@@ -17,7 +18,7 @@ import { localPlayer } from '../game/localPlayer';
 const VARS = dialogueVars(gameData.economy);
 
 /**
- * Dialogue avec un personnage (courtier, plus tard El Jefe et les vendeurs) : nom, texte,
+ * Dialogue avec un personnage (courtier, El Jefe, plus tard les vendeurs) : nom, texte,
  * boutons de réponse. Textes et choix viennent de dialogues.json ; le serveur valide chaque
  * choix et renvoie le nœud suivant (null = fin). Placé en bas au centre, entre joystick et ACTION.
  */
@@ -62,7 +63,7 @@ export function DialoguePanel({ room }: { room: GameRoom }) {
   if (!node || !me) return null;
   const ctx: DialogueContext = {
     hasAccount: me.hasAccount,
-    pact: !gameData.config.dialogue.requirePact,
+    pact: hasPact(me.pactAccepted, gameData.config.dialogue.requirePact),
   };
   const choose = (choiceId: string) => {
     if (!room.connection.isOpen || sent) return;

@@ -61,7 +61,7 @@ import {
   remove,
   speedFactor,
 } from '@narco/shared';
-import { pay, putBack, returnCart, stockShelves, takeItem } from './shop';
+import { pay, putBack, readCart, returnCart, stockShelves, takeItem, writeCart } from './shop';
 import { StreetNpcs } from './npcs';
 import { DialogueDesk } from './dialogues';
 import { accessGranted, debugEnabled } from '../env';
@@ -451,6 +451,13 @@ export class NarcoRoom extends Room<GameState> {
     const d = distance(player, interactionPoint(loc));
     if (d > loc.interactRadius + config.world.interactTolerance)
       return this.notify(client, false, `Trop loin de : ${loc.name}`, { locationId: loc.id });
+    if (loc.dialogue) {
+      // lieu sans intérieur où l'on parle depuis la rue (repaire d'El Jefe)
+      const r = this.dialogues.start(playerId, player, loc.id);
+      if (r.ok) client.send(ServerMsg.Dialogue, r.node);
+      else this.notify(client, false, r.text);
+      return;
+    }
     const interior = interiorForLocation(gameData, loc.id);
     if (interior) this.moveToZone(playerId, player, interior.id, interior.spawn);
     this.notify(client, true, loc.enterText, { locationId: loc.id });
@@ -482,7 +489,7 @@ export class NarcoRoom extends Room<GameState> {
     }
     if (station.kind === 'talk') {
       if (action !== 'talk') return this.notify(client, false, `Impossible ici : ${station.label}`);
-      const r = this.dialogues.start(playerId, player, station);
+      const r = this.dialogues.start(playerId, player, station.id);
       if (r.ok) client.send(ServerMsg.Dialogue, r.node);
       else this.notify(client, false, r.text);
       return;
@@ -692,6 +699,7 @@ export class NarcoRoom extends Room<GameState> {
       this.isNear(who.player, st),
     );
     if (!r.ok) this.notify(client, false, r.text);
+    else if (r.notice) this.notify(client, true, r.notice);
     const node: DialogueNodeMessage | undefined = r.node;
     if (node) client.send(ServerMsg.Dialogue, node);
   }
@@ -808,7 +816,14 @@ export class NarcoRoom extends Room<GameState> {
       case 'setClean': {
         const amount = Math.max(0, Math.floor(Number(msg.amount) || 0));
         player.cleanBalance = amount;
+        writeCart(player, readCart(player)); // « any » réparti selon le nouveau solde
         return this.notify(client, true, `[debug] solde propre = ${amount} $`);
+      }
+      case 'giveClean': {
+        const amount = Math.max(0, Math.floor(Number(msg.amount) || 0));
+        player.cleanBalance += amount;
+        writeCart(player, readCart(player));
+        return this.notify(client, true, `[debug] +${amount} $ propres sur le compte`);
       }
       case 'resetLaunderCap':
         resetLaunderCap(player);

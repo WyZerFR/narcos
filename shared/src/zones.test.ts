@@ -31,7 +31,7 @@ describe('zones', () => {
     expect(interiorForLocation(gameData, 'epicerie')?.id).toBe('grocery');
     for (const id of ['shop', 'grocery']) {
       const kinds = gameData.interiors.get(id)!.stations.map((st) => st.kind);
-      expect(kinds.filter((k) => k === 'shelf')).toHaveLength(id === 'shop' ? 5 : 3);
+      expect(kinds.filter((k) => k === 'shelf')).toHaveLength(id === 'shop' ? 6 : 3);
       expect(kinds.filter((k) => k === 'counter')).toHaveLength(1);
       expect(
         gameData.interiors.get(id)!.stations.find((st) => st.kind === 'counter')!.vendor,

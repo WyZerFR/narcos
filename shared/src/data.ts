@@ -42,6 +42,9 @@ import { interiorBounds, interiorObstacles } from './zones';
 import { obstaclesFrom } from './collision';
 import { dialogueVars, textVars } from './dialogue';
 
+/** Catégories d'objets payables en « any » (compte ou espèces) : nourriture et boissons. */
+const ANY_CURRENCY_CATEGORIES: ReadonlySet<string> = new Set(['food', 'drink', 'water']);
+
 /** Dialogues : nœuds uniques, liens valides, variables connues, postes « talk » reliés. */
 function checkDialogues(
   dialogues: ReadonlyMap<string, Dialogue>,
@@ -277,6 +280,9 @@ export function parseGameData(raw: RawGameData): GameData {
       const def = items.get(shelf.itemId);
       if (!def || def.storage !== 'slot')
         errors.push(`shops.json : objet "${shelf.itemId}" inconnu ou non rangeable`);
+      // « any » (compte ou espèces) est réservé à la nourriture et aux boissons de base
+      if (shelf.currency === 'any' && def && !ANY_CURRENCY_CATEGORIES.has(def.category))
+        errors.push(`shops.json : "${shelf.itemId}" ne peut pas se payer en « any »`);
     }
     for (const st of interior.stations)
       if (st.kind === 'shelf' && !sold.has(st.id))
@@ -320,6 +326,14 @@ export function parseGameData(raw: RawGameData): GameData {
     )
       errors.push(`npcs.json : point de passage n°${i} hors carte ou dans un bâtiment`);
   errors.push(...checkDialogues(dialogues, interiors, dialogueVars(economy)));
+  for (const loc of locations.values()) {
+    if (loc.dialogue && !dialogues.has(loc.dialogue))
+      errors.push(`locations.json : "${loc.id}" : dialogue inconnu "${loc.dialogue}"`);
+    if (loc.dialogue && zonesFile.interiors.some((i) => i.entranceLocationId === loc.id))
+      errors.push(`locations.json : "${loc.id}" a un intérieur : le dialogue se tient dedans`);
+  }
+  if (items.get(economy.pact.seedItemId)?.category !== 'seed')
+    errors.push(`economy.json : pact.seedItemId "${economy.pact.seedItemId}" n'est pas une graine`);
   if (config.players.colors.length < config.room.maxPlayers)
     errors.push('config.json : il faut au moins autant de couleurs que de joueurs max');
   if (config.movement.runSpeed < config.movement.walkSpeed)

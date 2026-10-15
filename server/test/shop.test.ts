@@ -16,7 +16,8 @@ import {
 } from '@narco/shared';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { NarcoRoom } from '../src/rooms/NarcoRoom';
-import type { GameState } from '../src/rooms/schema';
+import { GameState } from '../src/rooms/schema';
+import { hydrateState, RoomSnapshotSchema, SNAPSHOT_SCHEMA_VERSION } from '../src/persistence';
 import { readInventory, writeInventory } from '../src/rooms/stateSync';
 import { bootOn } from './helpers';
 
@@ -169,13 +170,110 @@ describe('shop — panier et paiement', () => {
   });
 });
 
+describe('shop — deux monnaies', () => {
+  const groceryPrice = (id: string) =>
+    gameData.shops.get('grocery')!.shelves.find((s) => s.stationId === id)!.price;
+
+  it('départ : 150 $ sales, pas de compte, 0 $ propre', async () => {
+    const { room } = await newGame('shop-player-0010');
+    const p = room.state.players.get('shop-player-0010')!;
+    expect(count(bagOf(room, 'shop-player-0010'), 'cash_dirty')).toBe(150);
+    expect(p.hasAccount).toBe(false);
+    expect(p.cleanBalance).toBe(0);
+  });
+
+  it('nourriture « any » payée en espèces sans compte, en propre si le solde couvre', async () => {
+    const id = 'shop-player-0011';
+    const { client, room } = await newGame(id);
+    const p = room.state.players.get(id)!;
+    goTo(room, id, 'grocery', 'shelf_food');
+    await act(client, 'shelf_food', 'take');
+    expect([p.cartDirty, p.cartClean]).toEqual([groceryPrice('shelf_food'), 0]);
+    goTo(room, id, 'grocery', 'counter');
+    expect((await act(client, 'counter', 'pay')).text).toMatch(/en espèces/);
+    expect(count(bagOf(room, id), 'cash_dirty')).toBe(150 - groceryPrice('shelf_food'));
+
+    p.hasAccount = true;
+    p.cleanBalance = 50;
+    goTo(room, id, 'grocery', 'shelf_water');
+    await act(client, 'shelf_water', 'take');
+    expect([p.cartDirty, p.cartClean]).toEqual([0, groceryPrice('shelf_water')]);
+    goTo(room, id, 'grocery', 'counter');
+    expect((await act(client, 'counter', 'pay')).text).toMatch(/par carte/);
+    expect(p.cleanBalance).toBe(50 - groceryPrice('shelf_water'));
+    expect(count(bagOf(room, id), 'cash_dirty')).toBe(150 - groceryPrice('shelf_food'));
+    expect(count(bagOf(room, id), 'water')).toBe(1);
+  });
+
+  it('article « clean » refusé sans compte ; panier mixte atomique', async () => {
+    const id = 'shop-player-0012';
+    const { client, room } = await newGame(id);
+    const p = room.state.players.get(id)!;
+    for (const shelf of ['shelf_seeds', 'shelf_tools']) {
+      goTo(room, id, 'shop', shelf);
+      await act(client, shelf, 'take');
+    }
+    expect([p.cartDirty, p.cartClean]).toEqual([price('shelf_seeds'), price('shelf_tools')]);
+    goTo(room, id, 'shop', 'counter');
+    expect((await act(client, 'counter', 'pay')).text).toBe("Ouvre d'abord un compte.");
+    p.hasAccount = true;
+    expect((await act(client, 'counter', 'pay')).text).toMatch(/Pas assez d'argent propre/);
+    expect(count(bagOf(room, id), 'cash_dirty')).toBe(150);
+    p.cleanBalance = price('shelf_tools');
+    setCash(room, id, price('shelf_seeds') - 1);
+    expect((await act(client, 'counter', 'pay')).text).toMatch(/Pas assez d'argent sale/);
+    expect(p.cleanBalance).toBe(price('shelf_tools'));
+    setCash(room, id, price('shelf_seeds'));
+    expect((await act(client, 'counter', 'pay')).ok).toBe(true);
+    expect(p.cleanBalance).toBe(0);
+    expect(count(bagOf(room, id), 'cash_dirty')).toBe(0);
+    expect(count(bagOf(room, id), 'scissors')).toBe(1);
+    expect(count(bagOf(room, id), 'seed_base')).toBe(1);
+  });
+
+  it('ancienne sauvegarde : panier sans monnaie chargé, payé en espèces', () => {
+    const old = {
+      id: 'old',
+      name: 'Ancien',
+      color: '#ffffff',
+      x: 0,
+      z: 0,
+      cart: [{ stationId: 'shelf_pots', itemId: 'pot', qty: 2, unitPrice: 15 }],
+      cartTotal: 30,
+    };
+    const snap = RoomSnapshotSchema.parse({
+      code: 'ABCD',
+      schemaVersion: SNAPSHOT_SCHEMA_VERSION,
+      savedAt: 0,
+      clock: { now: 0, scale: 1 },
+      state: { ...new GameState().toJSON(), code: 'ABCD', players: { old } },
+    });
+    const state = new GameState();
+    hydrateState(state, snap);
+    const p = state.players.get('old')!;
+    expect(p.cart[0]!.currency).toBe('dirty');
+    expect([p.cartTotal, p.cartDirty, p.cartClean]).toEqual([30, 30, 0]);
+  });
+
+  it('debug : donne de l’argent propre et de l’argent sale', async () => {
+    const id = 'shop-player-0013';
+    const { client, room } = await newGame(id);
+    client.send(ClientMsg.Debug, { cmd: 'giveClean', amount: 300 });
+    await client.waitForMessage(ServerMsg.Notice);
+    client.send(ClientMsg.Debug, { cmd: 'money', amount: 50 });
+    await client.waitForMessage(ServerMsg.Notice);
+    expect(room.state.players.get(id)!.cleanBalance).toBe(300);
+    expect(count(bagOf(room, id), 'cash_dirty')).toBe(200);
+  });
+});
+
 describe('shop → labo', () => {
-  it('partie neuve, 1000 $ : achat au Bricoshop, placement libre, cycle jusqu’aux pochons', async () => {
+  it('partie neuve, 150 $ : achat au Bricoshop, placement libre, cycle jusqu’aux pochons', async () => {
     const { client, room } = await newGame('shop-player-0007');
     client.send(ClientMsg.Debug, { cmd: 'timeScale', scale: 60 });
     await client.waitForMessage(ServerMsg.Notice);
     expect(room.state.lab.fixtures.size).toBe(0);
-    expect(count(bagOf(room, 'shop-player-0007'), 'cash_dirty')).toBe(1000);
+    expect(count(bagOf(room, 'shop-player-0007'), 'cash_dirty')).toBe(150);
     // kit minimal, payé avec l'argent sale de départ uniquement
     for (const shelf of ['shelf_seeds', 'shelf_pots', 'shelf_racks', 'shelf_tables']) {
       goTo(room, 'shop-player-0007', 'shop', shelf);

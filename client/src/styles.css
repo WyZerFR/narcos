@@ -878,7 +878,8 @@ input {
   font-weight: 700;
   font-size: 14px;
 }
-.money .money-dirty {
+.money .money-dirty,
+.cart-footer .money-dirty {
   color: #ff8a8a;
 }
 .gauge {

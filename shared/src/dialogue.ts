@@ -15,7 +15,7 @@ import type {
 /** Ce que les conditions regardent chez le joueur. */
 export interface DialogueContext {
   hasAccount: boolean;
-  /** Pacte d'El Jefe conclu (ou non exigé : config.dialogue.requirePact faux). */
+  /** Pacte d'El Jefe conclu (ou non exigé : config.dialogue.requirePact faux), voir `hasPact`. */
   pact: boolean;
 }
 
@@ -27,6 +27,8 @@ export function conditionMet(c: DialogueCondition, ctx: DialogueContext): boolea
       return !ctx.hasAccount;
     case 'pact':
       return ctx.pact;
+    case 'no_pact':
+      return !ctx.pact;
   }
 }
 
@@ -66,9 +68,20 @@ export function chooseInDialogue(
   return { ok: true, next: choice.next, ...(choice.action ? { action: choice.action } : {}) };
 }
 
-/** Variables utilisables dans les textes (`{fee}` = commission de la banque en %). */
-export function dialogueVars(economy: Pick<Economy, 'bank'>): Record<string, string> {
-  return { fee: String(Math.round(economy.bank.fee * 100)) };
+/**
+ * Variables utilisables dans les textes : `{fee}` = commission de la banque en %,
+ * `{pactSeeds}` = graines données par El Jefe.
+ */
+export function dialogueVars(economy: Pick<Economy, 'bank' | 'pact'>): Record<string, string> {
+  return {
+    fee: String(Math.round(economy.bank.fee * 100)),
+    pactSeeds: String(economy.pact.startSeeds),
+  };
+}
+
+/** Le joueur a-t-il le pacte au sens des dialogues (conclu, ou non exigé par la config) ? */
+export function hasPact(pactAccepted: boolean, requirePact: boolean): boolean {
+  return pactAccepted || !requirePact;
 }
 
 /** Remplace `{nom}` par sa valeur ; une variable inconnue reste telle quelle. */

@@ -2,7 +2,7 @@
  * Équilibrage de la production et de la vente de rue, calculé depuis les JSON (`npm run balance`).
  * Rien n'est en dur : changer un prix, une durée ou un profil de PNJ change le rapport.
  */
-import { cycleReport, gameData, starterKitCost } from '@narco/shared';
+import { cycleReport, gameData, starterKitCost, survivalCostReport } from '@narco/shared';
 
 const { economy, npcs, config } = gameData;
 const lamp = economy.lab.lamp;
@@ -43,4 +43,14 @@ console.log(
   `\nDébouché de la rue : ~${pouchesPerMin.toFixed(1)} pochons/min de jeu au mieux`,
   `(${config.npc.count} PNJ, ${perNpcVisit.toFixed(2)} pochon par passage, cooldown moyen ${(avgCooldownMin * 60).toFixed(0)} s)`,
   `soit ~${(pouchesPerMin * base.pouchSellPrice).toFixed(0)} $/min si on trouve chaque acheteur.`,
+);
+
+// Survie payée en argent propre : ce que coûte la nourriture, et ce qu'il faut vendre puis blanchir.
+const food = survivalCostReport(gameData);
+console.log(
+  `\nSurvie en argent propre : ${food.perMinute.toFixed(2)} $/min de jeu, ${food.perHour.toFixed(0)} $/h`,
+  `(faim ${food.hungerPointPrice.toFixed(3)} $/pt, soif ${food.thirstPointPrice.toFixed(3)} $/pt).`,
+  `\nÀ couvrir : ${(food.perHour * food.dirtyPerClean).toFixed(0)} $ sales/h blanchis`,
+  `(commission ${economy.bank.fee * 100} %) → ${Math.ceil(food.pouchesPerHour)} pochons ${base.name}/h`,
+  `(${(food.pouchesPerHour / 60).toFixed(2)}/min).`,
 );

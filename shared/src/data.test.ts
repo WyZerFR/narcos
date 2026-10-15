@@ -162,3 +162,45 @@ describe('dialogues.json et banque', () => {
     expect(() => parseGameData(r2)).toThrow(/dialogue manquant/);
   });
 });
+
+describe('données — monnaies et pacte', () => {
+  type Shelves = { shops: { shelves: { itemId: string; currency?: string }[] }[] };
+
+  it('monnaie d’étagère : défaut « dirty », valeur inconnue refusée par zod', () => {
+    const r = raw();
+    delete (r.shops as Shelves).shops[0]!.shelves[0]!.currency;
+    expect(parseGameData(r).shops.get('shop')!.shelves[0]!.currency).toBe('dirty');
+    (r.shops as Shelves).shops[0]!.shelves[0]!.currency = 'bitcoin';
+    expect(() => parseGameData(r)).toThrow(/shops\.json invalide[\s\S]*currency/);
+  });
+
+  it('« any » réservé à la nourriture et aux boissons', () => {
+    const r = raw();
+    (r.shops as Shelves).shops[0]!.shelves.find((s) => s.itemId === 'pot')!.currency = 'any';
+    expect(() => parseGameData(r)).toThrow(/"pot" ne peut pas se payer en « any »/);
+  });
+
+  it('pacte : nombre de graines validé par zod, objet obligatoirement une graine', () => {
+    const r = raw();
+    (r.economy as { pact: { startSeeds: unknown } }).pact.startSeeds = 0;
+    expect(() => parseGameData(r)).toThrow(/economy\.json invalide[\s\S]*pact\.startSeeds/);
+    const r2 = raw();
+    (r2.economy as { pact: { seedItemId: string } }).pact.seedItemId = 'pot';
+    expect(() => parseGameData(r2)).toThrow(/pact\.seedItemId "pot" n'est pas une graine/);
+  });
+
+  it('lieu à dialogue : dialogue connu et pas d’intérieur', () => {
+    expect(gameData.locations.get('repaire_jefe')).toMatchObject({
+      dialogue: 'el_jefe',
+      actionLabel: 'Parler à El Jefe',
+    });
+    const r = raw();
+    const locs = r.locations as { locations: { id: string; dialogue?: string }[] };
+    locs.locations.find((l) => l.id === 'repaire_jefe')!.dialogue = 'inconnu';
+    expect(() => parseGameData(r)).toThrow(/dialogue inconnu "inconnu"/);
+    const r2 = raw();
+    const locs2 = r2.locations as { locations: { id: string; dialogue?: string }[] };
+    locs2.locations.find((l) => l.id === 'local')!.dialogue = 'el_jefe';
+    expect(() => parseGameData(r2)).toThrow(/"local" a un intérieur/);
+  });
+});
