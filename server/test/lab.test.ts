@@ -82,7 +82,7 @@ describe('labo — validation des actions', () => {
     expect(room.state.lab.fixtures.size).toBe(0);
     expect(room.state.lab.pots.size).toBe(0);
     expect(room.state.players.get('lab-player-0001')!.bag.length).toBe(
-      gameData.config.inventory.bagSlots,
+      gameData.economy.bag.pocketSlots,
     );
   });
 

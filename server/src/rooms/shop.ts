@@ -1,4 +1,5 @@
 import {
+  bagFullText,
   cartTotal,
   checkout,
   formatSplit,
@@ -121,7 +122,13 @@ export function returnCart(state: GameState, player: Player, interiorId: string)
  * article, achats rangés, tout ou rien.
  */
 export function pay(player: Player, counter: Station): ActionResult {
-  const r = checkout(readInventory(player.bag), readCart(player), accountOf(player), items);
+  const r = checkout(
+    readInventory(player.bag),
+    readCart(player),
+    accountOf(player),
+    items,
+    bagFullText(player.bagTier),
+  );
   if (!r.ok) return { ok: false, text: r.message };
   writeInventory(player.bag, r.value.bag);
   player.cleanBalance = r.value.clean;

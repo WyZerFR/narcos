@@ -130,18 +130,45 @@
         "guards": 0,
         "garlands": true
       },
-      "hiddenCellar": {
-        "locationId": "trappe_cave",
-        "side": "west",
-        "houseIndex": 2,
-        "passageWidth": 1.6,
-        "gardenDepth": 8,
-        "fenceHeight": 1.8,
-        "trapdoor": {
-          "along": 0.7,
-          "depth": 0.55
+      "cellarLocationId": "trappe_cave",
+      "hiddenGardens": [
+        {
+          "kind": "real",
+          "side": "west",
+          "houseIndex": 2,
+          "passageWidth": 1.6,
+          "gardenDepth": 8,
+          "fenceHeight": 1.8,
+          "spot": {
+            "along": 0.7,
+            "depth": 0.55
+          }
+        },
+        {
+          "kind": "decoy",
+          "side": "east",
+          "houseIndex": 2,
+          "passageWidth": 1.6,
+          "gardenDepth": 8,
+          "fenceHeight": 1.8,
+          "spot": {
+            "along": 0.35,
+            "depth": 0.5
+          }
+        },
+        {
+          "kind": "decoy",
+          "side": "west",
+          "houseIndex": 6,
+          "passageWidth": 1.6,
+          "gardenDepth": 8,
+          "fenceHeight": 1.8,
+          "spot": {
+            "along": 0.55,
+            "depth": 0.45
+          }
         }
-      }
+      ]
     }
   ]
 }

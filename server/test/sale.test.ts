@@ -53,7 +53,7 @@ async function notice(client: SdkRoom): Promise<NoticeMessage> {
 
 /** Sac : argent de départ + `pouches` pochons de base. */
 function setBag(room: NarcoRoom, playerId: string, pouches: number) {
-  let inv = emptyInventory(gameData.config.inventory.bagSlots);
+  let inv = emptyInventory(gameData.economy.bag.pocketSlots);
   const r = add(inv, 'pouch_base', pouches, gameData.items);
   if (r.ok) inv = r.inv;
   writeInventory(room.state.players.get(playerId)!.bag, inv);
@@ -174,7 +174,7 @@ describe('vente de rue', () => {
       expect((await notice(client)).text).toMatch(/Pas assez/);
     }
     // sac plein : 5 pochons (il en restera), le reste rempli de ciseaux, pas de place pour l'argent
-    let inv = emptyInventory(gameData.config.inventory.bagSlots);
+    let inv = emptyInventory(gameData.economy.bag.pocketSlots);
     const r1 = add(inv, 'pouch_base', 5, gameData.items);
     if (r1.ok) inv = r1.inv;
     const r2 = add(inv, 'scissors', inv.length - 1, gameData.items);
@@ -268,7 +268,7 @@ describe('PNJ — simulation (hors réseau, hasard maîtrisé)', () => {
     const player = new Player();
     player.id = 'p';
     player.zone = 'street';
-    player.bag = makeSlots(gameData.config.inventory.bagSlots);
+    player.bag = makeSlots(gameData.economy.bag.pocketSlots);
     player.x = 30;
     player.z = 5.25;
     player.rotY = Math.PI / 2;
@@ -319,10 +319,13 @@ describe('PNJ — simulation (hors réseau, hasard maîtrisé)', () => {
     }
   });
 
-  it('PNJ de vente exclus du passage et du jardin de la cachette', () => {
-    const c = gameData.quartierLayouts.get('sud')!.cellar!;
+  it('PNJ de vente exclus des passages et des jardins cachés (vrai et leurres)', () => {
+    // tous les jardins cachés (vrai et leurres) et leurs passages
+    const zones = gameData.quartierLayouts
+      .get('sud')!
+      .gardens.flatMap((g) => [g.passage, g.garden]);
     const g = gridOf('south');
-    for (const r of [c.passage, c.garden])
+    for (const r of zones)
       expect(isFreeAt(g, { x: (r.minX + r.maxX) / 2, z: (r.minZ + r.maxZ) / 2 })).toBe(false);
     const state = new GameState();
     let seed = 11;
@@ -336,7 +339,7 @@ describe('PNJ — simulation (hors réseau, hasard maîtrisé)', () => {
       sim.update(250, t * 250 + 10_000, t * 250);
       for (const id of state.npcs.keys()) {
         const p = sim.positionOf(id)!;
-        for (const r of [c.passage, c.garden]) expect(rectContainsPoint(r, p), id).toBe(false);
+        for (const r of zones) expect(rectContainsPoint(r, p), id).toBe(false);
       }
     }
   });

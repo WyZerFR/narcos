@@ -2,7 +2,15 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from '
 import { dirname, resolve } from 'node:path';
 import { dataDir } from './env';
 import { z } from 'zod';
-import { gameData, obstaclesFrom, resolveCircle, STREET } from '@narco/shared';
+import {
+  bagCapacity,
+  bagTierFor,
+  fitBag,
+  gameData,
+  obstaclesFrom,
+  resolveCircle,
+  STREET,
+} from '@narco/shared';
 import { syncArea } from './rooms/stateSync';
 import type { GameState } from './rooms/schema';
 import {
@@ -60,6 +68,8 @@ const StateJson = z.object({
       rotY: z.number().default(0),
       zone: z.string().default('street'),
       bag: z.array(SlotJson).default([]),
+      // ajouté avec les poches : absent d'une ancienne sauvegarde (palier déduit du sac)
+      bagTier: z.number().int().min(0).max(1).optional(),
       /** Ancien nom du solde propre (sauvegardes d'avant la banque). */
       cleanMoney: z.number().nonnegative().optional(),
       cleanBalance: z.number().nonnegative().optional(),
@@ -180,7 +190,15 @@ export function hydrateState(state: GameState, snap: RoomSnapshot): void {
       pactAccepted: p.pactAccepted ?? false,
       connected: false,
     });
-    player.bag.push(...slotsFrom(p.bag));
+    // palier : celui sauvegardé, sinon déduit (ancienne partie à 10 cases) ; aucun objet perdu
+    const saved = p.bag.map((s) => (s.itemId ? { itemId: s.itemId, qty: s.qty } : null));
+    const rules = gameData.economy.bag;
+    player.bagTier = bagTierFor(rules, p.bagTier, saved);
+    player.bag.push(
+      ...slotsFrom(
+        fitBag(saved, bagCapacity(rules, player.bagTier)).map((s) => s ?? { itemId: '', qty: 0 }),
+      ),
+    );
     player.cart.push(...p.cart.map((l) => Object.assign(new CartLine(), l)));
     player.cartTotal = p.cartTotal;
     player.cartDirty = p.cartDirty ?? p.cartTotal;

@@ -146,7 +146,7 @@ describe('pacte d’El Jefe', () => {
     const id = 'pact-player-0003';
     const { client, room } = await newGame(id);
     const p = room.state.players.get(id)!;
-    const slots = gameData.config.inventory.bagSlots;
+    const slots = gameData.economy.bag.pocketSlots;
     const full = add(emptyInventory(slots), 'scissors', slots, items); // pile de 1
     if (!full.ok) throw new Error(full.message);
     writeInventory(p.bag, full.inv);
@@ -154,7 +154,7 @@ describe('pacte d’El Jefe', () => {
     await talkToJefe(client);
     const { notice, node } = await accept(client);
     expect(notice.ok).toBe(false);
-    expect(notice.text).toMatch(/Sac plein/);
+    expect(notice.text).toMatch(/Poches pleines/);
     expect(node.nodeId).toBeNull();
     expect(p.pactAccepted).toBe(false);
     expect(count(bagOf(room, id), SEED)).toBe(0);

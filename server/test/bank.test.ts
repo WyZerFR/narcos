@@ -194,7 +194,7 @@ describe('banque — blanchiment au guichet', () => {
     expect((await launderAt(client, 100)).ok).toBe(true);
     expect(me.launderLog.map((e) => e.amount)).toEqual([100]);
     // plus d'argent sale
-    writeInventory(me.bag, emptyInventory(gameData.config.inventory.bagSlots));
+    writeInventory(me.bag, emptyInventory(gameData.economy.bag.pocketSlots));
     expect((await launderAt(client, 10)).text).toMatch(/pas d'argent sale/);
     expect(me.cleanBalance).toBe(
       launderSplit(50, RULES.fee).net + launderSplit(100, RULES.fee).net,
@@ -254,7 +254,7 @@ describe('banque — parcours complet', () => {
     const id = 'bank-player-0020';
     const { client, room } = await newGame(id);
     const me = room.state.players.get(id)!;
-    let inv = emptyInventory(gameData.config.inventory.bagSlots);
+    let inv = emptyInventory(gameData.economy.bag.pocketSlots);
     const r = add(inv, 'pouch_base', 3, gameData.items);
     if (r.ok) inv = r.inv;
     writeInventory(me.bag, inv);

@@ -39,7 +39,10 @@ export class Player extends Schema {
   @type('string') zone = 'street';
   /** Area de la rue où il se trouve (areas.json), calculée par le serveur ; '' en intérieur. */
   @type('string') area = '';
+  /** Sac : autant de cases que la capacité du palier (economy.bag). */
   @type([Slot]) bag = new ArraySchema<Slot>();
+  /** Palier du sac : 0 = poches, 1 = sac à dos équipé. */
+  @type('uint8') bagTier = 0;
   /** Argent propre : solde du compte en banque, non confiscable. */
   @type('uint32') cleanBalance = 0;
   /** Compte ouvert à la banque (dialogue du courtier) : condition pour blanchir. */

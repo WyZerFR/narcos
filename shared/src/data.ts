@@ -441,33 +441,59 @@ export function parseGameData(raw: RawGameData): GameData {
     errors.push(`economy.json : pact.seedItemId "${economy.pact.seedItemId}" n'est pas une graine`);
   if (config.players.colors.length < config.room.maxPlayers)
     errors.push('config.json : il faut au moins autant de couleurs que de joueurs max');
+  const bagRules = economy.bag;
+  if (bagRules.backpackSlots <= bagRules.pocketSlots)
+    errors.push('economy.json : bag.backpackSlots doit dépasser bag.pocketSlots');
+  const backpack = items.get(bagRules.backpackItemId);
+  if (backpack?.use?.action !== 'equip_bag' || backpack.stackMax !== 1)
+    errors.push(
+      `economy.json : bag.backpackItemId "${bagRules.backpackItemId}" : objet équipable non empilable attendu`,
+    );
+  for (const it of items.values())
+    if (it.use?.action === 'equip_bag' && it.id !== bagRules.backpackItemId)
+      errors.push(`items.json : "${it.id}" s'équipe comme sac mais n'est pas bag.backpackItemId`);
   if (config.movement.runSpeed < config.movement.walkSpeed)
     errors.push('config.json : runSpeed doit être >= walkSpeed');
   errors.push(...checkAreas(config, areas, locFile.locations, quartiers));
   for (const layout of quartierLayouts.values()) {
+    const q = quartiers.get(layout.id)!;
+    // chaque jardin déclaré a été généré (ses deux maisons existent de ce côté)
+    if (layout.gardens.length !== q.hiddenGardens.length)
+      errors.push(
+        `quartiers.json : "${layout.id}" : jardin caché sur une maison absente (houseIndex trop grand)`,
+      );
+    const touches = (a: Rect, b: Rect) =>
+      a.minX <= b.maxX && b.minX <= a.maxX && a.minZ <= b.maxZ && b.minZ <= a.maxZ;
+    for (const g of layout.gardens) {
+      if (!touches(g.passage, g.garden))
+        errors.push(`quartiers.json : "${layout.id}" : un passage ne mène pas à son jardin`);
+      // passage libre, rien de solide autour de l'emplacement central (hors coffre du leurre)
+      const around = rectFromCenter(g.spot, { w: 2, d: 2 });
+      // le coffre cassé d'un leurre occupe l'emplacement : seul obstacle toléré au centre
+      const isChest = (r: Rect) => g.brokenChest !== null && rectContainsPoint(r, g.spot);
+      if (
+        layout.colliders.some(
+          (r) => rectsOverlap(r, g.passage) || (rectsOverlap(r, around) && !isChest(r)),
+        )
+      )
+        errors.push(`quartiers.json : "${layout.id}" : passage ou cœur d'un jardin encombré`);
+    }
     const c = layout.cellar;
-    const id = quartiers.get(layout.id)?.hiddenCellar?.locationId;
+    const id = q.cellarLocationId;
     const trap = id ? locations.get(id) : undefined;
     if (c && (!trap || trap.kind !== 'area' || !trap.hidden))
       errors.push(
         `quartiers.json : "${layout.id}" : trappe "${id}" inconnue, non cachée ou solide`,
       );
-    if (c && trap) {
-      // la trappe est où le générateur l'a mise, dans le jardin ; le jardin touche le passage,
-      // qui touche le trottoir ; rien de solide dans le passage ni dans le jardin
-      if (Math.hypot(trap.position.x - c.trapdoor.x, trap.position.z - c.trapdoor.z) > 0.05)
+    if (c?.trapdoor && trap) {
+      // la trappe est où le générateur l'a mise, dans le vrai jardin
+      const t = c.trapdoor;
+      if (Math.hypot(trap.position.x - t.x, trap.position.z - t.z) > 0.05)
         errors.push(
-          `locations.json : "${trap.id}" doit être en ${c.trapdoor.x.toFixed(2)}, ${c.trapdoor.z.toFixed(2)} (trappe générée)`,
+          `locations.json : "${trap.id}" doit être en ${t.x.toFixed(2)}, ${t.z.toFixed(2)} (trappe générée)`,
         );
       if (!rectContainsPoint(c.garden, trap.position))
         errors.push(`locations.json : "${trap.id}" n'est pas dans le jardin caché`);
-      const touches = (a: Rect, b: Rect) =>
-        a.minX <= b.maxX && b.minX <= a.maxX && a.minZ <= b.maxZ && b.minZ <= a.maxZ;
-      if (!touches(c.passage, c.garden))
-        errors.push(`quartiers.json : "${layout.id}" : le passage ne mène pas au jardin`);
-      const aroundTrap = rectFromCenter(c.trapdoor, { w: 2, d: 2 });
-      if (layout.colliders.some((r) => rectsOverlap(r, c.passage) || rectsOverlap(r, aroundTrap)))
-        errors.push(`quartiers.json : "${layout.id}" : passage ou abords de la trappe encombrés`);
     }
   }
   for (const layout of quartierLayouts.values()) {

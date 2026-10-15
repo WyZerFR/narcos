@@ -40,7 +40,7 @@
       "banner": "Quartier Sud — Chez nous",
       "bounds": {
         "minX": -30,
-        "maxX": 20,
+        "maxX": 30,
         "minZ": 45,
         "maxZ": 140
       },

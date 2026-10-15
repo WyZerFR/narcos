@@ -105,7 +105,7 @@ describe('quartiers — migration d’une ancienne partie', () => {
     const fakeRoom = { state: source, now: () => 0 } as unknown as NarcoRoom;
     furnish(fakeRoom, ['pot_1', 'rack_1']);
     const inside = nord.houses[0]!.rect;
-    let bag = emptyInventory(config.inventory.bagSlots);
+    let bag = emptyInventory(gameData.economy.bag.pocketSlots);
     const r = add(bag, 'pouch_base', 7, gameData.items);
     if (r.ok) bag = r.inv;
     const player = {

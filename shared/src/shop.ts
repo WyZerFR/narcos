@@ -122,6 +122,8 @@ export function checkout(
   cart: Cart,
   account: Account,
   items: ItemLookup,
+  /** Refus quand les achats ne tiennent pas (poches ou sac à dos, voir `bagFullText`). */
+  fullMessage = 'Sac plein : fais de la place avant de payer.',
 ): Outcome<Paid> {
   if (cart.length === 0) return no('Ton panier est vide.');
   const split = splitCart(cart, account);
@@ -138,7 +140,7 @@ export function checkout(
   }
   for (const line of cart) {
     const added = add(next, line.itemId, line.qty, items);
-    if (!added.ok) return no('Sac plein : fais de la place avant de payer.');
+    if (!added.ok) return no(fullMessage);
     next = added.inv;
   }
   return ok({ bag: next, clean: account.clean - split.clean, split });

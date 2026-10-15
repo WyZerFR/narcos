@@ -74,7 +74,7 @@ const stockOf = (room: NarcoRoom, key: string) => room.state.shelves.get(key)!.s
 
 function setCash(room: NarcoRoom, id: string, cash: number) {
   const r = add(
-    emptyInventory(gameData.config.inventory.bagSlots),
+    emptyInventory(gameData.economy.bag.pocketSlots),
     'cash_dirty',
     cash,
     gameData.items,
@@ -131,7 +131,7 @@ describe('shop — panier et paiement', () => {
     goTo(room, 'shop-player-0003', 'shop', 'shelf_seeds');
     await act(client, 'shelf_seeds', 'take');
     goTo(room, 'shop-player-0003', 'shop', 'counter');
-    expect((await act(client, 'counter', 'pay')).text).toMatch(/Sac plein/);
+    expect((await act(client, 'counter', 'pay')).text).toBe('Poches pleines : libère une case.');
     expect(count(bagOf(room, 'shop-player-0003'), 'cash_dirty')).toBe(500);
   });
 

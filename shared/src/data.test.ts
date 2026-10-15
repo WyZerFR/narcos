@@ -29,7 +29,8 @@ describe('données du jeu', () => {
   it('charge et indexe les 4 fichiers JSON', () => {
     expect(gameData.items.get('pouch_base')?.contraband).toBe(true);
     expect(gameData.items.get('cash_clean')?.storage).toBe('account');
-    expect(gameData.config.inventory).toEqual({ bagSlots: 10, stockSlots: 60 });
+    expect(gameData.config.inventory).toEqual({ stockSlots: 60 });
+    expect(gameData.economy.bag).toMatchObject({ pocketSlots: 6, backpackSlots: 12 });
     expect(gameData.economy.dealer.weeklyCost).toBe(100);
   });
 
@@ -70,8 +71,8 @@ describe('données du jeu', () => {
 
   it('refuse un JSON invalide avec un message lisible', () => {
     const r = raw();
-    (r.config as { inventory: { bagSlots: unknown } }).inventory.bagSlots = 'dix';
-    expect(() => parseGameData(r)).toThrow(/config\.json invalide[\s\S]*inventory\.bagSlots/);
+    (r.config as { inventory: { stockSlots: unknown } }).inventory.stockSlots = 'dix';
+    expect(() => parseGameData(r)).toThrow(/config\.json invalide[\s\S]*inventory\.stockSlots/);
   });
 
   it('refuse une référence croisée cassée', () => {
@@ -120,7 +121,12 @@ describe('données du jeu', () => {
 
   it('charge les magasins avec prix et stock', () => {
     const grocery = gameData.shops.get('grocery')!;
-    expect(grocery.shelves.map((s) => s.itemId).sort()).toEqual(['food', 'soda', 'water']);
+    expect(grocery.shelves.map((s) => s.itemId).sort()).toEqual([
+      'food',
+      'sac_a_dos',
+      'soda',
+      'water',
+    ]);
     expect(
       gameData.shops.get('shop')!.shelves.find((s) => s.itemId === 'seed_base')!.price,
     ).toBeGreaterThan(0);

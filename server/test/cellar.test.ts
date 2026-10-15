@@ -58,7 +58,7 @@ function place(room: NarcoRoom, id: string, zone: string, at: { x: number; z: nu
 }
 
 function setDirty(room: NarcoRoom, id: string, cash: number) {
-  const empty = emptyInventory(gameData.config.inventory.bagSlots);
+  const empty = emptyInventory(gameData.economy.bag.pocketSlots);
   const r = cash > 0 ? add(empty, 'cash_dirty', cash, gameData.items) : null;
   writeInventory(room.state.players.get(id)!.bag, r?.ok ? r.inv : empty);
 }
@@ -225,6 +225,20 @@ describe('cave — blanchiment à 15 %', () => {
     expect({ x: me.x, z: me.z }).toEqual(interactionPoint(TRAP));
   });
 
+  it('debug : téléportation dans chaque jardin caché (vrai et leurres)', async () => {
+    const id = 'cellar-player-0024';
+    const { client, room } = await newGame(id);
+    const me = room.state.players.get(id)!;
+    const gardens = gameData.quartierLayouts.get('sud')!.gardens;
+    for (const [index, g] of gardens.entries()) {
+      client.send(ClientMsg.Debug, { cmd: 'teleportGarden', index });
+      expect(((await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage).ok).toBe(true);
+      const r = g.garden;
+      expect(me.x >= r.minX && me.x <= r.maxX && me.z >= r.minZ && me.z <= r.maxZ).toBe(true);
+      expect(me.area).toBe('south');
+    }
+  });
+
   it('ancienne sauvegarde sans journal de cave : chargée, journal vide', () => {
     const snap = RoomSnapshotSchema.parse({
       code: 'ABCD',
@@ -259,7 +273,7 @@ describe('cave — parcours complet', () => {
     const id = 'cellar-player-0030';
     const { client, room } = await newGame(id);
     const me = room.state.players.get(id)!;
-    let inv = emptyInventory(gameData.config.inventory.bagSlots);
+    let inv = emptyInventory(gameData.economy.bag.pocketSlots);
     const r = add(inv, 'pouch_base', 3, gameData.items);
     if (r.ok) inv = r.inv;
     writeInventory(me.bag, inv);

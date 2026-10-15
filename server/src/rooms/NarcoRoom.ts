@@ -16,6 +16,9 @@ import {
   interactionPoint,
   locationInteraction,
   AreaSchema,
+  bagCapacity,
+  equipBackpack,
+  fitBag,
   LaunderRulesSchema,
   LaunderVenueSchema,
   interiorForLocation,
@@ -79,7 +82,7 @@ import {
 } from './bank';
 import { SALE_COMPLETED, type SaleClosedMessage, type SaleCompletedEvent } from '@narco/shared';
 import { GameState, Player } from './schema';
-import { makeSlots, readInventory, syncArea, writeInventory } from './stateSync';
+import { makeSlots, readInventory, replaceBag, syncArea, writeInventory } from './stateSync';
 
 const { config, economy, items } = gameData;
 const SURVIVAL = economy.survival;
@@ -338,15 +341,15 @@ export class NarcoRoom extends Room<GameState> {
     player.id = playerId;
     player.name = name || `Joueur ${index + 1}`;
     player.color = color;
-    player.bag = makeSlots(config.inventory.bagSlots);
+    player.bag = makeSlots(economy.bag.pocketSlots);
     // Argent de départ : sale dans le sac (physique, confiscable), propre sur le compte.
     const start = add(
-      emptyInventory(config.inventory.bagSlots),
+      emptyInventory(economy.bag.pocketSlots),
       'cash_dirty',
       economy.startingMoney.dirty,
       items,
     );
-    writeInventory(player.bag, start.ok ? start.inv : emptyInventory(config.inventory.bagSlots));
+    writeInventory(player.bag, start.ok ? start.inv : emptyInventory(economy.bag.pocketSlots));
     player.cleanBalance = economy.startingMoney.clean;
     Object.assign(player, SURVIVAL.start);
     // Autour du carton de départ, jamais dans un mur.
@@ -635,6 +638,14 @@ export class NarcoRoom extends Room<GameState> {
     const stack = Number.isInteger(slot) ? bag[slot] : null;
     const def = stack ? items.get(stack.itemId) : undefined;
     if (!stack || !def) return this.notify(client, false, 'Rien à consommer ici.');
+    if (def.use?.action === 'equip_bag') {
+      // sac à dos : l'objet est consommé, le palier monte, les cases en plus apparaissent
+      const r = equipBackpack(bag, player.bagTier, economy.bag, items);
+      if (!r.ok) return this.notify(client, false, r.message);
+      replaceBag(player.bag, r.value.bag);
+      player.bagTier = r.value.tier;
+      return this.notify(client, true, `${def.name} sur le dos : ${player.bag.length} cases.`);
+    }
     const next = consume(player, def, SURVIVAL);
     if (!next) return this.notify(client, false, `${def.name} ne se mange pas. Ni ne se boit.`);
     const r = remove(bag, def.id, 1, items);
@@ -904,9 +915,33 @@ export class NarcoRoom extends Room<GameState> {
           `[debug] commission ${venue.data} = ${Math.round(fee.data * 100)} %`,
         );
       }
+      case 'setBagTier': {
+        // palier forcé ; le sac change de taille sans perdre d'objet (piles tassées)
+        const tier = Number(msg.tier) >= 1 ? 1 : 0;
+        const inv = fitBag(readInventory(player.bag), bagCapacity(economy.bag, tier));
+        replaceBag(player.bag, inv);
+        player.bagTier = tier;
+        return this.notify(client, true, `[debug] palier ${tier} : ${player.bag.length} cases`);
+      }
+      case 'clearBag':
+        replaceBag(player.bag, emptyInventory(bagCapacity(economy.bag, player.bagTier)));
+        return this.notify(client, true, '[debug] sac vidé');
+      case 'teleportGarden': {
+        // jardins cachés (vrai et leurres), dans l'ordre de quartiers.json
+        const gardens = [...gameData.quartierLayouts.values()].flatMap((l) => l.gardens);
+        const g = gardens[Math.floor(Number(msg.index))];
+        if (!g) return this.notify(client, false, '[debug] jardin inconnu');
+        // au débouché du passage, dans le jardin
+        const at = {
+          x: g.side < 0 ? g.garden.maxX - 0.75 : g.garden.minX + 0.75,
+          z: (g.passage.minZ + g.passage.maxZ) / 2,
+        };
+        this.moveToZone(who.playerId, player, STREET, at);
+        return this.notify(client, true, `[debug] jardin ${g.kind === 'real' ? 'vrai' : 'leurre'}`);
+      }
       case 'teleportTrapdoor': {
-        const q = [...gameData.quartiers.values()].find((x) => x.hiddenCellar);
-        const trap = q && gameData.locations.get(q.hiddenCellar!.locationId);
+        const q = [...gameData.quartiers.values()].find((x) => x.cellarLocationId);
+        const trap = q && gameData.locations.get(q.cellarLocationId!);
         if (!trap) return this.notify(client, false, '[debug] pas de trappe');
         this.moveToZone(who.playerId, player, STREET, interactionPoint(trap));
         return this.notify(client, true, '[debug] devant la trappe');
