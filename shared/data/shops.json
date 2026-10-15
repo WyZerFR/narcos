@@ -4,39 +4,39 @@
       "interiorId": "shop",
       "shelves": [
         {
-          "stationId": "shelf_seeds",
-          "itemId": "seed_base",
-          "price": 8,
-          "stock": 20,
-          "currency": "dirty"
+          "stationId": "shelf_bags",
+          "itemId": "sac_a_dos",
+          "price": 25,
+          "stock": 6,
+          "currency": "any"
         },
         {
           "stationId": "shelf_pots",
           "itemId": "pot",
           "price": 15,
           "stock": 6,
-          "currency": "dirty"
+          "currency": "any"
         },
         {
           "stationId": "shelf_racks",
           "itemId": "drying_rack",
           "price": 25,
           "stock": 3,
-          "currency": "dirty"
+          "currency": "any"
         },
         {
           "stationId": "shelf_tables",
           "itemId": "cutting_table",
           "price": 30,
           "stock": 2,
-          "currency": "dirty"
+          "currency": "any"
         },
         {
           "stationId": "shelf_lamps",
           "itemId": "grow_lamp",
           "price": 40,
           "stock": 4,
-          "currency": "dirty"
+          "currency": "any"
         },
         {
           "stationId": "shelf_tools",
@@ -70,13 +70,6 @@
           "price": 3,
           "stock": 10,
           "currency": "any"
-        },
-        {
-          "stationId": "shelf_bags",
-          "itemId": "sac_a_dos",
-          "price": 25,
-          "stock": 6,
-          "currency": "dirty"
         }
       ]
     }

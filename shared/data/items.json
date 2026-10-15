@@ -287,7 +287,7 @@
       "icon": "🎒",
       "use": {
         "action": "equip_bag",
-        "label": "Équiper"
+        "label": "Utiliser"
       }
     }
   ]

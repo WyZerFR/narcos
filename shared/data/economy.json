@@ -4,8 +4,8 @@
     "gameDaysPerWeek": 7
   },
   "startingMoney": {
-    "dirty": 150,
-    "clean": 0
+    "dirty": 0,
+    "clean": 150
   },
   "bag": {
     "pocketSlots": 6,

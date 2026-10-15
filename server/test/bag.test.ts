@@ -18,7 +18,7 @@ import type { NarcoRoom } from '../src/rooms/NarcoRoom';
 import { GameState } from '../src/rooms/schema';
 import { readInventory, replaceBag } from '../src/rooms/stateSync';
 import { hydrateState, RoomSnapshotSchema, SNAPSHOT_SCHEMA_VERSION } from '../src/persistence';
-import { bootOn } from './helpers';
+import { bootOn, frontOf, furnish } from './helpers';
 
 type SdkRoom = ClientRoom<GameState>;
 
@@ -81,13 +81,13 @@ describe('poches et sac à dos', () => {
     expect(p.bagTier).toBe(0);
   });
 
-  it('achat à l’épicerie puis équipement : 12 cases, objet consommé ; double équipement refusé', async () => {
+  it('achat au Bricoshop puis équipement (« Utiliser ») : 12 cases, objet consommé ; double équipement refusé', async () => {
     const id = 'bag-player-0002';
     const { client, room } = await newGame(id);
     const p = room.state.players.get(id)!;
-    goTo(room, id, 'grocery', 'shelf_bags');
+    goTo(room, id, 'shop', 'shelf_bags');
     expect((await act(client, 'shelf_bags', 'take')).ok).toBe(true);
-    goTo(room, id, 'grocery', 'counter');
+    goTo(room, id, 'shop', 'counter');
     expect((await act(client, 'counter', 'pay')).ok).toBe(true);
     expect(count(bagOf(room, id), BACKPACK)).toBe(1);
     const n = await useSlot(client, slotOf(room, id, BACKPACK));
@@ -111,9 +111,9 @@ describe('poches et sac à dos', () => {
       { itemId: 'cash_dirty', qty: 100 },
       ...Array.from({ length: 5 }, () => ({ itemId: 'scissors', qty: 1 })),
     ]);
-    goTo(room, id, 'grocery', 'shelf_bags');
+    goTo(room, id, 'shop', 'shelf_bags');
     await act(client, 'shelf_bags', 'take');
-    goTo(room, id, 'grocery', 'counter');
+    goTo(room, id, 'shop', 'counter');
     expect((await act(client, 'counter', 'pay')).text).toBe('Poches pleines : libère une case.');
     expect(count(bagOf(room, id), 'cash_dirty')).toBe(100);
   });
@@ -147,11 +147,34 @@ describe('poches et sac à dos', () => {
     client.send(ClientMsg.Debug, { cmd: 'setBagTier', tier: 1 });
     await client.waitForMessage(ServerMsg.Notice);
     expect([p.bagTier, p.bag.length]).toEqual([1, 12]);
-    expect(count(bagOf(room, id), 'cash_dirty')).toBe(economy.startingMoney.dirty);
+    expect(p.cleanBalance).toBe(economy.startingMoney.clean);
     client.send(ClientMsg.Debug, { cmd: 'clearBag' });
     await client.waitForMessage(ServerMsg.Notice);
     expect(bagOf(room, id).filter(Boolean)).toHaveLength(0);
     expect(p.bag.length).toBe(12);
+  });
+});
+
+describe('messages « plein » selon le palier', () => {
+  it('reprise de meuble : « Poches pleines » sans sac à dos, « Sac plein » avec', async () => {
+    const id = 'bag-player-0006';
+    const { client, room } = await newGame(id);
+    const p = room.state.players.get(id)!;
+    const [potId] = Object.values(furnish(room, ['pot_1']));
+    const full = (n: number) => Array.from({ length: n }, () => ({ itemId: 'scissors', qty: 1 }));
+    const pickup = async () => {
+      Object.assign(p, { zone: 'lab', ...frontOf('pot_1') });
+      client.send(ClientMsg.FixturePickup, { requestId: 1, fixtureId: potId });
+      return (await client.waitForMessage(ServerMsg.FixtureResult)) as {
+        ok: boolean;
+        text: string;
+      };
+    };
+    replaceBag(p.bag, full(BAG.pocketSlots));
+    expect((await pickup()).text).toBe('Poches pleines : impossible de reprendre ce meuble.');
+    p.bagTier = 1;
+    replaceBag(p.bag, full(BAG.backpackSlots));
+    expect((await pickup()).text).toBe('Sac plein : impossible de reprendre ce meuble.');
   });
 });
 
@@ -234,9 +257,9 @@ describe('poches → pochons', () => {
     }
     goTo(room, id, 'shop', 'counter');
     expect((await act(client, 'counter', 'pay')).ok).toBe(true);
-    goTo(room, id, 'grocery', 'shelf_bags');
+    goTo(room, id, 'shop', 'shelf_bags');
     await act(client, 'shelf_bags', 'take');
-    goTo(room, id, 'grocery', 'counter');
+    goTo(room, id, 'shop', 'counter');
     expect((await act(client, 'counter', 'pay')).ok).toBe(true);
     expect((await useSlot(client, slotOf(room, id, BACKPACK))).ok).toBe(true);
     expect(p.bag.length).toBe(BAG.backpackSlots);

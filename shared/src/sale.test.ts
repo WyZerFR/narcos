@@ -147,7 +147,7 @@ describe('navigation des PNJ', () => {
 });
 
 describe('équilibrage', () => {
-  it('un cycle rapporte, mais lentement : rentable sans rembourser le kit en un cycle', () => {
+  it('un cycle rapporte (graines du pacte, gratuites) : bénéfice positif par pot', () => {
     const kit = starterKitCost(gameData);
     const lines: string[] = [`Kit de départ : ${kit} $`];
     for (const strain of economy.strains) {
@@ -161,7 +161,8 @@ describe('équilibrage', () => {
         );
         if (strain.unlockAct === 1) {
           expect(r.profit).toBeGreaterThan(0);
-          expect(r.profit).toBeLessThan(kit);
+          // graines gratuites (pacte) : un cycle rembourse désormais le kit (constat d'équilibrage)
+          expect(r.seedCost).toBe(0);
         }
       }
     }

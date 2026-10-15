@@ -1,5 +1,5 @@
 import { footprint } from './locations';
-import { rectContainsRect, rectFromCenter, type Rect, type Vec2 } from './geometry';
+import { isNarrowGap, rectContainsRect, rectFromCenter, type Rect, type Vec2 } from './geometry';
 import type {
   Area,
   Bounds,
@@ -276,6 +276,8 @@ export function generateQuartier(
   colliders: QuartierColliders,
   car: { length: number; width: number },
   area: Bounds,
+  /** Écart minimal entre deux obstacles qui ne se touchent pas (diamètre du joueur + marge). */
+  minGap: number,
 ): QuartierLayout {
   const rng = seededRng(q.seed);
   const f = frame;
@@ -307,7 +309,11 @@ export function generateQuartier(
   for (const side of [-1, 1] as const) {
     const n = Math.round(between(rng, H.perSide));
     const slot = s.housesLength / n;
-    const lampX = f.axisX + side * (f.sidewalkOuter - colliders.lampSize);
+    // lampadaires contre la bordure (le trottoir reste libre côté jardinets)
+    const lampX = f.axisX + side * (f.roadwayHalf + colliders.lampSize / 2);
+    // ligne de fond de ce côté : remblai (côté à jardins) ou bord de l'area
+    const hasGardens = q.hiddenGardens.some((g) => sideOf(g) === side);
+    const wallLine = hasGardens ? backLine : side < 0 ? f.axisX - area.minX : area.maxX - f.axisX;
     let lastLamp = -Infinity;
     const addLamp = (t: number) => {
       if (t - lastLamp < D.streetlightSpacing) return;
@@ -326,7 +332,14 @@ export function generateQuartier(
       const setback = between(rng, H.setback);
       const drawnDepth = between(rng, H.depth);
       // …et profondes jusqu'à la ligne de fond : leurs murs ferment le jardin côté rue
-      const depth = hc ? backLine - f.sidewalkOuter - setback : drawnDepth;
+      // maison collée au fond si la fente qui resterait derrière serait plus étroite qu'un passage
+      const slit = wallLine - (f.sidewalkOuter + setback + drawnDepth);
+      const toWall = slit > 0 && slit < minGap;
+      const depth = hc
+        ? backLine - f.sidewalkOuter - setback
+        : toWall
+          ? wallLine - f.sidewalkOuter - setback
+          : drawnDepth;
       if (hc) spans[gi]!.push({ t0, t1: t0 + w });
       const frontX = f.axisX + side * (f.sidewalkOuter + setback);
       const backX = frontX + side * depth;
@@ -371,11 +384,19 @@ export function generateQuartier(
         windows,
       });
 
-      // décor du jardinet (entre trottoir et façade), jamais devant la porte
-      const yardX = f.axisX + side * (f.sidewalkOuter + setback / 2);
-      if (rng() < D.binChance) bins.push({ x: yardX, z: rect.minZ + 0.6 });
-      if (rng() < D.crateChance) crates.push({ x: yardX, z: rect.maxZ - 0.6 });
-      if (!garage && rng() < D.fenceChance) {
+      // décor du jardinet, collé à la façade (jamais devant la porte) ; tirages dans l'ordre
+      // d'origine, décisions ensuite (clôture connue avant de poser poubelle et caisse)
+      const binRoll = rng();
+      const crateRoll = rng();
+      const fenced = !garage && rng() < D.fenceChance;
+      const yardFree = setback - (fenced ? colliders.fenceThickness : 0);
+      const flush = (size: number) => frontX - side * (size / 2);
+      const fits = (size: number) => !fenced || yardFree - size >= minGap;
+      if (binRoll < D.binChance && fits(colliders.binSize.w))
+        bins.push({ x: flush(colliders.binSize.w), z: rect.minZ + 0.6 });
+      if (crateRoll < D.crateChance && fits(colliders.crateSize))
+        crates.push({ x: flush(colliders.crateSize), z: rect.maxZ - 0.6 });
+      if (fenced) {
         const fx = f.axisX + side * (f.sidewalkOuter + colliders.fenceThickness / 2);
         const half = colliders.fenceDoorGap / 2;
         const segs: [number, number][] = [
@@ -391,13 +412,15 @@ export function generateQuartier(
               maxZ: b,
             });
       }
-      // trottoir côté bordure : arbre ; stationnement : voiture
-      if (rng() < D.treeChance)
+      // trottoir côté bordure : arbre ; stationnement : voiture (pas d'arbre derrière une voiture)
+      const treeRoll = rng();
+      const parked = rng() < D.carChance && w >= car.length;
+      if (treeRoll < D.treeChance && !parked)
         trees.push({
-          x: f.axisX + side * (f.roadwayHalf + colliders.trunkSize),
+          x: f.axisX + side * (f.roadwayHalf + colliders.trunkSize / 2),
           z: zc + (doorU > 0 ? -1 : 1) * (w / 4),
         });
-      if (rng() < D.carChance && w >= car.length)
+      if (parked)
         cars.push({
           x: f.axisX + side * (s.roadWidth / 2 + s.parkingWidth / 2),
           z: zc,
@@ -479,6 +502,26 @@ export function generateQuartier(
   };
 
   const carSize = { w: car.width, d: car.length };
+  // dégagement : un petit décor qui laisserait une fente (plus étroite qu'un passage) avec un
+  // obstacle déjà posé est retiré ; maisons, clôtures, remblai et jardins sont prioritaires
+  const kept: Rect[] = [
+    ...houses.map((h) => h.rect),
+    ...fences,
+    ...gardenBackfill,
+    ...gardens.flatMap((g) => g.solids),
+  ];
+  const declutter = <T>(list: T[], rectOf: (item: T) => Rect): T[] =>
+    list.filter((item) => {
+      const r = rectOf(item);
+      if (kept.some((o) => isNarrowGap(o, r, minGap))) return false;
+      kept.push(r);
+      return true;
+    });
+  lamps.splice(0, lamps.length, ...declutter(lamps, (p) => square(p, colliders.lampSize)));
+  cars.splice(0, cars.length, ...declutter(cars, (c) => rectFromCenter(c, carSize)));
+  trees.splice(0, trees.length, ...declutter(trees, (p) => square(p, colliders.trunkSize)));
+  bins.splice(0, bins.length, ...declutter(bins, (p) => rectFromCenter(p, colliders.binSize)));
+  crates.splice(0, crates.length, ...declutter(crates, (p) => square(p, colliders.crateSize)));
   const colliderRects: Rect[] = [
     ...houses.map((h) => h.rect),
     ...lamps.map((p) => square(p, colliders.lampSize)),
@@ -574,22 +617,27 @@ function hiddenGarden(
   };
   // coins du jardin (côté fond, côté maisons), mélangés par la graine : caisses, poubelle,
   // fauteuil ne sont jamais au même endroit d'un jardin à l'autre
-  const inset = 0.8;
+  // coins : objets collés aux clôtures / aux arrières des maisons (aucune fente)
   const corners = [
-    { d: outer - inset, t: a.t0 + inset, dt: 1 },
-    { d: outer - inset, t: b.t1 - inset, dt: -1 },
-    { d: backLine + inset, t: a.t0 + inset, dt: 1 },
-    { d: backLine + inset, t: b.t1 - inset, dt: -1 },
+    { d: outer, t: a.t0, dd: -1, dt: 1 },
+    { d: outer, t: b.t1, dd: -1, dt: -1 },
+    { d: backLine, t: a.t0, dd: 1, dt: 1 },
+    { d: backLine, t: b.t1, dd: 1, dt: -1 },
   ];
   for (let i = corners.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
     [corners[i], corners[j]] = [corners[j]!, corners[i]!];
   }
   const [cA, cB, cC] = corners as [(typeof corners)[0], (typeof corners)[0], (typeof corners)[0]];
-  const at = (d: number, t: number) => ({ x: x(d), z: alongZ(f, t) });
-  const crates = [at(cA.d, cA.t), at(cA.d, cA.t + cA.dt * 1.1)];
-  const bins = [at(cB.d, cB.t)];
-  const armchair = at(cC.d, cC.t);
+  // objet de taille (profondeur `sd`, longueur `st`) calé dans un coin
+  const inCorner = (c: (typeof corners)[0], sd: number, st: number, shift = 0) => ({
+    x: x(c.d + (c.dd * sd) / 2),
+    z: alongZ(f, c.t + c.dt * (st / 2 + shift)),
+  });
+  const cs = colliders.crateSize;
+  const crates = [inCorner(cA, cs, cs), inCorner(cA, cs, cs, cs)];
+  const bins = [inCorner(cB, colliders.binSize.w, colliders.binSize.d)];
+  const armchair = inCorner(cC, cs, cs);
   const real = hc.kind === 'real';
   const square = (p: Vec2, size: number) => rectFromCenter(p, { w: size, d: size });
   return {
@@ -643,15 +691,16 @@ function backfillFor(
 ): Rect[] {
   if (gardens.length === 0) return [];
   const box = sideBox(f, side);
-  const th = colliders.fenceThickness;
   const edge = side < 0 ? f.axisX - area.minX : area.maxX - f.axisX;
   const tEnd = Math.abs(f.dir < 0 ? f.entranceZ - area.minZ : area.maxZ - f.entranceZ);
-  // étendue de chaque jardin le long de la rue (t) et vers le fond (d), clôtures comprises
+  // étendue de chaque jardin le long de la rue (t) et vers le fond (d)
   const extents = gardens
     .map((g) => {
       const t = [g.garden.minZ, g.garden.maxZ].map((zz) => (zz - f.entranceZ) * f.dir);
       const d = [g.garden.minX, g.garden.maxX].map((xx) => (xx - f.axisX) * side);
-      return { t0: Math.min(...t) - th, t1: Math.max(...t) + th, outer: Math.max(...d) + th };
+      // collé au bord du jardin (il recouvre les clôtures) : ni fente avec les maisons, ni
+      // avec le décor calé contre les clôtures
+      return { t0: Math.min(...t), t1: Math.max(...t), outer: Math.max(...d) };
     })
     .sort((p, q) => p.t0 - q.t0);
   const out: Rect[] = [];

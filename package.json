@@ -19,7 +19,8 @@
     "format": "prettier --write .",
     "icons": "node scripts/make-icons.mjs",
     "balance": "tsx scripts/balance.ts",
-    "check": "node scripts/check.mjs"
+    "check": "node scripts/check.mjs",
+    "collisions": "tsx scripts/collisions.ts"
   },
   "engines": {
     "node": ">=20"

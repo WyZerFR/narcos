@@ -1,4 +1,5 @@
 import {
+  bagFullText,
   add,
   checkPlacement,
   distance,
@@ -203,7 +204,7 @@ export function pickupFurniture(
   const busy = busyReason(state, fixtureId);
   if (busy) return refuse(busy);
   const r = add(readInventory(player.bag), f.itemId, 1, items);
-  if (!r.ok) return refuse('Sac plein : impossible de reprendre ce meuble.');
+  if (!r.ok) return refuse(bagFullText(player.bagTier, 'impossible de reprendre ce meuble.'));
   writeInventory(player.bag, r.inv);
   deactivate(state, fixtureId);
   refreshPotRates(state, now);

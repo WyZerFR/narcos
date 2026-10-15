@@ -160,6 +160,7 @@ export function LocalPlayer({ room, info }: { room: GameRoom; info: PlayerInfo }
         world.playerRadius,
         area.obstacles,
         area.bounds,
+        gameData.config.collision.maxSubStep,
       );
       localPlayer.x = next.x;
       localPlayer.z = next.z;

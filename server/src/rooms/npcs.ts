@@ -1,4 +1,5 @@
 import {
+  bagFullText,
   areaAt,
   createNavGrid,
   distance,
@@ -302,7 +303,13 @@ export class StreetNpcs {
       return { ok: false, text: "Pas d'offre en cours avec lui." };
     const far = this.nearCheck(sim, player);
     if (far) return { ok: false, text: far };
-    const sale = sellPouches(readInventory(player.bag), sim.demand, qty, gameData);
+    const sale = sellPouches(
+      readInventory(player.bag),
+      sim.demand,
+      qty,
+      gameData,
+      bagFullText(player.bagTier, "pas de place pour l'argent."),
+    );
     if (!sale.ok) return { ok: false, text: sale.message };
     writeInventory(player.bag, sale.bag);
     this.leave(npcId, sim, gameNow);

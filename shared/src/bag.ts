@@ -15,9 +15,13 @@ export function bagCapacity(rules: BagRules, tier: number): number {
   return tier >= 1 ? rules.backpackSlots : rules.pocketSlots;
 }
 
-/** Refus quand il n'y a plus de place : le mot dépend de ce que l'on porte. */
-export function bagFullText(tier: number): string {
-  return tier >= 1 ? 'Sac plein : fais de la place.' : 'Poches pleines : libère une case.';
+/**
+ * Refus quand il n'y a plus de place, seule source de ce texte : « Poches pleines » sans sac à
+ * dos, « Sac plein » avec ; `detail` précise l'action refusée (sinon conseil par défaut).
+ */
+export function bagFullText(tier: number, detail?: string): string {
+  const head = tier >= 1 ? 'Sac plein' : 'Poches pleines';
+  return `${head} : ${detail ?? (tier >= 1 ? 'fais de la place.' : 'libère une case.')}`;
 }
 
 /**

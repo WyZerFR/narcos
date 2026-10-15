@@ -23,3 +23,4 @@ export * from './bank';
 export * from './areas';
 export * from './quartiers';
 export * from './bag';
+export * from './collisionAudit';

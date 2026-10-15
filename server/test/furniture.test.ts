@@ -123,8 +123,9 @@ describe('labo — poser un meuble', () => {
   it('plafond par type : le meuble de trop est refusé', async () => {
     const { client, room } = await newGame('fur-player-0004');
     let n = 0;
-    for (const z of [-4, -2])
-      for (const x of [-5.6, -4, -2.4, -0.8, 0.8, 2.4]) {
+    // rangées de pots collés (règle des écarts : collé ou ≥ 1 m), la première contre le mur
+    for (const z of [-4.4, -3.2])
+      for (const x of [-6.4, -5.2, -4, -2.8, -1.6, -0.4]) {
         if (n++ >= MAX.pot) break;
         expect('id' in spawnFurniture(room.state, lab, { itemId: 'pot', x, z, rot: 0 }, 0)).toBe(
           true,
@@ -205,11 +206,11 @@ describe('labo — déplacer et reprendre', () => {
     await give(client, 'cutting_table');
     const id = (await place(client, 'cutting_table', 3, -2)).fixtureId!;
     standAt(room, 'fur-player-0009', { x: 3, z: -0.8 });
-    const r = await move(client, id, 3, -4);
+    const r = await move(client, id, 3, -4.4);
     expect(r).toMatchObject({ ok: false });
     expect(r.text).toMatch(/utilise ce poste/);
     standAt(room, 'fur-player-0009', { x: -6.3, z: 3.6 });
-    expect((await move(client, id, 3, -4)).ok).toBe(true);
+    expect((await move(client, id, 3, -4.4)).ok).toBe(true);
     await b.leave();
   });
 
@@ -217,7 +218,7 @@ describe('labo — déplacer et reprendre', () => {
     const { client, room } = await newGame('fur-player-0010');
     for (const it of ['pot', 'drying_rack', 'cutting_table']) await give(client, it);
     const pot = (await place(client, 'pot', -3, -2)).fixtureId!;
-    const rack = (await place(client, 'drying_rack', 2, -4)).fixtureId!;
+    const rack = (await place(client, 'drying_rack', 2, -4.6)).fixtureId!; // contre le mur
     const table = (await place(client, 'cutting_table', 4.4, 0, 1)).fixtureId!;
     expect((await pickup(client, pot)).text).toMatch(/Trop loin/);
     standAt(room, 'fur-player-0010', { x: -3, z: -0.9 });
@@ -228,7 +229,7 @@ describe('labo — déplacer et reprendre', () => {
     expect(bagCount(room, 'fur-player-0010', 'pot')).toBe(1);
     expect(room.state.lab.pots.has(pot)).toBe(false);
 
-    standAt(room, 'fur-player-0010', { x: 2, z: -3.1 });
+    standAt(room, 'fur-player-0010', { x: 2, z: -3.7 });
     room.state.lab.racks
       .get(rack)!
       .entries.push(Object.assign(new RackEntry(), { strainId: 'base', qty: 1, readyAt: 1e12 }));

@@ -15,6 +15,7 @@ const grid = createNavGrid(config.world.bounds, obstacles, radius, 0.5);
 const fromSpawn = distancesFrom(grid, config.players.spawn);
 const width = (r: Rect) => r.maxX - r.minX;
 const areaOf = (l: { areaId: string }) => gameData.areas.get(l.areaId)!.bounds;
+const MIN_GAP = 2 * config.world.playerRadius + config.collision.passageMargin;
 
 describe('génération des impasses', () => {
   it('deux impasses générées : nord et sud', () => {
@@ -33,6 +34,7 @@ describe('génération des impasses', () => {
         gameData.quartierColliders,
         config.decor.carSize,
         areaOf(l),
+        MIN_GAP,
       );
       expect(again).toEqual(l);
       const other = generateQuartier(
@@ -41,6 +43,7 @@ describe('génération des impasses', () => {
         gameData.quartierColliders,
         config.decor.carSize,
         areaOf(l),
+        MIN_GAP,
       );
       expect(other).not.toEqual(l);
     }

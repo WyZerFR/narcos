@@ -96,7 +96,13 @@ for (const zoneId of [STREET, ...gameData.interiors.keys()]) {
     toleranceFactor: config.movement.toleranceFactor,
     maxBurstMs: config.movement.maxBurstMs,
     bounds: area.bounds,
-    collision: { radius: config.world.playerRadius, obstacles: area.obstacles },
+    // mêmes réglages que la prédiction du client (config.collision)
+    collision: {
+      radius: config.world.playerRadius,
+      obstacles: area.obstacles,
+      correctionThreshold: config.collision.correctionThreshold,
+      maxSubStep: config.collision.maxSubStep,
+    },
   });
 }
 const STREET_RULES = MOVE_RULES.get(STREET)!;

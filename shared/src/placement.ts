@@ -11,6 +11,7 @@ import {
 import {
   distance,
   expandRect,
+  isNarrowGap,
   rectContainsRect,
   rectFromCenter,
   rectsOverlap,
@@ -18,7 +19,8 @@ import {
   type Vec2,
 } from './geometry';
 import type { FixtureType, Interior } from './schemas';
-import { interiorBounds } from './zones';
+import { interiorBounds, interiorObstacles } from './zones';
+import { cellIndex, createNavGrid, distancesFrom } from './navgrid';
 
 /**
  * Placement libre des meubles du labo : une seule règle, utilisée par le serveur (autorité) et
@@ -34,7 +36,9 @@ export type PlacementError =
   | 'door'
   | 'station'
   | 'furniture'
-  | 'player';
+  | 'player'
+  | 'gap'
+  | 'enclose';
 
 export type PlacementResult =
   { ok: true; fixture: Fixture } | { ok: false; reason: PlacementError; message: string };
@@ -122,8 +126,49 @@ export function checkPlacement(
   const radius = data.config.world.playerRadius;
   if (ctx.players.some((p) => isBlocked(p, radius, [rect])))
     return refuse('player', "Quelqu'un est dans le passage.");
+  // ni fente avec les murs, les postes ou les meubles : collé, ou un vrai passage
+  const minGap = 2 * radius + data.config.collision.passageMargin;
+  const room = interiorBounds(interior);
+  const solids = [
+    ...interiorObstacles(interior),
+    ...sameLayer.map(fixtureRect),
+    ...roomWalls(room),
+  ];
+  if (solids.some((o) => isNarrowGap(o, rect, minGap)))
+    return refuse(
+      'gap',
+      `Colle-le ou laisse au moins ${minGap.toFixed(1)} m de passage (mur, poste, meuble).`,
+    );
+  // la porte reste atteignable depuis chaque joueur et depuis l'entrée de la pièce
+  if (!doorReachable(data, interior, [...solids, rect], [...ctx.players, interior.spawn]))
+    return refuse('enclose', 'Ça couperait le chemin vers la porte.');
   return { ok: true, fixture };
 }
+
+/** Murs (épais) autour de la pièce : un meuble à 30 cm du mur forme une fente. */
+function roomWalls(b: Rect, t = 1): Rect[] {
+  return [
+    { minX: b.minX - t, maxX: b.maxX + t, minZ: b.minZ - t, maxZ: b.minZ },
+    { minX: b.minX - t, maxX: b.maxX + t, minZ: b.maxZ, maxZ: b.maxZ + t },
+    { minX: b.minX - t, maxX: b.minX, minZ: b.minZ, maxZ: b.maxZ },
+    { minX: b.maxX, maxX: b.maxX + t, minZ: b.minZ, maxZ: b.maxZ },
+  ];
+}
+
+/** Chaque point de `from` rejoint-il la sortie à pied (grille de navigation fine) ? */
+function doorReachable(data: Data, interior: Interior, obstacles: Rect[], from: Vec2[]): boolean {
+  const exit = interior.stations.find((s) => s.kind === 'exit');
+  if (!exit) return true;
+  const radius = data.config.world.playerRadius;
+  const grid = createNavGrid(interiorBounds(interior), obstacles, radius, NAV_CELL);
+  // devant la porte, côté pièce
+  const door = { x: exit.position.x, z: exit.position.z - exit.size.d - radius };
+  const dist = distancesFrom(grid, door);
+  return from.every((p) => Number.isFinite(dist[cellIndex(grid, p)] ?? Infinity));
+}
+
+/** Pas de la grille du contrôle d'enfermement (m) : fin, la pièce est petite. */
+const NAV_CELL = 0.2;
 
 /** Joueur vu par les règles de placement (pour nommer qui gêne). */
 export interface Occupant extends Vec2 {

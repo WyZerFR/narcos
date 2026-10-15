@@ -11,7 +11,14 @@ export interface MoveRules {
   maxBurstMs: number;
   bounds: Bounds;
   /** Collisions (cercle joueur contre rectangles) ; absent = terrain vide. */
-  collision?: { radius: number; obstacles: readonly Rect[] };
+  collision?: {
+    radius: number;
+    obstacles: readonly Rect[];
+    /** Écart toléré (m) entre position proposée et trajet rejoué avant correction (défaut : rayon). */
+    correctionThreshold?: number;
+    /** Sous-pas maximal du trajet rejoué (m, défaut : demi-rayon). */
+    maxSubStep?: number;
+  };
 }
 
 /** Crédit de déplacement d'un joueur, conservé par le serveur entre deux messages. */
@@ -88,9 +95,17 @@ export function validateMove(
     // y arrive (à un rayon près : coins arrondis entre deux envois), on l'accepte telle quelle ;
     // sinon le mouvement traverse un mur ou finit dedans → position du trajet + correction.
     const { radius, obstacles } = rules.collision;
-    const swept = moveWithCollisions(current, final, radius, obstacles, rules.bounds);
+    const threshold = rules.collision.correctionThreshold ?? radius;
+    const swept = moveWithCollisions(
+      current,
+      final,
+      radius,
+      obstacles,
+      rules.bounds,
+      rules.collision.maxSubStep,
+    );
     const gap = Math.hypot(swept.x - final.x, swept.z - final.z);
-    if (gap > radius || isBlocked(final, radius, obstacles)) {
+    if (gap > threshold || isBlocked(final, radius, obstacles)) {
       final = swept;
       corrected = true;
     }
