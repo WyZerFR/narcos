@@ -793,16 +793,32 @@ export type LaunderRules = z.infer<typeof LaunderRulesSchema>;
 /** Qui tient une area (lu plus tard par le conflit et la police) ; null = personne. */
 export const AreaControlSchema = z.enum(['eljefe', 'cartel']).nullable();
 
+/** Polygone rectiligne : au moins 4 sommets, chaque côté (fermeture comprise) parallèle à un axe. */
+const RectilinearPolygonSchema = z
+  .array(Vec2Schema)
+  .min(4)
+  .refine(
+    (pts) =>
+      pts.every((p, i) => {
+        const q = pts[(i + 1) % pts.length]!;
+        return (p.x === q.x) !== (p.z === q.z);
+      }),
+    'polygone rectiligne attendu (côtés parallèles aux axes, sans sommet en double)',
+  );
+
 /**
- * Area de la rue : rectangle aligné sur la grille, thème, et réglages de vente / danger.
- * `street` = la rue centrale ; les quartiers (impasses) sont générés via `quartiers.json`.
+ * Area de l'île : polygone rectiligne (contour), thème, et réglages de vente / danger.
+ * La première déclarée contient le départ ; les quartiers en U ou en impasse sont générés via
+ * `quartiers.json`. Une area `locked` (aéroport) est infranchissable tant qu'elle l'est.
  */
 export const AreaSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   /** Message affiché en haut de l'écran en entrant dans l'area. */
   banner: z.string().min(1),
-  bounds: BoundsSchema,
+  polygon: RectilinearPolygonSchema,
+  /** Verrouillée : hors-zone pour les collisions (débloquée plus tard par la progression). */
+  locked: z.boolean(),
   themeColor: hexColor,
   /** Multiplicateur du prix proposé par les PNJ de l'area. */
   priceMultiplier: z.number().min(0.5).max(3),
@@ -814,7 +830,22 @@ export const AreaSchema = z.object({
   controlledBy: AreaControlSchema,
 });
 
-export const AreasFileSchema = z.object({ areas: z.array(AreaSchema).min(1) });
+/** Boîte englobante du polygone, calculée au chargement (`bounds`). */
+export const AreasFileSchema = z.object({
+  areas: z
+    .array(
+      AreaSchema.transform((a) => ({
+        ...a,
+        bounds: {
+          minX: Math.min(...a.polygon.map((p) => p.x)),
+          maxX: Math.max(...a.polygon.map((p) => p.x)),
+          minZ: Math.min(...a.polygon.map((p) => p.z)),
+          maxZ: Math.max(...a.polygon.map((p) => p.z)),
+        },
+      })),
+    )
+    .min(1),
+});
 
 // ---------- quartiers.json ----------
 const chance = z.number().min(0).max(1);
@@ -823,14 +854,23 @@ export const RoofSchema = z.enum(['flat', 'gable', 'sawtooth']);
 /** Paramètres du générateur d'une impasse (logique pure, déterministe par `seed`). */
 export const QuartierSchema = z.object({
   id: z.string().min(1),
-  /** Area (areas.json) que l'impasse remplit ; elle doit toucher la rue au nord ou au sud. */
+  /** Area (areas.json) que le quartier remplit ; son entrée donne sur une area voisine. */
   areaId: z.string().min(1),
-  /** Lieu au bout de l'impasse (porte tournée vers la rue). */
+  /**
+   * `dead_end` : une rue en impasse sur l'axe. `u` : boucle en U, deux rues (entrée et sortie)
+   * de part et d'autre d'un îlot de maisons, reliées au fond par une traversée devant la place.
+   */
+  layout: z.enum(['dead_end', 'u']),
+  /** Lieu au bout du quartier (porte tournée vers l'entrée). */
   landmarkLocationId: z.string().min(1),
   seed: z.string().min(1),
   street: z.object({
-    /** Axe de la rue de l'impasse (x), dans le prolongement de la rue centrale. */
+    /** Bord de l'area par lequel on entre : nord (on s'enfonce vers +Z) ou sud (vers -Z). */
+    opening: z.enum(['north', 'south']),
+    /** Axe du quartier (x) : la rue de l'impasse, ou le milieu de l'îlot du U. */
     axisX: z.number(),
+    /** U seulement : largeur du remblai plein au cœur de l'îlot, entre les arrières des maisons. */
+    islandCore: nonNeg.default(0),
     /** Chaussée roulante, toujours libre (≥ 6 m). */
     roadWidth: z.number().min(6),
     /** Bande de stationnement de chaque côté de la chaussée. */
@@ -935,7 +975,7 @@ export const QuartiersFileSchema = z.object({
 });
 
 export type AreaControl = z.infer<typeof AreaControlSchema>;
-export type Area = z.infer<typeof AreaSchema>;
+export type Area = z.output<typeof AreasFileSchema>['areas'][number];
 export type Roof = z.infer<typeof RoofSchema>;
 export type QuartierParams = z.infer<typeof QuartierSchema>;
 export type QuartiersFile = z.infer<typeof QuartiersFileSchema>;

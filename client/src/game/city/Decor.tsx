@@ -79,13 +79,18 @@ function streetlightPlacements(data: GameData): Placement[] {
   return out;
 }
 
-/** Points de décor des impasses générées, avec leur quartier et l'axe de la rue. */
+/** Points de décor des quartiers générés, avec leur quartier et l'axe de la rue la plus proche. */
 function quartierPlacements(
   data: GameData,
   of: (l: QuartierLayout) => Vec2[],
 ): (Vec2 & { q: QuartierParams; axisX: number })[] {
   return [...data.quartierLayouts.values()].flatMap((l) =>
-    of(l).map((p) => ({ ...p, q: data.quartiers.get(l.id)!, axisX: l.frame.axisX })),
+    of(l).map((p) => ({
+      ...p,
+      q: data.quartiers.get(l.id)!,
+      // rue la plus proche (deux rues dans un U)
+      axisX: l.frame.legs.reduce((a, b) => (Math.abs(b - p.x) < Math.abs(a - p.x) ? b : a)),
+    })),
   );
 }
 

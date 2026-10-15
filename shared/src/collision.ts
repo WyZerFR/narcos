@@ -1,4 +1,4 @@
-import { outsideAreas } from './areas';
+import { outsideAreas, walkableAreas } from './areas';
 import type { GameData } from './data';
 import {
   clampToBounds,
@@ -19,11 +19,13 @@ export type MapData = Pick<
 
 /**
  * Obstacles solides de la carte : bâtiments (lieux `building`), immeubles de remplissage,
- * voitures garées, maisons et décor solide des impasses, et tout ce qui n'est dans aucune area.
+ * voitures garées, maisons et décor solide des quartiers, et tout ce qui n'est dans aucune area
+ * marchable (mer, area verrouillée).
  * Les ruelles (`area`) et le petit décor de la rue centrale restent traversables.
  */
 export function obstaclesFrom(data: MapData): Rect[] {
-  const rects: Rect[] = outsideAreas(data.areas.values(), data.config.world.bounds);
+  // mer, côte et areas verrouillées (aéroport) : hors-zone
+  const rects: Rect[] = outsideAreas(walkableAreas(data.areas.values()), data.config.world.bounds);
   for (const loc of data.locations.values())
     if (loc.kind === 'building') rects.push(footprint(loc));
   for (const block of data.blocks) rects.push(footprint(block));

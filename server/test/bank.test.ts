@@ -113,7 +113,12 @@ describe('banque — dialogue du courtier', () => {
     standAt(room, 'bank-player-0003', { x: 0, z: 0 }, 'grocery');
     expect((await chooseRefused(client, 'hello', 'ask_account')).text).toMatch(/plus au comptoir/);
     // parler depuis la rue : le poste n'est pas là
-    standAt(room, 'bank-player-0003', { x: 26, z: -6 }, 'street');
+    standAt(
+      room,
+      'bank-player-0003',
+      interactionPoint(gameData.locations.get('banque')!),
+      'street',
+    );
     client.send(ClientMsg.Station, { stationId: 'banker', action: 'talk' });
     const n = (await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage;
     expect(n.text).toMatch(/pas ici/);
@@ -179,7 +184,7 @@ describe('banque — blanchiment au guichet', () => {
     expect(dirtyOf(room, id)).toBe(before - 101);
     expect(me.cleanBalance).toBe(START_CLEAN + net);
     expect(events).toEqual([
-      { playerId: id, dirty: 101, clean: net, venue: 'bank', area: 'street' },
+      { playerId: id, dirty: 101, clean: net, venue: 'bank', area: 'centre_ville' },
     ]);
     expect(me.launderLog.map((e) => e.amount)).toEqual([101]);
   });

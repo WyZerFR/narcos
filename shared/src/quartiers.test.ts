@@ -4,7 +4,7 @@ import { isBlocked, moveWithCollisions, obstaclesFrom } from './collision';
 import { rectContainsPoint, rectsOverlap, type Rect } from './geometry';
 import { interactionPoint } from './locations';
 import { cellIndex, createNavGrid, distancesFrom } from './navgrid';
-import { bandRect, generateQuartier, seededRng } from './quartiers';
+import { bandRect, generateQuartier, quartierFrame, seededRng } from './quartiers';
 
 const { config } = gameData;
 const layouts = [...gameData.quartierLayouts.values()];
@@ -13,16 +13,51 @@ const obstacles = obstaclesFrom(gameData);
 const radius = config.world.playerRadius;
 const grid = createNavGrid(config.world.bounds, obstacles, radius, 0.5);
 const fromSpawn = distancesFrom(grid, config.players.spawn);
-const width = (r: Rect) => r.maxX - r.minX;
 const areaOf = (l: { areaId: string }) => gameData.areas.get(l.areaId)!.bounds;
 const MIN_GAP = 2 * config.world.playerRadius + config.collision.passageMargin;
+/** Rangées de maisons : une par rue et par côté (4 dans un U). */
+const rows = (l: (typeof layouts)[number]) =>
+  l.frame.legs.flatMap((_, leg) =>
+    ([-1, 1] as const).map((side) => l.houses.filter((h) => h.leg === leg && h.side === side)),
+  );
+/** Plus petite dimension d'une chaussée (largeur d'une rue ou de la traversée). */
+const roadWidth = (r: Rect) => Math.min(r.maxX - r.minX, r.maxZ - r.minZ);
 
-describe('génération des impasses', () => {
-  it('deux impasses générées : nord et sud', () => {
+describe('génération des quartiers en U', () => {
+  it('deux boucles en U : El Jefe (cartel) et chez nous', () => {
     expect(layouts.map((l) => [l.id, l.areaId])).toEqual([
-      ['nord', 'north'],
-      ['sud', 'south'],
+      ['nord', 'cartel'],
+      ['sud', 'chez_nous'],
     ]);
+    for (const l of layouts) {
+      expect(paramsOf(l.id).layout).toBe('u');
+      expect(l.frame.legs).toHaveLength(2);
+      // deux rues + la traversée du fond, remblai au cœur de l'îlot
+      expect(l.roads).toHaveLength(3);
+      expect(l.islandCore).not.toBeNull();
+    }
+  });
+
+  it('une seule fonction pour les deux modes : la même graine en impasse donne une seule rue', () => {
+    const l = layouts.find((x) => x.id === 'sud')!;
+    const q = { ...paramsOf('sud'), layout: 'dead_end' as const, hiddenGardens: [] };
+    const area = areaOf(l);
+    const dead = generateQuartier(
+      q,
+      quartierFrame(q, area),
+      gameData.quartierColliders,
+      config.decor.carSize,
+      area,
+      MIN_GAP,
+    );
+    expect(dead.frame.legs).toEqual([q.street.axisX]);
+    expect(dead.roads).toHaveLength(1);
+    expect(dead.islandCore).toBeNull();
+    for (const [i, h] of dead.houses.entries()) {
+      for (const o of dead.houses.slice(i + 1)) expect(rectsOverlap(h.rect, o.rect)).toBe(false);
+      for (const r of [...dead.roads, ...dead.sidewalks])
+        expect(rectsOverlap(h.rect, r)).toBe(false);
+    }
   });
 
   it('déterministe : même graine, même résultat ; autre graine, autre résultat', () => {
@@ -52,13 +87,13 @@ describe('génération des impasses', () => {
     expect([a(), a(), a()]).toEqual([b(), b(), b()]);
   });
 
-  it('nombre de maisons par côté dans la fourchette du JSON', () => {
+  it('maisons de chaque côté de chaque rue (extérieur et îlot), dans la fourchette du JSON', () => {
     for (const l of layouts) {
       const [min, max] = paramsOf(l.id).houses.perSide;
-      for (const side of [-1, 1]) {
-        const n = l.houses.filter((h) => h.side === side).length;
-        expect(n).toBeGreaterThanOrEqual(min);
-        expect(n).toBeLessThanOrEqual(max);
+      expect(rows(l)).toHaveLength(4);
+      for (const row of rows(l)) {
+        expect(row.length).toBeGreaterThanOrEqual(min);
+        expect(row.length).toBeLessThanOrEqual(max);
       }
     }
   });
@@ -67,27 +102,29 @@ describe('génération des impasses', () => {
     for (const l of layouts)
       for (const [i, h] of l.houses.entries()) {
         for (const o of l.houses.slice(i + 1)) expect(rectsOverlap(h.rect, o.rect)).toBe(false);
-        for (const r of [l.road, l.plaza, ...l.parking, ...l.sidewalks])
+        for (const r of [...l.roads, l.plaza, ...l.parking, ...l.sidewalks])
           expect(rectsOverlap(h.rect, r), h.id).toBe(false);
       }
   });
 
-  it('chaussée d’au moins 6 m, libre de tout obstacle sur toute la longueur', () => {
-    for (const l of layouts) {
-      expect(width(l.road)).toBeGreaterThanOrEqual(6);
-      expect(obstacles.some((o) => rectsOverlap(o, l.road))).toBe(false);
-    }
+  it('chaussée en boucle d’au moins 6 m, libre de tout obstacle sur toute la longueur', () => {
+    for (const l of layouts)
+      for (const road of l.roads) {
+        expect(roadWidth(road)).toBeGreaterThanOrEqual(6);
+        expect(obstacles.some((o) => rectsOverlap(o, road))).toBe(false);
+      }
   });
 
-  it('entrée de l’impasse libre (chaussée et trottoirs)', () => {
-    for (const l of layouts) {
-      const f = l.frame;
-      const entrance = bandRect(f, 0, f.housesStart, f.sidewalkOuter);
-      expect(
-        obstacles.some((o) => rectsOverlap(o, entrance)),
-        l.id,
-      ).toBe(false);
-    }
+  it('entrée et sortie du U libres (chaussée et trottoirs)', () => {
+    for (const l of layouts)
+      for (const x of l.frame.legs) {
+        const f = { ...l.frame, axisX: x };
+        const entrance = bandRect(f, 0, f.housesStart, f.sidewalkOuter);
+        expect(
+          obstacles.some((o) => rectsOverlap(o, entrance)),
+          `${l.id} x = ${x}`,
+        ).toBe(false);
+      }
   });
 
   it('placette dégagée devant El Jefe au nord et devant Le Local au sud', () => {
@@ -110,9 +147,13 @@ describe('génération des impasses', () => {
         // juste devant la porte (sur le jardinet), le joueur tient debout
         const front = { x: h.frontX - h.side * (radius + 0.05), z: h.door.z };
         expect(isBlocked(front, radius, obstacles), `${h.id} porte`).toBe(false);
-        // grille de 0,5 m : on teste la case à 1 m de la façade (jardinet d'au moins 1,2 m)
-        const yard = { x: h.frontX - h.side * 1, z: h.door.z };
-        expect(Number.isFinite(fromSpawn[cellIndex(grid, yard)]!), h.id).toBe(true);
+        // grille de 0,5 m : cases à 1 m de la façade (jardinet d'au moins 1,2 m), sur la largeur
+        // de la porte (une poubelle peut la jouxter, sa marge déborde sur une case)
+        const yard = [-0.5, 0, 0.5].map((dz) => ({ x: h.frontX - h.side * 1, z: h.door.z + dz }));
+        expect(
+          yard.some((p) => Number.isFinite(fromSpawn[cellIndex(grid, p)]!)),
+          h.id,
+        ).toBe(true);
         expect(Number.isFinite(fromSpawn[cellIndex(grid, h.doorStep)]!), h.id).toBe(true);
       }
   });
@@ -143,34 +184,51 @@ describe('génération des impasses', () => {
     expect(nord.gate).not.toBeNull();
     expect(sud.garlands.length).toBeGreaterThan(0);
     for (const g of nord.guards) expect(rectContainsPoint(nord.plaza, g)).toBe(true);
-    expect(nord.arch.label).toMatch(/QUARTIER NORD/);
-    expect(sud.arch.label).toMatch(/QUARTIER SUD/);
+    expect(nord.arch.label).toMatch(/EL JEFE/);
+    expect(sud.arch.label).toMatch(/CHEZ NOUS/);
   });
 });
 
-describe('accès aux impasses depuis la rue centrale', () => {
-  it('chemin sur la grille : départ → entrée de l’impasse → placette du fond', () => {
+describe('accès aux quartiers en U depuis les avenues', () => {
+  it('chemin sur la grille : départ → chaque entrée du U → place du fond', () => {
+    for (const l of layouts)
+      for (const x of l.frame.legs) {
+        const f = { ...l.frame, axisX: x };
+        const entrance = { x, z: f.entranceZ + f.dir * 1 };
+        const plaza = {
+          x: (l.plaza.minX + l.plaza.maxX) / 2,
+          z: (l.plaza.minZ + l.plaza.maxZ) / 2,
+        };
+        expect(Number.isFinite(fromSpawn[cellIndex(grid, entrance)]!), `${l.id} entrée`).toBe(true);
+        const fromEntrance = distancesFrom(grid, entrance);
+        expect(Number.isFinite(fromEntrance[cellIndex(grid, plaza)]!), `${l.id} place`).toBe(true);
+        // aucun obstacle (immeuble, décor, hors-zone) sur toute la largeur rue + trottoirs
+        const mouth = bandRect(f, -1, f.housesStart, f.sidewalkOuter);
+        expect(
+          obstacles.some((o) => rectsOverlap(o, mouth)),
+          `${l.id} x = ${x}`,
+        ).toBe(false);
+      }
+  });
+
+  it('boucle : de l’entrée à la sortie par la traversée du fond, sans passer par l’avenue', () => {
     for (const l of layouts) {
+      const area = gameData.areas.get(l.areaId)!;
+      // grille bornée à l'area, bout de l'îlot fermé : le seul chemin passe par la traversée
       const f = l.frame;
-      const entrance = { x: f.axisX, z: f.entranceZ + f.dir * 1 };
-      const plaza = {
-        x: (l.plaza.minX + l.plaza.maxX) / 2,
-        z: (l.plaza.minZ + l.plaza.maxZ) / 2,
-      };
-      expect(Number.isFinite(fromSpawn[cellIndex(grid, entrance)]!), `${l.id} entrée`).toBe(true);
-      const fromEntrance = distancesFrom(grid, entrance);
-      expect(Number.isFinite(fromEntrance[cellIndex(grid, plaza)]!), `${l.id} placette`).toBe(true);
-      // aucun obstacle (immeuble, décor, hors-zone) sur toute la largeur rue + trottoirs à l'entrée
-      const mouth = bandRect(f, -1, f.housesStart, f.sidewalkOuter);
-      expect(
-        obstacles.some((o) => rectsOverlap(o, mouth)),
-        l.id,
-      ).toBe(false);
+      const half = Math.max(...f.legs.map((x) => Math.abs(x - f.axisX))) + f.backLine;
+      const tip = bandRect(f, -1, f.housesStart, half);
+      const local = createNavGrid(area.bounds, [...obstacles, tip], radius, 0.5);
+      const t = f.housesStart + 2;
+      const [a, b] = f.legs.map((x) => ({ x, z: f.entranceZ + f.dir * t }));
+      const m = distancesFrom(local, a!)[cellIndex(local, b!)]!;
+      expect(Number.isFinite(m), l.id).toBe(true);
+      expect(m).toBeGreaterThan(2 * (f.housesEnd - t));
     }
   });
 });
 
-describe('jardins cachés du Quartier Sud : la vraie cachette et ses leurres', () => {
+describe('jardins cachés de chez nous : la vraie cachette et ses leurres', () => {
   const sud = layouts.find((l) => l.id === 'sud')!;
   const params = paramsOf('sud');
   const c = sud.cellar!;
@@ -209,7 +267,9 @@ describe('jardins cachés du Quartier Sud : la vraie cachette et ses leurres', (
       expect(obstacles.some((o) => rectsOverlap(o, g.passage))).toBe(false);
       const neighbours = sud.houses.filter(
         (h) =>
-          h.side === g.side && (h.rect.maxZ === g.passage.minZ || h.rect.minZ === g.passage.maxZ),
+          h.leg === g.leg &&
+          h.side === g.side &&
+          (h.rect.maxZ === g.passage.minZ || h.rect.minZ === g.passage.maxZ),
       );
       expect(neighbours).toHaveLength(2);
     }
@@ -260,13 +320,12 @@ describe('jardins cachés du Quartier Sud : la vraie cachette et ses leurres', (
   });
 
   it('chaussée ≥ 6 m, placette devant Le Local dégagée, maisons dans la fourchette', () => {
-    expect(width(sud.road)).toBeGreaterThanOrEqual(6);
+    for (const road of sud.roads) expect(roadWidth(road)).toBeGreaterThanOrEqual(6);
     expect(obstacles.some((o) => rectsOverlap(o, sud.plaza))).toBe(false);
     const [min, max] = params.houses.perSide;
-    for (const side of [-1, 1]) {
-      const n = sud.houses.filter((h) => h.side === side).length;
-      expect(n).toBeGreaterThanOrEqual(min);
-      expect(n).toBeLessThanOrEqual(max);
+    for (const row of rows(sud)) {
+      expect(row.length).toBeGreaterThanOrEqual(min);
+      expect(row.length).toBeLessThanOrEqual(max);
     }
   });
 

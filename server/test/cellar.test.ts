@@ -99,7 +99,7 @@ describe('cave — trappe, entrée et sortie', () => {
     expect(
       p.x >= garden.minX && p.x <= garden.maxX && p.z >= garden.minZ && p.z <= garden.maxZ,
     ).toBe(true);
-    expect(p.area).toBe('south');
+    expect(p.area).toBe('chez_nous');
   });
 
   it('trop loin de la trappe : refus', async () => {
@@ -164,7 +164,7 @@ describe('cave — blanchiment à 15 %', () => {
     expect(me.cellarLaunderLog.map((e) => e.amount)).toEqual([101]);
     expect(me.launderLog.length).toBe(0);
     expect(events).toEqual([
-      { playerId: id, dirty: 101, clean: 85, venue: 'cellar', area: 'south' },
+      { playerId: id, dirty: 101, clean: 85, venue: 'cellar', area: 'chez_nous' },
     ]);
   });
 
@@ -237,7 +237,7 @@ describe('cave — blanchiment à 15 %', () => {
       expect(((await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage).ok).toBe(true);
       const r = g.garden;
       expect(me.x >= r.minX && me.x <= r.maxX && me.z >= r.minZ && me.z <= r.maxZ).toBe(true);
-      expect(me.area).toBe('south');
+      expect(me.area).toBe('chez_nous');
     }
   });
 

@@ -1,3 +1,4 @@
+import { areaAt, areaRects, walkableAreas } from './areas';
 import { findSlits, isBlocked, moveWithCollisions, obstaclesFrom } from './collision';
 import type { GameData } from './data';
 import { furnitureFixture, fixtureObstacles, fixtureRect, isSolidFixture } from './fixtures';
@@ -112,23 +113,24 @@ function segmentCrosses(a: Vec2, b: Vec2, r: Rect, step = 0.02): boolean {
   return false;
 }
 
-/** Zones à auditer : rue centrale, impasses, jardins cachés, intérieurs (labo meublé). */
+/** Zones à auditer : areas marchables de l'île (quartiers en U compris), jardins cachés, intérieurs. */
 export function auditZones(data: GameData): AuditZone[] {
   const street = obstaclesFrom(data);
   const world = data.config.world.bounds;
-  const areas = [...data.areas.values()];
+  // areas marchables (l'aéroport verrouillé est hors-zone)
+  const areas = walkableAreas(data.areas.values());
   const streetEntries: Vec2[] = [
     data.config.players.spawn,
     ...[...data.locations.values()].map((l) => interactionPoint(l)),
   ];
   const gardens = [...data.quartierLayouts.values()].flatMap((l) => l.gardens);
   const zones: AuditZone[] = areas.map((a) => ({
-    id: a.id === 'street' ? 'rue centrale' : `impasse ${a.name}`,
+    id: `area ${a.name}`,
     zone: STREET,
     bounds: world,
     obstacles: street,
-    regions: [a.bounds],
-    entries: streetEntries.filter((p) => rectContainsPoint(a.bounds, p)),
+    regions: areaRects(a),
+    entries: streetEntries.filter((p) => areaAt([a], p) !== null),
     fixtures: [],
     door: null,
   }));
