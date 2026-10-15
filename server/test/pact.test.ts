@@ -34,7 +34,7 @@ const strain = economy.strains.find((s) => s.id === 'base')!;
 let colyseus: ColyseusTestServer;
 
 beforeAll(async () => {
-  colyseus = await bootOn(2579);
+  colyseus = await bootOn(2583);
 });
 afterAll(async () => {
   await colyseus.shutdown();

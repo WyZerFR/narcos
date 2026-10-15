@@ -94,6 +94,12 @@ export const ConfigSchema = z.object({
     playerRadius: pos,
     /** Marge (m) accordée par le serveur sur le rayon d'interaction (latence). */
     interactTolerance: nonNeg,
+    /**
+     * Hystérésis du bouton ACTION et des panneaux (m) : on entre dans le rayon d'un poste à
+     * `interactRadius`, on n'en sort qu'à `interactRadius + interactExitMargin`. Reste sous
+     * `interactTolerance` : le serveur accepte encore l'action au rayon de sortie.
+     */
+    interactExitMargin: nonNeg,
   }),
   /**
    * Collisions joueur (shared/collision.ts, mêmes réglages client et serveur) : sous-pas maximal

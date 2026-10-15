@@ -1,4 +1,4 @@
-import { STREET } from '@narco/shared';
+import { gameData, inInteractRange, STREET } from '@narco/shared';
 
 /**
  * Position prédite du joueur local (mutable, hors React). Le serveur reste l'autorité :
@@ -14,6 +14,17 @@ export const localPlayer = {
   rotY: 0,
   seq: 0,
 };
+
+/**
+ * Le joueur local est-il encore dans la zone et dans le rayon de sortie du poste (hystérésis) ?
+ * Garde un panneau (dialogue, blanchiment) ouvert tant qu'on reste au comptoir.
+ */
+export function stillAt(zone: string, stationId: string): boolean {
+  if (localPlayer.zone !== zone) return false;
+  const station = gameData.interiors.get(zone)?.stations.find((s) => s.id === stationId);
+  if (!station) return true;
+  return inInteractRange(localPlayer, station, true, gameData.config.world.interactExitMargin);
+}
 
 export function resetLocalPlayer(): void {
   localPlayer.initialized = false;

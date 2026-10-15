@@ -1,13 +1,16 @@
+import { useRef } from 'react';
 import {
   ClientMsg,
   gameData,
-  nearestStation,
+  inInteractRange,
   type CartRemoveMessage,
   type StationMessage,
 } from '@narco/shared';
 import { connection, type GameRoom } from '../net/connection';
 import { useRoomVersion } from '../net/gameView';
 import { localPlayer } from '../game/localPlayer';
+
+const EXIT_MARGIN = gameData.config.world.interactExitMargin;
 
 /** Monnaie d'une ligne : espèces sales, carte (compte), ou l'une ou l'autre. */
 const CURRENCY_ICON: Record<string, string> = { dirty: '💵', clean: '💳', any: '💵/💳' };
@@ -19,12 +22,17 @@ const CURRENCY_ICON: Record<string, string> = { dirty: '💵', clean: '💳', an
  */
 export function CartPanel({ room, interiorId }: { room: GameRoom; interiorId: string }) {
   useRoomVersion(room); // re-rendu à chaque patch (panier, et position pour « Payer »)
+  const wasAtCounter = useRef(false);
   const me = room.state.players?.get(connection.playerId);
   const interior = gameData.interiors.get(interiorId);
   if (!me || !interior) return null;
   const lines = [...(me.cart ?? [])];
   const counter = interior.stations.find((s) => s.kind === 'counter');
-  const atCounter = counter ? nearestStation(localPlayer, interior)?.id === counter.id : false;
+  // hystérésis : « Payer » ne clignote pas à la limite du rayon du comptoir
+  const atCounter = counter
+    ? inInteractRange(localPlayer, counter, wasAtCounter.current, EXIT_MARGIN)
+    : false;
+  wasAtCounter.current = atCounter;
 
   const remove = (stationId: string) => {
     const msg: CartRemoveMessage = { stationId };

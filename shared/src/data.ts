@@ -320,6 +320,8 @@ export function parseGameData(raw: RawGameData): GameData {
   }
 
   const errors: string[] = [];
+  if (config.world.interactExitMargin > config.world.interactTolerance)
+    errors.push('config.json : world.interactExitMargin doit rester sous interactTolerance');
   for (const item of items.values()) {
     if (item.strain && !strains.has(item.strain))
       errors.push(`items.json : "${item.id}" référence la variété inconnue "${item.strain}"`);

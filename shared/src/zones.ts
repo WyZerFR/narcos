@@ -1,4 +1,5 @@
 import { obstaclesFrom, type MapData } from './collision';
+import { nearestPlace, type Place } from './fixtures';
 import type { GameData } from './data';
 import { distance, rectFromCenter, type Rect, type Vec2 } from './geometry';
 import type { GameLocation, Interior, Station } from './schemas';
@@ -83,4 +84,30 @@ export function locationInteraction(
   if (interiorForLocation(data, loc.id)) return 'enter';
   if (loc.dialogue) return 'talk';
   return null;
+}
+
+/**
+ * Hystérésis d'interaction : on entre dans le rayon d'un poste à `interactRadius`, on n'en sort
+ * qu'à `interactRadius + exitMargin` (bouton ACTION qui ne clignote pas, panneaux qui restent
+ * ouverts à la limite du rayon).
+ */
+export function inInteractRange(
+  pos: Vec2,
+  target: { position: Vec2; interactRadius: number },
+  wasInside: boolean,
+  exitMargin: number,
+): boolean {
+  return distance(pos, target.position) <= target.interactRadius + (wasInside ? exitMargin : 0);
+}
+
+/** Endroit visé avec hystérésis : `currentId` reste choisi tant qu'on est dans son rayon de sortie. */
+export function stickyNearest(
+  pos: Vec2,
+  places: readonly Place[],
+  currentId: string | null,
+  exitMargin: number,
+): Place | null {
+  const current = currentId ? places.find((p) => p.id === currentId) : undefined;
+  if (current && inInteractRange(pos, current, true, exitMargin)) return current;
+  return nearestPlace(pos, places);
 }
