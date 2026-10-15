@@ -14,6 +14,7 @@ import {
 } from '@narco/shared';
 import { Batch, faceOf, mix, seeded, shade, SIDES, type Face } from './batch';
 import { buildQuartiers } from './buildQuartiers';
+import { buildAreaGates, buildLandmark, towerTrim, type FacadeKit } from './buildLandmarks';
 
 /**
  * Génère toute la ville en deux géométries fusionnées :
@@ -46,6 +47,7 @@ export function buildCity(data: GameData): CityGeometry {
   for (const loc of visibleLocations(data.locations.values())) buildLocation(ctx, loc);
   for (const block of data.blocks) buildFiller(ctx, block);
   buildQuartiers(ctx, data);
+  buildAreaGates(ctx, facadeKit(ctx, seeded('areaGates')));
   return { solid: ctx.solid.build(), glow: ctx.glow.build() };
 }
 
@@ -666,10 +668,22 @@ function alley(ctx: Ctx, loc: GameLocation, rng: () => number) {
 
 // ---------------------------------------------------------------- immeubles de remplissage
 
+/** Outils de façade prêtés aux repères (buildLandmarks.ts), liés au contexte courant. */
+function facadeKit(ctx: Ctx, rng: () => number): FacadeKit {
+  return {
+    windows: (f, fromY, toY, dark, skipU) => windows(ctx, f, fromY, toY, rng, dark, skipU),
+    parapet: (r, top, color) => parapet(ctx, r, top, color),
+    door: (f, u, w, h, glow) => door(ctx, f, u, w, h, glow),
+    furniture: (build) => furniture(ctx, build),
+  };
+}
+
 function buildFiller(ctx: Ctx, block: Block) {
   const { palette } = ctx.data.config;
   const rng = seeded(block.id);
   const r = footprint(block);
+  if (block.style !== 'filler' && block.style !== 'tower')
+    return buildLandmark(ctx, facadeKit(ctx, rng), block, block.door ?? sideTowardRoad(ctx, r));
   const wall = block.color ? shade(block.color, 1) : shade(palette.wall, 0.75 + rng() * 0.5);
   const dark = mix(palette.sky, palette.wall, 0.4).multiplyScalar(0.6);
   ctx.solid.block(
@@ -691,6 +705,7 @@ function buildFiller(ctx: Ctx, block: Block) {
     ctx.solid.faceBox(f, 0, 3.1, f.len, 0.2, 0.15, wall.clone().multiplyScalar(0.6));
   }
   door(ctx, faceOf(r, doorSide), 0, 1.4, 2.3, shade(palette.neon, 0.7));
+  towerTrim(ctx, block, doorSide);
 }
 
 function opposite(side: DoorSide): DoorSide {

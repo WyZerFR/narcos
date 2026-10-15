@@ -126,6 +126,40 @@
         "length": 8,
         "width": 3
       }
+    ],
+    "areaGates": [
+      {
+        "areaId": "bas_fonds",
+        "x": -52,
+        "z": 0,
+        "axis": "x",
+        "span": 12,
+        "height": 5.5
+      },
+      {
+        "areaId": "centre_ville",
+        "x": -41,
+        "z": 0,
+        "axis": "x",
+        "span": 12,
+        "height": 6
+      },
+      {
+        "areaId": "centre_ville",
+        "x": 41,
+        "z": 0,
+        "axis": "x",
+        "span": 12,
+        "height": 6
+      },
+      {
+        "areaId": "commercial",
+        "x": 50,
+        "z": 0,
+        "axis": "x",
+        "span": 12,
+        "height": 6
+      }
     ]
   },
   "island": {
@@ -137,6 +171,23 @@
     "palmSpacing": 9,
     "palmChance": 0.55,
     "seed": "ile-1"
+  },
+  "city": {
+    "towers": {
+      "seed": "tours-1",
+      "minWidth": 6,
+      "maxWidth": 11,
+      "heights": [12, 28],
+      "signChance": 0.45,
+      "signs": ["HÔTEL", "CLUB", "BAR", "LOFTS", "NIGHT", "CASINO", "KARAOKÉ", "PHARMACIE"],
+      "neonColors": ["#ff3e9a", "#33d6ff", "#b45cff", "#3dff8f", "#ffc56b"]
+    },
+    "lotCars": {
+      "seed": "voitures-1",
+      "margin": 1.2,
+      "gap": 0.8,
+      "fillChance": 0.7
+    }
   },
   "decor": {
     "windowLitRatio": 0.55,

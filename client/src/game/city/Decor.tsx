@@ -18,6 +18,7 @@ import {
 import {
   expandRect,
   interactionPoint,
+  lotCars,
   rectFromCenter,
   rectContainsPoint,
   type GameData,
@@ -160,6 +161,7 @@ export function Decor({
   const kits = useMemo<Kit[]>(() => {
     const { palette, decor } = data.config;
     const white = new Color(1, 1, 1);
+    const lotTints = [palette.neon, palette.wall, palette.vegetation, palette.danger, palette.ok];
 
     // lampadaire : mât + bras (orienté vers la route)
     const pole = new Batch();
@@ -277,6 +279,17 @@ export function Decor({
           color: shade(facades[i % facades.length]!, 0.8),
         }));
       }),
+      // concession et parking : voitures rangées dans l'emprise (déjà solide), teintes de la palette
+      ...data.blocks
+        .filter((b) => b.style === 'dealership' || b.style === 'parking')
+        .flatMap((b) =>
+          lotCars(b, decor.carSize, data.config.city.lotCars).map((c) => ({
+            x: c.x,
+            z: c.z,
+            rotY: c.rotY,
+            color: shade(lotTints[c.tint % lotTints.length]!, 1.4),
+          })),
+        ),
     ];
 
     // poubelle avec couvercle, caisse en bois, carton de départ

@@ -76,7 +76,35 @@ const QUARTIER_SIGNS = [...gameData.quartierLayouts.values()].flatMap((l) => {
     })),
   ];
 });
-for (const s of QUARTIER_SIGNS) setLabelAnchor(s.id, () => s.at);
+
+/** Enseignes des façades de repère et des tours, panneaux d'entrée d'area (sans interaction). */
+const CITY_SIGNS = [
+  ...gameData.blocks.flatMap((b) =>
+    b.sign
+      ? [
+          {
+            id: `sign:${b.id}`,
+            text: b.sign,
+            color: b.neonColor ?? gameData.config.palette.neon,
+            className: 'place-label city-sign',
+            at: { x: b.position.x, y: b.height + 1.6, z: b.position.z },
+          },
+        ]
+      : [],
+  ),
+  ...gameData.config.map.areaGates.map((g, i) => {
+    const area = gameData.areas.get(g.areaId)!;
+    return {
+      id: `gate:${i}`,
+      text: area.name,
+      color: area.themeColor,
+      className: 'place-label quartier-sign',
+      at: { x: g.x, y: g.height + 0.6, z: g.z },
+    };
+  }),
+];
+const SIGNS = [...QUARTIER_SIGNS, ...CITY_SIGNS];
+for (const s of SIGNS) setLabelAnchor(s.id, () => s.at);
 
 /** Un bâtiment coupe-t-il la ligne de vue caméra → point ? */
 export function isOccluded(from: Point3, to: Point3): boolean {
@@ -208,7 +236,7 @@ export function LabelLayer({
           </div>
         ))}
       {zone === STREET &&
-        QUARTIER_SIGNS.map((s) => (
+        SIGNS.map((s) => (
           <div
             key={s.id}
             ref={bindElement(s.id)}

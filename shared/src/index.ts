@@ -31,3 +31,4 @@ export * from './framing';
 export * from './characters';
 export * from './appearance';
 export * from './modelBudget';
+export * from './cityBlocks';

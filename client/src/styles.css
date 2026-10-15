@@ -1398,3 +1398,10 @@ input {
   font-size: 12px;
   color: var(--muted);
 }
+
+/* Enseignes des façades du centre-ville et des commerces : repères, plus discrètes. */
+.city-sign {
+  padding: 2px 8px;
+  font-size: 12px;
+  border-width: 1px;
+}

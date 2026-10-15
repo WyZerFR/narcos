@@ -58,6 +58,7 @@ import { dialogueVars, textVars } from './dialogue';
 import { areaAt, areaContainsRect, areaRects, areasEnvelope } from './areas';
 import { checkQuartier, generateQuartier, quartierFrame, type QuartierLayout } from './quartiers';
 import { islandLayout, type IslandLayout } from './island';
+import { expandBlocks } from './cityBlocks';
 
 /**
  * Catégories payables en « any » (propre d'abord, sale sinon) : nourriture, boissons, matériel
@@ -231,6 +232,46 @@ function checkMap(
 }
 
 /**
+ * Centre-ville et commerces : réglages des tours, immeubles dans une area marchable, façades de
+ * repère avec enseigne (jamais le nom d'un lieu interactif), panneaux d'entrée sur une route de
+ * leur area.
+ */
+function checkCity(
+  config: GameConfig,
+  areas: ReadonlyMap<string, Area>,
+  blocks: Block[],
+  locations: GameLocation[],
+): string[] {
+  const errors: string[] = [];
+  const t = config.city.towers;
+  if (t.minWidth > t.maxWidth) errors.push('config.json : city.towers.minWidth > maxWidth');
+  if (t.heights[0] > t.heights[1]) errors.push('config.json : city.towers.heights inversées');
+  const walkable = [...areas.values()].filter((a) => !a.locked);
+  const names = new Set(locations.map((l) => l.name.toLowerCase()));
+  for (const b of blocks) {
+    if (!walkable.some((a) => areaContainsRect(a, footprint(b))))
+      errors.push(`locations.json : l'immeuble "${b.id}" n'est dans aucune area marchable`);
+    if (b.style !== 'filler' && b.style !== 'tower' && !b.sign)
+      errors.push(`locations.json : la façade "${b.id}" (${b.style}) n'a pas d'enseigne`);
+    if (b.sign && names.has(b.sign.toLowerCase()))
+      errors.push(`locations.json : l'enseigne de "${b.id}" reprend le nom d'un lieu`);
+  }
+  const roads = config.map.roads.map((r) => rectFromCenter(r, r));
+  for (const g of config.map.areaGates) {
+    const area = areas.get(g.areaId);
+    if (!area || area.locked)
+      errors.push(`config.json : map.areaGates, area "${g.areaId}" inconnue ou verrouillée`);
+    else if (areaAt([area], g) === null)
+      errors.push(`config.json : map.areaGates, le panneau de "${g.areaId}" est hors de son area`);
+    if (!roads.some((r) => rectContainsPoint(r, g)))
+      errors.push(
+        `config.json : map.areaGates, le panneau de "${g.areaId}" n'est pas sur une route`,
+      );
+  }
+  return errors;
+}
+
+/**
  * Areas : pas de chevauchement, carte = enveloppe des areas, lieux dans une area marchable,
  * départ dans la première area, quartiers cohérents avec leur bâtiment du bout.
  */
@@ -327,6 +368,8 @@ export function parseGameData(raw: RawGameData): GameData {
   const economy = parse('economy.json', EconomySchema, raw.economy);
   const itemsFile = parse('items.json', ItemsFileSchema, raw.items);
   const locFile = parse('locations.json', LocationsFileSchema, raw.locations);
+  // îlots de tours découpés une fois (graine) : collisions, rendu et vérifications voient les tours
+  const blocks = expandBlocks(locFile.blocks, config.city.towers);
   const parsedZones = parse('zones.json', ZonesFileSchema, raw.zones);
   // agrandissement des intérieurs (layoutScale) appliqué une fois, avant toute vérification
   const passage = 2 * config.world.playerRadius + config.collision.passageMargin;
@@ -412,7 +455,7 @@ export function parseGameData(raw: RawGameData): GameData {
         errors.push(`locations.json : "${loc.id}" vend un ${entry.kind} inconnu "${entry.id}"`);
     }
   }
-  errors.push(...checkMap(config, locFile.locations, locFile.blocks, zones));
+  errors.push(...checkMap(config, locFile.locations, blocks, zones));
   errors.push(...checkInteriors(zonesFile.interiors, locations));
   for (const shop of shopsFile.shops) {
     const interior = interiors.get(shop.interiorId);
@@ -470,7 +513,7 @@ export function parseGameData(raw: RawGameData): GameData {
   const streetObstacles = obstaclesFrom({
     config,
     locations,
-    blocks: locFile.blocks,
+    blocks,
     areas,
     quartierLayouts,
   }).map((r) => expandRect(r, config.npc.radius));
@@ -574,6 +617,7 @@ export function parseGameData(raw: RawGameData): GameData {
   if (ring.innerRadius >= ring.outerRadius)
     errors.push('config.json : characters.ring.innerRadius doit être < outerRadius');
   errors.push(...checkAreas(config, areas, locFile.locations, quartiers));
+  errors.push(...checkCity(config, areas, blocks, locFile.locations));
   // écarts : deux obstacles se touchent ou laissent un vrai passage (diamètre + marge)
   const minGap = 2 * config.world.playerRadius + config.collision.passageMargin;
   const fmt = (r: Rect) => `(${r.minX.toFixed(2)}, ${r.minZ.toFixed(2)})`;
@@ -636,7 +680,7 @@ export function parseGameData(raw: RawGameData): GameData {
   }
   for (const layout of quartierLayouts.values()) {
     const area = areas.get(layout.areaId)!;
-    const solids = [...locFile.locations.filter((l) => l.kind === 'building'), ...locFile.blocks];
+    const solids = [...locFile.locations.filter((l) => l.kind === 'building'), ...blocks];
     for (const r of layout.colliders) {
       if (!areaContainsRect(area, r))
         errors.push(`quartiers.json : "${layout.id}" : un élément sort de l'area`);
@@ -652,7 +696,7 @@ export function parseGameData(raw: RawGameData): GameData {
     items,
     zones,
     locations,
-    blocks: locFile.blocks,
+    blocks,
     interiors,
     shops,
     npcs,
