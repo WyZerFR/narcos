@@ -136,3 +136,25 @@ describe('génération des impasses', () => {
     expect(sud.arch.label).toMatch(/QUARTIER SUD/);
   });
 });
+
+describe('accès aux impasses depuis la rue centrale', () => {
+  it('chemin sur la grille : départ → entrée de l’impasse → placette du fond', () => {
+    for (const l of layouts) {
+      const f = l.frame;
+      const entrance = { x: f.axisX, z: f.entranceZ + f.dir * 1 };
+      const plaza = {
+        x: (l.plaza.minX + l.plaza.maxX) / 2,
+        z: (l.plaza.minZ + l.plaza.maxZ) / 2,
+      };
+      expect(Number.isFinite(fromSpawn[cellIndex(grid, entrance)]!), `${l.id} entrée`).toBe(true);
+      const fromEntrance = distancesFrom(grid, entrance);
+      expect(Number.isFinite(fromEntrance[cellIndex(grid, plaza)]!), `${l.id} placette`).toBe(true);
+      // aucun obstacle (immeuble, décor, hors-zone) sur toute la largeur rue + trottoirs à l'entrée
+      const mouth = bandRect(f, -1, f.housesStart, f.sidewalkOuter);
+      expect(
+        obstacles.some((o) => rectsOverlap(o, mouth)),
+        l.id,
+      ).toBe(false);
+    }
+  });
+});

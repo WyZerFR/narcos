@@ -79,7 +79,6 @@
       "neonColor": "#ffcc33",
       "door": "south",
       "interactRadius": 3,
-      "enterText": "Un garde te fouille du regard. El Jefe n'aime pas les visites surprises.",
       "dialogue": "el_jefe",
       "actionLabel": "Parler à El Jefe",
       "catalog": [
@@ -162,7 +161,6 @@
       "neonColor": "#33d6ff",
       "door": "south",
       "interactRadius": 3,
-      "enterText": "Ton colis « pièces détachées » n'est toujours pas arrivé. Bizarre.",
       "catalog": []
     },
     {
@@ -184,7 +182,6 @@
       "color": "#2a2733",
       "neonColor": "#b45cff",
       "interactRadius": 3,
-      "enterText": "Ruelle Nord. Un chat te juge en silence.",
       "catalog": []
     },
     {
@@ -206,7 +203,6 @@
       "color": "#2a2733",
       "neonColor": "#33d6ff",
       "interactRadius": 3,
-      "enterText": "Ruelle Est. Idéale pour les affaires qui ne regardent personne.",
       "catalog": []
     },
     {
@@ -228,7 +224,6 @@
       "color": "#2a2733",
       "neonColor": "#ff3e9a",
       "interactRadius": 3,
-      "enterText": "Ruelle Sud. Quelqu'un a tagué « RIP Kevin » sur la benne.",
       "catalog": []
     }
   ],

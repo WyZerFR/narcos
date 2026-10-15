@@ -7,6 +7,8 @@ import {
   emptyInventory,
   gameData,
   interactionPoint,
+  interiorForLocation,
+  locationInteraction,
   ROOM_NAME,
   ServerMsg,
   type NoticeMessage,
@@ -186,5 +188,32 @@ describe('quartiers — debug', () => {
     expect(((await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage).ok).toBe(false);
     expect(south.priceMultiplier).toBe(1.5);
     south.priceMultiplier = before;
+  });
+});
+
+describe('lieux de la rue : chaque interaction a un effet', () => {
+  it('entrer ouvre un intérieur, parler ouvre un dialogue, un repère est refusé', async () => {
+    const id = 'quartier-player-0020';
+    const { client, room } = await newGame(id);
+    const p = room.state.players.get(id)!;
+    for (const loc of gameData.locations.values()) {
+      Object.assign(p, { zone: 'street', ...interactionPoint(loc) });
+      const kind = locationInteraction(gameData, loc);
+      client.send(ClientMsg.Interact, { locationId: loc.id });
+      if (kind === 'talk') {
+        const node = (await client.waitForMessage(ServerMsg.Dialogue)) as { nodeId: string };
+        expect(node.nodeId, loc.id).toBeTruthy();
+        room.dialogues.end(id);
+      } else {
+        const n = (await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage;
+        if (kind === 'enter') {
+          expect(n.ok, loc.id).toBe(true);
+          expect(p.zone, loc.id).toBe(interiorForLocation(gameData, loc.id)!.id);
+        } else {
+          expect(n, loc.id).toEqual({ ok: false, text: 'Rien à faire ici.' });
+          expect(p.zone, loc.id).toBe('street');
+        }
+      }
+    }
   });
 });
