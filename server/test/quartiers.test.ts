@@ -154,3 +154,37 @@ describe('quartiers — migration d’une ancienne partie', () => {
     expect(state.players.get('lab')).toMatchObject({ x: 1, z: 2, zone: 'lab', area: '' });
   });
 });
+
+describe('quartiers — debug', () => {
+  it('téléportation vers le nord, le sud et le centre', async () => {
+    const id = 'quartier-player-0010';
+    const { client, room } = await newGame(id);
+    const p = room.state.players.get(id)!;
+    for (const [areaId, locId] of [
+      ['north', 'repaire_jefe'],
+      ['south', 'local'],
+    ] as const) {
+      client.send(ClientMsg.Debug, { cmd: 'teleport', areaId });
+      expect(((await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage).ok).toBe(true);
+      expect({ x: p.x, z: p.z }).toEqual(interactionPoint(gameData.locations.get(locId)!));
+      expect(p.area).toBe(areaId);
+    }
+    client.send(ClientMsg.Debug, { cmd: 'teleport', areaId: 'street' });
+    await client.waitForMessage(ServerMsg.Notice);
+    expect(p.area).toBe('street');
+  });
+
+  it('multiplicateur de prix modifiable à chaud, valeur hors bornes refusée', async () => {
+    const id = 'quartier-player-0011';
+    const { client } = await newGame(id);
+    const south = gameData.areas.get('south')!;
+    const before = south.priceMultiplier;
+    client.send(ClientMsg.Debug, { cmd: 'priceMultiplier', areaId: 'south', value: 1.5 });
+    expect(((await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage).ok).toBe(true);
+    expect(south.priceMultiplier).toBe(1.5);
+    client.send(ClientMsg.Debug, { cmd: 'priceMultiplier', areaId: 'south', value: 99 });
+    expect(((await client.waitForMessage(ServerMsg.Notice)) as NoticeMessage).ok).toBe(false);
+    expect(south.priceMultiplier).toBe(1.5);
+    south.priceMultiplier = before;
+  });
+});

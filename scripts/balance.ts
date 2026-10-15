@@ -2,7 +2,18 @@
  * Équilibrage de la production et de la vente de rue, calculé depuis les JSON (`npm run balance`).
  * Rien n'est en dur : changer un prix, une durée ou un profil de PNJ change le rapport.
  */
-import { cycleReport, gameData, starterKitCost, survivalCostReport } from '@narco/shared';
+import {
+  areaSalesReport,
+  cellIndex,
+  createNavGrid,
+  cycleReport,
+  distancesFrom,
+  gameData,
+  interactionPoint,
+  obstaclesFrom,
+  starterKitCost,
+  survivalCostReport,
+} from '@narco/shared';
 
 const { economy, npcs, config } = gameData;
 const lamp = economy.lab.lamp;
@@ -55,3 +66,34 @@ console.log(
   `(commission ${economy.bank.fee * 100} %) → ${Math.ceil(food.pouchesPerHour)} pochons ${base.name}/h`,
   `(${(food.pouchesPerHour / 60).toFixed(2)}/min).`,
 );
+
+// Vente par area : PNJ, multiplicateur de prix, débouché ; comparaison avec la rue centrale.
+console.log('\nVente par area (au mieux, chaque acheteur trouvé) :');
+const sales = areaSalesReport(gameData);
+const streetSales = sales.find((r) => r.areaId === 'street');
+for (const r of sales)
+  console.log(
+    `  ${r.name} : ${r.npcCount} PNJ, prix ×${r.priceMultiplier} (${r.avgPrice.toFixed(1)} $/pochon),`,
+    `~${r.pouchesPerMinute.toFixed(1)} pochons/min → ~${r.revenuePerMinute.toFixed(0)} $/min`,
+    streetSales && r.areaId !== 'street'
+      ? `(rue : ×${(r.revenuePerMinute / streetSales.revenuePerMinute).toFixed(2)} en $/min, ×${r.priceVsStreet.toFixed(2)} par pochon)`
+      : '',
+  );
+
+// Trajets à pied depuis le point de départ (grille de navigation, vitesse de marche).
+const grid = createNavGrid(
+  config.world.bounds,
+  obstaclesFrom(gameData),
+  config.world.playerRadius,
+  config.npc.navCellSize,
+);
+const fromSpawn = distancesFrom(grid, config.players.spawn);
+console.log('\nTrajets à pied depuis le départ :');
+for (const q of gameData.quartiers.values()) {
+  const loc = gameData.locations.get(q.landmarkLocationId)!;
+  const m = fromSpawn[cellIndex(grid, interactionPoint(loc))]!;
+  console.log(
+    `  bout de ${gameData.areas.get(q.areaId)!.name} (${loc.name}) : ${m.toFixed(0)} m,`,
+    `${(m / config.movement.walkSpeed).toFixed(1)} s en marchant, ${(m / config.movement.runSpeed).toFixed(1)} s en courant`,
+  );
+}

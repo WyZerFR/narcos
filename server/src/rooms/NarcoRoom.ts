@@ -14,6 +14,7 @@ import {
   gameData,
   generateRoomCode,
   interactionPoint,
+  AreaSchema,
   interiorForLocation,
   interiorPlaces,
   resolveCircle,
@@ -89,6 +90,13 @@ const STREET_RULES = MOVE_RULES.get(STREET)!;
 
 function rulesFor(zoneId: string): MoveRules {
   return MOVE_RULES.get(zoneId) ?? STREET_RULES;
+}
+
+/** Debug : point d'arrivée d'une téléportation (départ pour la rue, porte du bout d'impasse). */
+function debugAreaSpot(areaId: string): { x: number; z: number } {
+  const q = [...gameData.quartiers.values()].find((x) => x.areaId === areaId);
+  const loc = q && gameData.locations.get(q.landmarkLocationId);
+  return loc ? interactionPoint(loc) : { ...config.players.spawn };
 }
 
 const PLAYER_ID_RE = /^[A-Za-z0-9-]{8,64}$/;
@@ -828,6 +836,25 @@ export class NarcoRoom extends Room<GameState> {
         player.cleanBalance += amount;
         writeCart(player, readCart(player));
         return this.notify(client, true, `[debug] +${amount} $ propres sur le compte`);
+      }
+      case 'teleport': {
+        const area = gameData.areas.get(String(msg.areaId));
+        if (!area) return this.notify(client, false, '[debug] area inconnue');
+        this.moveToZone(who.playerId, player, STREET, debugAreaSpot(area.id));
+        return this.notify(client, true, `[debug] téléporté : ${area.name}`);
+      }
+      case 'priceMultiplier': {
+        const area = gameData.areas.get(String(msg.areaId));
+        const value = AreaSchema.shape.priceMultiplier.safeParse(Number(msg.value));
+        if (!area || !value.success)
+          return this.notify(client, false, '[debug] area ou multiplicateur invalide');
+        // réglage à chaud du processus : s'applique aux prochaines demandes des PNJ
+        area.priceMultiplier = value.data;
+        return this.notify(
+          client,
+          true,
+          `[debug] ${area.name} : prix ×${value.data} (prochaines demandes)`,
+        );
       }
       case 'resetLaunderCap':
         resetLaunderCap(player);

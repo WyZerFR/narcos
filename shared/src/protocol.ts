@@ -261,6 +261,8 @@ export type DebugMessage =
   | { cmd: 'openAccount' }
   | { cmd: 'setClean'; amount: number }
   | { cmd: 'giveClean'; amount: number }
+  | { cmd: 'teleport'; areaId: string }
+  | { cmd: 'priceMultiplier'; areaId: string; value: number }
   | { cmd: 'resetLaunderCap' };
 
 export const MAX_NAME_LENGTH = 16;

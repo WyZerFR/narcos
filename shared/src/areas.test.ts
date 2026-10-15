@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { gameData, parseGameData } from './data';
 import { areaAt, areasEnvelope, dangerAt, outsideAreas } from './areas';
+import { areaSalesReport } from './balance';
 import { rectContainsPoint } from './geometry';
 import type { Area } from './schemas';
 import configJson from '../data/config.json';
@@ -129,5 +130,17 @@ describe('quartiers.json : validation', () => {
     loc.position.z += 5;
     expect(() => parseGameData(r)).toThrow(/porte de "repaire_jefe" doit regarder la rue/);
     expect(() => parseGameData(r)).toThrow(/façade de "repaire_jefe" doit être en z/);
+  });
+});
+
+describe('équilibrage par area', () => {
+  it('les quartiers rapportent plus que la rue, par pochon et par minute', () => {
+    const report = areaSalesReport(gameData);
+    const street = report.find((r) => r.areaId === 'street')!;
+    for (const id of ['north', 'south']) {
+      const r = report.find((x) => x.areaId === id)!;
+      expect(r.priceVsStreet).toBeGreaterThan(1);
+      expect(r.revenuePerMinute).toBeGreaterThan(street.revenuePerMinute);
+    }
   });
 });
