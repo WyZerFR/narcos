@@ -6,3 +6,9 @@ coverage/
 .vite/
 .shots/
 server/.data/
+
+# secrets locaux (variables de déploiement)
+.env
+.env.*
+!.env.example
+.claude/settings.local.json
