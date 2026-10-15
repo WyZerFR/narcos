@@ -83,8 +83,8 @@ function Model({
       const clip = name ? asset.clips.find((c) => c.name === name) : undefined;
       return clip ? mixer.clipAction(clip) : null;
     };
-    const idle = action(asset.character.animations.idle);
-    const walk = action(asset.character.animations.walk);
+    const idle = action(gameData.config.characters.animations.idle);
+    const walk = action(gameData.config.characters.animations.walk);
     idle?.play();
     return { mixer, idle, walk, current: idle };
   }, [asset, root]);

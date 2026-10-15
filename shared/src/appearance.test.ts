@@ -77,19 +77,19 @@ describe('palettes.json', () => {
 describe('apparence', () => {
   it('teinte inconnue, slot absent du modèle ou valeur invalide : retirés (couleur d’origine)', () => {
     expect(
-      resolveAppearance(gameData, 'perso_2', {
+      resolveAppearance(gameData, 'decontractee', {
         skin: 'peau_3',
         hair: 'arc_en_ciel',
         top: 'tissu_5',
-        accessory: 'tissu_1', // perso_2 n'a pas d'accessoire
+        accessory: 'tissu_1', // decontractee n'a pas d'accessoire
         bottom: 42,
       }),
     ).toEqual({ skin: 'peau_3', top: 'tissu_5' });
-    expect(resolveAppearance(gameData, 'perso_2', 'rouge')).toEqual({});
-    expect(resolveAppearance(gameData, 'perso_2', null)).toEqual({});
+    expect(resolveAppearance(gameData, 'decontractee', 'rouge')).toEqual({});
+    expect(resolveAppearance(gameData, 'decontractee', null)).toEqual({});
     expect(resolveAppearance(gameData, 'inconnu', { skin: 'peau_1' })).toEqual({});
     // une teinte de cheveux n'est pas valable pour la peau
-    expect(resolveAppearance(gameData, 'perso_2', { skin: 'cheveux_1' })).toEqual({});
+    expect(resolveAppearance(gameData, 'decontractee', { skin: 'cheveux_1' })).toEqual({});
   });
 
   it('aléatoire : une teinte valide par slot du modèle', () => {

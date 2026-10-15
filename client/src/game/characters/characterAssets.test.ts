@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  AnimationMixer,
   Color,
   ShaderLib,
   type Material,
@@ -13,6 +14,7 @@ import {
   applyAppearance,
   applyBodyState,
   characterMaterial,
+  clipsFor,
   instantiate,
   prepare,
 } from './characterAssets';
@@ -46,7 +48,7 @@ async function assetOf(id: string) {
 describe('modèle de personnage', () => {
   it('chaque id charge son propre fichier (pas de repli sur perso_1)', async () => {
     const a = await assetOf('perso_1');
-    const b = await assetOf('perso_2');
+    const b = await assetOf('decontractee');
     expect(b.character.model).not.toBe(a.character.model);
     expect(b.triangles).not.toBe(a.triangles);
   });
@@ -77,7 +79,7 @@ describe('couleurs par slot', () => {
     (meshesOf(root)[0]!.material as Material).userData.slotColors as Vector4[];
 
   it('slot par sommet déduit du nom de matériau, nuance ≤ 1', async () => {
-    const { template, character } = await assetOf('perso_2');
+    const { template, character } = await assetOf('decontractee');
     const geo = meshesOf(template)[0]!.geometry;
     const attr = geo.getAttribute('slotShade');
     expect(attr.itemSize).toBe(2);
@@ -94,7 +96,7 @@ describe('couleurs par slot', () => {
   });
 
   it('même modèle, deux joueurs, couleurs différentes : uniforms propres, 1 draw call chacun', async () => {
-    const { template } = await assetOf('perso_2');
+    const { template } = await assetOf('decontractee');
     const a = instantiate({ template });
     const b = instantiate({ template });
     applyAppearance(a, { top: 'tissu_8' });
@@ -131,5 +133,29 @@ describe('couleurs par slot', () => {
     );
     expect(shader.vertexShader).toContain('slotTint.rgb * slotShade.y');
     expect(shader.uniforms.slotColors!.value).toBe(mat.userData.slotColors);
+  });
+});
+
+describe('animations communes', () => {
+  it('les clips de la bibliothèque animent tous les skins (liaison par nom d’os)', async () => {
+    const anims = gameData.config.characters.animations;
+    const lib = await loadTestModel(anims.library);
+    const walk = lib.animations.find((c) => c.name === anims.walk)!;
+    expect(walk).toBeDefined();
+    for (const id of ['perso_1', 'decontractee', 'carlin', 'mannequin']) {
+      const { template } = await assetOf(id);
+      const root = instantiate({ template });
+      const bones: Object3D[] = [];
+      root.traverse((o) => {
+        if ((o as { isBone?: boolean }).isBone) bones.push(o);
+      });
+      const before = bones.map((b) => b.quaternion.toArray().join());
+      const mixer = new AnimationMixer(root);
+      const action = mixer.clipAction(clipsFor([], lib.animations).find((c) => c === walk)!);
+      action.play();
+      mixer.update(walk.duration / 3);
+      const moved = bones.filter((b, i) => b.quaternion.toArray().join() !== before[i]).length;
+      expect(moved, id).toBeGreaterThan(bones.length / 2);
+    }
   });
 });

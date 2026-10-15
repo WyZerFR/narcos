@@ -88,22 +88,36 @@ describe('characters.json', () => {
   });
 
   it('id inconnu ou absent remplacé par le défaut', () => {
-    expect(resolveCharacterId(gameData, 'perso_2')).toBe('perso_2');
+    expect(resolveCharacterId(gameData, 'decontractee')).toBe('decontractee');
     expect(resolveCharacterId(gameData, 'perso_42')).toBe('perso_1');
     expect(resolveCharacterId(gameData, undefined)).toBe('perso_1');
     expect(resolveCharacterId(gameData, 3)).toBe('perso_1');
   });
 
+  type Rig = GltfJson & { skins?: { joints: number[] }[]; nodes?: { name?: string }[] };
+  const read = (model: string) => JSON.parse(readFileSync(join(PUBLIC, model), 'utf8')) as Rig;
+  const joints = (j: Rig) => (j.skins ?? []).map((s) => s.joints.map((i) => j.nodes?.[i]?.name));
+  const anims = gameData.config.characters.animations;
+  const lib = read(anims.library);
+
+  it('bibliothèque commune : contient Idle, Walk et Run', () => {
+    const names = inspectGltf(lib).animations;
+    for (const n of [anims.idle, anims.walk, anims.run]) expect(names).toContain(n);
+  });
+
   for (const c of gameData.characters.values())
-    it(`${c.id} : fichier présent, dans le budget iPad, animations trouvées`, () => {
+    it(`${c.id} : fichier présent, budget iPad, squelette de la bibliothèque, sans clips`, () => {
       const file = join(PUBLIC, c.model);
       expect(existsSync(file), file).toBe(true);
-      const json = JSON.parse(readFileSync(file, 'utf8')) as GltfJson;
+      const json = read(c.model);
       const report = inspectGltf(json);
       expect(overBudget(report, statSync(file).size, gameData.config.characters.budget)).toEqual(
         [],
       );
-      for (const name of Object.values(c.animations)) expect(report.animations).toContain(name);
+      expect(report.drawCalls).toBe(1);
+      // clips mutualisés : pistes liées par nom d'os, donc mêmes os dans le même ordre
+      expect(joints(json)).toEqual(joints(lib));
+      expect(report.animations).toEqual([]);
     });
 });
 

@@ -154,6 +154,16 @@ export const ConfigSchema = z.object({
     defaultId: z.string().min(1),
     /** Nombre maximal de personnages dans characters.json (taille du dépôt, écran de choix). */
     maxCount: z.number().int().positive(),
+    /**
+     * Animations communes à tous les skins (même squelette) : fichier source, relatif à
+     * `client/public`, et noms des clips (absents = balancement de repli).
+     */
+    animations: z.object({
+      library: z.string().regex(/^[\w-]+(\/[\w-]+)*\.(gltf|glb)$/i),
+      idle: z.string().min(1).optional(),
+      walk: z.string().min(1).optional(),
+      run: z.string().min(1).optional(),
+    }),
     /** Catégories de l'écran de sélection, dans l'ordre d'affichage. */
     categories: z
       .array(z.object({ id: z.string().regex(/^[a-z0-9_]+$/), name: z.string().min(1) }))
@@ -926,10 +936,6 @@ export const CharacterSchema = z.object({
   rotationY: z.number().min(-180).max(180),
   /** Hauteur affichée (m) : le modèle est mis à cette taille au chargement. */
   height: z.number().positive(),
-  /** Noms des animations du fichier (absentes = léger balancement). */
-  animations: z
-    .object({ idle: z.string().min(1).optional(), walk: z.string().min(1).optional() })
-    .default({}),
   /**
    * Zones personnalisables (`palettes.json` → slots) : noms des matériaux du fichier qui les
    * composent. Les matériaux absents gardent leur couleur d'origine (yeux, détails…).

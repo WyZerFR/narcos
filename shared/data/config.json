@@ -288,7 +288,13 @@
   "characters": {
     "locked": false,
     "defaultId": "perso_1",
-    "maxCount": 12,
+    "maxCount": 60,
+    "animations": {
+      "library": "models/characters/animations.gltf",
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Run"
+    },
     "categories": [
       { "id": "homme", "name": "Hommes" },
       { "id": "femme", "name": "Femmes" },

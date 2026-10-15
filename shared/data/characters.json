@@ -8,175 +8,649 @@
       "scale": 1,
       "rotationY": 0,
       "height": 1.75,
-      "animations": {
-        "idle": "Idle",
-        "walk": "Walk"
-      },
-      "slots": {
-        "skin": ["Face"],
-        "hair": ["Hair"],
-        "top": ["Skin"],
-        "bottom": ["Black"],
-        "accessory": ["Shirt"]
-      }
-    },
-    {
-      "id": "perso_2",
-      "name": "Le Capuche",
-      "category": "homme",
-      "model": "models/characters/perso_2_casual_hoodie.gltf",
-      "scale": 1,
-      "rotationY": 0,
-      "height": 1.75,
-      "animations": {
-        "idle": "Idle",
-        "walk": "Walk"
-      },
       "slots": {
         "skin": ["Skin"],
-        "hair": ["Hair", "Eyebrows"],
-        "top": ["Purple"],
-        "bottom": ["LightBlue"],
-        "shoes": ["White"]
+        "top": ["Shirt"],
+        "hair": ["Hair"]
       }
     },
     {
-      "id": "homme_decontracte",
-      "name": "Le Décontracté",
-      "category": "homme",
-      "model": "models/characters/homme_decontracte.gltf",
-      "scale": 1,
-      "rotationY": 0,
-      "height": 1.75,
-      "animations": {
-        "idle": "Idle",
-        "walk": "Walk"
-      },
-      "slots": {
-        "skin": ["Skin", "Skin_Darker"],
-        "hair": ["Hair", "Eyebrows"],
-        "top": ["LightBrown"],
-        "bottom": ["LightBlue"],
-        "shoes": ["Red_Dark"]
-      }
-    },
-    {
-      "id": "homme_punk",
-      "name": "Le Punk",
-      "category": "homme",
-      "model": "models/characters/homme_punk.gltf",
-      "scale": 1,
-      "rotationY": 0,
-      "height": 1.75,
-      "animations": {
-        "idle": "Idle",
-        "walk": "Walk"
-      },
-      "slots": {
-        "skin": ["Skin"],
-        "hair": ["Red", "Red_Dark", "Eyebrows"],
-        "top": ["Black"],
-        "bottom": ["LightBlue"],
-        "accessory": ["White", "Earrings"]
-      }
-    },
-    {
-      "id": "homme_plage",
-      "name": "Le Plagiste",
-      "category": "homme",
-      "model": "models/characters/homme_plage.gltf",
-      "scale": 1,
-      "rotationY": 0,
-      "height": 1.75,
-      "animations": {
-        "idle": "Idle",
-        "walk": "Walk"
-      },
-      "slots": {
-        "skin": ["Skin"],
-        "hair": ["Hair", "Eyebrows"],
-        "top": ["LightBrown"],
-        "bottom": ["Red_Dark"],
-        "accessory": ["Earrings"]
-      }
-    },
-    {
-      "id": "femme_decontractee",
-      "name": "La Décontractée",
-      "category": "femme",
-      "model": "models/characters/femme_decontractee.gltf",
-      "scale": 1,
-      "rotationY": 0,
-      "height": 1.75,
-      "animations": {
-        "idle": "Idle",
-        "walk": "Walk"
-      },
-      "slots": {
-        "skin": ["Skin"],
-        "hair": ["Hair_Blond", "Hair_Brown"],
-        "top": ["White"],
-        "bottom": ["Orange"],
-        "shoes": ["Grey"]
-      }
-    },
-    {
-      "id": "femme_tailleur",
+      "id": "patronne",
       "name": "La Patronne",
       "category": "femme",
-      "model": "models/characters/femme_tailleur.gltf",
+      "model": "models/characters/p1_patronne.gltf",
       "scale": 1,
       "rotationY": 0,
       "height": 1.75,
-      "animations": {
-        "idle": "Idle",
-        "walk": "Walk"
-      },
       "slots": {
         "skin": ["Skin"],
-        "hair": ["Hair_Blond", "Hair_Brown"],
-        "top": ["Black"],
-        "accessory": ["White"]
+        "top": ["Shirt"],
+        "hair": ["Hair"]
       }
     },
     {
-      "id": "femme_punk",
-      "name": "La Punk",
-      "category": "femme",
-      "model": "models/characters/femme_punk.gltf",
+      "id": "decontracte",
+      "name": "Le Décontracté",
+      "category": "homme",
+      "model": "models/characters/p1_decontracte.gltf",
       "scale": 1,
       "rotationY": 0,
       "height": 1.75,
-      "animations": {
-        "idle": "Idle",
-        "walk": "Walk"
-      },
       "slots": {
         "skin": ["Skin"],
-        "hair": ["Pink", "Hair_Brown"],
-        "top": ["Black"],
-        "shoes": ["Grey"]
+        "top": ["Shirt"],
+        "bottom": ["Pants"],
+        "hair": ["Hair"]
       }
     },
     {
-      "id": "femme_ouvriere",
-      "name": "L’Ouvrière",
+      "id": "decontractee",
+      "name": "La Décontractée",
       "category": "femme",
-      "model": "models/characters/femme_ouvriere.gltf",
+      "model": "models/characters/p1_decontractee.gltf",
       "scale": 1,
       "rotationY": 0,
       "height": 1.75,
-      "animations": {
-        "idle": "Idle",
-        "walk": "Walk"
-      },
       "slots": {
         "skin": ["Skin"],
-        "hair": ["DarkBrown"],
-        "top": ["Worker_Vest"],
-        "bottom": ["Brown_02"],
-        "shoes": ["Black"],
-        "accessory": ["Worker_Yellow"]
+        "top": ["Shirt"],
+        "bottom": ["Pants"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "baskets",
+      "name": "Le Baskets",
+      "category": "homme",
+      "model": "models/characters/p1_baskets.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Shirt"],
+        "bottom": ["Pants"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "baskets_f",
+      "name": "La Baskets",
+      "category": "femme",
+      "model": "models/characters/p1_baskets_f.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Shirt"],
+        "bottom": ["Pants"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "branche",
+      "name": "Le Branché",
+      "category": "homme",
+      "model": "models/characters/p1_branche.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Shirt"],
+        "bottom": ["Pants"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "branchee",
+      "name": "La Branchée",
+      "category": "femme",
+      "model": "models/characters/p1_branchee.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Shirt"],
+        "bottom": ["Pants"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "chauve",
+      "name": "Le Chauve",
+      "category": "homme",
+      "model": "models/characters/p1_chauve.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Shirt"],
+        "bottom": ["Pants"]
+      }
+    },
+    {
+      "id": "ouvrier",
+      "name": "L'Ouvrier",
+      "category": "homme",
+      "model": "models/characters/p1_ouvrier.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Shirt"],
+        "accessory": ["Vest", "Hat"],
+        "bottom": ["Pants"]
+      }
+    },
+    {
+      "id": "ouvriere",
+      "name": "L'Ouvrière",
+      "category": "femme",
+      "model": "models/characters/p1_ouvriere.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Shirt"],
+        "accessory": ["Vest", "Hat"],
+        "bottom": ["Pants"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "chef",
+      "name": "Le Chef",
+      "category": "homme",
+      "model": "models/characters/p1_chef.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Clothes"],
+        "accessory": ["Band"],
+        "bottom": ["DarkClothes"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "cheffe",
+      "name": "La Cheffe",
+      "category": "femme",
+      "model": "models/characters/p1_cheffe.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Clothes"],
+        "accessory": ["Band"],
+        "bottom": ["DarkClothes"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "chef_toque",
+      "name": "Le Chef à toque",
+      "category": "homme",
+      "model": "models/characters/p1_chef_toque.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Clothes"],
+        "accessory": ["Band", "Hat"],
+        "bottom": ["DarkClothes"],
+        "hair": ["Moustache"]
+      }
+    },
+    {
+      "id": "docteur",
+      "name": "Le Jeune Docteur",
+      "category": "homme",
+      "model": "models/characters/p1_docteur.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "hair": ["Hair"],
+        "skin": ["Skin"],
+        "top": ["Main"],
+        "bottom": ["Brown"]
+      }
+    },
+    {
+      "id": "vieux_docteur",
+      "name": "Le Vieux Docteur",
+      "category": "homme",
+      "model": "models/characters/p1_vieux_docteur.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "hair": ["Hair"],
+        "skin": ["Skin"],
+        "top": ["Main"],
+        "bottom": ["Brown"]
+      }
+    },
+    {
+      "id": "interne",
+      "name": "L'Interne",
+      "category": "femme",
+      "model": "models/characters/p1_interne.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "hair": ["Hair"],
+        "skin": ["Skin"],
+        "top": ["Main"],
+        "bottom": ["Brown"]
+      }
+    },
+    {
+      "id": "doctoresse",
+      "name": "La Doctoresse",
+      "category": "femme",
+      "model": "models/characters/p1_doctoresse.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "hair": ["Hair"],
+        "skin": ["Skin"],
+        "top": ["Main"],
+        "bottom": ["Brown"]
+      }
+    },
+    {
+      "id": "papi_chic",
+      "name": "Le Papi chic",
+      "category": "homme",
+      "model": "models/characters/p1_papi_chic.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "bottom": ["Pants"],
+        "top": ["Shirt"],
+        "accessory": ["Hat"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "mamie_chic",
+      "name": "La Mamie chic",
+      "category": "femme",
+      "model": "models/characters/p1_mamie_chic.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "bottom": ["Pants"],
+        "top": ["Shirt"],
+        "accessory": ["Hat"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "cowboy",
+      "name": "Le Cow-boy",
+      "category": "homme",
+      "model": "models/characters/p1_cowboy.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Jacket", "Top"],
+        "accessory": ["Scarf", "HatBrown"],
+        "bottom": ["Pants"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "cowboy_chevelu",
+      "name": "Le Cow-boy chevelu",
+      "category": "homme",
+      "model": "models/characters/p1_cowboy_chevelu.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Jacket", "Top"],
+        "accessory": ["Scarf", "HatBrown"],
+        "bottom": ["Pants"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "cowgirl",
+      "name": "La Cow-girl",
+      "category": "femme",
+      "model": "models/characters/p1_cowgirl.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Jacket", "Top"],
+        "accessory": ["Scarf", "HatBrown"],
+        "bottom": ["Pants"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "soldat",
+      "name": "Le Soldat",
+      "category": "homme",
+      "model": "models/characters/p1_soldat.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Main"],
+        "bottom": ["DarkGreen"],
+        "accessory": ["Helmet"]
+      }
+    },
+    {
+      "id": "soldate",
+      "name": "La Soldate",
+      "category": "femme",
+      "model": "models/characters/p1_soldate.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Main"],
+        "bottom": ["DarkGreen"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "soldat_bleu",
+      "name": "Le Soldat bleu",
+      "category": "homme",
+      "model": "models/characters/p1_soldat_bleu.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Main"],
+        "accessory": ["Helmet"],
+        "bottom": ["Grey"]
+      }
+    },
+    {
+      "id": "soldate_bleue",
+      "name": "La Soldate bleue",
+      "category": "femme",
+      "model": "models/characters/p1_soldate_bleue.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Main"],
+        "hair": ["Hair"],
+        "bottom": ["Grey"]
+      }
+    },
+    {
+      "id": "pirate",
+      "name": "Le Pirate",
+      "category": "homme",
+      "model": "models/characters/p1_pirate.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Clothes"],
+        "bottom": ["Brown"]
+      }
+    },
+    {
+      "id": "pirate_f",
+      "name": "La Pirate",
+      "category": "femme",
+      "model": "models/characters/p1_pirate_f.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Clothes"],
+        "hair": ["Hair"],
+        "bottom": ["Brown"]
+      }
+    },
+    {
+      "id": "ninja",
+      "name": "Le Ninja",
+      "category": "homme",
+      "model": "models/characters/p1_ninja.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Main"]
+      }
+    },
+    {
+      "id": "ninja_chevelu",
+      "name": "Le Ninja chevelu",
+      "category": "homme",
+      "model": "models/characters/p1_ninja_chevelu.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Main"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "ninja_f",
+      "name": "La Ninja",
+      "category": "femme",
+      "model": "models/characters/p1_ninja_f.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Main"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "ninja_sable",
+      "name": "Le Ninja des sables",
+      "category": "homme",
+      "model": "models/characters/p1_ninja_sable.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Main"]
+      }
+    },
+    {
+      "id": "ninja_sable_f",
+      "name": "La Ninja des sables",
+      "category": "femme",
+      "model": "models/characters/p1_ninja_sable_f.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Main"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "kimono",
+      "name": "Le Kimono",
+      "category": "homme",
+      "model": "models/characters/p1_kimono.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Clothes"],
+        "accessory": ["Band"]
+      }
+    },
+    {
+      "id": "kimono_f",
+      "name": "La Kimono",
+      "category": "femme",
+      "model": "models/characters/p1_kimono_f.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Clothes"],
+        "accessory": ["Band"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "chevalier",
+      "name": "Le Chevalier",
+      "category": "homme",
+      "model": "models/characters/p1_chevalier.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Armor"]
+      }
+    },
+    {
+      "id": "chevalier_dore",
+      "name": "Le Chevalier doré",
+      "category": "homme",
+      "model": "models/characters/p1_chevalier_dore.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Armor"]
+      }
+    },
+    {
+      "id": "chevaliere_doree",
+      "name": "La Chevalière dorée",
+      "category": "femme",
+      "model": "models/characters/p1_chevaliere_doree.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Armor"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "viking",
+      "name": "Le Viking",
+      "category": "homme",
+      "model": "models/characters/p1_viking.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Main"],
+        "bottom": ["Pants"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "viking_casque",
+      "name": "Le Viking casqué",
+      "category": "homme",
+      "model": "models/characters/p1_viking_casque.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Main"],
+        "bottom": ["Pants"],
+        "hair": ["Hair"],
+        "accessory": ["Helmet"]
+      }
+    },
+    {
+      "id": "viking_f",
+      "name": "La Viking",
+      "category": "femme",
+      "model": "models/characters/p1_viking_f.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Main"],
+        "bottom": ["Pants"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "magicien",
+      "name": "Le Magicien",
+      "category": "homme",
+      "model": "models/characters/p1_magicien.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Clothes"],
+        "accessory": ["Hat"],
+        "hair": ["Hair"]
+      }
+    },
+    {
+      "id": "sorciere",
+      "name": "La Sorcière",
+      "category": "femme",
+      "model": "models/characters/p1_sorciere.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Clothes"],
+        "accessory": ["Hat"],
+        "hair": ["Hair"]
       }
     },
     {
@@ -187,14 +661,25 @@
       "scale": 1,
       "rotationY": 0,
       "height": 1.75,
-      "animations": {
-        "idle": "Idle",
-        "walk": "Walk"
-      },
       "slots": {
         "skin": ["Skin"],
-        "top": ["Clothes", "DarkClothes"],
-        "bottom": ["Pants"]
+        "top": ["Clothes"],
+        "bottom": ["Pants", "DarkClothes"]
+      }
+    },
+    {
+      "id": "zombie_f",
+      "name": "La Zombie",
+      "category": "autre",
+      "model": "models/characters/p1_zombie_f.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Clothes"],
+        "bottom": ["Pants", "DarkClothes"],
+        "hair": ["Hair"]
       }
     },
     {
@@ -205,13 +690,38 @@
       "scale": 1,
       "rotationY": 0,
       "height": 1.4,
-      "animations": {
-        "idle": "Idle",
-        "walk": "Walk"
-      },
       "slots": {
         "skin": ["Skin"],
         "bottom": ["Pants"]
+      }
+    },
+    {
+      "id": "gobeline",
+      "name": "La Gobeline",
+      "category": "autre",
+      "model": "models/characters/p1_gobeline.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.4,
+      "slots": {
+        "skin": ["Skin"],
+        "bottom": ["Pants"],
+        "hair": ["Hair"],
+        "top": ["Shirt"]
+      }
+    },
+    {
+      "id": "elfe",
+      "name": "L'Elfe",
+      "category": "autre",
+      "model": "models/characters/p1_elfe.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Clothes"],
+        "accessory": ["Hat"]
       }
     },
     {
@@ -222,15 +732,34 @@
       "scale": 1,
       "rotationY": 0,
       "height": 1.5,
-      "animations": {
-        "idle": "Idle",
-        "walk": "Walk"
-      },
       "slots": {
-        "skin": ["Beige", "Brown"],
-        "top": ["Skin"],
-        "bottom": ["Black"],
-        "accessory": ["Shirt"]
+        "skin": ["Skin"],
+        "top": ["Shirt"]
+      }
+    },
+    {
+      "id": "vache",
+      "name": "La Vache",
+      "category": "autre",
+      "model": "models/characters/p1_vache.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"],
+        "top": ["Shirt"]
+      }
+    },
+    {
+      "id": "mannequin",
+      "name": "Le Mannequin",
+      "category": "autre",
+      "model": "models/characters/p1_mannequin.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "slots": {
+        "skin": ["Skin"]
       }
     }
   ]
