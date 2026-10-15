@@ -14,6 +14,7 @@ import {
 } from '@narco/shared';
 import { Batch, faceOf, mix, seeded, shade, SIDES, type Face } from './batch';
 import { buildQuartiers } from './buildQuartiers';
+import { buildAirport } from './buildAirport';
 import { buildAreaGates, buildLandmark, towerTrim, type FacadeKit } from './buildLandmarks';
 
 /**
@@ -48,6 +49,7 @@ export function buildCity(data: GameData): CityGeometry {
   for (const block of data.blocks) buildFiller(ctx, block);
   buildQuartiers(ctx, data);
   buildAreaGates(ctx, facadeKit(ctx, seeded('areaGates')));
+  buildAirport(ctx, facadeKit(ctx, seeded('airport')));
   return { solid: ctx.solid.build(), glow: ctx.glow.build() };
 }
 

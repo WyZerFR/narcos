@@ -102,6 +102,21 @@ const CITY_SIGNS = [
       at: { x: g.x, y: g.height + 0.6, z: g.z },
     };
   }),
+  ...(() => {
+    // portail de l'aéroport : visible, fermé tant que l'area est verrouillée
+    const { airport } = gameData.config;
+    const area = gameData.areas.get(airport.areaId);
+    if (!area) return [];
+    return [
+      {
+        id: 'gate:airport',
+        text: `${area.name}${area.locked ? ' — fermé' : ''}`,
+        color: area.locked ? gameData.config.palette.danger : area.themeColor,
+        className: 'place-label quartier-sign',
+        at: { x: airport.gate.x, y: airport.gate.height + 1.6, z: airport.gate.z },
+      },
+    ];
+  })(),
 ];
 const SIGNS = [...QUARTIER_SIGNS, ...CITY_SIGNS];
 for (const s of SIGNS) setLabelAnchor(s.id, () => s.at);

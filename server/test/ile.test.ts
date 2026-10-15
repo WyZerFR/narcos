@@ -47,3 +47,26 @@ describe('île — la côte arrête le joueur (serveur)', () => {
       expect(p.area).not.toBe('');
     });
 });
+
+describe('aéroport verrouillé (serveur)', () => {
+  const { gate } = gameData.config.airport;
+  const edge = gameData.areas.get(gameData.config.airport.areaId)!.bounds.maxZ;
+
+  it('un pas vers le portail fermé est corrigé, le joueur reste en ville', async () => {
+    const id = 'ile-player-0010';
+    const { client, room } = await newGame(id);
+    const p = room.state.players.get(id)!;
+    Object.assign(p, { x: gate.x, z: edge + 1 });
+    client.send(ClientMsg.Move, { zone: 'street', x: gate.x, z: gate.z - 2, rotY: 0, seq: 1 });
+    await client.waitForMessage(ServerMsg.Correction);
+    expect(p.z).toBeGreaterThanOrEqual(edge + radius - 1e-6);
+    expect(p.area).toBe('centre_ville');
+  });
+
+  it('aucun PNJ dans l’aéroport', async () => {
+    const { room } = await newGame('ile-player-0011');
+    const areas = [...room.state.npcs.values()].map((n) => room.npcs.areaOf(n.id));
+    expect(areas.length).toBeGreaterThan(0);
+    expect(areas).not.toContain(gameData.config.airport.areaId);
+  });
+});

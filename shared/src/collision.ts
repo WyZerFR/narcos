@@ -1,4 +1,5 @@
 import { outsideAreas, walkableAreas } from './areas';
+import { airportObstacles } from './airport';
 import type { GameData } from './data';
 import {
   clampToBounds,
@@ -43,6 +44,8 @@ export function obstaclesFrom(data: MapData): Rect[] {
   }
   // impasses : maisons et décor solide (lampadaires, troncs, poubelles, caisses, clôtures, voitures)
   for (const layout of data.quartierLayouts.values()) rects.push(...layout.colliders);
+  // aéroport : portail fermé tant que l'area est verrouillée, clôture et volumes une fois ouverte
+  rects.push(...airportObstacles(data.config.airport, data.areas));
   return rects;
 }
 

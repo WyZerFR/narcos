@@ -166,6 +166,30 @@ export const ConfigSchema = z.object({
    * voitures rangées dans l'emprise de la concession et du parking (décor sans collision
    * propre : l'emprise est déjà solide).
    */
+  /**
+   * Aéroport (area `areaId`, verrouillée) : clôture en retrait du bord, portail sur la clôture
+   * face à une area marchable, piste, hangars, avions et conteneurs. Le champ `locked` de l'area
+   * est lu par la collision (`airportObstacles`) et par le rendu (portail fermé ou ouvert).
+   */
+  airport: z.object({
+    areaId: z.string().min(1),
+    fence: z.object({ inset: pos, height: pos, thickness: pos, postSpacing: pos }),
+    /** Portail : centre sur la clôture, `axis` = sens de la clôture à cet endroit. */
+    gate: Vec2Schema.extend({ axis: z.enum(['x', 'z']), width: pos, depth: pos, height: pos }),
+    runway: RectSchema,
+    hangars: z.array(RectSchema.extend({ height: pos })),
+    planeSize: z.object({ length: pos, span: pos, height: pos }),
+    /** Avions au sol, cap en degrés (0 = nez vers +X). */
+    planes: z.array(Vec2Schema.extend({ heading: z.number() })),
+    containerSize: z.object({ length: pos, width: pos, height: pos }),
+    containers: z.array(
+      Vec2Schema.extend({
+        rotation: z.union([z.literal(0), z.literal(90)]),
+        stack: z.number().int().min(1).max(3),
+        color: hexColor,
+      }),
+    ),
+  }),
   city: z.object({
     towers: z.object({
       seed: z.string().min(1),
@@ -852,6 +876,7 @@ export type GameLocation = z.infer<typeof LocationSchema>;
 export type Block = z.infer<typeof BlockSchema>;
 export type BlockStyle = z.infer<typeof BlockStyleSchema>;
 export type CityParams = GameConfig['city'];
+export type AirportParams = GameConfig['airport'];
 export type Palette = z.infer<typeof PaletteSchema>;
 export type PaletteKey = z.infer<typeof PaletteKeySchema>;
 export type Silhouette = z.infer<typeof SilhouetteSchema>;

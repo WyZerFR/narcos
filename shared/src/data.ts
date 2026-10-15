@@ -59,6 +59,7 @@ import { areaAt, areaContainsRect, areaRects, areasEnvelope } from './areas';
 import { checkQuartier, generateQuartier, quartierFrame, type QuartierLayout } from './quartiers';
 import { islandLayout, type IslandLayout } from './island';
 import { expandBlocks } from './cityBlocks';
+import { airportLayout } from './airport';
 
 /**
  * Catégories payables en « any » (propre d'abord, sale sinon) : nourriture, boissons, matériel
@@ -228,6 +229,50 @@ function checkMap(
   if (!rectContainsPoint(bounds, spawn)) errors.push('config.json : players.spawn hors carte');
   if (solids.some((s) => rectContainsPoint(s.rect, spawn)))
     errors.push('config.json : players.spawn est dans un bâtiment');
+  return errors;
+}
+
+/**
+ * Aéroport : area connue, sans PNJ ; portail sur la clôture, débouchant sur une area marchable ;
+ * piste, hangars, avions et conteneurs dans l'enceinte, volumes sans chevauchement.
+ */
+function checkAirport(config: GameConfig, areas: ReadonlyMap<string, Area>): string[] {
+  const p = config.airport;
+  const area = areas.get(p.areaId);
+  if (!area) return [`config.json : airport.areaId "${p.areaId}" inconnue`];
+  const errors: string[] = [];
+  const at = (what: string) => `config.json : airport, ${what}`;
+  if (area.npcCount > 0)
+    errors.push(`areas.json : "${area.id}" (aéroport) ne doit pas avoir de PNJ`);
+  const l = airportLayout(p, area);
+  const g = p.gate;
+  const onFence =
+    g.axis === 'x'
+      ? (g.z === l.inner.minZ || g.z === l.inner.maxZ) &&
+        g.x - g.width / 2 > l.inner.minX &&
+        g.x + g.width / 2 < l.inner.maxX
+      : (g.x === l.inner.minX || g.x === l.inner.maxX) &&
+        g.z - g.width / 2 > l.inner.minZ &&
+        g.z + g.width / 2 < l.inner.maxZ;
+  if (!onFence) errors.push(at('le portail doit être sur la clôture'));
+  // juste devant le portail, côté extérieur : une area marchable (on le voit, on y bute)
+  const out = p.fence.inset + 0.5;
+  const front =
+    g.axis === 'x'
+      ? { x: g.x, z: g.z === l.inner.maxZ ? g.z + out : g.z - out }
+      : { x: g.x === l.inner.maxX ? g.x + out : g.x - out, z: g.z };
+  const outside = areaAt(areas.values(), front);
+  if (!outside || outside.locked) errors.push(at('le portail ne donne sur aucune area marchable'));
+  const volumes = [
+    ...l.hangars.map((r, i) => ({ id: `hangar ${i}`, r })),
+    ...l.planeRects.map((r, i) => ({ id: `avion ${i}`, r })),
+    ...l.containerRects.map((r, i) => ({ id: `conteneur ${i}`, r })),
+  ];
+  for (const v of [...volumes, { id: 'piste', r: l.runway }])
+    if (!rectContainsRect(l.inner, v.r)) errors.push(at(`${v.id} hors de l'enceinte`));
+  for (const [i, a] of volumes.entries())
+    for (const b of volumes.slice(i + 1))
+      if (rectsOverlap(a.r, b.r)) errors.push(at(`${a.id} chevauche ${b.id}`));
   return errors;
 }
 
@@ -618,6 +663,7 @@ export function parseGameData(raw: RawGameData): GameData {
     errors.push('config.json : characters.ring.innerRadius doit être < outerRadius');
   errors.push(...checkAreas(config, areas, locFile.locations, quartiers));
   errors.push(...checkCity(config, areas, blocks, locFile.locations));
+  errors.push(...checkAirport(config, areas));
   // écarts : deux obstacles se touchent ou laissent un vrai passage (diamètre + marge)
   const minGap = 2 * config.world.playerRadius + config.collision.passageMargin;
   const fmt = (r: Rect) => `(${r.minX.toFixed(2)}, ${r.minZ.toFixed(2)})`;

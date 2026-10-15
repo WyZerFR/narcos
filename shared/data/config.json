@@ -172,6 +172,137 @@
     "palmChance": 0.55,
     "seed": "ile-1"
   },
+  "airport": {
+    "areaId": "aeroport",
+    "fence": {
+      "inset": 1.5,
+      "height": 3,
+      "thickness": 0.3,
+      "postSpacing": 4
+    },
+    "gate": {
+      "x": 0,
+      "z": -46.5,
+      "axis": "x",
+      "width": 10,
+      "depth": 0.6,
+      "height": 4.2
+    },
+    "runway": {
+      "x": 0,
+      "z": -112,
+      "w": 124,
+      "d": 14
+    },
+    "hangars": [
+      {
+        "x": -48,
+        "z": -72,
+        "w": 26,
+        "d": 20,
+        "height": 11
+      },
+      {
+        "x": -18,
+        "z": -72,
+        "w": 22,
+        "d": 20,
+        "height": 10
+      }
+    ],
+    "planeSize": {
+      "length": 22,
+      "span": 20,
+      "height": 6
+    },
+    "planes": [
+      {
+        "x": 32,
+        "z": -112,
+        "heading": 0
+      },
+      {
+        "x": -48,
+        "z": -94,
+        "heading": 0
+      },
+      {
+        "x": 30,
+        "z": -84,
+        "heading": 180
+      }
+    ],
+    "containerSize": {
+      "length": 6,
+      "width": 2.4,
+      "height": 2.6
+    },
+    "containers": [
+      {
+        "x": 24,
+        "z": -56,
+        "rotation": 0,
+        "stack": 2,
+        "color": "#b5452f"
+      },
+      {
+        "x": 31,
+        "z": -56,
+        "rotation": 0,
+        "stack": 1,
+        "color": "#2f6fb5"
+      },
+      {
+        "x": 38,
+        "z": -56,
+        "rotation": 0,
+        "stack": 3,
+        "color": "#c9a227"
+      },
+      {
+        "x": 24,
+        "z": -52,
+        "rotation": 0,
+        "stack": 1,
+        "color": "#3f8a5a"
+      },
+      {
+        "x": 38,
+        "z": -52,
+        "rotation": 0,
+        "stack": 2,
+        "color": "#b5452f"
+      },
+      {
+        "x": 56,
+        "z": -62,
+        "rotation": 90,
+        "stack": 2,
+        "color": "#2f6fb5"
+      },
+      {
+        "x": 60,
+        "z": -62,
+        "rotation": 90,
+        "stack": 1,
+        "color": "#c9a227"
+      },
+      {
+        "x": -40,
+        "z": -54,
+        "rotation": 0,
+        "stack": 1,
+        "color": "#3f8a5a"
+      },
+      {
+        "x": -33,
+        "z": -54,
+        "rotation": 0,
+        "stack": 2,
+        "color": "#b5452f"
+      }
+    ]
+  },
   "city": {
     "towers": {
       "seed": "tours-1",
