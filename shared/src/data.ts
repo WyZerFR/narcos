@@ -131,6 +131,8 @@ export interface GameData {
   dialogues: ReadonlyMap<string, Dialogue>;
   /** Areas de la rue (`areas.json`) dans l'ordre du fichier (la rue centrale d'abord). */
   areas: ReadonlyMap<string, Area>;
+  /** Area de référence des prix (`areas.json` referenceAreaId : prix et demande × 1). */
+  marketReference: Area;
   /** Paramètres des impasses (`quartiers.json`), indexés par id. */
   quartiers: ReadonlyMap<string, QuartierParams>;
   /** Emprises de collision du décor des quartiers. */
@@ -664,6 +666,11 @@ export function parseGameData(raw: RawGameData): GameData {
   errors.push(...checkAreas(config, areas, locFile.locations, quartiers));
   errors.push(...checkCity(config, areas, blocks, locFile.locations));
   errors.push(...checkAirport(config, areas));
+  const marketReference = areas.get(areasFile.referenceAreaId);
+  if (!marketReference || marketReference.locked)
+    errors.push('areas.json : referenceAreaId inconnue ou verrouillée');
+  else if (marketReference.priceMultiplier !== 1 || marketReference.demandRate !== 1)
+    errors.push("areas.json : l'area de référence doit avoir prix et demande à 1");
   // écarts : deux obstacles se touchent ou laissent un vrai passage (diamètre + marge)
   const minGap = 2 * config.world.playerRadius + config.collision.passageMargin;
   const fmt = (r: Rect) => `(${r.minX.toFixed(2)}, ${r.minZ.toFixed(2)})`;
@@ -748,6 +755,7 @@ export function parseGameData(raw: RawGameData): GameData {
     npcs,
     dialogues,
     areas,
+    marketReference: marketReference!,
     quartiers,
     quartierColliders: quartiersFile.colliders,
     quartierLayouts,

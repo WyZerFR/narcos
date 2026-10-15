@@ -383,6 +383,8 @@ export const ConfigSchema = z.object({
     navCellSize: pos,
     /** Acheteur de debug : distance d'apparition devant le joueur (m). */
     debugSpawnDistance: pos,
+    /** Délai (s réelles) avant de retirer les PNJ d'une area que tous les joueurs ont quittée. */
+    despawnDelaySeconds: nonNeg,
   }),
 });
 
@@ -944,6 +946,8 @@ export const AreaSchema = z.object({
 
 /** Boîte englobante du polygone, calculée au chargement (`bounds`). */
 export const AreasFileSchema = z.object({
+  /** Area de référence des prix (multiplicateur et demande à 1) : Bas-fonds. */
+  referenceAreaId: z.string().min(1),
   areas: z
     .array(
       AreaSchema.transform((a) => ({

@@ -10,8 +10,8 @@ import type { FacadeKit } from './buildLandmarks';
  */
 
 interface Ctx {
-  solid: Batch;
-  glow: Batch;
+  readonly solid: Batch;
+  readonly glow: Batch;
   data: GameData;
 }
 

@@ -41,6 +41,11 @@ export function fixturesFor(room: GameRoom, zoneId: string): Fixture[] {
 
 const areaCache = new Map<string, { fixtures: readonly Fixture[]; area: ZoneArea | null }>();
 
+/** Oublie les obstacles calculés (verrou d'une area changé). */
+export function clearAreaCache(): void {
+  areaCache.clear();
+}
+
 /** Bornes + obstacles de la zone, meubles posés compris (recalculé quand ils bougent). */
 export function areaFor(zoneId: string, fixtures: readonly Fixture[]): ZoneArea | null {
   const cached = areaCache.get(zoneId);

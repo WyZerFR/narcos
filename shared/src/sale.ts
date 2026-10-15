@@ -36,9 +36,6 @@ export interface AreaMarket {
   demandRate: number;
 }
 
-/** Marché neutre (rue sans bonus) : tests et appels sans area. */
-export const NEUTRAL_MARKET: AreaMarket = { id: 'street', priceMultiplier: 1, demandRate: 1 };
-
 /** Mention du bonus d'area affichée au joueur (« +25 % quartier »), ou null sans bonus. */
 export function areaBonusLabel(priceMultiplier: number): string | null {
   const pct = Math.round((priceMultiplier - 1) * 100);
@@ -83,7 +80,8 @@ export function rollDemand(
   profile: NpcProfile,
   economy: Pick<Economy, 'strains' | 'sale'>,
   rng: Rng,
-  market: AreaMarket = NEUTRAL_MARKET,
+  /** Marché de l'area du PNJ (référence de prix 1.0 : `gameData.marketReference`). */
+  market: AreaMarket,
 ): Demand {
   const strainId = profile.strains[Math.floor(rng() * profile.strains.length)]!;
   const strain = economy.strains.find((s) => s.id === strainId)!;

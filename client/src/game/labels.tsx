@@ -15,6 +15,7 @@ import {
   type Box,
 } from '@narco/shared';
 import type { PlayerInfo } from './Players';
+import { areaIdNear, isAreaLoaded } from './areaStreaming';
 
 /**
  * Étiquettes flottantes en DOM pur (hors canvas) : un seul calque, positionné à chaque frame
@@ -119,7 +120,11 @@ const CITY_SIGNS = [
   })(),
 ];
 const SIGNS = [...QUARTIER_SIGNS, ...CITY_SIGNS];
-for (const s of SIGNS) setLabelAnchor(s.id, () => s.at);
+// étiquettes masquées hors des areas chargées (area calculée une fois)
+for (const s of SIGNS) {
+  const area = areaIdNear(s.at);
+  setLabelAnchor(s.id, () => (isAreaLoaded(area) ? s.at : null));
+}
 
 /** Un bâtiment coupe-t-il la ligne de vue caméra → point ? */
 export function isOccluded(from: Point3, to: Point3): boolean {
@@ -142,7 +147,9 @@ for (const interior of gameData.interiors.values()) {
 // Les lieux ne bougent pas : ancres posées une fois pour toutes.
 for (const loc of visibleLocations(gameData.locations.values())) {
   const y = loc.height + (loc.kind === 'area' ? 1 : 2.2);
-  setLabelAnchor(`place:${loc.id}`, () => ({ x: loc.position.x, y, z: loc.position.z }));
+  const area = areaIdNear(loc.position);
+  const at = { x: loc.position.x, y, z: loc.position.z };
+  setLabelAnchor(`place:${loc.id}`, () => (isAreaLoaded(area) ? at : null));
 }
 
 const v = new Vector3();

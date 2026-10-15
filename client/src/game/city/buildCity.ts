@@ -1,4 +1,4 @@
-import type { BufferGeometry, Color } from 'three';
+import type { Color } from 'three';
 import {
   areaRects,
   expandRect,
@@ -12,9 +12,11 @@ import {
   type Rect,
   visibleLocations,
 } from '@narco/shared';
-import { Batch, faceOf, mix, seeded, shade, SIDES, type Face } from './batch';
+import type { Batch} from './batch';
+import { faceOf, mix, seeded, shade, SIDES, type Face } from './batch';
 import { buildQuartiers } from './buildQuartiers';
 import { buildAirport } from './buildAirport';
+import { AreaBatches, SEA_GROUP, type AreaGeometry } from './areaBatches';
 import { buildAreaGates, buildLandmark, towerTrim, type FacadeKit } from './buildLandmarks';
 
 /**
@@ -32,25 +34,42 @@ const WIN_STEP = 2.6;
 const PARAPET_H = 0.5;
 
 interface Ctx {
-  solid: Batch;
-  glow: Batch;
+  /** Batches de l'area courante (aiguillés par `router`). */
+  readonly solid: Batch;
+  readonly glow: Batch;
   data: GameData;
+  router: AreaBatches;
 }
 
-export interface CityGeometry {
-  solid: BufferGeometry;
-  glow: BufferGeometry;
-}
+/** Géométries par area (id d'area, ou `SEA_GROUP` pour la mer) : chargées séparément. */
+export type CityGeometry = Map<string, AreaGeometry>;
 
 export function buildCity(data: GameData): CityGeometry {
-  const ctx: Ctx = { solid: new Batch(), glow: new Batch(), data };
+  const router = new AreaBatches(data.areas.values());
+  const ctx: Ctx = {
+    get solid() {
+      return router.solid;
+    },
+    get glow() {
+      return router.glow;
+    },
+    data,
+    router,
+  };
   buildGround(ctx);
-  for (const loc of visibleLocations(data.locations.values())) buildLocation(ctx, loc);
-  for (const block of data.blocks) buildFiller(ctx, block);
-  buildQuartiers(ctx, data);
+  for (const loc of visibleLocations(data.locations.values())) {
+    router.at(loc.position);
+    buildLocation(ctx, loc);
+  }
+  for (const block of data.blocks) {
+    router.at(block.position);
+    buildFiller(ctx, block);
+  }
+  buildQuartiers(ctx, data, (areaId) => router.use(areaId));
   buildAreaGates(ctx, facadeKit(ctx, seeded('areaGates')));
+  router.use(data.config.airport.areaId);
   buildAirport(ctx, facadeKit(ctx, seeded('airport')));
-  return { solid: ctx.solid.build(), glow: ctx.glow.build() };
+  return router.build();
 }
 
 // ---------------------------------------------------------------- éléments communs
@@ -194,23 +213,30 @@ function sidewalkStrips(road: Rect, others: Rect[], sw: number): Rect[] {
 
 function buildGround(ctx: Ctx) {
   const { palette, map } = ctx.data.config;
-  const { solid } = ctx;
+  const { router } = ctx;
   // Le sol (trottoirs compris) n'est jamais percé par la découpe.
-  solid.cuttable = false;
+  ctx.solid.cuttable = false;
   buildIsland(ctx);
 
   const roads = map.roads.map((r) => rectFromCenter(r, r));
   const curb = shade(palette.ground, 0.8);
   roads.forEach((road, i) => {
     const others = roads.filter((_, j) => j !== i);
-    solid.floor(road, 0.02, shade(palette.street, 1.6));
-    for (const s of sidewalkStrips(road, others, map.sidewalkWidth)) {
-      const cx = (s.minX + s.maxX) / 2;
-      const cz = (s.minZ + s.maxZ) / 2;
-      solid.block(cx, 0, cz, s.maxX - s.minX, 0.12, s.maxZ - s.minZ, shade(palette.ground, 1.3));
-      // bordure de trottoir, un ton plus sombre
-      solid.block(cx, 0.12, cz, s.maxX - s.minX, 0.02, s.maxZ - s.minZ, curb);
+    // routes et trottoirs découpés par area (une avenue traverse plusieurs areas)
+    for (const piece of router.split(road)) {
+      router.use(piece.areaId);
+      ctx.solid.floor(piece.rect, 0.02, shade(palette.street, 1.6));
     }
+    for (const strip of sidewalkStrips(road, others, map.sidewalkWidth))
+      for (const { areaId, rect: s } of router.split(strip)) {
+        router.use(areaId);
+        const cx = (s.minX + s.maxX) / 2;
+        const cz = (s.minZ + s.maxZ) / 2;
+        const color = shade(palette.ground, 1.3);
+        ctx.solid.block(cx, 0, cz, s.maxX - s.minX, 0.12, s.maxZ - s.minZ, color);
+        // bordure de trottoir, un ton plus sombre
+        ctx.solid.block(cx, 0.12, cz, s.maxX - s.minX, 0.02, s.maxZ - s.minZ, curb);
+      }
     // marquage central en pointillés, interrompu aux croisements
     const alongX = road.maxX - road.minX >= road.maxZ - road.minZ;
     const dash = shade(palette.neon, 0.55);
@@ -231,7 +257,8 @@ function buildGround(ctx: Ctx) {
             maxX: (road.minX + road.maxX) / 2 + 0.08,
           };
       if (others.some((o) => rectsOverlap(expandRect(o, 1), centered))) continue;
-      solid.floor(centered, 0.03, dash);
+      router.at({ x: (centered.minX + centered.maxX) / 2, z: (centered.minZ + centered.maxZ) / 2 });
+      ctx.solid.floor(centered, 0.03, dash);
     }
   });
 
@@ -242,10 +269,11 @@ function buildGround(ctx: Ctx) {
         cw.axis === 'z'
           ? rectFromCenter({ x: cw.x, z: cw.z + t }, { w: cw.width, d: 0.5 })
           : rectFromCenter({ x: cw.x + t, z: cw.z }, { w: 0.5, d: cw.width });
-      solid.floor(r, 0.035, stripe);
+      router.at({ x: cw.x, z: cw.z });
+      ctx.solid.floor(r, 0.035, stripe);
     }
   }
-  solid.cuttable = true;
+  ctx.solid.cuttable = true;
 }
 
 /**
@@ -254,11 +282,14 @@ function buildGround(ctx: Ctx) {
  */
 function buildIsland(ctx: Ctx) {
   const { palette, world, island } = ctx.data.config;
-  const { solid } = ctx;
+  const { router } = ctx;
   const sea = island.seaLevel;
-  solid.floor(expandRect(world.bounds, island.seaMargin), sea, shade(palette.sea, 1));
-  for (const area of ctx.data.areas.values())
-    for (const r of areaRects(area)) solid.floor(r, 0, shade(palette.ground, 0.7));
+  router.use(SEA_GROUP);
+  ctx.solid.floor(expandRect(world.bounds, island.seaMargin), sea, shade(palette.sea, 1));
+  for (const area of ctx.data.areas.values()) {
+    router.use(area.id);
+    for (const r of areaRects(area)) ctx.solid.floor(r, 0, shade(palette.ground, 0.7));
+  }
   // falaise : paroi du sol jusqu'à la mer, collée au bord côté terre
   const rock = shade(palette.ground, 0.5);
   const T = 0.4;
@@ -267,14 +298,16 @@ function buildIsland(ctx: Ctx) {
     const cx = (e.a.x + e.b.x) / 2 - (e.nx * T) / 2;
     const cz = (e.a.z + e.b.z) / 2 - (e.nz * T) / 2;
     const [w, d] = e.nx !== 0 ? [T, len] : [len, T];
-    solid.block(cx, sea, cz, w, -sea - 0.01, d, rock);
+    router.at({ x: cx - e.nx, z: cz - e.nz });
+    ctx.solid.block(cx, sea, cz, w, -sea - 0.01, d, rock);
   }
   const sand = shade(palette.sand, 1);
   const foam = shade(palette.sea, 2.2);
   for (const b of ctx.data.island.beaches) {
-    solid.floor(b, sea + 0.12, sand);
+    router.at({ x: (b.minX + b.maxX) / 2, z: (b.minZ + b.maxZ) / 2 });
+    ctx.solid.floor(b, sea + 0.12, sand);
     // écume : liseré un peu plus large que la plage, juste au-dessus de l'eau
-    solid.floor(expandRect(b, 0.5), sea + 0.04, foam);
+    ctx.solid.floor(expandRect(b, 0.5), sea + 0.04, foam);
   }
 }
 

@@ -32,7 +32,7 @@ describe('demande des PNJ', () => {
     const v = economy.sale.priceVariance;
     for (let i = 0; i < 500; i++) {
       const profile = pickProfile(npcs.profiles, rng);
-      const d = rollDemand(profile, economy, rng);
+      const d = rollDemand(profile, economy, rng, gameData.marketReference);
       const base = economy.strains.find((s) => s.id === d.strainId)!.pouchSellPrice;
       expect(profile.strains).toContain(d.strainId);
       expect(d.qty).toBeGreaterThanOrEqual(1);
@@ -78,7 +78,7 @@ describe('vente de pochons', () => {
     budget: 50,
     unitPrice: 21,
     patienceMs: 10_000,
-    area: 'street',
+    area: 'bas_fonds',
     priceMultiplier: 1,
   };
   const bagWith = (pouches: number) => {
@@ -183,9 +183,10 @@ describe('vente par area', () => {
     expect(unitPriceFor(20, fixed(0.5), sale, 1.3)).toBe(26);
     expect(unitPriceFor(21, fixed(0.5), sale, 1.25)).toBe(26); // 26,25 → 26
     expect(unitPriceFor(1, fixed(0), sale, 0.5)).toBe(1); // jamais sous 1 $
-    const street = rollDemand(profile, gameData.economy, fixed(0.5));
+    const street = rollDemand(profile, gameData.economy, fixed(0.5), gameData.marketReference);
     const nord = rollDemand(profile, gameData.economy, fixed(0.5), north);
-    expect(street.area).toBe('street');
+    expect(street.area).toBe('bas_fonds');
+    expect(street.priceMultiplier).toBe(1);
     expect(nord.area).toBe('cartel');
     expect(nord.priceMultiplier).toBe(north.priceMultiplier);
     const base = gameData.economy.strains.find((s) => s.id === street.strainId)!.pouchSellPrice;
@@ -201,7 +202,9 @@ describe('vente par area', () => {
       return () => values[Math.min(i++, values.length - 1)]!;
     };
     const rngs = () => seq([0, just, 0.5, 0.5, 0.5, 0.5]);
-    expect(rollDemand(profile, gameData.economy, rngs()).interested).toBe(false);
+    expect(rollDemand(profile, gameData.economy, rngs(), gameData.marketReference).interested).toBe(
+      false,
+    );
     if (profile.interestChance * south.demandRate > just)
       expect(rollDemand(profile, gameData.economy, rngs(), south).interested).toBe(true);
     const sure = { ...south, demandRate: 3 };

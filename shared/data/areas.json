@@ -1,14 +1,27 @@
 {
+  "referenceAreaId": "bas_fonds",
   "areas": [
     {
       "id": "bas_fonds",
       "name": "Bas-fonds",
       "banner": "Bas-fonds — Le carton, Momo et la rue",
       "polygon": [
-        { "x": -145, "z": -35 },
-        { "x": -45, "z": -35 },
-        { "x": -45, "z": 35 },
-        { "x": -145, "z": 35 }
+        {
+          "x": -145,
+          "z": -35
+        },
+        {
+          "x": -45,
+          "z": -35
+        },
+        {
+          "x": -45,
+          "z": 35
+        },
+        {
+          "x": -145,
+          "z": 35
+        }
       ],
       "locked": false,
       "themeColor": "#8d7b68",
@@ -23,10 +36,22 @@
       "name": "Bas-fonds — Chez nous",
       "banner": "Chez nous — Notre boucle, nos règles",
       "polygon": [
-        { "x": -145, "z": 35 },
-        { "x": -45, "z": 35 },
-        { "x": -45, "z": 130 },
-        { "x": -145, "z": 130 }
+        {
+          "x": -145,
+          "z": 35
+        },
+        {
+          "x": -45,
+          "z": 35
+        },
+        {
+          "x": -45,
+          "z": 130
+        },
+        {
+          "x": -145,
+          "z": 130
+        }
       ],
       "locked": false,
       "themeColor": "#2ec4b6",
@@ -41,10 +66,22 @@
       "name": "Centre-ville",
       "banner": "Centre-ville — Les tours, la banque et les flics",
       "polygon": [
-        { "x": -45, "z": -45 },
-        { "x": 45, "z": -45 },
-        { "x": 45, "z": 45 },
-        { "x": -45, "z": 45 }
+        {
+          "x": -45,
+          "z": -45
+        },
+        {
+          "x": 45,
+          "z": -45
+        },
+        {
+          "x": 45,
+          "z": 45
+        },
+        {
+          "x": -45,
+          "z": 45
+        }
       ],
       "locked": false,
       "themeColor": "#b8b3cc",
@@ -59,12 +96,30 @@
       "name": "Quartier commercial",
       "banner": "Quartier commercial — Tout s'achète, surtout toi",
       "polygon": [
-        { "x": 45, "z": -45 },
-        { "x": 215, "z": -45 },
-        { "x": 215, "z": 10 },
-        { "x": 135, "z": 10 },
-        { "x": 135, "z": 35 },
-        { "x": 45, "z": 35 }
+        {
+          "x": 45,
+          "z": -45
+        },
+        {
+          "x": 215,
+          "z": -45
+        },
+        {
+          "x": 215,
+          "z": 10
+        },
+        {
+          "x": 135,
+          "z": 10
+        },
+        {
+          "x": 135,
+          "z": 35
+        },
+        {
+          "x": 45,
+          "z": 35
+        }
       ],
       "locked": false,
       "themeColor": "#ff8c42",
@@ -79,10 +134,22 @@
       "name": "Quartier d'El Jefe",
       "banner": "Quartier d'El Jefe — Territoire du cartel",
       "polygon": [
-        { "x": 135, "z": 10 },
-        { "x": 215, "z": 10 },
-        { "x": 215, "z": 110 },
-        { "x": 135, "z": 110 }
+        {
+          "x": 135,
+          "z": 10
+        },
+        {
+          "x": 215,
+          "z": 10
+        },
+        {
+          "x": 215,
+          "z": 110
+        },
+        {
+          "x": 135,
+          "z": 110
+        }
       ],
       "locked": false,
       "themeColor": "#ffd23f",
@@ -97,10 +164,22 @@
       "name": "Aéroport",
       "banner": "Aéroport — Fermé jusqu'à nouvel ordre",
       "polygon": [
-        { "x": -70, "z": -135 },
-        { "x": 70, "z": -135 },
-        { "x": 70, "z": -45 },
-        { "x": -70, "z": -45 }
+        {
+          "x": -70,
+          "z": -135
+        },
+        {
+          "x": 70,
+          "z": -135
+        },
+        {
+          "x": 70,
+          "z": -45
+        },
+        {
+          "x": -70,
+          "z": -45
+        }
       ],
       "locked": true,
       "themeColor": "#6c8ead",

@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import {
   areaRects,
+  rectsOverlap,
+  walkableAreas,
   footprint,
   gameData,
   obstaclesFrom,
@@ -16,10 +18,10 @@ import { localPlayer } from '../game/localPlayer';
 
 /**
  * Taille affichée (px CSS) et cadence de rafraîchissement : décor de HUD, pas besoin de 60 Hz.
- * Plus haute que large : la rue centrale et ses deux impasses (nord / sud) y tiennent.
+ * Plus large que haute : toute l'île (plus étendue d'ouest en est) y tient.
  */
-const WIDTH = 104;
-const HEIGHT = 168;
+const WIDTH = 160;
+const HEIGHT = 120;
 const REFRESH_MS = 100;
 
 const { config } = gameData;
@@ -32,7 +34,10 @@ const ROADS = [
   ...LAYOUTS.flatMap((l) => [...l.roads, ...l.parking, l.plaza]),
 ];
 const AREAS = [...gameData.areas.values()];
-const SOLIDS = obstaclesFrom(gameData);
+// obstacles sur la terre marchable seulement (la mer et l'aéroport fermé ne sont pas des murs)
+const SOLIDS = obstaclesFrom(gameData).filter((r) =>
+  walkableAreas(AREAS).some((a) => areaRects(a).some((t) => rectsOverlap(t, r))),
+);
 const PLACES = visibleLocations(gameData.locations.values()); // jamais la trappe cachée
 
 /**
@@ -74,6 +79,9 @@ export function Minimap({ room }: { room: GameRoom }) {
       // une teinte par area (pavage exact du polygone)
       ctx.globalAlpha = 0.28;
       for (const a of AREAS) for (const r of areaRects(a)) rect(r, a.themeColor);
+      // area verrouillée (aéroport) : voilée
+      ctx.globalAlpha = 0.45;
+      for (const a of AREAS) if (a.locked) for (const r of areaRects(a)) rect(r, palette.sky);
       ctx.globalAlpha = 1;
       for (const r of ROADS) rect(r, palette.street);
       for (const r of SOLIDS) rect(r, palette.wall);

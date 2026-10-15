@@ -11,9 +11,11 @@ import { faceOf, shade, SIDES, type Batch, type Face } from './batch';
  */
 
 export interface LandmarkCtx {
-  solid: Batch;
-  glow: Batch;
+  readonly solid: Batch;
+  readonly glow: Batch;
   data: GameData;
+  /** Aiguillage par area (chargement par area) ; absent : tout dans les mêmes batches. */
+  router?: { at(p: { x: number; z: number }): void };
 }
 
 /** Outils de façade de buildCity (fenêtres, parapet, porte, mobilier non découpé). */
@@ -289,6 +291,7 @@ export function buildAreaGates(ctx: LandmarkCtx, kit: FacadeKit) {
     for (const g of map.areaGates) {
       const area = ctx.data.areas.get(g.areaId);
       if (!area) continue;
+      ctx.router?.at(g);
       const tint = shade(area.themeColor, 1);
       // la traverse est perpendiculaire au sens de la route
       const across = g.axis === 'x' ? { dx: 0, dz: 1 } : { dx: 1, dz: 0 };

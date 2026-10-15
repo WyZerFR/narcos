@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { gameData, parseGameData } from './data';
 import {
   areaAt,
+  areaNeighbors,
+  nearestArea,
   areaRects,
   areasEnvelope,
   dangerAt,
@@ -10,6 +12,9 @@ import {
   walkableAreas,
 } from './areas';
 import { areaSalesReport } from './balance';
+import { areaSpot } from './areaSpots';
+import { isBlocked, obstaclesFrom } from './collision';
+import { cellIndex, createNavGrid, distancesFrom } from './navgrid';
 import { rectContainsPoint } from './geometry';
 import configJson from '../data/config.json';
 import economyJson from '../data/economy.json';
@@ -204,8 +209,42 @@ describe('équilibrage par area', () => {
     const street = report.find((r) => r.areaId === 'bas_fonds')!;
     for (const id of ['chez_nous', 'cartel']) {
       const r = report.find((x) => x.areaId === id)!;
-      expect(r.priceVsStreet).toBeGreaterThan(1);
+      expect(r.priceVsReference).toBeGreaterThan(1);
       expect(r.revenuePerMinute).toBeGreaterThan(street.revenuePerMinute);
+    }
+  });
+});
+
+describe('voisines et points d’arrivée', () => {
+  const neighbors = areaNeighbors(gameData.areas.values());
+
+  it('voisines directes : symétriques, le centre-ville touche tout le monde sauf le cartel', () => {
+    for (const [id, list] of neighbors)
+      for (const other of list) expect(neighbors.get(other), `${id} ↔ ${other}`).toContain(id);
+    expect([...neighbors.get('centre_ville')!].sort()).toEqual(
+      ['aeroport', 'bas_fonds', 'chez_nous', 'commercial'].sort(),
+    );
+    expect(neighbors.get('cartel')).toEqual(['commercial']);
+    for (const a of gameData.areas.values())
+      expect(neighbors.get(a.id)!.length, a.id).toBeGreaterThan(0);
+  });
+
+  it('décor côtier rattaché à l’area la plus proche', () => {
+    expect(nearestArea(gameData.areas.values(), { x: -150, z: 0 })?.id).toBe('bas_fonds');
+    expect(nearestArea(gameData.areas.values(), { x: 0, z: 50 })?.id).toBe('centre_ville');
+  });
+
+  it('chaque area a un point d’arrivée libre, atteignable depuis le départ', () => {
+    const obstacles = obstaclesFrom(gameData);
+    const r = gameData.config.world.playerRadius;
+    const grid = createNavGrid(gameData.config.world.bounds, obstacles, r, 0.5);
+    const fromSpawn = distancesFrom(grid, gameData.config.players.spawn);
+    for (const a of gameData.areas.values()) {
+      const p = areaSpot(gameData, a.id, obstacles)!;
+      expect(p, a.id).not.toBeNull();
+      expect(isBlocked(p, r, obstacles), a.id).toBe(false);
+      expect(Number.isFinite(fromSpawn[cellIndex(grid, p)]), a.id).toBe(true);
+      expect(areaAt(gameData.areas.values(), p)?.id).toBe(a.locked ? 'centre_ville' : a.id);
     }
   });
 });

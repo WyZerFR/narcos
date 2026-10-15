@@ -29,6 +29,7 @@ import {
   type Vec2,
 } from '@narco/shared';
 import { Batch, shade } from './batch';
+import { areaIdNear } from '../areaStreaming';
 
 /** Une instance : position (au sol sauf `y`), rotation Y, échelle uniforme, teinte optionnelle. */
 interface Placement {
@@ -206,12 +207,19 @@ const tmpE = new Euler();
 const tmpP = new Vector3();
 const tmpS = new Vector3();
 
-function Instances({ kit }: { kit: Kit }) {
+/**
+ * Un InstancedMesh par pièce de décor : seules les instances des areas chargées sont écrites
+ * (`count` réduit), un seul draw call quel que soit le nombre d'areas chargées.
+ */
+function Instances({ kit, loaded }: { kit: Kit; loaded: ReadonlySet<string> | null }) {
   const ref = useRef<InstancedMesh>(null);
+  const areas = useMemo(() => kit.items.map((it) => areaIdNear(it)), [kit]);
   useLayoutEffect(() => {
     const mesh = ref.current;
     if (!mesh) return;
-    kit.items.forEach((it, i) => {
+    const items = loaded ? kit.items.filter((_, i) => loaded.has(areas[i]!)) : kit.items;
+    mesh.count = items.length;
+    items.forEach((it, i) => {
       tmpQ.setFromEuler(tmpE.set(0, it.rotY ?? 0, 0));
       const s = it.scale ?? 1;
       mesh.setMatrixAt(i, tmpM.compose(tmpP.set(it.x, it.y ?? 0, it.z), tmpQ, tmpS.set(s, s, s)));
@@ -220,7 +228,7 @@ function Instances({ kit }: { kit: Kit }) {
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     mesh.computeBoundingSphere();
-  }, [kit]);
+  }, [kit, areas, loaded]);
   if (kit.items.length === 0) return null;
   return (
     <instancedMesh
@@ -233,10 +241,13 @@ function Instances({ kit }: { kit: Kit }) {
 
 export function Decor({
   data,
+  loaded,
   solidMaterial,
   glowMaterial,
 }: {
   data: GameData;
+  /** Areas chargées (null : toute l'île, au montage). */
+  loaded: ReadonlySet<string> | null;
   solidMaterial: Material;
   glowMaterial: Material;
 }) {
@@ -460,7 +471,7 @@ export function Decor({
   return (
     <>
       {kits.map((k) => (
-        <Instances key={k.key} kit={k} />
+        <Instances key={k.key} kit={k} loaded={loaded} />
       ))}
     </>
   );

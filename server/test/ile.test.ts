@@ -65,6 +65,7 @@ describe('aéroport verrouillé (serveur)', () => {
 
   it('aucun PNJ dans l’aéroport', async () => {
     const { room } = await newGame('ile-player-0011');
+    room.npcs.spawnAll(Date.now()); // toutes les areas peuplées, comme si chacune était occupée
     const areas = [...room.state.npcs.values()].map((n) => room.npcs.areaOf(n.id));
     expect(areas.length).toBeGreaterThan(0);
     expect(areas).not.toContain(gameData.config.airport.areaId);

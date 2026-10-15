@@ -1,4 +1,6 @@
+import { airportLayout } from './airport';
 import { areaAt, areaRects, walkableAreas } from './areas';
+import { areaSpot } from './areaSpots';
 import { findSlits, isBlocked, moveWithCollisions, obstaclesFrom } from './collision';
 import type { GameData } from './data';
 import { furnitureFixture, fixtureObstacles, fixtureRect, isSolidFixture } from './fixtures';
@@ -119,9 +121,12 @@ export function auditZones(data: GameData): AuditZone[] {
   const world = data.config.world.bounds;
   // areas marchables (l'aéroport verrouillé est hors-zone)
   const areas = walkableAreas(data.areas.values());
+  // départ, portes, panneaux d'entrée, points de téléportation de chaque area
   const streetEntries: Vec2[] = [
     data.config.players.spawn,
     ...[...data.locations.values()].map((l) => interactionPoint(l)),
+    ...data.config.map.areaGates.map((g) => ({ x: g.x, z: g.z })),
+    ...[...data.areas.keys()].flatMap((id) => areaSpot(data, id, street) ?? []),
   ];
   const gardens = [...data.quartierLayouts.values()].flatMap((l) => l.gardens);
   const zones: AuditZone[] = areas.map((a) => ({
@@ -147,6 +152,25 @@ export function auditZones(data: GameData): AuditZone[] {
     fixtures: [],
     door: null,
   });
+  // aéroport une fois déverrouillé (progression) : enceinte, portail, hangars, avions
+  const airportArea = data.areas.get(data.config.airport.areaId);
+  if (airportArea) {
+    const areas = new Map(data.areas);
+    areas.set(airportArea.id, { ...airportArea, locked: false });
+    const open = { ...data, areas };
+    const layout = airportLayout(data.config.airport, airportArea);
+    const g = data.config.airport.gate;
+    zones.push({
+      id: 'aéroport déverrouillé',
+      zone: STREET,
+      bounds: world,
+      obstacles: obstaclesFrom(open),
+      regions: [layout.inner],
+      entries: [g.axis === 'x' ? { x: g.x, z: g.z - 1.5 } : { x: g.x - 1.5, z: g.z }],
+      fixtures: [],
+      door: null,
+    });
+  }
   for (const interior of data.interiors.values()) {
     let fixtures: Fixture[] = [];
     if (interior.furnishable) {

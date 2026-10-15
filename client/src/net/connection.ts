@@ -120,6 +120,8 @@ export interface StateView {
   clock: { now: number; scale: number; survivalScale: number };
   shelves: Map<string, { stock: number }>;
   npcs: Map<string, NpcView>;
+  /** Verrou des areas (aéroport…) : collisions et rendu suivent. */
+  areaLocks?: Map<string, boolean>;
 }
 
 export type GameRoom = Room<StateView>;

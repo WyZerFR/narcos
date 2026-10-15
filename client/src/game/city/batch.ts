@@ -189,6 +189,11 @@ export class Batch {
     );
   }
 
+  /** Aucune primitive ajoutée (rien à fusionner). */
+  get empty(): boolean {
+    return this.parts.length === 0;
+  }
+
   build(): BufferGeometry {
     const merged = mergeGeometries(this.parts, false);
     for (const p of this.parts) p.dispose();

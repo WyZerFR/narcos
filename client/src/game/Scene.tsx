@@ -19,6 +19,7 @@ import { QUALITY_PRESETS, useSettings } from '../ui/settings';
 import { debugStats } from '../ui/DebugOverlay';
 import { localPlayer, resetLocalPlayer } from './localPlayer';
 import { City, NightAmbience } from './city/City';
+import { useAreaLocks } from './areaLocks';
 import { AreaBounds } from './AreaBounds';
 import { LabelProjector } from './labels';
 import { Bloom, EffectComposer } from '@react-three/postprocessing';
@@ -125,6 +126,7 @@ function World({ room, glowBoost }: { room: GameRoom; glowBoost: number }) {
   const myId = connection.playerId;
   const myZone = players.find((p) => p.id === myId)?.zone ?? STREET;
   const inStreet = myZone === STREET;
+  const lockVersion = useAreaLocks(room);
   // Nouvelle room (connexion ou reconnexion) : on repart de la position autoritaire du serveur.
   useEffect(() => resetLocalPlayer(), [room]);
   return (
@@ -132,7 +134,7 @@ function World({ room, glowBoost }: { room: GameRoom; glowBoost: number }) {
       <NightAmbience interior={!inStreet} />
       {/* La ville reste montée (pas de reconstruction) mais n'est pas dessinée à l'intérieur. */}
       <group visible={inStreet}>
-        <City glowBoost={glowBoost} />
+        <City glowBoost={glowBoost} lockVersion={lockVersion} />
         <AreaBounds />
       </group>
       {inStreet && <Npcs room={room} />}

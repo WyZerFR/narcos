@@ -158,4 +158,9 @@ export class GameState extends Schema {
   @type({ map: ShelfState }) shelves = new MapSchema<ShelfState>();
   /** PNJ de la rue (non sauvegardés : régénérés au démarrage). */
   @type({ map: Npc }) npcs = new MapSchema<Npc>();
+  /**
+   * Verrou des areas (`areas.json` locked), par id : diffusé pour que le client recalcule ses
+   * collisions et son rendu (aéroport déverrouillé en debug, progression plus tard).
+   */
+  @type({ map: 'boolean' }) areaLocks = new MapSchema<boolean>();
 }

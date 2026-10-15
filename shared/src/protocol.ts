@@ -272,6 +272,8 @@ export type DebugMessage =
   | { cmd: 'setClean'; amount: number }
   | { cmd: 'giveClean'; amount: number }
   | { cmd: 'teleport'; areaId: string }
+  /** Verrouille ou déverrouille une area (aéroport) : collision et rendu suivent `locked`. */
+  | { cmd: 'setAreaLocked'; areaId: string; locked: boolean }
   | { cmd: 'priceMultiplier'; areaId: string; value: number }
   | { cmd: 'resetLaunderCap'; venue?: LaunderVenue }
   | { cmd: 'launderFee'; venue: LaunderVenue; value: number }

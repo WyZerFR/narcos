@@ -4,6 +4,7 @@
  */
 import {
   areaSalesReport,
+  areaSpot,
   cellIndex,
   createNavGrid,
   cycleReport,
@@ -71,16 +72,18 @@ console.log(
   `(${(food.pouchesPerHour / 60).toFixed(2)}/min).`,
 );
 
-// Vente par area : PNJ, multiplicateur de prix, débouché ; comparaison avec la rue centrale.
-console.log('\nVente par area (au mieux, chaque acheteur trouvé) :');
+// Vente par area : PNJ, multiplicateur de prix, débouché ; comparaison avec l'area de référence.
+const ref = gameData.marketReference;
+console.log(`\nRevenu par area (au mieux, chaque acheteur trouvé ; référence ${ref.name}) :`);
 const sales = areaSalesReport(gameData);
-const streetSales = sales.find((r) => r.areaId === 'street');
+const refSales = sales.find((r) => r.areaId === ref.id);
 for (const r of sales)
   console.log(
     `  ${r.name} : ${r.npcCount} PNJ, prix ×${r.priceMultiplier} (${r.avgPrice.toFixed(1)} $/pochon),`,
     `~${r.pouchesPerMinute.toFixed(1)} pochons/min → ~${r.revenuePerMinute.toFixed(0)} $/min`,
-    streetSales && r.areaId !== 'street'
-      ? `(rue : ×${(r.revenuePerMinute / streetSales.revenuePerMinute).toFixed(2)} en $/min, ×${r.priceVsStreet.toFixed(2)} par pochon)`
+    `(danger ${gameData.areas.get(r.areaId)!.dangerLevel}/5)`,
+    refSales && refSales.revenuePerMinute > 0 && r.npcCount > 0 && r.areaId !== ref.id
+      ? `(référence : ×${(r.revenuePerMinute / refSales.revenuePerMinute).toFixed(2)} en $/min, ×${r.priceVsReference.toFixed(2)} par pochon)`
       : '',
   );
 
@@ -92,14 +95,21 @@ const grid = createNavGrid(
   config.npc.navCellSize,
 );
 const fromSpawn = distancesFrom(grid, config.players.spawn);
-console.log('\nTrajets à pied depuis le départ :');
-for (const q of gameData.quartiers.values()) {
-  const loc = gameData.locations.get(q.landmarkLocationId)!;
-  const m = fromSpawn[cellIndex(grid, interactionPoint(loc))]!;
+const trip = (label: string, p: { x: number; z: number }) => {
+  const m = fromSpawn[cellIndex(grid, p)]!;
   console.log(
-    `  bout de ${gameData.areas.get(q.areaId)!.name} (${loc.name}) : ${m.toFixed(0)} m,`,
-    `${(m / config.movement.walkSpeed).toFixed(1)} s en marchant, ${(m / config.movement.runSpeed).toFixed(1)} s en courant`,
+    Number.isFinite(m)
+      ? `  ${label} : ${m.toFixed(0)} m, ${(m / config.movement.walkSpeed).toFixed(1)} s en marchant, ${(m / config.movement.runSpeed).toFixed(1)} s en courant`
+      : `  ${label} : inaccessible`,
   );
+};
+console.log('\nTrajets à pied depuis le départ, vers chaque lieu :');
+for (const loc of gameData.locations.values()) trip(loc.name, interactionPoint(loc));
+console.log("Vers chaque area (point d'arrivée, devant le portail si verrouillée) :");
+const streetObstacles = obstaclesFrom(gameData);
+for (const a of gameData.areas.values()) {
+  const p = areaSpot(gameData, a.id, streetObstacles);
+  if (p) trip(`${a.name}${a.locked ? ' (verrouillée)' : ''}`, p);
 }
 
 // Blanchiment : revenu sale de toute la rue (débouché max des areas) passé par la banque, le

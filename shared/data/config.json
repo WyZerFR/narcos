@@ -620,7 +620,8 @@
     "saleRadius": 2,
     "cooldownSeconds": [60, 150],
     "navCellSize": 0.5,
-    "debugSpawnDistance": 1.2
+    "debugSpawnDistance": 1.2,
+    "despawnDelaySeconds": 20
   },
   "inventory": {
     "stockSlots": 60
