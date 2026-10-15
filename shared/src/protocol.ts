@@ -1,4 +1,5 @@
 /** Contrat réseau client <-> serveur. Le client n'envoie que des intentions. */
+import type { LaunderVenue } from './schemas';
 
 export const ROOM_NAME = 'narco';
 
@@ -86,6 +87,9 @@ export interface LaunderedEvent {
   dirty: number;
   /** Somme propre créditée sur le compte. */
   clean: number;
+  /** Lieu du blanchiment et area de son entrée (lus par la Heat plus tard). */
+  venue: LaunderVenue;
+  area: string;
 }
 
 export interface DialogueChooseMessage {
@@ -104,6 +108,8 @@ export interface DialogueNodeMessage {
 
 export interface LaunderOpenMessage {
   stationId: string;
+  /** Lieu de blanchiment : règles (commission, plafond) et journal à afficher. */
+  venue: LaunderVenue;
 }
 
 export interface BankLaunderMessage {

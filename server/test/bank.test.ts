@@ -123,7 +123,7 @@ describe('banque — dialogue du courtier', () => {
 
 // ---------------------------------------------------------------- blanchiment
 
-const RULES = gameData.economy.bank;
+const RULES = gameData.economy.launder.venues.bank;
 const AT_TELLER_1 = { x: -3.2, z: 1.6 };
 
 async function openTeller(c: SdkRoom, stationId = 'teller_1') {
@@ -155,7 +155,7 @@ describe('banque — blanchiment au guichet', () => {
     expect((await launderAt(client, 100)).text).toBe("Ouvrez d'abord un compte.");
     const me = room.state.players.get(id)!;
     me.hasAccount = true;
-    expect(await openTeller(client)).toEqual({ open: { stationId: 'teller_1' } });
+    expect(await openTeller(client)).toEqual({ open: { stationId: 'teller_1', venue: 'bank' } });
     const events: LaunderedEvent[] = [];
     room.events.on(LAUNDERED, (e: LaunderedEvent) => events.push(e));
     const before = dirtyOf(room, id);
@@ -165,7 +165,9 @@ describe('banque — blanchiment au guichet', () => {
     expect(net).toBe(Math.floor(101 * (1 - RULES.fee)));
     expect(dirtyOf(room, id)).toBe(before - 101);
     expect(me.cleanBalance).toBe(net);
-    expect(events).toEqual([{ playerId: id, dirty: 101, clean: net }]);
+    expect(events).toEqual([
+      { playerId: id, dirty: 101, clean: net, venue: 'bank', area: 'street' },
+    ]);
     expect(me.launderLog.map((e) => e.amount)).toEqual([101]);
   });
 
@@ -184,13 +186,11 @@ describe('banque — blanchiment au guichet', () => {
     standAt(room, id, AT_TELLER_1);
     // plafond presque atteint sur la fenêtre
     const now = room.now();
-    me.launderLog.push(
-      Object.assign(new LaunderEntry(), { at: now, amount: RULES.launderCap - 50 }),
-    );
+    me.launderLog.push(Object.assign(new LaunderEntry(), { at: now, amount: RULES.cap - 50 }));
     expect((await launderAt(client, 100)).text).toMatch(/encore 50 \$/);
     expect((await launderAt(client, 50)).ok).toBe(true);
     // fenêtre glissante : les entrées anciennes ne comptent plus
-    for (const e of me.launderLog) e.at = room.now() - RULES.capWindowSeconds * 1000 - 1;
+    for (const e of me.launderLog) e.at = room.now() - RULES.windowSeconds * 1000 - 1;
     expect((await launderAt(client, 100)).ok).toBe(true);
     expect(me.launderLog.map((e) => e.amount)).toEqual([100]);
     // plus d'argent sale

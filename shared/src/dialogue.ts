@@ -5,6 +5,7 @@ import type {
   DialogueCondition,
   DialogueNode,
   Economy,
+  LaunderVenue,
 } from './schemas';
 
 /**
@@ -69,12 +70,19 @@ export function chooseInDialogue(
 }
 
 /**
- * Variables utilisables dans les textes : `{fee}` = commission de la banque en %,
- * `{pactSeeds}` = graines données par El Jefe.
+ * Variables utilisables dans les textes : `{fee}` / `{cap}` / `{window}` = commission (%),
+ * plafond ($) et fenêtre du plafond (min) du
+ * lieu de blanchiment du dialogue (banque par défaut), `{pactSeeds}` = graines d'El Jefe.
  */
-export function dialogueVars(economy: Pick<Economy, 'bank' | 'pact'>): Record<string, string> {
+export function dialogueVars(
+  economy: Pick<Economy, 'launder' | 'pact'>,
+  venue: LaunderVenue = 'bank',
+): Record<string, string> {
+  const rules = economy.launder.venues[venue];
   return {
-    fee: String(Math.round(economy.bank.fee * 100)),
+    fee: String(Math.round(rules.fee * 100)),
+    cap: String(rules.cap),
+    window: String(Math.round(rules.windowSeconds / 60)),
     pactSeeds: String(economy.pact.startSeeds),
   };
 }

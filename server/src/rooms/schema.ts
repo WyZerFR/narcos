@@ -48,6 +48,8 @@ export class Player extends Schema {
   @type('boolean') pactAccepted = false;
   /** Blanchiments dans la fenêtre du plafond (purgés à chaque blanchiment). */
   @type([LaunderEntry]) launderLog = new ArraySchema<LaunderEntry>();
+  /** Blanchiments chez le blanchisseur de la cave (plafond séparé de celui de la banque). */
+  @type([LaunderEntry]) cellarLaunderLog = new ArraySchema<LaunderEntry>();
   /** Panier dans le magasin courant (réservé en rayon), total calculé par le serveur. */
   @type([CartLine]) cart = new ArraySchema<CartLine>();
   @type('uint32') cartTotal = 0;

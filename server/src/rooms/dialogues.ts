@@ -9,6 +9,7 @@ import {
   type DialogueAction,
   type DialogueContext,
   type DialogueNodeMessage,
+  type LaunderVenue,
   type Vec2,
 } from '@narco/shared';
 import type { Player } from './schema';
@@ -36,7 +37,7 @@ export function dialogueContext(
 type ActionOutcome = { refused: string } | { done: string | null };
 
 /** Actions de dialogue, exécutées uniquement par le serveur. */
-const ACTIONS: Record<DialogueAction, (player: Player) => ActionOutcome> = {
+const ACTIONS: Record<DialogueAction, (player: Player, venue: LaunderVenue) => ActionOutcome> = {
   open_account: (player) => {
     if (player.hasAccount) return { refused: 'Votre compte est déjà ouvert.' };
     player.hasAccount = true;
@@ -53,6 +54,12 @@ const ACTIONS: Record<DialogueAction, (player: Player) => ActionOutcome> = {
     writeInventory(player.bag, r.inv);
     player.pactAccepted = true;
     return { done: `Pacte conclu : +${startSeeds} × ${name} dans ton sac.` };
+  },
+  // le panneau de blanchiment du lieu est ouvert par la room (message LaunderOpen)
+  open_launder: (player, venue) => {
+    const rules = economy.launder.venues[venue];
+    if (rules.requireAccount && !player.hasAccount) return { refused: rules.noAccountText };
+    return { done: null };
   },
 };
 
@@ -159,7 +166,7 @@ export class DialogueDesk {
     if (!isNear(speaker)) return { ok: false, text: `Trop loin : ${speaker.name}` };
     const r = chooseInDialogue(d, req.nodeId, req.choiceId, dialogueContext(player));
     if (!r.ok) return { ok: false, text: r.message };
-    const outcome = r.action ? ACTIONS[r.action](player) : { done: null };
+    const outcome = r.action ? ACTIONS[r.action](player, d.venue ?? 'bank') : { done: null };
     if ('refused' in outcome) return close(outcome.refused);
     if (r.next === null) this.talks.delete(playerId);
     else this.talks.set(playerId, { ...talk, nodeId: r.next });

@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { activeEntries, checkLaunder, launderRemaining, launderSplit, shiftLog } from './bank';
-import type { BankRules } from './schemas';
+import type { LaunderRules } from './schemas';
 
-const RULES: BankRules = {
+const RULES: LaunderRules = {
   fee: 0.5,
-  launderCap: 1000,
-  capWindowSeconds: 60,
-  step: 50,
-  quickAmounts: [100, 500],
+  cap: 1000,
+  windowSeconds: 60,
+  requireAccount: true,
+  noAccountText: "Ouvrez d'abord un compte.",
 };
 const base = { hasAccount: true, dirty: 2000, amount: 100, log: [], now: 100_000 };
 

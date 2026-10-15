@@ -67,7 +67,14 @@ import { pay, putBack, readCart, returnCart, stockShelves, takeItem, writeCart }
 import { StreetNpcs } from './npcs';
 import { DialogueDesk } from './dialogues';
 import { accessGranted, debugEnabled } from '../env';
-import { freezeLaunderWindows, launder, openTeller, resetLaunderCap } from './bank';
+import {
+  freezeLaunderWindows,
+  launder,
+  openTeller,
+  resetLaunderCap,
+  venueArea,
+  venueOf,
+} from './bank';
 import { SALE_COMPLETED, type SaleClosedMessage, type SaleCompletedEvent } from '@narco/shared';
 import { GameState, Player } from './schema';
 import { makeSlots, readInventory, syncArea, writeInventory } from './stateSync';
@@ -510,10 +517,13 @@ export class NarcoRoom extends Room<GameState> {
     if (station.kind === 'teller') {
       const r =
         action === 'launder'
-          ? openTeller(player)
+          ? openTeller(player, venueOf(station)!)
           : { ok: false, text: `Impossible ici : ${station.label}` };
       if (!r.ok) return this.notify(client, false, r.text);
-      client.send(ServerMsg.LaunderOpen, { stationId: station.id } satisfies LaunderOpenMessage);
+      client.send(ServerMsg.LaunderOpen, {
+        stationId: station.id,
+        venue: venueOf(station)!,
+      } satisfies LaunderOpenMessage);
       return;
     }
     if (station.kind === 'shelf' || station.kind === 'counter') {
@@ -737,7 +747,13 @@ export class NarcoRoom extends Room<GameState> {
     client.send(ServerMsg.LaunderResult, res);
     this.notify(client, r.ok, r.text);
     if (!r.ok) return;
-    const event: LaunderedEvent = { playerId, dirty: r.dirty ?? 0, clean: r.clean ?? 0 };
+    const event: LaunderedEvent = {
+      playerId,
+      dirty: r.dirty ?? 0,
+      clean: r.clean ?? 0,
+      venue: r.venue ?? 'bank',
+      area: venueArea(player.zone),
+    };
     this.events.emit(LAUNDERED, event);
   }
 

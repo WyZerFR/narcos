@@ -1,10 +1,11 @@
-import type { BankRules } from './schemas';
+import type { LaunderRules } from './schemas';
 
 /**
- * Banque : commission et plafond de blanchiment. Pur, sans état.
+ * Blanchiment (banque, cave du blanchisseur) : commission et plafond par lieu. Pur, sans état.
  * Arrondi : la commission est arrondie à l'entier supérieur (la banque ne perd jamais un
  * dollar), le net crédité = montant − commission. Ex. fee 0.5 : 101 $ sales → 50 $ propres.
- * Plafond : somme sale blanchie sur une fenêtre glissante de `capWindowSeconds` (temps de jeu).
+ * Plafond : somme sale blanchie sur une fenêtre glissante de `windowSeconds` (temps de jeu),
+ * un journal par lieu.
  */
 
 /** Un blanchiment passé (temps de jeu en ms, montant sale). */
@@ -19,13 +20,13 @@ export function launderSplit(amount: number, fee: number): { commission: number;
   return { commission, net: amount - commission };
 }
 
-const windowMs = (rules: Pick<BankRules, 'capWindowSeconds'>) => rules.capWindowSeconds * 1000;
+const windowMs = (rules: Pick<LaunderRules, 'windowSeconds'>) => rules.windowSeconds * 1000;
 
 /** Entrées encore dans la fenêtre glissante. */
 export function activeEntries(
   log: readonly LaunderEntry[],
   now: number,
-  rules: Pick<BankRules, 'capWindowSeconds'>,
+  rules: Pick<LaunderRules, 'windowSeconds'>,
 ): LaunderEntry[] {
   return log.filter((e) => now - e.at < windowMs(rules));
 }
@@ -34,10 +35,10 @@ export function activeEntries(
 export function launderRemaining(
   log: readonly LaunderEntry[],
   now: number,
-  rules: Pick<BankRules, 'capWindowSeconds' | 'launderCap'>,
+  rules: Pick<LaunderRules, 'windowSeconds' | 'cap'>,
 ): number {
   const used = activeEntries(log, now, rules).reduce((s, e) => s + e.amount, 0);
-  return Math.max(0, rules.launderCap - used);
+  return Math.max(0, rules.cap - used);
 }
 
 /** Décale les entrées (temps passé sans joueur connecté : la fenêtre est gelée). */
@@ -59,8 +60,8 @@ export type LaunderCheck =
   | { ok: false; message: string };
 
 /** Vérifie un blanchiment ; renvoie le partage et le nouveau journal (fenêtre purgée). */
-export function checkLaunder(rules: BankRules, req: LaunderRequest): LaunderCheck {
-  if (!req.hasAccount) return { ok: false, message: "Ouvrez d'abord un compte." };
+export function checkLaunder(rules: LaunderRules, req: LaunderRequest): LaunderCheck {
+  if (rules.requireAccount && !req.hasAccount) return { ok: false, message: rules.noAccountText };
   if (!Number.isInteger(req.amount) || req.amount <= 0)
     return { ok: false, message: 'Montant invalide.' };
   if (req.dirty <= 0) return { ok: false, message: "Vous n'avez pas d'argent sale sur vous." };

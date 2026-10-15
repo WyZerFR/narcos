@@ -101,7 +101,8 @@ export function survivalCostReport(
       if (restores?.thirst)
         thirstPointPrice = Math.min(thirstPointPrice, shelf.price / restores.thirst);
     }
-  const { survival, bank, strains } = data.economy;
+  const { survival, launder, strains } = data.economy;
+  const bank = launder.venues.bank;
   const perMinute =
     survival.hungerPerMinute * hungerPointPrice + survival.thirstPerMinute * thirstPointPrice;
   const perHour = perMinute * 60;

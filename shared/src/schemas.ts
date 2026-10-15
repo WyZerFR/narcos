@@ -308,6 +308,23 @@ export const StrainSchema = z.object({
   pouchSellPrice: nonNeg,
 });
 
+/** Lieux de blanchiment : la banque (guichets) et la cave du blanchisseur (Quartier Sud). */
+export const LaunderVenueSchema = z.enum(['bank', 'cellar']);
+
+/** Règles d'un lieu de blanchiment ; chaque lieu a son propre plafond glissant. */
+export const LaunderRulesSchema = z.object({
+  /** Commission prélevée sur la somme sale (0.5 = 50 %). */
+  fee: z.number().min(0).lt(1),
+  /** Somme sale blanchissable par joueur sur la fenêtre glissante ($). */
+  cap: z.number().int().positive(),
+  /** Durée de la fenêtre glissante du plafond (s de temps de jeu, gelée sans joueur). */
+  windowSeconds: pos,
+  /** Compte bancaire ouvert exigé (le net est versé sur le compte). */
+  requireAccount: z.boolean(),
+  /** Refus affiché sans compte. */
+  noAccountText: z.string().min(1),
+});
+
 const SkillSchema = z.object({ maxRank: z.number().int().positive(), effectPerRank: z.number() });
 
 export const EconomySchema = z.object({
@@ -363,18 +380,13 @@ export const EconomySchema = z.object({
   sale: z.object({
     priceVariance: z.number().min(0).lt(1),
   }),
-  /** Banque : blanchiment de l'argent sale du sac vers le compte propre. */
-  bank: z.object({
-    /** Commission prélevée sur la somme sale (0.5 = 50 %). */
-    fee: z.number().min(0).lt(1),
-    /** Somme sale blanchissable par joueur sur la fenêtre glissante ($). */
-    launderCap: z.number().int().positive(),
-    /** Durée de la fenêtre glissante du plafond (s de temps de jeu, gelée sans joueur). */
-    capWindowSeconds: pos,
+  /** Blanchiment de l'argent sale du sac vers le compte propre, par lieu (banque, cave). */
+  launder: z.object({
     /** Pas des boutons − / + du panneau ($). */
     step: z.number().int().positive(),
     /** Montants rapides proposés au guichet ($). */
     quickAmounts: z.array(z.number().int().positive()),
+    venues: z.object({ bank: LaunderRulesSchema, cellar: LaunderRulesSchema }),
   }),
   /** Labo : postes de production. */
   lab: z.object({
@@ -436,6 +448,8 @@ export const StationSchema = z.object({
   vendor: z.string().min(1).optional(),
   /** Poste `talk` : id du dialogue (dialogues.json). */
   dialogue: z.string().min(1).optional(),
+  /** Poste où l'on blanchit (défaut : guichet `teller` = banque). */
+  launderVenue: LaunderVenueSchema.optional(),
 });
 
 /** Pièce intérieure : une « zone » où le joueur passe en franchissant la porte d'un lieu. */
@@ -487,7 +501,7 @@ export const ShopsFileSchema = z.object({ shops: z.array(ShopSchema) });
  */
 export const DialogueConditionSchema = z.enum(['account', 'no_account', 'pact', 'no_pact']);
 /** Actions exécutées par le serveur quand le choix est validé. */
-export const DialogueActionSchema = z.enum(['open_account', 'accept_pact']);
+export const DialogueActionSchema = z.enum(['open_account', 'accept_pact', 'open_launder']);
 
 export const DialogueChoiceSchema = z.object({
   id: z.string().min(1),
@@ -508,6 +522,8 @@ export const DialogueNodeSchema = z.object({
 
 export const DialogueSchema = z.object({
   id: z.string().min(1),
+  /** Lieu de blanchiment dont {fee}, {cap} et {window} sont tirés (banque par défaut). */
+  venue: LaunderVenueSchema.optional(),
   /** Nœud d'entrée : le premier dont les conditions sont remplies. */
   start: z
     .array(
@@ -640,7 +656,8 @@ export type DialogueAction = z.infer<typeof DialogueActionSchema>;
 export type DialogueChoice = z.infer<typeof DialogueChoiceSchema>;
 export type DialogueNode = z.infer<typeof DialogueNodeSchema>;
 export type Dialogue = z.infer<typeof DialogueSchema>;
-export type BankRules = Economy['bank'];
+export type LaunderVenue = z.infer<typeof LaunderVenueSchema>;
+export type LaunderRules = z.infer<typeof LaunderRulesSchema>;
 
 // ---------- areas.json ----------
 /** Qui tient une area (lu plus tard par le conflit et la police) ; null = personne. */

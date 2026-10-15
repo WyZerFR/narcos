@@ -60,7 +60,7 @@ describe('dialogues — courtier', () => {
 
   it('variables : {fee} = commission de economy.json en %', () => {
     const vars = dialogueVars(gameData.economy);
-    expect(vars.fee).toBe(String(Math.round(gameData.economy.bank.fee * 100)));
+    expect(vars.fee).toBe(String(Math.round(gameData.economy.launder.venues.bank.fee * 100)));
     const offer = banker.nodes.find((n) => n.id === 'offer')!;
     expect(fillText(offer.text, vars)).toContain(`${vars.fee} %`);
     expect(fillText('{inconnu}', vars)).toBe('{inconnu}');
@@ -110,5 +110,56 @@ describe('dialogues — El Jefe et le pacte', () => {
     const node = dialogueStart(banker, noPact)!;
     expect(node.text).toBe("Je ne travaille qu'avec les amis d'El Jefe. Allez le voir.");
     expect(dialogueStart(banker, pact)?.id).toBe('hello');
+  });
+});
+
+describe('dialogues — blanchisseur de la cave', () => {
+  const launderer = gameData.dialogues.get('launderer')!;
+  const withAccount: DialogueContext = { hasAccount: true, pact: true };
+  const noAccount: DialogueContext = { hasAccount: false, pact: true };
+  const cellar = gameData.economy.launder.venues.cellar;
+
+  it('« T’es perdu, petit ? » puis offre (avec compte) ou refus (sans compte)', () => {
+    const hello = dialogueStart(launderer, noAccount)!;
+    expect(hello.text).toBe("T'es perdu, petit ?");
+    expect(availableChoices(hello, noAccount).map((c) => c.id)).toEqual(['ask_no_account', 'oops']);
+    expect(chooseInDialogue(launderer, 'hello', 'ask_no_account', noAccount)).toEqual({
+      ok: true,
+      next: 'no_account',
+    });
+    const refusal = launderer.nodes.find((n) => n.id === 'no_account')!;
+    expect(refusal.text).toBe('Pas de compte, pas de lessive. Va voir le banquier.');
+    expect(chooseInDialogue(launderer, 'hello', 'ask', noAccount).ok).toBe(false);
+    expect(chooseInDialogue(launderer, 'hello', 'oops', withAccount)).toEqual({
+      ok: true,
+      next: null,
+    });
+  });
+
+  it('flux complet : offre → « Je veux blanchir » = action open_launder ; « Pas maintenant » = fin', () => {
+    expect(chooseInDialogue(launderer, 'hello', 'ask', withAccount)).toEqual({
+      ok: true,
+      next: 'offer',
+    });
+    expect(chooseInDialogue(launderer, 'offer', 'launder', withAccount)).toEqual({
+      ok: true,
+      next: null,
+      action: 'open_launder',
+    });
+    expect(chooseInDialogue(launderer, 'offer', 'later', withAccount)).toEqual({
+      ok: true,
+      next: null,
+    });
+  });
+
+  it('variables {fee} {cap} {window} lues dans economy.launder.venues.cellar', () => {
+    expect(launderer.venue).toBe('cellar');
+    const vars = dialogueVars(gameData.economy, 'cellar');
+    expect(vars).toMatchObject({ fee: '15', cap: String(cellar.cap), window: '30' });
+    const offer = launderer.nodes.find((n) => n.id === 'offer')!;
+    expect(fillText(offer.text, vars)).toContain(`15 pour cent`);
+    expect(fillText(offer.text, vars)).toContain(`${cellar.cap} $`);
+    // la banque garde sa commission
+    expect(dialogueVars(gameData.economy).fee).toBe('50');
   });
 });

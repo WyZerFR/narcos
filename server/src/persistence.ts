@@ -64,6 +64,8 @@ const StateJson = z.object({
       cleanMoney: z.number().nonnegative().optional(),
       cleanBalance: z.number().nonnegative().optional(),
       launderLog: z.array(z.object({ at: z.number(), amount: z.number() })).optional(),
+      // ajouté avec la cave du blanchisseur : une ancienne sauvegarde n'en a pas
+      cellarLaunderLog: z.array(z.object({ at: z.number(), amount: z.number() })).optional(),
       // ajouté après la v4 : une ancienne sauvegarde se charge avec le compte fermé
       hasAccount: z.boolean().optional(),
       // ajouté avec le pacte d'El Jefe : une ancienne sauvegarde se charge sans pacte
@@ -185,6 +187,9 @@ export function hydrateState(state: GameState, snap: RoomSnapshot): void {
     player.cartClean = p.cartClean ?? 0;
     player.launderLog.push(
       ...(p.launderLog ?? []).map((e) => Object.assign(new LaunderEntry(), e)),
+    );
+    player.cellarLaunderLog.push(
+      ...(p.cellarLaunderLog ?? []).map((e) => Object.assign(new LaunderEntry(), e)),
     );
     Object.assign(player, { hunger: p.hunger, thirst: p.thirst, health: p.health });
     if (player.zone === STREET) Object.assign(player, streetRespawn());
