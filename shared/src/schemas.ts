@@ -152,6 +152,12 @@ export const ConfigSchema = z.object({
     locked: z.boolean(),
     /** Personnage d'un joueur qui n'a rien choisi (ou d'un id inconnu). */
     defaultId: z.string().min(1),
+    /** Nombre maximal de personnages dans characters.json (taille du dépôt, écran de choix). */
+    maxCount: z.number().int().positive(),
+    /** Catégories de l'écran de sélection, dans l'ordre d'affichage. */
+    categories: z
+      .array(z.object({ id: z.string().regex(/^[a-z0-9_]+$/), name: z.string().min(1) }))
+      .min(1),
     /** Budget iPad par modèle (vérifié par `scripts/check-models.mjs` et les tests). */
     budget: z.object({
       maxTriangles: z.number().int().positive(),
@@ -910,6 +916,8 @@ export type QuartierColliders = QuartiersFile['colliders'];
 export const CharacterSchema = z.object({
   id: z.string().regex(/^[a-z0-9_]+$/),
   name: z.string().min(1),
+  /** Catégorie de l'écran de sélection (`config.characters.categories`). */
+  category: z.string().min(1),
   /** Chemin du modèle glTF, relatif à `client/public`. */
   model: z.string().regex(/^[\w-]+(\/[\w-]+)*\.(gltf|glb)$/i),
   /** Multiplicateur après normalisation à `height`. */

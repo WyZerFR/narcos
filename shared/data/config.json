@@ -288,9 +288,15 @@
   "characters": {
     "locked": false,
     "defaultId": "perso_1",
+    "maxCount": 12,
+    "categories": [
+      { "id": "homme", "name": "Hommes" },
+      { "id": "femme", "name": "Femmes" },
+      { "id": "autre", "name": "Autres" }
+    ],
     "budget": {
       "maxTriangles": 15000,
-      "maxDrawCalls": 3,
+      "maxDrawCalls": 1,
       "maxTextureSize": 2048,
       "maxFileMB": 5
     },

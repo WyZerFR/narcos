@@ -495,6 +495,14 @@ export function parseGameData(raw: RawGameData): GameData {
     errors.push('config.json : correctionIgnoreDistance doit être < correctionSnapDistance');
   if (!characters.has(config.characters.defaultId))
     errors.push(`config.json : characters.defaultId "${config.characters.defaultId}" inconnu`);
+  if (characters.size > config.characters.maxCount)
+    errors.push(
+      `characters.json : ${characters.size} personnages, max ${config.characters.maxCount}`,
+    );
+  const categories = new Set(config.characters.categories.map((c) => c.id));
+  for (const c of characters.values())
+    if (!categories.has(c.category))
+      errors.push(`characters.json : ${c.id}, catégorie "${c.category}" inconnue`);
   const ring = config.characters.ring;
   if (ring.innerRadius >= ring.outerRadius)
     errors.push('config.json : characters.ring.innerRadius doit être < outerRadius');

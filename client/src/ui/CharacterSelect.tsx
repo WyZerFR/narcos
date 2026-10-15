@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { AnimationMixer, type Group } from 'three';
 import {
   ClientMsg,
@@ -11,6 +11,7 @@ import type { GameRoom } from '../net/connection';
 import { subscribeState } from '../net/gameView';
 import { connection } from '../net/connection';
 import {
+  disposeMaterials,
   instantiate,
   useCharacterAsset,
   type CharacterAsset,
@@ -18,7 +19,7 @@ import {
 import { closeCharacterSelect } from './characterSelectStore';
 
 const CHARACTERS = [...gameData.characters.values()];
-const { previewSpinSpeed, preview: PREVIEW } = gameData.config.characters;
+const { categories: CATEGORIES, previewSpinSpeed, preview: PREVIEW } = gameData.config.characters;
 
 /** Personnage du joueur local, suivi dans l'état du serveur. */
 function useMyCharacter(room: GameRoom): string {
@@ -34,8 +35,8 @@ function useMyCharacter(room: GameRoom): string {
   return id;
 }
 
-/** Un aperçu qui tourne lentement, centré sur la colonne `index` (sur `count`). */
-function Preview({ asset, index, count }: { asset: CharacterAsset; index: number; count: number }) {
+/** Aperçu animé qui tourne lentement, au centre du canvas. */
+function Preview({ asset }: { asset: CharacterAsset }) {
   const root = useMemo(() => instantiate(asset), [asset]);
   const mixer = useMemo(() => {
     const m = new AnimationMixer(root);
@@ -43,61 +44,70 @@ function Preview({ asset, index, count }: { asset: CharacterAsset; index: number
     if (idle) m.clipAction(idle).play();
     return m;
   }, [asset, root]);
-  const { size } = useThree();
-  // centre de la colonne en coordonnées monde (plan z = 0)
-  const halfWidth =
-    PREVIEW.distance * Math.tan((PREVIEW.fov * Math.PI) / 360) * (size.width / size.height);
-  const x = (((index + 0.5) / count) * 2 - 1) * halfWidth;
-  useEffect(() => () => void mixer.stopAllAction(), [mixer]);
+  useEffect(
+    () => () => {
+      mixer.stopAllAction();
+      disposeMaterials(root);
+    },
+    [mixer, root],
+  );
   useFrame((_, dt) => {
     mixer.update(Math.min(dt, 0.1));
     root.rotation.y += previewSpinSpeed * Math.min(dt, 0.1);
   });
-  return <primitive object={root as Group} position={[x, 0, 0]} />;
+  return <primitive object={root as Group} />;
 }
 
-function Previews() {
+/**
+ * Un seul canvas léger (la scène du jeu n'est pas montée pendant ce temps : un seul contexte
+ * WebGL sur iPad). Il ne capte aucun clic : R3F pose pointer-events: auto en style inline.
+ */
+export function PreviewCanvas({ asset }: { asset: CharacterAsset | null }) {
   return (
-    <>
+    <Canvas
+      style={{ pointerEvents: 'none' }}
+      dpr={Math.min(1.5, window.devicePixelRatio || 1)}
+      camera={{
+        position: [0, PREVIEW.height, PREVIEW.distance],
+        fov: PREVIEW.fov,
+        near: 0.1,
+        far: 50,
+      }}
+      onCreated={({ camera }) => camera.lookAt(0, PREVIEW.lookY, 0)}
+    >
       <hemisphereLight args={[gameData.config.palette.sky, gameData.config.palette.ground, 2.2]} />
       <directionalLight position={[2, 5, 4]} intensity={1.6} />
-      {CHARACTERS.map((c, i) => (
-        <LoadedPreview key={c.id} id={c.id} index={i} />
-      ))}
-    </>
-  );
-}
-
-function LoadedPreview({ id, index }: { id: string; index: number }) {
-  const asset = useCharacterAsset(id);
-  return typeof asset === 'object' ? (
-    <Preview asset={asset} index={index} count={CHARACTERS.length} />
-  ) : null;
-}
-
-function Card({ id, selected, onChoose }: { id: string; selected: boolean; onChoose: () => void }) {
-  const asset = useCharacterAsset(id);
-  const character = gameData.characters.get(id)!;
-  return (
-    <div className={`character-card${selected ? ' selected' : ''}`}>
-      <div className="character-stage">
-        {asset === 'loading' && <span className="character-status">Chargement…</span>}
-        {asset === 'error' && <span className="character-status">Modèle indisponible</span>}
-      </div>
-      <div className="character-name">{character.name}</div>
-      <button type="button" className="btn primary" onClick={onChoose}>
-        {selected ? 'Choisi ✓' : 'Choisir'}
-      </button>
-    </div>
+      {asset && <Preview key={asset.character.id} asset={asset} />}
+    </Canvas>
   );
 }
 
 /**
- * Sélection du personnage : cartes côte à côte, aperçus 3D sur un seul canvas léger (la scène
- * du jeu n'est pas montée pendant ce temps : un seul contexte WebGL sur iPad).
+ * Sélection du personnage : onglets par catégorie, carrousel à flèches, un seul modèle chargé
+ * (paresseusement) à la fois.
  */
 export function CharacterSelect({ room, code }: { room: GameRoom; code: string | null }) {
   const current = useMyCharacter(room);
+  const [index, setIndex] = useState(() =>
+    Math.max(
+      0,
+      CHARACTERS.findIndex((c) => c.id === current),
+    ),
+  );
+  // l'état du serveur arrive après le premier rendu : on se place sur le personnage actuel
+  useEffect(
+    () =>
+      setIndex(
+        Math.max(
+          0,
+          CHARACTERS.findIndex((c) => c.id === current),
+        ),
+      ),
+    [current],
+  );
+  const shown = CHARACTERS[index] ?? CHARACTERS[0]!;
+  const asset = useCharacterAsset(shown.id);
+  const step = (d: number) => setIndex((i) => (i + d + CHARACTERS.length) % CHARACTERS.length);
   const choose = (characterId: string) => {
     const msg: CharacterChooseMessage = { characterId };
     if (room.connection.isOpen) room.send(ClientMsg.CharacterChoose, msg);
@@ -106,30 +116,56 @@ export function CharacterSelect({ room, code }: { room: GameRoom; code: string |
   return (
     <div className="character-select">
       <h2>Choisis ton personnage</h2>
-      <div className="character-grid">
-        <Canvas
-          className="character-canvas"
-          // R3F pose pointer-events: auto en style inline : sans ceci, le canvas posé sur les
-          // cartes captait les clics et aucun bouton « Choisir » ne répondait
-          style={{ pointerEvents: 'none' }}
-          dpr={Math.min(1.5, window.devicePixelRatio || 1)}
-          camera={{
-            position: [0, PREVIEW.height, PREVIEW.distance],
-            fov: PREVIEW.fov,
-            near: 0.1,
-            far: 50,
-          }}
-          onCreated={({ camera }) => camera.lookAt(0, PREVIEW.lookY, 0)}
-        >
-          <Previews />
-        </Canvas>
-        {CHARACTERS.map((c) => (
-          <Card key={c.id} id={c.id} selected={c.id === current} onChoose={() => choose(c.id)} />
+      <div className="character-tabs">
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat.id}
+            type="button"
+            className={`btn${shown.category === cat.id ? ' primary' : ''}`}
+            onClick={() => setIndex(CHARACTERS.findIndex((c) => c.category === cat.id))}
+            disabled={!CHARACTERS.some((c) => c.category === cat.id)}
+          >
+            {cat.name}
+          </button>
         ))}
       </div>
-      <button type="button" className="btn" onClick={() => closeCharacterSelect()}>
-        Plus tard
-      </button>
+      <div className="character-carousel">
+        <button
+          type="button"
+          className="btn character-arrow"
+          aria-label="Personnage précédent"
+          onClick={() => step(-1)}
+        >
+          ◀
+        </button>
+        <div className={`character-stage${shown.id === current ? ' selected' : ''}`}>
+          <PreviewCanvas asset={typeof asset === 'object' ? asset : null} />
+          {asset === 'loading' && <span className="character-status">Chargement…</span>}
+          {asset === 'error' && <span className="character-status">Modèle indisponible</span>}
+        </div>
+        <button
+          type="button"
+          className="btn character-arrow"
+          aria-label="Personnage suivant"
+          onClick={() => step(1)}
+        >
+          ▶
+        </button>
+      </div>
+      <div className="character-name">
+        {shown.name}
+        <span className="character-count">
+          {index + 1} / {CHARACTERS.length}
+        </span>
+      </div>
+      <div className="character-actions">
+        <button type="button" className="btn primary" onClick={() => choose(shown.id)}>
+          {shown.id === current ? 'Garder' : 'Choisir'}
+        </button>
+        <button type="button" className="btn" onClick={() => closeCharacterSelect()}>
+          Plus tard
+        </button>
+      </div>
     </div>
   );
 }

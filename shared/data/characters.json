@@ -3,6 +3,7 @@
     {
       "id": "perso_1",
       "name": "Le Costard",
+      "category": "homme",
       "model": "models/characters/perso_1_suit_male.gltf",
       "scale": 1,
       "rotationY": 0,
@@ -15,10 +16,141 @@
     {
       "id": "perso_2",
       "name": "Le Capuche",
+      "category": "homme",
       "model": "models/characters/perso_2_casual_hoodie.gltf",
       "scale": 1,
       "rotationY": 0,
       "height": 1.75,
+      "animations": {
+        "idle": "Idle",
+        "walk": "Walk"
+      }
+    },
+    {
+      "id": "homme_decontracte",
+      "name": "Le Décontracté",
+      "category": "homme",
+      "model": "models/characters/homme_decontracte.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "animations": {
+        "idle": "Idle",
+        "walk": "Walk"
+      }
+    },
+    {
+      "id": "homme_punk",
+      "name": "Le Punk",
+      "category": "homme",
+      "model": "models/characters/homme_punk.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "animations": {
+        "idle": "Idle",
+        "walk": "Walk"
+      }
+    },
+    {
+      "id": "homme_plage",
+      "name": "Le Plagiste",
+      "category": "homme",
+      "model": "models/characters/homme_plage.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "animations": {
+        "idle": "Idle",
+        "walk": "Walk"
+      }
+    },
+    {
+      "id": "femme_decontractee",
+      "name": "La Décontractée",
+      "category": "femme",
+      "model": "models/characters/femme_decontractee.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "animations": {
+        "idle": "Idle",
+        "walk": "Walk"
+      }
+    },
+    {
+      "id": "femme_tailleur",
+      "name": "La Patronne",
+      "category": "femme",
+      "model": "models/characters/femme_tailleur.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "animations": {
+        "idle": "Idle",
+        "walk": "Walk"
+      }
+    },
+    {
+      "id": "femme_punk",
+      "name": "La Punk",
+      "category": "femme",
+      "model": "models/characters/femme_punk.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "animations": {
+        "idle": "Idle",
+        "walk": "Walk"
+      }
+    },
+    {
+      "id": "femme_ouvriere",
+      "name": "L’Ouvrière",
+      "category": "femme",
+      "model": "models/characters/femme_ouvriere.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "animations": {
+        "idle": "Idle",
+        "walk": "Walk"
+      }
+    },
+    {
+      "id": "zombie",
+      "name": "Le Zombie",
+      "category": "autre",
+      "model": "models/characters/zombie.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.75,
+      "animations": {
+        "idle": "Idle",
+        "walk": "Walk"
+      }
+    },
+    {
+      "id": "gobelin",
+      "name": "Le Gobelin",
+      "category": "autre",
+      "model": "models/characters/gobelin.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.4,
+      "animations": {
+        "idle": "Idle",
+        "walk": "Walk"
+      }
+    },
+    {
+      "id": "carlin",
+      "name": "Le Carlin",
+      "category": "autre",
+      "model": "models/characters/carlin.gltf",
+      "scale": 1,
+      "rotationY": 0,
+      "height": 1.5,
       "animations": {
         "idle": "Idle",
         "walk": "Walk"

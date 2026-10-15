@@ -35,9 +35,28 @@ const raw = (): RawGameData =>
 type File = { characters: { id: string; model: string; height: number }[] };
 
 describe('characters.json', () => {
-  it('perso_1 et perso_2, perso_1 par défaut', () => {
-    expect([...gameData.characters.keys()]).toEqual(['perso_1', 'perso_2']);
-    expect(gameData.config.characters.defaultId).toBe('perso_1');
+  it('ids et fichiers uniques, plafond respecté, chaque catégorie fournie, perso_1 par défaut', () => {
+    const list = charactersJson.characters;
+    const rules = gameData.config.characters;
+    expect(new Set(list.map((c) => c.id)).size).toBe(list.length);
+    expect(new Set(list.map((c) => c.model)).size).toBe(list.length);
+    expect(list.length).toBeLessThanOrEqual(rules.maxCount);
+    for (const cat of rules.categories)
+      expect(
+        list.some((c) => c.category === cat.id),
+        cat.id,
+      ).toBe(true);
+    expect(rules.defaultId).toBe('perso_1');
+    expect(rules.budget.maxDrawCalls).toBe(1);
+  });
+
+  it('catégorie inconnue ou trop de personnages : refusé au chargement', () => {
+    const bad = raw();
+    (bad.characters as { characters: { category: string }[] }).characters[0]!.category = 'robot';
+    expect(() => parseGameData(bad)).toThrow(/perso_1, catégorie "robot" inconnue/);
+    const many = raw();
+    (many.config as { characters: { maxCount: number } }).characters.maxCount = 1;
+    expect(() => parseGameData(many)).toThrow(/personnages, max 1/);
   });
 
   it('validation zod : chemin, hauteur et id', () => {
