@@ -49,6 +49,7 @@ async function newGame(playerId: string) {
   const client = await colyseus.sdk.create<GameState>(ROOM_NAME, { playerId, name: 'Client' });
   const room = colyseus.getRoomById<GameState>(client.roomId) as ServerRoom<GameState> as NarcoRoom;
   standAt(room, playerId, AT_BANKER);
+  room.state.players.get(playerId)!.pactAccepted = true; // le courtier exige le pacte (pact.test.ts)
   return { client, room };
 }
 

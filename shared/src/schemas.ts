@@ -326,7 +326,9 @@ export const EconomySchema = z.object({
     koDirtyCashLossPercent: z.number().min(0).max(100),
   }),
   strains: z.array(StrainSchema).min(1),
-  elJefe: z.object({ salesTaxRate: z.number().min(0).max(1), starterSeeds: nonNeg }),
+  elJefe: z.object({ salesTaxRate: z.number().min(0).max(1) }),
+  /** Pacte d'El Jefe : graines données une fois par joueur à l'acceptation. */
+  pact: z.object({ startSeeds: z.number().int().positive(), seedItemId: z.string().min(1) }),
   dealer: z.object({
     weeklyCost: nonNeg,
     pouchesSoldPerGameDay: nonNeg,
@@ -477,11 +479,12 @@ export const ShopsFileSchema = z.object({ shops: z.array(ShopSchema) });
 // ---------- dialogues.json ----------
 /**
  * Conditions d'un choix : `account` = compte ouvert, `no_account` = pas de compte,
- * `pact` = pacte d'El Jefe (toujours vrai tant que config.dialogue.requirePact est faux).
+ * `pact` / `no_pact` = pacte d'El Jefe conclu ou non (toujours conclu si
+ * config.dialogue.requirePact est faux).
  */
-export const DialogueConditionSchema = z.enum(['account', 'no_account', 'pact']);
+export const DialogueConditionSchema = z.enum(['account', 'no_account', 'pact', 'no_pact']);
 /** Actions exécutées par le serveur quand le choix est validé. */
-export const DialogueActionSchema = z.enum(['open_account']);
+export const DialogueActionSchema = z.enum(['open_account', 'accept_pact']);
 
 export const DialogueChoiceSchema = z.object({
   id: z.string().min(1),
@@ -574,6 +577,10 @@ export const LocationSchema = z.object({
   interactRadius: pos,
   /** Réplique renvoyée par le serveur quand on entre. */
   enterText: z.string().min(1),
+  /** Lieu sans intérieur où l'on parle à quelqu'un depuis la rue (dialogues.json). */
+  dialogue: z.string().min(1).optional(),
+  /** Libellé du bouton ACTION devant ce lieu (défaut « Entrer : nom »). */
+  actionLabel: z.string().min(1).optional(),
   catalog: z.array(CatalogEntrySchema),
 });
 

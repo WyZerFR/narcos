@@ -86,7 +86,7 @@ describe('labo — validation des actions', () => {
     );
   });
 
-  it('donne l’argent de départ (1000 $ sale, temporaire) dans le sac', async () => {
+  it('donne l’argent de départ (150 $ sale) dans le sac', async () => {
     const { room } = await newGame('lab-player-0011');
     const { dirty, clean } = gameData.economy.startingMoney;
     expect(dirty).toBe(150);

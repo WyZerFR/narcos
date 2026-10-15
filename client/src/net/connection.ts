@@ -39,6 +39,7 @@ export interface PlayerView {
   bag: SlotView[];
   cleanBalance: number;
   hasAccount: boolean;
+  pactAccepted: boolean;
   launderLog: { at: number; amount: number }[];
   cart: CartLineView[];
   cartTotal: number;

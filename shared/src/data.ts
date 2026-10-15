@@ -326,6 +326,14 @@ export function parseGameData(raw: RawGameData): GameData {
     )
       errors.push(`npcs.json : point de passage n°${i} hors carte ou dans un bâtiment`);
   errors.push(...checkDialogues(dialogues, interiors, dialogueVars(economy)));
+  for (const loc of locations.values()) {
+    if (loc.dialogue && !dialogues.has(loc.dialogue))
+      errors.push(`locations.json : "${loc.id}" : dialogue inconnu "${loc.dialogue}"`);
+    if (loc.dialogue && zonesFile.interiors.some((i) => i.entranceLocationId === loc.id))
+      errors.push(`locations.json : "${loc.id}" a un intérieur : le dialogue se tient dedans`);
+  }
+  if (items.get(economy.pact.seedItemId)?.category !== 'seed')
+    errors.push(`economy.json : pact.seedItemId "${economy.pact.seedItemId}" n'est pas une graine`);
   if (config.players.colors.length < config.room.maxPlayers)
     errors.push('config.json : il faut au moins autant de couleurs que de joueurs max');
   if (config.movement.runSpeed < config.movement.walkSpeed)

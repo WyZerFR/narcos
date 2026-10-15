@@ -289,7 +289,7 @@
     "reconnectMaxDelayMs": 10000
   },
   "dialogue": {
-    "requirePact": false
+    "requirePact": true
   },
   "persistence": {
     "snapshotSeconds": 5

@@ -51,8 +51,11 @@
     }
   ],
   "elJefe": {
-    "salesTaxRate": 0.25,
-    "starterSeeds": 5
+    "salesTaxRate": 0.25
+  },
+  "pact": {
+    "startSeeds": 4,
+    "seedItemId": "seed_base"
   },
   "dealer": {
     "weeklyCost": 100,

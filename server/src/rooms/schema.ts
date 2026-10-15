@@ -42,6 +42,8 @@ export class Player extends Schema {
   @type('uint32') cleanBalance = 0;
   /** Compte ouvert à la banque (dialogue du courtier) : condition pour blanchir. */
   @type('boolean') hasAccount = false;
+  /** Pacte d'El Jefe accepté (graines reçues) : condition pour ouvrir un compte. */
+  @type('boolean') pactAccepted = false;
   /** Blanchiments dans la fenêtre du plafond (purgés à chaque blanchiment). */
   @type([LaunderEntry]) launderLog = new ArraySchema<LaunderEntry>();
   /** Panier dans le magasin courant (réservé en rayon), total calculé par le serveur. */

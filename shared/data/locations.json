@@ -80,6 +80,8 @@
       "door": "north",
       "interactRadius": 3,
       "enterText": "Un garde te fouille du regard. El Jefe n'aime pas les visites surprises.",
+      "dialogue": "el_jefe",
+      "actionLabel": "Parler à El Jefe",
       "catalog": [
         {
           "kind": "item",

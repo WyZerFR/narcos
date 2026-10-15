@@ -64,6 +64,8 @@ const StateJson = z.object({
       launderLog: z.array(z.object({ at: z.number(), amount: z.number() })).optional(),
       // ajouté après la v4 : une ancienne sauvegarde se charge avec le compte fermé
       hasAccount: z.boolean().optional(),
+      // ajouté avec le pacte d'El Jefe : une ancienne sauvegarde se charge sans pacte
+      pactAccepted: z.boolean().optional(),
       cart: z
         .array(
           z.object({
@@ -159,6 +161,7 @@ export function hydrateState(state: GameState, snap: RoomSnapshot): void {
       zone: p.zone,
       cleanBalance: p.cleanBalance ?? p.cleanMoney ?? 0,
       hasAccount: p.hasAccount ?? false,
+      pactAccepted: p.pactAccepted ?? false,
       connected: false,
     });
     player.bag.push(...slotsFrom(p.bag));
