@@ -285,6 +285,10 @@
     "near": 0.5,
     "far": 300
   },
+  "interiorFraming": {
+    "followFraction": 0.15,
+    "margin": 0.8
+  },
   "netSmoothing": {
     "remoteDelayMs": 100,
     "rotationStiffness": 14,

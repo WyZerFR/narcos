@@ -146,6 +146,11 @@ export const ConfigSchema = z.object({
   /** Caméra dans les intérieurs (pièces plus petites, vue plus plongeante). */
   cameraInterior: CameraSchema,
   cameraRig: z.object({ followStiffness: pos, near: pos, far: pos }),
+  /** Intérieurs : la pièce entière tient à l'écran, la caméra suit le joueur en partie. */
+  interiorFraming: z.object({
+    followFraction: z.number().min(0).max(1),
+    margin: z.number().nonnegative(),
+  }),
   /** Lissage réseau côté client (indépendant du framerate). */
   netSmoothing: z.object({
     /** Retard d'affichage des joueurs distants (ms), interpolés entre deux instantanés. */
