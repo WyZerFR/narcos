@@ -4,7 +4,7 @@ import {
   gameData,
   locationInteraction,
   nearestLocation,
-  nearestPlace,
+  stickyNearest,
   STREET,
   type FixturePickupMessage,
   type InteractMessage,
@@ -29,6 +29,7 @@ const LOCATIONS = [...gameData.locations.values()].filter(
 );
 /** Fréquence de recherche de la cible proche (pas besoin de 60 Hz pour un libellé). */
 const PROBE_MS = 160;
+const EXIT_MARGIN = gameData.config.world.interactExitMargin;
 const TOAST_MS = 3500;
 
 interface Toast {
@@ -48,6 +49,8 @@ interface Target {
     | { type: typeof ClientMsg.Station; body: StationMessage }
     | { type: typeof ClientMsg.SaleOpen; body: SaleOpenMessage }
     | null;
+  /** Poste ou meuble visé (hystérésis : gardé tant qu'on reste dans son rayon de sortie). */
+  placeId?: string;
   /** Meuble posé à portée : boutons secondaires « Déplacer » et « Reprendre ». */
   furniture?: { id: string; itemId: string; x: number; z: number; rot: number; idle: boolean };
 }
@@ -61,6 +64,7 @@ function placeTarget(room: GameRoom, place: Place): Target {
   const f = place.fixture;
   return {
     key: `${place.id}:${view.action ?? ''}:${f ? `${f.position.x},${f.position.z},${f.rot},${view.idle ? 'i' : ''}` : ''}`,
+    placeId: place.id,
     label: view.label,
     active: view.active && Boolean(message),
     message,
@@ -101,7 +105,7 @@ function npcTarget(room: GameRoom): Target | null {
   return best;
 }
 
-function findTarget(room: GameRoom): Target | null {
+function findTarget(room: GameRoom, prev: Target | null): Target | null {
   if (!localPlayer.initialized) return null;
   if (localPlayer.zone === STREET) {
     // un acheteur à portée passe avant la porte d'un lieu
@@ -122,7 +126,12 @@ function findTarget(room: GameRoom): Target | null {
       : null;
   }
   const zone = localPlayer.zone;
-  const place = nearestPlace(localPlayer, placesOf(zone, fixturesFor(room, zone)));
+  const place = stickyNearest(
+    localPlayer,
+    placesOf(zone, fixturesFor(room, zone)),
+    prev?.placeId ?? null,
+    EXIT_MARGIN,
+  );
   return place ? placeTarget(room, place) : null;
 }
 
@@ -136,8 +145,8 @@ export function Interaction({ room }: { room: GameRoom }) {
 
   useEffect(() => {
     const id = setInterval(() => {
-      const next = findTarget(room);
       const prev = targetRef.current;
+      const next = findTarget(room, prev);
       if (next?.key !== prev?.key || next?.label !== prev?.label || next?.active !== prev?.active) {
         targetRef.current = next;
         setTarget(next);

@@ -7,6 +7,8 @@ import {
   ServerMsg,
   count,
   gameData,
+  LAMP_IN_USE,
+  NO_LAMP,
   potGrowMs,
   type FixtureResultMessage,
   type NoticeMessage,
@@ -164,7 +166,11 @@ describe('labo — déplacer et reprendre', () => {
     const { client, room } = await newGame('fur-player-0007');
     await give(client, 'pot');
     await give(client, 'seed_base');
+    await give(client, 'grow_lamp', 2);
     const id = (await place(client, 'pot', -3, -2)).fixtureId!;
+    // une lampe à l'ancienne place, une à la nouvelle : le pot planté reste éclairé
+    await place(client, 'grow_lamp', -3, -2);
+    await place(client, 'grow_lamp', 3, -3);
     standAt(room, 'fur-player-0007', { x: -3, z: -0.9 });
     expect((await station(client, id, 'plant')).ok).toBe(true);
     const before = room.state.lab.pots.get(id)!.toJSON();
@@ -247,19 +253,23 @@ describe('labo — lampes (distance réelle)', () => {
   it('lampe posée à portée : pot accéléré sans saut ; éloignée : vitesse normale', async () => {
     const { client, room } = await newGame('fur-player-0011');
     await give(client, 'pot');
-    await give(client, 'grow_lamp');
+    await give(client, 'grow_lamp', 2);
     await give(client, 'seed_base');
     const potId = (await place(client, 'pot', -3, -2)).fixtureId!;
     standAt(room, 'fur-player-0011', { x: -3, z: -0.9 });
+    // sans lampe : plantation refusée ; une lampe à portée : acceptée
+    expect((await station(client, potId, 'plant')).text).toBe(NO_LAMP);
+    const first = (await place(client, 'grow_lamp', -3, -2.7)).fixtureId!;
     expect((await station(client, potId, 'plant')).ok).toBe(true);
     const pot = room.state.lab.pots.get(potId)!;
-    expect(pot.rate).toBe(1);
+    const base = 1 / (1 - LAMP.growReductionPerLamp);
+    expect(pot.rate).toBeCloseTo(base, 5);
     // pousse simulée : arrosé longtemps, on mesure la progression à des instants choisis
     const t0 = pot.bankedAt;
     pot.wateredUntil = t0 + 10 * 60_000;
 
     const lampId = (await place(client, 'grow_lamp', -3 + LAMP.range - 0.1, -2)).fixtureId!;
-    const rate = 1 / (1 - LAMP.growReductionPerLamp);
+    const rate = 1 / (1 - Math.min(2, LAMP.maxLamps) * LAMP.growReductionPerLamp);
     expect(pot.rate).toBeCloseTo(rate, 5);
     const atPose = potGrowMs(readPot(pot), pot.bankedAt, strain);
     expect(atPose).toBeCloseTo(Math.max(0, pot.bankedAt - t0), -1); // pas de saut
@@ -269,8 +279,20 @@ describe('labo — lampes (distance réelle)', () => {
     // la lampe s'éloigne au-delà de la portée : recalcul, toujours sans saut
     const banked = potGrowMs(readPot(pot), room.now(), strain);
     expect((await move(client, lampId, -3 + LAMP.range + 0.5, -2)).ok).toBe(true);
-    expect(pot.rate).toBe(1);
+    expect(pot.rate).toBeCloseTo(base, 5);
     expect(potGrowMs(readPot(pot), pot.bankedAt, strain)).toBeCloseTo(banked, -2);
+
+    // dernière lampe du pot en pousse : ni reprise, ni éloignée ; déplacée à portée : acceptée
+    standAt(room, 'fur-player-0011', { x: -3, z: -1.4 });
+    expect((await pickup(client, first)).text).toBe(LAMP_IN_USE);
+    expect((await move(client, first, -3 + LAMP.range + 0.5, -3)).text).toBe(LAMP_IN_USE);
+    expect((await move(client, first, -3 + LAMP.range - 0.3, -2.7)).ok).toBe(true);
+    // la seconde lampe revient à portée : la première peut partir
+    expect((await move(client, lampId, -3, -2.7)).ok).toBe(true);
+    standAt(room, 'fur-player-0011', { x: -3 + LAMP.range - 0.3, z: -1.4 });
+    expect((await pickup(client, first)).ok).toBe(true);
+    // pot planté sorti de toute lumière : refusé
+    expect((await move(client, potId, -3 + LAMP.range + 2.5, -2)).text).toBe(NO_LAMP);
   });
 
   it('cumul plafonné à maxLamps', async () => {

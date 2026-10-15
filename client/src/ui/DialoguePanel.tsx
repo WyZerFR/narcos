@@ -13,7 +13,7 @@ import {
 } from '@narco/shared';
 import { connection, type GameRoom } from '../net/connection';
 import { useRoomVersion } from '../net/gameView';
-import { localPlayer } from '../game/localPlayer';
+import { localPlayer, stillAt } from '../game/localPlayer';
 
 /**
  * Dialogue avec un personnage (courtier, El Jefe, plus tard les vendeurs) : nom, texte,
@@ -46,11 +46,11 @@ export function DialoguePanel({ room }: { room: GameRoom }) {
     [],
   );
 
-  // sortie de la pièce : la conversation s'arrête (le serveur l'oublie aussi)
+  // sortie de la pièce ou du rayon de sortie du poste : la conversation s'arrête
   useEffect(() => {
     if (!current) return;
     const id = setInterval(() => {
-      if (localPlayer.zone !== current.zone) setCurrent(null);
+      if (!stillAt(current.zone, current.stationId)) setCurrent(null);
     }, 250);
     return () => clearInterval(id);
   }, [current]);

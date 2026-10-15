@@ -1,6 +1,8 @@
 import {
   count,
   gameData,
+  NO_LAMP,
+  potLit,
   potProgress,
   potStatus,
   rackLoad,
@@ -12,6 +14,7 @@ import {
   type StationAction,
 } from '@narco/shared';
 import type { GameRoom } from '../net/connection';
+import { fixturesFor } from './fixtureState';
 import { readBag, readCut, readPot, readRack } from '../net/gameView';
 
 const { items, economy } = gameData;
@@ -79,6 +82,12 @@ export function stationView(
       const progress = potProgress(pot, now, strain);
       switch (status) {
         case 'empty': {
+          // même règle que le serveur : pas de plantation sans lampe à portée du pot
+          const lamps = fixturesFor(room, interiorId)
+            .filter((f) => f.accepts === 'lamp')
+            .map((f) => f.position);
+          if (!potLit(station.position, lamps, LAB.lamp.range))
+            return { action: 'plant', label: NO_LAMP, active: false, status: 'Vide', progress: 0 };
           const ok = hasCategory(bag, 'seed');
           return {
             action: 'plant',

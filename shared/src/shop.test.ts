@@ -111,7 +111,7 @@ describe('paiement', () => {
 describe('deux monnaies', () => {
   it('chaque étagère porte sa monnaie : matériel et sac « any », outils au propre, nourriture « any »', () => {
     expect(pots.currency).toBe('any');
-    expect(shelves.find((s) => s.itemId === 'sac_a_dos')!.currency).toBe('any');
+    expect(grocery.find((s) => s.itemId === 'sac_a_dos')!.currency).toBe('any');
     expect(tools.currency).toBe('clean');
     expect(food.currency).toBe('any');
     expect(water.currency).toBe('any');
@@ -181,7 +181,7 @@ describe('départ', () => {
     const { economy } = gameData;
     expect(economy.startingMoney).toEqual({ dirty: 0, clean: 150 });
     const kit = ['pot', 'drying_rack', 'cutting_table', 'sac_a_dos'].map((id) =>
-      shelves.find((s) => s.itemId === id)!,
+      [...shelves, ...grocery].find((s) => s.itemId === id)!,
     );
     let cart: CartLine[] = [];
     for (const shelf of kit) cart = take(cart, shelf, null).cart;
@@ -192,10 +192,10 @@ describe('départ', () => {
     if (r.ok) expect(r.value.clean).toBe(economy.startingMoney.clean - cartTotal(cart));
   });
 
-  it('Bricoshop sans graine, plante ni pochon ; sac à dos au Bricoshop, absent de l’épicerie', () => {
+  it('Bricoshop sans graine, plante ni pochon ; sac à dos chez Momo, absent du Bricoshop', () => {
     const banned = new Set(['seed', 'plant_fresh', 'plant_dried', 'pouch']);
     expect(shelves.some((s) => banned.has(gameData.items.get(s.itemId)!.category))).toBe(false);
-    expect(shelves.find((s) => s.itemId === 'sac_a_dos')!.price).toBe(25);
-    expect(grocery.some((s) => s.itemId === 'sac_a_dos')).toBe(false);
+    expect(grocery.find((s) => s.itemId === 'sac_a_dos')!.price).toBe(25);
+    expect(shelves.some((s) => s.itemId === 'sac_a_dos')).toBe(false);
   });
 });

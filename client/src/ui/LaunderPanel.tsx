@@ -11,7 +11,7 @@ import {
 } from '@narco/shared';
 import { connection, type GameRoom } from '../net/connection';
 import { gameNow, readBag, useRoomVersion } from '../net/gameView';
-import { localPlayer } from '../game/localPlayer';
+import { localPlayer, stillAt } from '../game/localPlayer';
 
 const LAUNDER = gameData.economy.launder;
 const TITLE: Record<LaunderVenue, string> = {
@@ -64,11 +64,11 @@ export function LaunderPanel({ room }: { room: GameRoom }) {
     [],
   );
 
-  // sortie de la pièce : panneau fermé
+  // sortie de la pièce ou du rayon de sortie du guichet : panneau fermé
   useEffect(() => {
     if (!open) return;
     const id = setInterval(() => {
-      if (localPlayer.zone !== open.zone) setOpen(null);
+      if (!stillAt(open.zone, open.stationId)) setOpen(null);
     }, 250);
     return () => clearInterval(id);
   }, [open]);

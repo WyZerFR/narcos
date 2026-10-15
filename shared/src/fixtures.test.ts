@@ -8,7 +8,11 @@ import {
   lampRate,
   nearestPlace,
   rotateOffset,
+  furnitureFixtures,
+  potLit,
+  unlitPlantedPots,
 } from './fixtures';
+import { stickyNearest } from './zones';
 import { plantPot, potGrowMs, potReadyAt, rebankPot, waterPot } from './production';
 
 const lab = gameData.interiors.get('lab')!;
@@ -130,3 +134,49 @@ describe('kit de départ', () => {
 function emptyPotRate(rate: number) {
   return { planted: false, strainId: '', growMsDone: 0, bankedAt: 0, wateredUntil: 0, rate };
 }
+
+describe('lampe obligatoire pour planter', () => {
+  const { economy } = gameData;
+  const range = economy.lab.lamp.range;
+  const lab = gameData.interiors.get('lab')!;
+  /** Un pot en (0, 0) et une lampe en (x, z). */
+  const layout = (x: number, z = 0) =>
+    furnitureFixtures(
+      [
+        { id: 'p', itemId: 'pot', x: 0, z: 0, rot: 0 },
+        { id: 'l', itemId: 'grow_lamp', x, z, rot: 0 },
+      ],
+      gameData.items,
+    );
+
+  it('pot éclairé à portée (economy.lab.lamp.range), pas au-delà', () => {
+    expect(potLit({ x: 0, z: 0 }, [{ x: range, z: 0 }], range)).toBe(true);
+    expect(potLit({ x: 0, z: 0 }, [{ x: range + 0.1, z: 0 }], range)).toBe(false);
+    expect(potLit({ x: 0, z: 0 }, [], range)).toBe(false);
+    expect(unlitPlantedPots(layout(range + 0.1), () => true, range)).toEqual(['p']);
+    expect(unlitPlantedPots(layout(range - 0.1), () => true, range)).toEqual([]);
+    expect(unlitPlantedPots(layout(range + 0.1), () => false, range)).toEqual([]);
+  });
+
+  it('le pot prime sur une lampe superposée, même plus proche du joueur', () => {
+    const places = interiorPlaces(lab, layout(0, 0.3));
+    const player = { x: 0, z: 0.8 };
+    expect(nearestPlace(player, places)?.id).toBe('p');
+    expect(stickyNearest(player, places, 'l', gameData.config.world.interactExitMargin)?.id).toBe(
+      'p',
+    );
+  });
+
+  it('150 $ : pot, étendoir, table, lampe et 2 articles de nourriture', () => {
+    const shelves = [...gameData.shops.values()].flatMap((sh) => sh.shelves);
+    const price = (itemId: string) => shelves.find((sh) => sh.itemId === itemId)!.price;
+    const food = shelves
+      .filter((sh) => gameData.items.get(sh.itemId)!.category === 'food' && sh.currency !== 'dirty')
+      .map((sh) => sh.price)
+      .sort((a, b) => a - b);
+    expect(food.length).toBeGreaterThanOrEqual(1);
+    const kit = ['pot', 'drying_rack', 'cutting_table', 'grow_lamp'].map(price);
+    const total = kit.reduce((a, b) => a + b, 0) + 2 * food[0]!;
+    expect(total).toBeLessThanOrEqual(economy.startingMoney.clean);
+  });
+});

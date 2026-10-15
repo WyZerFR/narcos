@@ -23,7 +23,8 @@
     },
     "playerSize": 1,
     "playerRadius": 0.45,
-    "interactTolerance": 1
+    "interactTolerance": 1,
+    "interactExitMargin": 0.4
   },
   "collision": {
     "maxSubStep": 0.225,

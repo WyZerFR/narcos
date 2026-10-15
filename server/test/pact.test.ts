@@ -28,13 +28,26 @@ type SdkRoom = ClientRoom<GameState>;
 const { economy, items } = gameData;
 const SEEDS = economy.pact.startSeeds;
 const SEED = economy.pact.seedItemId;
+const priceOf = (itemId: string) =>
+  [...gameData.shops.values()].flatMap((s) => s.shelves).find((s) => s.itemId === itemId)!.price;
+/** Pots que les 150 $ paient après lampe, étendoir, table et 3 consommables (≤ graines du pacte). */
+const POTS = Math.min(
+  SEEDS,
+  Math.floor(
+    (economy.startingMoney.clean -
+      ['grow_lamp', 'drying_rack', 'cutting_table', 'water', 'food', 'soda']
+        .map(priceOf)
+        .reduce((a, b) => a + b, 0)) /
+      priceOf('pot'),
+  ),
+);
 const JEFE = gameData.locations.get('repaire_jefe')!;
 const strain = economy.strains.find((s) => s.id === 'base')!;
 
 let colyseus: ColyseusTestServer;
 
 beforeAll(async () => {
-  colyseus = await bootOn(2579);
+  colyseus = await bootOn(2583);
 });
 afterAll(async () => {
   await colyseus.shutdown();
@@ -254,7 +267,7 @@ describe('pacte — sauvegarde', () => {
 });
 
 describe('partie neuve → pochons', () => {
-  it('150 $ : pacte, kit et nourriture achetés, 4 graines plantées, cycle complet', async () => {
+  it('150 $ : pacte, kit, lampe et nourriture achetés, graines plantées, cycle complet', async () => {
     const id = 'pact-player-0010';
     const { client, room } = await newGame(id);
     client.send(ClientMsg.Debug, { cmd: 'timeScale', scale: 60 });
@@ -268,12 +281,14 @@ describe('partie neuve → pochons', () => {
     await talkToJefe(client);
     expect((await accept(client)).notice.ok).toBe(true);
 
-    // 2. Bricoshop : un pot par graine, un étendoir, une table, en argent sale
+    // 2. Bricoshop : autant de pots que le budget le permet, une lampe, un étendoir, une table
+    expect(POTS).toBeGreaterThanOrEqual(1);
     const take = async (interiorId: string, shelf: string, n = 1) => {
       goTo(room, id, interiorId, shelf);
       for (let i = 0; i < n; i++) expect((await act(client, shelf, 'take')).ok).toBe(true);
     };
-    await take('shop', 'shelf_pots', SEEDS);
+    await take('shop', 'shelf_pots', POTS);
+    await take('shop', 'shelf_lamps');
     await take('shop', 'shelf_racks');
     await take('shop', 'shelf_tables');
     goTo(room, id, 'shop', 'counter');
@@ -296,7 +311,8 @@ describe('partie neuve → pochons', () => {
       [-2.2, -0.4],
     ] as const;
     const pots: string[] = [];
-    for (const [x, z] of potSpots.slice(0, SEEDS)) pots.push(await place('pot', x, z));
+    for (const [x, z] of potSpots.slice(0, POTS)) pots.push(await place('pot', x, z));
+    await place('grow_lamp', -4, -1.8); // au plafond, à portée des pots
     const rack = await place('drying_rack', 1.8, -3.4);
     const table = await place('cutting_table', 4.4, 0.4, 1);
 
@@ -309,7 +325,7 @@ describe('partie neuve → pochons', () => {
     for (const it of ['water', 'food', 'soda']) expect(count(bagOf(room, id), it)).toBe(1);
     expect(count(bagOf(room, id), 'cash_dirty')).toBeGreaterThanOrEqual(0);
 
-    // 5. plantation des 4 graines, arrosage, récolte, séchage, découpe
+    // 5. plantation (une graine par pot), arrosage, récolte, séchage, découpe
     const retry = async (stationId: string, action: StationAction) => {
       let n = await act(client, stationId, action);
       while (!n.ok) {
@@ -321,7 +337,7 @@ describe('partie neuve → pochons', () => {
       goTo(room, id, 'lab', pot);
       expect((await act(client, pot, 'plant')).ok).toBe(true);
     }
-    expect(count(bagOf(room, id), SEED)).toBe(0);
+    expect(count(bagOf(room, id), SEED)).toBe(SEEDS - POTS);
     for (let i = 0; i < Math.ceil(strain.growSeconds / strain.waterEverySeconds); i++)
       for (const pot of pots) {
         goTo(room, id, 'lab', 'water');
@@ -333,7 +349,7 @@ describe('partie neuve → pochons', () => {
       goTo(room, id, 'lab', pot);
       await retry(pot, 'harvest');
     }
-    const total = SEEDS * strain.freshPerPlant;
+    const total = POTS * strain.freshPerPlant;
     expect(count(bagOf(room, id), `plant_fresh_${strain.id}`)).toBe(total);
     goTo(room, id, 'lab', rack);
     while (count(bagOf(room, id), `plant_dried_${strain.id}`) < total) {
