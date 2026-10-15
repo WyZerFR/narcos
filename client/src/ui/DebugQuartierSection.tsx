@@ -48,6 +48,22 @@ export function DebugQuartierSection() {
             → {a.name}
           </button>
         ))}
+        <button
+          type="button"
+          className="btn"
+          onClick={() => send({ cmd: 'give', itemId: gameData.economy.bag.backpackItemId, qty: 1 })}
+        >
+          + Sac à dos
+        </button>
+        <button type="button" className="btn" onClick={() => send({ cmd: 'setBagTier', tier: 0 })}>
+          Poches
+        </button>
+        <button type="button" className="btn" onClick={() => send({ cmd: 'setBagTier', tier: 1 })}>
+          Sac à dos porté
+        </button>
+        <button type="button" className="btn" onClick={() => send({ cmd: 'clearBag' })}>
+          Vider le sac
+        </button>
         <button type="button" className="btn" onClick={() => send({ cmd: 'teleportTrapdoor' })}>
           → Trappe
         </button>

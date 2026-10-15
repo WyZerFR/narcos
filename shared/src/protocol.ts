@@ -272,7 +272,9 @@ export type DebugMessage =
   | { cmd: 'resetLaunderCap'; venue?: LaunderVenue }
   | { cmd: 'launderFee'; venue: LaunderVenue; value: number }
   | { cmd: 'teleportTrapdoor' }
-  | { cmd: 'teleportGarden'; index: number };
+  | { cmd: 'teleportGarden'; index: number }
+  | { cmd: 'setBagTier'; tier: number }
+  | { cmd: 'clearBag' };
 
 export const MAX_NAME_LENGTH = 16;
 

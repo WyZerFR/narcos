@@ -205,3 +205,42 @@ export function launderReport(
     },
   ];
 }
+
+export interface StarterBagReport {
+  pocketSlots: number;
+  /** Cases occupées au départ : argent, kit minimal (pot, étendoir, table), graines du pacte. */
+  slotsUsed: number;
+  backpackPrice: number;
+  /** Argent sale restant après le kit minimal. */
+  moneyAfterKit: number;
+  /** Minutes de jeu de production (1 pot, sans lampe) avant de pouvoir payer le sac à dos. */
+  minutesToBackpack: number;
+}
+
+/** Place dans les poches au départ et délai avant le sac à dos (depuis les JSON). */
+export function starterBagReport(
+  data: Pick<GameData, 'economy' | 'shops' | 'items'>,
+): StarterBagReport {
+  const { economy, shops, items } = data;
+  const priceOf = (itemId: string) => {
+    for (const shop of shops.values())
+      for (const s of shop.shelves) if (s.itemId === itemId) return s.price;
+    return Infinity;
+  };
+  const kit = ['pot', 'drying_rack', 'cutting_table'];
+  // une case par objet du kit, une pour l'argent, une pour les graines (empilables)
+  const seedId = economy.pact.seedItemId;
+  const slotsUsed =
+    kit.length + 1 + Math.ceil(economy.pact.startSeeds / (items.get(seedId)?.stackMax ?? 1));
+  const moneyAfterKit = economy.startingMoney.dirty - kit.reduce((s, id) => s + priceOf(id), 0);
+  const backpackPrice = priceOf(economy.bag.backpackItemId);
+  const perMinute = cycleReport(data, economy.strains[0]!.id).profitPerMinute;
+  const missing = Math.max(0, backpackPrice - moneyAfterKit);
+  return {
+    pocketSlots: economy.bag.pocketSlots,
+    slotsUsed,
+    backpackPrice,
+    moneyAfterKit,
+    minutesToBackpack: missing / perMinute,
+  };
+}

@@ -15,6 +15,7 @@ import { useInventoryDrag } from './useInventoryDrag';
 type Drag = ReturnType<typeof useInventoryDrag>;
 /** Durée d'affichage d'un refus de déplacement (style). */
 const ERROR_MS = 2500;
+const BAG = gameData.economy.bag;
 
 type Side = InventoryKind;
 
@@ -31,6 +32,7 @@ function Grid({
   onSelect,
   columns,
   drag,
+  locked,
 }: {
   title: string;
   inv: Inventory;
@@ -39,6 +41,8 @@ function Grid({
   onSelect: (s: Selection) => void;
   columns: number;
   drag: Drag;
+  /** Cases que l'on n'a pas encore (sans sac à dos) : grisées, avec cadenas. */
+  locked: number;
 }) {
   const used = inv.filter(Boolean).length;
   return (
@@ -87,7 +91,20 @@ function Grid({
             </button>
           );
         })}
+        {Array.from({ length: locked }, (_, i) => (
+          <button
+            key={`locked-${i}`}
+            type="button"
+            className="inv-slot locked"
+            disabled
+            aria-label="Case verrouillée : il faut un sac à dos"
+            title="Il faut un sac à dos"
+          >
+            🔒
+          </button>
+        ))}
       </div>
+      {locked > 0 && <p className="inv-locked-hint">🔒 {locked} cases de plus avec un sac à dos</p>}
     </section>
   );
 }
@@ -110,6 +127,8 @@ export function InventoryPanel({ room }: { room: GameRoom }) {
   }, [dragError]);
   const bag = drag.view(readBag(room, connection.playerId));
   const myZone = room.state.players?.get(connection.playerId)?.zone ?? '';
+  // capacité lue dans l'état du joueur (taille du sac, palier), jamais en dur
+  const tier = room.state.players?.get(connection.playerId)?.bagTier ?? 0;
   const inLab = gameData.interiors.get(myZone)?.furnishable ?? false;
   const stack = selection ? bag[selection.slot] : null;
   const def = stack ? gameData.items.get(stack.itemId) : undefined;
@@ -140,13 +159,14 @@ export function InventoryPanel({ room }: { room: GameRoom }) {
 
         <div className="inv-body">
           <Grid
-            title="🎒 Sac"
+            title={tier >= 1 ? '🎒 Sac à dos' : '👖 Poches'}
             inv={bag}
             side="bag"
             selection={selection}
             onSelect={setSelection}
-            columns={5}
+            columns={6}
             drag={drag}
+            locked={tier >= 1 ? 0 : Math.max(0, BAG.backpackSlots - bag.length)}
           />
         </div>
 
@@ -175,6 +195,13 @@ export function InventoryPanel({ room }: { room: GameRoom }) {
                     {def.use.label}
                   </button>
                   {!inLab && <p className="inv-use-hint">À poser dans ton labo</p>}
+                </div>
+              )}
+              {def.use?.action === 'equip_bag' && (
+                <div className="inv-actions">
+                  <button type="button" className="btn primary inv-use" onClick={useItem}>
+                    {def.use.label}
+                  </button>
                 </div>
               )}
               {def.restores && (

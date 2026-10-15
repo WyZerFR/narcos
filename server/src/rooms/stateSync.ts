@@ -91,3 +91,10 @@ export function writeCut(c: CutJob, job: CutJobData | null): void {
   c.qty = job?.qty ?? 0;
   c.readyAt = job?.readyAt ?? 0;
 }
+
+/** Remplace tout le sac (taille comprise) : changement de palier, migration, debug. */
+export function replaceBag(slots: ArraySchema<Slot>, inv: Inventory): void {
+  slots.clear();
+  for (const stack of inv)
+    slots.push(Object.assign(new Slot(), { itemId: stack?.itemId ?? '', qty: stack?.qty ?? 0 }));
+}

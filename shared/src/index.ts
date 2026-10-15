@@ -22,3 +22,4 @@ export * from './dialogue';
 export * from './bank';
 export * from './areas';
 export * from './quartiers';
+export * from './bag';

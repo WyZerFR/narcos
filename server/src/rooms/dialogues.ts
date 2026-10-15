@@ -1,5 +1,6 @@
 import {
   add,
+  bagFullText,
   chooseInDialogue,
   dialogueStart,
   gameData,
@@ -50,7 +51,9 @@ const ACTIONS: Record<DialogueAction, (player: Player, venue: LaunderVenue) => A
     const r = add(readInventory(player.bag), seedItemId, startSeeds, items);
     const name = items.get(seedItemId)?.name ?? seedItemId;
     if (!r.ok)
-      return { refused: `Sac plein : fais de la place pour ${startSeeds} × ${name} et reviens.` };
+      return {
+        refused: `${bagFullText(player.bagTier)} Il faut une case pour ${startSeeds} × ${name}, puis reviens.`,
+      };
     writeInventory(player.bag, r.inv);
     player.pactAccepted = true;
     return { done: `Pacte conclu : +${startSeeds} × ${name} dans ton sac.` };

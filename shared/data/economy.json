@@ -7,6 +7,11 @@
     "dirty": 150,
     "clean": 0
   },
+  "bag": {
+    "pocketSlots": 6,
+    "backpackSlots": 12,
+    "backpackItemId": "sac_a_dos"
+  },
   "survival": {
     "max": 100,
     "hungerPerMinute": 2,

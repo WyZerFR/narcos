@@ -126,14 +126,14 @@ describe('glisser-déposer côté serveur', () => {
       to: { inv: 'bag', slot },
       itemId: 'food',
     });
-    client.send(ClientMsg.InventoryMove, msg(9001, 8));
-    client.send(ClientMsg.InventoryMove, msg(9002, 9));
+    client.send(ClientMsg.InventoryMove, msg(9001, 4));
+    client.send(ClientMsg.InventoryMove, msg(9002, 5));
     while (results.length < 2) await new Promise((r) => setTimeout(r, 20));
     expect(results.filter((r) => r.ok)).toHaveLength(1);
     expect(results.find((r) => !r.ok)!.text).toMatch(/déjà bougé/);
     const bag = readInventory(room.state.players.get('inv-player-0003')!.bag);
-    expect(bag[8]).toEqual({ itemId: 'food', qty: 2 });
-    expect(bag[9]).toBeNull();
+    expect(bag[4]).toEqual({ itemId: 'food', qty: 2 });
+    expect(bag[5]).toBeNull();
   });
 });
 

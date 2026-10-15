@@ -316,7 +316,6 @@
     "debugSpawnDistance": 1.2
   },
   "inventory": {
-    "bagSlots": 10,
     "stockSlots": 60
   },
   "placement": {

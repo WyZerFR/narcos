@@ -1279,3 +1279,15 @@ input {
   color: var(--accent);
   font-weight: 700;
 }
+
+/* Cases du sac à dos pas encore portées (ui/InventoryPanel.tsx) : grisées, cadenas. */
+.inv-slot.locked {
+  opacity: 0.35;
+  font-size: 18px;
+  cursor: not-allowed;
+}
+.inv-locked-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}

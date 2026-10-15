@@ -12,6 +12,7 @@ import {
   interactionPoint,
   launderReport,
   obstaclesFrom,
+  starterBagReport,
   starterKitCost,
   survivalCostReport,
 } from '@narco/shared';
@@ -116,3 +117,13 @@ if (trapLoc) {
     `  Trajet départ → trappe de la cave : ${m.toFixed(0)} m, ${(m / config.movement.walkSpeed).toFixed(1)} s en marchant`,
   );
 }
+
+// Capacité du sac au départ : poches occupées par le kit et délai avant le sac à dos.
+const bagStart = starterBagReport(gameData);
+console.log(
+  `\nPoches : ${bagStart.slotsUsed}/${bagStart.pocketSlots} cases au départ (argent, pot, étendoir, table, graines du pacte).`,
+  `Sac à dos ${bagStart.backpackPrice} $ (${economy.bag.backpackSlots} cases) :`,
+  bagStart.minutesToBackpack === 0
+    ? `achetable dès le départ (reste ${bagStart.moneyAfterKit} $ après le kit).`
+    : `achetable après ~${bagStart.minutesToBackpack.toFixed(1)} min de production (1 pot).`,
+);

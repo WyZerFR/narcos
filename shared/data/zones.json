@@ -247,6 +247,21 @@
           "solid": true
         },
         {
+          "id": "shelf_bags",
+          "kind": "shelf",
+          "label": "Sacs",
+          "position": {
+            "x": 3,
+            "z": -0.9
+          },
+          "size": {
+            "w": 2.2,
+            "d": 0.7
+          },
+          "interactRadius": 1.6,
+          "solid": true
+        },
+        {
           "id": "counter",
           "kind": "counter",
           "label": "Caisse · Momo",

@@ -441,6 +441,17 @@ export function parseGameData(raw: RawGameData): GameData {
     errors.push(`economy.json : pact.seedItemId "${economy.pact.seedItemId}" n'est pas une graine`);
   if (config.players.colors.length < config.room.maxPlayers)
     errors.push('config.json : il faut au moins autant de couleurs que de joueurs max');
+  const bagRules = economy.bag;
+  if (bagRules.backpackSlots <= bagRules.pocketSlots)
+    errors.push('economy.json : bag.backpackSlots doit dépasser bag.pocketSlots');
+  const backpack = items.get(bagRules.backpackItemId);
+  if (backpack?.use?.action !== 'equip_bag' || backpack.stackMax !== 1)
+    errors.push(
+      `economy.json : bag.backpackItemId "${bagRules.backpackItemId}" : objet équipable non empilable attendu`,
+    );
+  for (const it of items.values())
+    if (it.use?.action === 'equip_bag' && it.id !== bagRules.backpackItemId)
+      errors.push(`items.json : "${it.id}" s'équipe comme sac mais n'est pas bag.backpackItemId`);
   if (config.movement.runSpeed < config.movement.walkSpeed)
     errors.push('config.json : runSpeed doit être >= walkSpeed');
   errors.push(...checkAreas(config, areas, locFile.locations, quartiers));

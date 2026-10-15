@@ -38,6 +38,8 @@ export interface PlayerView {
   zone: string;
   area: string;
   bag: SlotView[];
+  /** 0 = poches, 1 = sac à dos (economy.bag). */
+  bagTier: number;
   cleanBalance: number;
   hasAccount: boolean;
   pactAccepted: boolean;

@@ -274,6 +274,21 @@
       "confiscable": false,
       "description": "Argent sur un compte. Propre, déclaré, presque honnête.",
       "icon": "🏦"
+    },
+    {
+      "id": "sac_a_dos",
+      "name": "Sac à dos",
+      "category": "gear",
+      "storage": "slot",
+      "stackMax": 1,
+      "contraband": false,
+      "confiscable": false,
+      "description": "Un sac de randonnée qui a vu plus de commissariats que de montagnes. Six cases de plus pour tes affaires douteuses.",
+      "icon": "🎒",
+      "use": {
+        "action": "equip_bag",
+        "label": "Équiper"
+      }
     }
   ]
 }

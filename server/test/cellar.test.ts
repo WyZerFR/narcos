@@ -58,7 +58,7 @@ function place(room: NarcoRoom, id: string, zone: string, at: { x: number; z: nu
 }
 
 function setDirty(room: NarcoRoom, id: string, cash: number) {
-  const empty = emptyInventory(gameData.config.inventory.bagSlots);
+  const empty = emptyInventory(gameData.economy.bag.pocketSlots);
   const r = cash > 0 ? add(empty, 'cash_dirty', cash, gameData.items) : null;
   writeInventory(room.state.players.get(id)!.bag, r?.ok ? r.inv : empty);
 }
@@ -273,7 +273,7 @@ describe('cave — parcours complet', () => {
     const id = 'cellar-player-0030';
     const { client, room } = await newGame(id);
     const me = room.state.players.get(id)!;
-    let inv = emptyInventory(gameData.config.inventory.bagSlots);
+    let inv = emptyInventory(gameData.economy.bag.pocketSlots);
     const r = add(inv, 'pouch_base', 3, gameData.items);
     if (r.ok) inv = r.inv;
     writeInventory(me.bag, inv);

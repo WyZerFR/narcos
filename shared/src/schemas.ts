@@ -160,7 +160,6 @@ export const ConfigSchema = z.object({
   }),
   /** Taille du sac d'un joueur et du futur stock commun (nombre de slots). */
   inventory: z.object({
-    bagSlots: z.number().int().positive(),
     stockSlots: z.number().int().positive(),
   }),
   /** Mode placement des meubles (labo). */
@@ -244,6 +243,8 @@ export const ItemCategorySchema = z.enum([
   'food',
   'drink',
   'tool',
+  /** Équipement porté (sac à dos) : s'équipe, ne se dépose plus. */
+  'gear',
   'furniture',
   'cash_dirty',
   'cash_clean',
@@ -266,7 +267,8 @@ export const PlaceableSchema = z.object({
 
 /** Bouton d'usage dans le détail de l'inventaire (les consommables gardent le leur). */
 export const ItemUseSchema = z.object({
-  action: z.enum(['place']),
+  /** `place` : poser au labo ; `equip_bag` : équiper le sac à dos (cases en plus). */
+  action: z.enum(['place', 'equip_bag']),
   label: z.string().min(1),
 });
 
@@ -331,6 +333,13 @@ export const EconomySchema = z.object({
   calendar: z.object({ realMinutesPerGameDay: pos, gameDaysPerWeek: z.number().int().positive() }),
   /** Argent de départ par joueur : sale dans le sac, propre sur un compte (fermé au départ). */
   startingMoney: z.object({ dirty: nonNeg, clean: nonNeg }),
+  /** Capacité du sac : poches au départ (bagTier 0), sac à dos équipé (bagTier 1). */
+  bag: z.object({
+    pocketSlots: z.number().int().positive(),
+    backpackSlots: z.number().int().positive(),
+    /** Objet qui, équipé, fait passer aux cases du sac à dos. */
+    backpackItemId: z.string().min(1),
+  }),
   survival: z.object({
     max: pos,
     hungerPerMinute: nonNeg,
