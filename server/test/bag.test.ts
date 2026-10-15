@@ -250,8 +250,8 @@ describe('poches → pochons', () => {
     const p = room.state.players.get(id)!;
     client.send(ClientMsg.Debug, { cmd: 'timeScale', scale: 60 });
     await client.waitForMessage(ServerMsg.Notice);
-    // kit minimal au Bricoshop, sac à dos à l'épicerie, avec les 150 $ de départ
-    for (const shelf of ['shelf_pots', 'shelf_racks', 'shelf_tables']) {
+    // kit minimal + lampe au Bricoshop, puis le sac à dos, avec les 150 $ de départ
+    for (const shelf of ['shelf_pots', 'shelf_racks', 'shelf_tables', 'shelf_lamps']) {
       goTo(room, id, 'shop', shelf);
       expect((await act(client, shelf, 'take')).ok).toBe(true);
     }
@@ -292,6 +292,7 @@ describe('poches → pochons', () => {
       return r.fixtureId!;
     };
     const pot = await place('pot', -3, -2);
+    await place('grow_lamp', -3, -2); // au-dessus du pot
     const rack = await place('drying_rack', 1.8, -3.4);
     const table = await place('cutting_table', 4.4, 0.4, 1);
     const retry = async (stationId: string, action: StationAction) => {

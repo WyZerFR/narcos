@@ -3,6 +3,8 @@ import {
   add,
   count,
   gameData,
+  NO_LAMP,
+  potLit,
   hangPlants,
   harvestPot,
   isCutDone,
@@ -20,6 +22,7 @@ import {
   type StationAction,
   type Strain,
 } from '@narco/shared';
+import { labFixtures } from './furniture';
 import type { CutJob, GameState, Player } from './schema';
 import {
   readCut,
@@ -99,6 +102,10 @@ export function runStationAction(
       const pot = readPot(potState);
 
       if (action === 'plant') {
+        const lamps = labFixtures(state)
+          .filter((f) => f.accepts === 'lamp')
+          .map((f) => f.position);
+        if (!potLit(station.position, lamps, LAB.lamp.range)) return refuse(NO_LAMP);
         const seed = firstOf(bag, 'seed');
         if (!seed) return refuse('Pas de graine dans ton sac.');
         const planted = plantPot(pot, seed.strain, now);

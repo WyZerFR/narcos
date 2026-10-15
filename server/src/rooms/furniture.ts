@@ -9,6 +9,9 @@ import {
   gameData,
   generateLayout,
   lampRate,
+  LAMP_IN_USE,
+  NO_LAMP,
+  unlitPlantedPots,
   rebankPot,
   remove,
   FixtureTypeSchema,
@@ -84,6 +87,17 @@ export function refreshPotRates(state: GameState, now: number): void {
     const strain = economy.strains.find((s) => s.id === pot.strainId) ?? DEFAULT_STRAIN;
     writePot(potState, rebankPot(pot, now, strain, rate));
   }
+}
+
+/**
+ * Refus si le nouvel agencement laisse sans lampe un pot planté qui en avait une (dernière lampe
+ * reprise ou éloignée, pot planté sorti de la lumière) ; `null` sinon.
+ */
+function lightLost(state: GameState, before: Fixture[], after: Fixture[], moved: Fixture) {
+  const planted = (id: string) => Boolean(state.lab.pots.get(id)?.planted);
+  const unlit = new Set(unlitPlantedPots(before, planted, LAMP.range));
+  if (unlitPlantedPots(after, planted, LAMP.range).every((id) => unlit.has(id))) return null;
+  return moved.accepts === 'lamp' ? LAMP_IN_USE : NO_LAMP;
 }
 
 /** Crée le meuble et son état de travail (pot vide, étendoir vide, table libre). */
@@ -183,6 +197,11 @@ export function moveFurniture(
     { itemId: record.itemId, x: req.x, z: req.z, rot: req.rot, ignoreId: req.fixtureId },
   );
   if (!check.ok) return refuse(check.message);
+  const moved = fixtures.map((f) =>
+    f.id === current.id ? { ...f, position: check.fixture.position } : f,
+  );
+  const dark = lightLost(state, fixtures, moved, current);
+  if (dark) return refuse(dark);
   Object.assign(record, { ...check.fixture.position, rot: check.fixture.rot });
   refreshPotRates(state, now);
   return { ok: true, text: `Déplacé : ${current.label}.`, fixtureId: req.fixtureId };
@@ -197,12 +216,20 @@ export function pickupFurniture(
 ): FurnitureResult {
   const interior = labOf(player);
   if (typeof interior === 'string') return refuse(interior);
-  const f = labFixtures(state).find((x) => x.id === fixtureId);
+  const fixtures = labFixtures(state);
+  const f = fixtures.find((x) => x.id === fixtureId);
   if (!f) return refuse("Ce meuble n'est plus là.");
   if (distance(player, f.position) > f.interactRadius + config.world.interactTolerance)
     return refuse(`Trop loin : ${f.label}`);
   const busy = busyReason(state, fixtureId);
   if (busy) return refuse(busy);
+  const dark = lightLost(
+    state,
+    fixtures,
+    fixtures.filter((x) => x.id !== fixtureId),
+    f,
+  );
+  if (dark) return refuse(dark);
   const r = add(readInventory(player.bag), f.itemId, 1, items);
   if (!r.ok) return refuse(bagFullText(player.bagTier, 'impossible de reprendre ce meuble.'));
   writeInventory(player.bag, r.inv);

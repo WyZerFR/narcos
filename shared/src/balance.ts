@@ -61,7 +61,7 @@ export function cycleReport(
   };
 }
 
-/** Coût du kit minimal (pot + étendoir + table + graines prévues) au Bricoshop. */
+/** Coût du kit minimal (pot + étendoir + table + lampe + graines prévues) au Bricoshop. */
 export function starterKitCost(data: Pick<GameData, 'economy' | 'shops' | 'items'>): number {
   const priceOf = (installs: string) => {
     for (const shop of data.shops.values())
@@ -74,6 +74,7 @@ export function starterKitCost(data: Pick<GameData, 'economy' | 'shops' | 'items
     priceOf('pot') +
     priceOf('drying_rack') +
     priceOf('cutting_table') +
+    priceOf('lamp') +
     data.economy.lab.starterKitSeeds * seedPrice(data, base)
   );
 }

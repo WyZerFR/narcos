@@ -184,7 +184,7 @@ describe('labo — production', () => {
     a.send(ClientMsg.Debug, { cmd: 'clearLab' });
     expect(((await a.waitForMessage(ServerMsg.Notice)) as NoticeMessage).ok).toBe(true);
     expect(room.state.lab.fixtures.size).toBe(0);
-    equip(room, ['pot_1', 'rack_2', 'table_1']);
+    equip(room, ['pot_1', 'lamp_1', 'rack_2', 'table_1']);
 
     // A prend une graine (debug) et plante
     a.send(ClientMsg.Debug, { cmd: 'give', itemId: 'seed_base', qty: 1 });

@@ -107,7 +107,10 @@ export function stickyNearest(
   currentId: string | null,
   exitMargin: number,
 ): Place | null {
+  const fresh = nearestPlace(pos, places);
   const current = currentId ? places.find((p) => p.id === currentId) : undefined;
-  if (current && inInteractRange(pos, current, true, exitMargin)) return current;
-  return nearestPlace(pos, places);
+  if (!current || !inInteractRange(pos, current, true, exitMargin)) return fresh;
+  // une lampe retenue cède la place à un meuble au sol (le pot dessous) dès qu'il est à portée
+  const ceiling = current.fixture?.mount === 'ceiling';
+  return ceiling && fresh && fresh.fixture?.mount !== 'ceiling' ? fresh : current;
 }

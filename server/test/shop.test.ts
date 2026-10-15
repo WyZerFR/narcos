@@ -9,6 +9,7 @@ import {
   count,
   emptyInventory,
   gameData,
+  NO_LAMP,
   interactionPoint,
   type FixturePlaceMessage,
   type FixtureResultMessage,
@@ -282,7 +283,7 @@ describe('shop → labo', () => {
     const me = room.state.players.get('shop-player-0007')!;
     expect(me.cleanBalance).toBe(150);
     // kit minimal, payé avec l'argent propre de départ, sans compte
-    for (const shelf of ['shelf_pots', 'shelf_racks', 'shelf_tables']) {
+    for (const shelf of ['shelf_pots', 'shelf_racks', 'shelf_tables', 'shelf_lamps']) {
       goTo(room, 'shop-player-0007', 'shop', shelf);
       expect((await act(client, shelf, 'take')).ok).toBe(true);
     }
@@ -305,7 +306,8 @@ describe('shop → labo', () => {
       client.waitForMessage(ServerMsg.Dialogue),
     ]);
     const bag = bagOf(room, 'shop-player-0007');
-    for (const id of ['pot', 'drying_rack', 'cutting_table']) expect(count(bag, id)).toBe(1);
+    for (const id of ['pot', 'drying_rack', 'cutting_table', 'grow_lamp'])
+      expect(count(bag, id)).toBe(1);
     expect(count(bag, 'seed_base')).toBe(gameData.economy.pact.startSeeds);
 
     // dans le labo, le joueur pose chaque meuble où il veut (près du robinet)
@@ -320,9 +322,14 @@ describe('shop → labo', () => {
       return r.fixtureId!;
     };
     const pot = await place('pot', -3, -2);
+    // sans lampe à portée : refus clair
+    goTo(room, 'shop-player-0007', 'lab', pot);
+    expect((await act(client, pot, 'plant')).text).toBe(NO_LAMP);
+    goTo(room, 'shop-player-0007', 'lab', 'water');
+    await place('grow_lamp', -3, -2); // au-dessus du pot
     const rack = await place('drying_rack', 1.8, -3.4);
     const table = await place('cutting_table', 4.4, 0.4, 1);
-    expect(room.state.lab.fixtures.size).toBe(3);
+    expect(room.state.lab.fixtures.size).toBe(4);
     expect(room.state.lab.fixtures.get(table)!.rot).toBe(1);
     const left = bagOf(room, 'shop-player-0007');
     for (const id of ['pot', 'drying_rack', 'cutting_table']) expect(count(left, id)).toBe(0);
