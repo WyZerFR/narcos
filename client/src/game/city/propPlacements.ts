@@ -1,6 +1,7 @@
 import {
   allPlacements,
   footprint,
+  greeneryLayout,
   lotCars,
   type GameData,
   type PropKitId,
@@ -33,7 +34,10 @@ function spots(data: GameData, kit: PropKitId): Spot[] {
       return [
         ...decor.trees.map((t, i) => ({ x: t.x, z: t.z, rotY: i, scale: t.scale })),
         ...layouts.flatMap((l) => l.trees).map((t, i) => ({ ...t, rotY: i + decor.trees.length })),
+        ...greeneryLayout(data).trees.map((t, i) => ({ ...t, rotY: i * 2.1 })),
       ];
+    case 'bushes':
+      return greeneryLayout(data).bushes.map((b, i) => ({ ...b, rotY: i * 1.7 }));
     case 'palms':
       return data.island.palms.map((p, i) => ({ x: p.x, z: p.z, rotY: i * 1.3 }));
     case 'cars':

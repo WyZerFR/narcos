@@ -11,6 +11,9 @@ import {
   type GameData,
   type GameLocation,
   type Rect,
+  type Theme,
+  intersectionCrosswalks,
+  themeOf,
   visibleLocations,
 } from '@narco/shared';
 import type { Batch } from './batch';
@@ -40,13 +43,18 @@ interface Ctx {
   readonly glow: Batch;
   /** Données vues avec la palette de l'area courante (areas.json ). */
   readonly data: GameData;
+  /** Thème rendu (couleurs du sol, panneaux). */
+  readonly theme: Theme;
   router: AreaBatches;
 }
 
 /** Géométries par area (id d'area, ou `SEA_GROUP` pour la mer) : chargées séparément. */
 export type CityGeometry = Map<string, AreaGeometry>;
 
-export function buildCity(data: GameData): CityGeometry {
+export function buildCity(
+  data: GameData,
+  theme: Theme = themeOf(data.config, data.config.theme.default),
+): CityGeometry {
   const router = new AreaBatches(data.areas.values());
   const byArea = areaPalettes(data);
   const ctx: Ctx = {
@@ -59,6 +67,7 @@ export function buildCity(data: GameData): CityGeometry {
     get data() {
       return byArea.get(router.key) ?? data;
     },
+    theme,
     router,
   };
   buildGround(ctx);
@@ -236,28 +245,29 @@ function buildGround(ctx: Ctx) {
   ctx.solid.cuttable = false;
   buildIsland(ctx);
 
+  const surface = ctx.theme.surface;
   const roads = map.roads.map((r) => rectFromCenter(r, r));
-  const curb = shade(palette.ground, 0.8);
+  const curb = shade(palette.ground, surface.curbShade);
   roads.forEach((road, i) => {
     const others = roads.filter((_, j) => j !== i);
     // routes et trottoirs découpés par area (une avenue traverse plusieurs areas)
     for (const piece of router.split(road)) {
       router.use(piece.areaId);
-      ctx.solid.floor(piece.rect, 0.02, shade(palette.street, 1.6));
+      ctx.solid.floor(piece.rect, 0.02, shade(palette.street, surface.roadShade));
     }
     for (const strip of sidewalkStrips(road, others, map.sidewalkWidth))
       for (const { areaId, rect: s } of router.split(strip)) {
         router.use(areaId);
         const cx = (s.minX + s.maxX) / 2;
         const cz = (s.minZ + s.maxZ) / 2;
-        const color = shade(palette.ground, 1.3);
+        const color = shade(palette.ground, surface.sidewalkShade);
         ctx.solid.block(cx, 0, cz, s.maxX - s.minX, 0.12, s.maxZ - s.minZ, color);
         // bordure de trottoir, un ton plus sombre
         ctx.solid.block(cx, 0.12, cz, s.maxX - s.minX, 0.02, s.maxZ - s.minZ, curb);
       }
     // marquage central en pointillés, interrompu aux croisements
     const alongX = road.maxX - road.minX >= road.maxZ - road.minZ;
-    const dash = shade(palette.neon, 0.55);
+    const dash = surface.dash ? shade(surface.dash, 1) : shade(palette.neon, 0.55);
     const len = alongX ? road.maxX - road.minX : road.maxZ - road.minZ;
     for (let t = 1; t + 2 < len; t += 4) {
       const r: Rect = alongX
@@ -280,8 +290,9 @@ function buildGround(ctx: Ctx) {
     }
   });
 
-  const stripe = shade(palette.ground, 3.4);
-  for (const cw of map.crosswalks) {
+  const stripe = surface.stripe ? shade(surface.stripe, 1) : shade(palette.ground, 3.4);
+  const auto = intersectionCrosswalks(roads, map.autoCrosswalks, map.crosswalks);
+  for (const cw of [...map.crosswalks, ...auto]) {
     for (let t = -cw.length / 2 + 0.5; t < cw.length / 2; t += 1) {
       const r =
         cw.axis === 'z'
@@ -302,11 +313,15 @@ function buildIsland(ctx: Ctx) {
   const { palette, world, island } = ctx.data.config;
   const { router } = ctx;
   const sea = island.seaLevel;
+  const { surface } = ctx.theme;
+  // terre des areas hors routes et trottoirs (jour : herbe)
   router.use(SEA_GROUP);
   ctx.solid.floor(expandRect(world.bounds, island.seaMargin), sea, shade(palette.sea, 1));
   for (const area of ctx.data.areas.values()) {
     router.use(area.id);
-    for (const r of areaRects(area)) ctx.solid.floor(r, 0, shade(palette.ground, 0.7));
+    const ground = ctx.data.config.palette.ground;
+    const land = surface.land ? shade(surface.land, 1) : shade(ground, surface.landShade);
+    for (const r of areaRects(area)) ctx.solid.floor(r, 0, land);
   }
   // falaise : paroi du sol jusqu'à la mer, collée au bord côté terre
   const rock = shade(palette.ground, 0.5);

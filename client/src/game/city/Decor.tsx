@@ -19,6 +19,7 @@ import {
   airportLayout,
   expandRect,
   interactionPoint,
+  greeneryLayout,
   kitModelled,
   lotCars,
   rectFromCenter,
@@ -471,6 +472,7 @@ export function Decor({
         material: solidMaterial,
         items: [
           ...decor.trees,
+          ...greeneryLayout(data).trees,
           ...quartierPlacements(data, (l) => l.trees).map((t) => ({ x: t.x, z: t.z })),
         ].map((t, i) => ({ ...t, rotY: i })),
       },

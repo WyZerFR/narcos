@@ -37,3 +37,5 @@ export * from './areaSpots';
 export * from './theme';
 export * from './discovery';
 export * from './props';
+export * from './crosswalks';
+export * from './greenery';

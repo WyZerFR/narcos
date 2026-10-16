@@ -1,7 +1,7 @@
 {
   "kits": {
     "trees": {
-      "props": ["tree_default", "tree_oak"],
+      "props": ["tree_default", "tree_oak", "tree_fat"],
       "fit": "height"
     },
     "palms": {
@@ -30,6 +30,10 @@
     "fillers": {
       "props": ["block_a", "block_g", "block_wide_a", "shop_a", "shop_e"],
       "fit": "box"
+    },
+    "bushes": {
+      "props": ["bush"],
+      "fit": "height"
     }
   },
   "areas": {

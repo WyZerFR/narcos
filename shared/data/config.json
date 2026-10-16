@@ -5,8 +5,8 @@
       "label": "Jour",
       "palette": {
         "sky": "#6fb6ea",
-        "street": "#6d7076",
-        "ground": "#c8c3b8",
+        "street": "#4f5258",
+        "ground": "#d9d3c6",
         "wall": "#c9935f",
         "vegetation": "#3fa83a",
         "sea": "#1fc2c7",
@@ -52,9 +52,9 @@
         "scale": 1
       },
       "quartierPalette": {
-        "ground": "#8dbf6a",
-        "sidewalk": "#cfcac0",
-        "road": "#6d7076",
+        "ground": "#5fb548",
+        "sidewalk": "#d9d3c6",
+        "road": "#4f5258",
         "windows": "#9cc9e8"
       },
       "fogOfWar": "#6f8597",
@@ -73,6 +73,15 @@
         "qualities": ["medium", "high"],
         "width": 0.07,
         "color": "#2b2533"
+      },
+      "surface": {
+        "land": "#5fb548",
+        "landShade": 1,
+        "roadShade": 1,
+        "sidewalkShade": 1,
+        "curbShade": 0.72,
+        "dash": "#f4f1e6",
+        "stripe": "#f4f1e6"
       }
     },
     "cartel": {
@@ -353,6 +362,11 @@
         "width": 3
       }
     ],
+    "autoCrosswalks": {
+      "enabled": true,
+      "gap": 1.2,
+      "width": 3
+    },
     "areaGates": [
       {
         "areaId": "bas_fonds",
@@ -677,6 +691,20 @@
         "scale": 1.1
       }
     ],
+    "greenery": {
+      "seed": "verdure-1",
+      "avenueSpacing": 9,
+      "avenueOffset": 0.6,
+      "parcelSpacing": 7,
+      "parcelChance": 0.55,
+      "bushShare": 0.35,
+      "clearance": 1.4,
+      "doorClearance": 4,
+      "scale": {
+        "min": 0.85,
+        "max": 1.2
+      }
+    },
     "bins": [
       {
         "x": -13,

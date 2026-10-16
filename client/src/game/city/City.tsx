@@ -84,7 +84,11 @@ export function City({
 }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps -- lockVersion : gameData muté en place
   const data = useMemo(() => themedData(gameData, themeId), [themeId, lockVersion]);
-  const geometry = useMemo(() => buildCity(data), [data]);
+  const geometry = useMemo(
+    () => buildCity(data, themeOf(gameData.config, themeId)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- data suit déjà themeId
+    [data],
+  );
   const propKits = useMemo(() => propKitItems(data), [data]);
   // thème doux (neutre) : halos des devantures et des lampadaires coupés
   const { halos, glow, shading, outline } = themeOf(gameData.config, themeId);

@@ -319,6 +319,11 @@ export const ConfigSchema = z.object({
       z.object({ x: z.number(), z: z.number(), axis: z.enum(['x', 'z']), length: pos, width: pos }),
     ),
     /**
+     * Passages piétons générés à chaque carrefour des routes, sur chaque branche : écart au bord
+     * du carrefour (m), largeur de la bande (m). Ceux déjà déclarés dans `crosswalks` priment.
+     */
+    autoCrosswalks: z.object({ enabled: z.boolean(), gap: nonNeg, width: pos }),
+    /**
      * Panneaux d'entrée d'area au-dessus d'une route (`axis` = sens de la route) : décor sans
      * collision, étiquette au nom de l'area. Les impasses ont déjà leur arche (`quartiers.json`).
      */
@@ -394,6 +399,22 @@ export const ConfigSchema = z.object({
       }),
     ),
     trees: z.array(Vec2Schema.extend({ scale: pos })),
+    /**
+     * Verdure générée (arbres et buissons sans collision, comme `trees`) : le long des avenues
+     * (pas, retrait au-delà du trottoir) et dans les parcelles libres (grille, chance), à
+     * `clearance` m des obstacles et des routes, `doorClearance` m des portes.
+     */
+    greenery: z.object({
+      seed: z.string().min(1),
+      avenueSpacing: pos,
+      avenueOffset: nonNeg,
+      parcelSpacing: pos,
+      parcelChance: z.number().min(0).max(1),
+      bushShare: z.number().min(0).max(1),
+      clearance: nonNeg,
+      doorClearance: nonNeg,
+      scale: z.object({ min: pos, max: pos }),
+    }),
     bins: z.array(Vec2Schema),
     crates: z.array(Vec2Schema),
     cartons: z.array(Vec2Schema),
@@ -1460,6 +1481,7 @@ export const PROP_KIT_IDS = [
   'houses',
   'towers',
   'fillers',
+  'bushes',
 ] as const;
 export type PropKitId = (typeof PROP_KIT_IDS)[number];
 
