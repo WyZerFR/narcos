@@ -6,7 +6,8 @@ import type { InstancedMesh, Mesh, Object3D } from 'three';
 import { areaSpot, gameData, obstaclesFrom, STREET, walkableAreas } from '@narco/shared';
 import { City } from './city/City';
 import { localPlayer } from './localPlayer';
-import { propEntry, resetPropCache, setPropReader } from './city/propAssets';
+import { propEntry, resetPropCache, setPropReader, setTextureReader } from './city/propAssets';
+import { Texture } from 'three';
 import { propDrawCalls } from './city/PropKits';
 
 /**
@@ -38,10 +39,18 @@ describe('budget de draw calls avec le décor importé', () => {
     async (themeId) => {
       vi.spyOn(console, 'warn').mockImplementation(() => undefined);
       setPropReader(readPublic);
+      setTextureReader(() => Promise.resolve(new Texture()));
       const spawn = gameData.config.players.spawn;
       Object.assign(localPlayer, { initialized: true, x: spawn.x, z: spawn.z, zone: STREET });
       const scene = await ReactThreeTestRenderer.create(
-        createElement(City, { glowBoost: 1, lockVersion: 0, themeId, shadows: false }),
+        // contour actif (qualités moyenne et haute) : le pire cas du budget
+        createElement(City, {
+          glowBoost: 1,
+          lockVersion: 0,
+          themeId,
+          shadows: false,
+          outlines: true,
+        }),
       );
       await ReactThreeTestRenderer.act(async () => {
         await scene.advanceFrames(4, 1 / 60);

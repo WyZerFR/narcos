@@ -2,14 +2,20 @@ import { readPublic } from '../testScene';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createElement, Profiler } from 'react';
 import ReactThreeTestRenderer from '@react-three/test-renderer';
-import { Box3, MeshBasicMaterial, type InstancedMesh } from 'three';
+import { Box3, MeshBasicMaterial, Texture, type InstancedMesh, type Material } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { gameData } from '@narco/shared';
 import { litMaterial } from '../materials';
 import { applyCutout } from './cutout';
 import { themedData } from './themedData';
 import { areaIdNear } from '../areaStreaming';
-import { normalizeProp, resetPropCache, setPropReader, propEntry } from './propAssets';
+import {
+  normalizeProp,
+  resetPropCache,
+  setPropReader,
+  setTextureReader,
+  propEntry,
+} from './propAssets';
 import { PropKits, propDrawCalls, type PropItem } from './PropKits';
 
 /**
@@ -32,13 +38,22 @@ async function mount(kits: Map<string, PropItem[]>) {
   const errors: string[] = [];
   vi.spyOn(console, 'error').mockImplementation((...a: unknown[]) => void errors.push(a.join(' ')));
   let renders = 0;
-  const material = litMaterial({ vertexColors: true });
-  const cutMaterial = applyCutout(litMaterial({ vertexColors: true }));
+  // atlas factice sous Node (pas d'image DOM) ; un matériau par atlas et par découpe
+  setTextureReader(() => Promise.resolve(new Texture()));
+  const made = new Map<string, Material>();
+  const materialFor = (texture: Texture | null, cut: boolean): Material => {
+    const key = `${texture?.uuid ?? 'sommets'}|${cut}`;
+    if (!made.has(key)) {
+      const m = litMaterial({ vertexColors: true, map: texture });
+      made.set(key, cut ? applyCutout(m) : m);
+    }
+    return made.get(key)!;
+  };
   const scene = await ReactThreeTestRenderer.create(
     createElement(
       Profiler,
       { id: 'props', onRender: () => void renders++ },
-      createElement(PropKits, { kits, loaded: new Set([area]), data, material, cutMaterial }),
+      createElement(PropKits, { kits, loaded: new Set([area]), data, materialFor }),
     ),
   );
   await ReactThreeTestRenderer.act(async () => {
@@ -55,7 +70,7 @@ async function mount(kits: Map<string, PropItem[]>) {
     const o = c.instance as unknown as InstancedMesh;
     if (o.isInstancedMesh) meshes.push(o);
   });
-  return { scene, errors, renders, meshes, material, cutMaterial };
+  return { scene, errors, renders, meshes, made };
 }
 
 describe('décor 3D importé : chargement et rendu', () => {
@@ -77,7 +92,7 @@ describe('décor 3D importé : chargement et rendu', () => {
   it(`tous les modèles montés, ${TICKS} ticks, 1 draw call par prop, rendus bornés`, async () => {
     setPropReader(readPublic);
     const kits = new Map(props.map((p) => [p.id, [{ x: spawn.x, z: spawn.z }]]));
-    const { scene, errors, renders, meshes, material, cutMaterial } = await mount(kits);
+    const { scene, errors, renders, meshes, made } = await mount(kits);
     expect(errors).toEqual([]);
     expect(renders).toBeLessThanOrEqual(MAX_RENDERS);
     expect(meshes).toHaveLength(props.length);
@@ -88,10 +103,14 @@ describe('décor 3D importé : chargement et rendu', () => {
     }
     const byCategory = propDrawCalls();
     expect(Object.values(byCategory).reduce((a, b) => a + b, 0)).toBe(props.length);
-    expect(meshes.filter((m) => m.material === cutMaterial)).toHaveLength(
-      props.filter((p) => p.cuttable).length,
-    );
-    expect(meshes.every((m) => m.material === material || m.material === cutMaterial)).toBe(true);
+    // un atlas par pack texturé, partagé : au plus 2 matériaux (découpe ou non) par atlas
+    const atlases = new Set(props.flatMap((p) => (p.texture ? [p.texture] : [])));
+    expect(made.size).toBeLessThanOrEqual(2 * (atlases.size + 1));
+    for (const m of meshes) {
+      const p = props.find((q) => q.id === m.name);
+      if (p) expect(Boolean((m.material as MeshBasicMaterial).map), p.id).toBe(Boolean(p.texture));
+    }
+    expect(meshes.every((m) => [...made.values()].includes(m.material as Material))).toBe(true);
     await scene.unmount();
     expect(Object.values(propDrawCalls()).every((n) => n === 0)).toBe(true);
   }, 60_000);
@@ -121,8 +140,7 @@ describe('décor 3D importé : chargement et rendu', () => {
         kits: new Map([[id, [far]]]),
         loaded: new Set(['aucune']),
         data,
-        material: unused,
-        cutMaterial: unused,
+        materialFor: () => unused,
       }),
     );
     expect(propEntry(id)).toBeUndefined();

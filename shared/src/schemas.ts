@@ -251,6 +251,8 @@ export const PropsConfigSchema = z.object({
   fallbackColor: PaletteKeySchema,
   /** Teinte d'un prop sans `keepColors` : part de la teinte de palette mêlée à l'original. */
   tintStrength: z.number().min(0).max(1),
+  /** Étirement maximal d'un axe par rapport aux autres (bâtiments ajustés à une emprise). */
+  maxStretch: z.number().min(1).max(1.5),
   /** Objectif de draw calls par area (overlay debug) et plafond total. */
   drawCallTarget: z.number().int().positive(),
   drawCallBudget: z.number().int().positive(),
@@ -1013,6 +1015,11 @@ export const SilhouetteSchema = z.enum([
 export const DoorSideSchema = z.enum(['north', 'south', 'east', 'west']);
 
 export const LocationSchema = z.object({
+  /** Panneau peint lisible sur la façade (thème jour, `theme.panels`), en capitales. */ panel: z
+    .string()
+    .min(1)
+    .max(24)
+    .optional(),
   id: z.string().min(1),
   name: z.string().min(1),
   zone: z.string().min(1),
@@ -1068,6 +1075,11 @@ export const BlockStyleSchema = z.enum([
 
 /** Immeuble sans fonction : ferme les îlots, crée les ruelles, donne son visage au quartier. */
 export const BlockSchema = z.object({
+  /** Panneau peint lisible sur la façade (thème jour, `theme.panels`), en capitales. */ panel: z
+    .string()
+    .min(1)
+    .max(24)
+    .optional(),
   id: z.string().min(1),
   position: Vec2Schema,
   size: z.object({ w: pos, d: pos }),
@@ -1441,6 +1453,11 @@ export const PropSchema = z.object({
   /** Garde les couleurs du modèle ; sinon teinte de la palette (`tint`). */
   keepColors: z.boolean(),
   tint: PaletteKeySchema.optional(),
+  /** Atlas de couleurs d'origine du pack (UV gardées), partagé ; absent = couleurs de sommets. */
+  texture: z
+    .string()
+    .regex(/^models\/textures\/[a-z0-9-]+\.png$/)
+    .optional(),
   /** Percé par la découpe devant le joueur (bâtiments). */
   cuttable: z.boolean(),
   triangles: z.number().int().positive(),

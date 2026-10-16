@@ -8,10 +8,22 @@
       "source": "GLB format car/sedan.glb",
       "height": 1.5,
       "rotationY": 0,
-      "offset": [0, 0, 0.025],
+      "offset": [
+        0,
+        0,
+        0.025
+      ],
       "bounds": {
-        "min": [-0.75, 0, -1.3],
-        "max": [0.75, 1.3, 1.25]
+        "min": [
+          -0.75,
+          0,
+          -1.3
+        ],
+        "max": [
+          0.75,
+          1.3,
+          1.25
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -20,8 +32,12 @@
       },
       "keepColors": true,
       "cuttable": false,
+      "texture": "models/textures/car.png",
       "triangles": 979,
-      "tags": ["voiture", "civile"]
+      "tags": [
+        "voiture",
+        "civile"
+      ]
     },
     {
       "id": "sedan_sports",
@@ -30,10 +46,22 @@
       "source": "GLB format car/sedan-sports.glb",
       "height": 1.35,
       "rotationY": 0,
-      "offset": [0, 0, 0.025],
+      "offset": [
+        0,
+        0,
+        0.025
+      ],
       "bounds": {
-        "min": [-0.65, 0, -1.3],
-        "max": [0.65, 1.1, 1.25]
+        "min": [
+          -0.65,
+          0,
+          -1.3
+        ],
+        "max": [
+          0.65,
+          1.1,
+          1.25
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -42,8 +70,12 @@
       },
       "keepColors": true,
       "cuttable": false,
+      "texture": "models/textures/car.png",
       "triangles": 980,
-      "tags": ["voiture", "civile"]
+      "tags": [
+        "voiture",
+        "civile"
+      ]
     },
     {
       "id": "suv_luxury",
@@ -52,10 +84,22 @@
       "source": "GLB format car/suv-luxury.glb",
       "height": 1.65,
       "rotationY": 0,
-      "offset": [0, 0, -0.025],
+      "offset": [
+        0,
+        0,
+        -0.025
+      ],
       "bounds": {
-        "min": [-0.75, 0, -1.4],
-        "max": [0.75, 1.3, 1.45]
+        "min": [
+          -0.75,
+          0,
+          -1.4
+        ],
+        "max": [
+          0.75,
+          1.3,
+          1.45
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -64,8 +108,13 @@
       },
       "keepColors": true,
       "cuttable": false,
+      "texture": "models/textures/car.png",
       "triangles": 979,
-      "tags": ["voiture", "civile", "luxe"]
+      "tags": [
+        "voiture",
+        "civile",
+        "luxe"
+      ]
     },
     {
       "id": "hatchback_sports",
@@ -74,10 +123,22 @@
       "source": "GLB format car/hatchback-sports.glb",
       "height": 1.4,
       "rotationY": 0,
-      "offset": [0, 0, 0.025],
+      "offset": [
+        0,
+        0,
+        0.025
+      ],
       "bounds": {
-        "min": [-0.65, 0, -1.45],
-        "max": [0.65, 1.1, 1.4]
+        "min": [
+          -0.65,
+          0,
+          -1.45
+        ],
+        "max": [
+          0.65,
+          1.1,
+          1.4
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -86,8 +147,12 @@
       },
       "keepColors": true,
       "cuttable": false,
+      "texture": "models/textures/car.png",
       "triangles": 979,
-      "tags": ["voiture", "civile"]
+      "tags": [
+        "voiture",
+        "civile"
+      ]
     },
     {
       "id": "taxi",
@@ -96,10 +161,22 @@
       "source": "GLB format car/taxi.glb",
       "height": 1.7,
       "rotationY": 0,
-      "offset": [0, 0, 0.025],
+      "offset": [
+        0,
+        0,
+        0.025
+      ],
       "bounds": {
-        "min": [-0.75, 0, -1.4],
-        "max": [0.75, 1.5, 1.35]
+        "min": [
+          -0.75,
+          0,
+          -1.4
+        ],
+        "max": [
+          0.75,
+          1.5,
+          1.35
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -108,8 +185,12 @@
       },
       "keepColors": true,
       "cuttable": false,
+      "texture": "models/textures/car.png",
       "triangles": 980,
-      "tags": ["voiture", "civile"]
+      "tags": [
+        "voiture",
+        "civile"
+      ]
     },
     {
       "id": "van",
@@ -118,10 +199,22 @@
       "source": "GLB format car/van.glb",
       "height": 1.9,
       "rotationY": 0,
-      "offset": [0, 0, 0.025],
+      "offset": [
+        0,
+        0,
+        0.025
+      ],
       "bounds": {
-        "min": [-0.75, 0, -1.4],
-        "max": [0.75, 1.35, 1.35]
+        "min": [
+          -0.75,
+          0,
+          -1.4
+        ],
+        "max": [
+          0.75,
+          1.35,
+          1.35
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -130,8 +223,11 @@
       },
       "keepColors": true,
       "cuttable": false,
+      "texture": "models/textures/car.png",
       "triangles": 979,
-      "tags": ["utilitaire"]
+      "tags": [
+        "utilitaire"
+      ]
     },
     {
       "id": "police",
@@ -140,10 +236,22 @@
       "source": "GLB format car/police.glb",
       "height": 1.6,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.75, 0, -1.55],
-        "max": [0.75, 1.3, 1.55]
+        "min": [
+          -0.75,
+          0,
+          -1.55
+        ],
+        "max": [
+          0.75,
+          1.3,
+          1.55
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -152,8 +260,12 @@
       },
       "keepColors": true,
       "cuttable": false,
+      "texture": "models/textures/car.png",
       "triangles": 979,
-      "tags": ["voiture", "police"]
+      "tags": [
+        "voiture",
+        "police"
+      ]
     },
     {
       "id": "skyscraper_a",
@@ -162,10 +274,22 @@
       "source": "GLB format commercial/building-skyscraper-a.glb",
       "height": 30,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.68, 0, -0.68],
-        "max": [0.68, 2.88, 0.68]
+        "min": [
+          -0.68,
+          0,
+          -0.68
+        ],
+        "max": [
+          0.68,
+          2.88,
+          0.68
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -174,8 +298,11 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/commercial.png",
       "triangles": 1292,
-      "tags": ["tour"]
+      "tags": [
+        "tour"
+      ]
     },
     {
       "id": "skyscraper_b",
@@ -184,10 +311,22 @@
       "source": "GLB format commercial/building-skyscraper-b.glb",
       "height": 40,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.68, 0, -0.68],
-        "max": [0.68, 4.48, 0.68]
+        "min": [
+          -0.68,
+          0,
+          -0.68
+        ],
+        "max": [
+          0.68,
+          4.48,
+          0.68
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -196,8 +335,11 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/commercial.png",
       "triangles": 1592,
-      "tags": ["tour"]
+      "tags": [
+        "tour"
+      ]
     },
     {
       "id": "skyscraper_c",
@@ -206,10 +348,22 @@
       "source": "GLB format commercial/building-skyscraper-c.glb",
       "height": 36,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.64, 0, -0.694],
-        "max": [0.64, 4.08, 0.694]
+        "min": [
+          -0.64,
+          0,
+          -0.694
+        ],
+        "max": [
+          0.64,
+          4.08,
+          0.694
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -218,8 +372,11 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/commercial.png",
       "triangles": 1704,
-      "tags": ["tour"]
+      "tags": [
+        "tour"
+      ]
     },
     {
       "id": "skyscraper_d",
@@ -228,10 +385,22 @@
       "source": "GLB format commercial/building-skyscraper-d.glb",
       "height": 46,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.64, 0, -0.694],
-        "max": [0.64, 5.47, 0.694]
+        "min": [
+          -0.64,
+          0,
+          -0.694
+        ],
+        "max": [
+          0.64,
+          5.47,
+          0.694
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -240,8 +409,11 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/commercial.png",
       "triangles": 1892,
-      "tags": ["tour"]
+      "tags": [
+        "tour"
+      ]
     },
     {
       "id": "skyscraper_e",
@@ -250,10 +422,22 @@
       "source": "GLB format commercial/building-skyscraper-e.glb",
       "height": 34,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.647, 0, -0.621],
-        "max": [0.648, 4.08, 0.621]
+        "min": [
+          -0.647,
+          0,
+          -0.621
+        ],
+        "max": [
+          0.648,
+          4.08,
+          0.621
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -262,8 +446,11 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/commercial.png",
       "triangles": 1156,
-      "tags": ["tour"]
+      "tags": [
+        "tour"
+      ]
     },
     {
       "id": "shop_a",
@@ -272,10 +459,22 @@
       "source": "GLB format commercial/building-a.glb",
       "height": 12,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.442, 0, -0.47],
-        "max": [0.442, 1.293, 0.47]
+        "min": [
+          -0.442,
+          0,
+          -0.47
+        ],
+        "max": [
+          0.442,
+          1.293,
+          0.47
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -284,8 +483,12 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/commercial.png",
       "triangles": 1252,
-      "tags": ["immeuble", "commerce"]
+      "tags": [
+        "immeuble",
+        "commerce"
+      ]
     },
     {
       "id": "shop_c",
@@ -294,10 +497,22 @@
       "source": "GLB format commercial/building-c.glb",
       "height": 9,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.442, 0, -0.545],
-        "max": [0.442, 0.893, 0.545]
+        "min": [
+          -0.442,
+          0,
+          -0.545
+        ],
+        "max": [
+          0.442,
+          0.893,
+          0.545
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -306,8 +521,12 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/commercial.png",
       "triangles": 1195,
-      "tags": ["immeuble", "commerce"]
+      "tags": [
+        "immeuble",
+        "commerce"
+      ]
     },
     {
       "id": "shop_e",
@@ -316,10 +535,22 @@
       "source": "GLB format commercial/building-e.glb",
       "height": 9,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.82, 0, -0.504],
-        "max": [0.82, 0.893, 0.504]
+        "min": [
+          -0.82,
+          0,
+          -0.504
+        ],
+        "max": [
+          0.82,
+          0.893,
+          0.504
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -328,8 +559,12 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/commercial.png",
       "triangles": 1509,
-      "tags": ["immeuble", "commerce"]
+      "tags": [
+        "immeuble",
+        "commerce"
+      ]
     },
     {
       "id": "shop_h",
@@ -338,10 +573,22 @@
       "source": "GLB format commercial/building-h.glb",
       "height": 12,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.442, 0, -0.504],
-        "max": [0.442, 1.293, 0.504]
+        "min": [
+          -0.442,
+          0,
+          -0.504
+        ],
+        "max": [
+          0.442,
+          1.293,
+          0.504
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -350,8 +597,12 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/commercial.png",
       "triangles": 1512,
-      "tags": ["immeuble", "commerce"]
+      "tags": [
+        "immeuble",
+        "commerce"
+      ]
     },
     {
       "id": "block_a",
@@ -360,10 +611,22 @@
       "source": "GLB format commercial/low-detail-building-a.glb",
       "height": 16,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.25, 0, -0.25],
-        "max": [0.25, 2, 0.25]
+        "min": [
+          -0.25,
+          0,
+          -0.25
+        ],
+        "max": [
+          0.25,
+          2,
+          0.25
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -372,8 +635,12 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/commercial.png",
       "triangles": 188,
-      "tags": ["immeuble", "remplissage"]
+      "tags": [
+        "immeuble",
+        "remplissage"
+      ]
     },
     {
       "id": "block_d",
@@ -382,10 +649,22 @@
       "source": "GLB format commercial/low-detail-building-d.glb",
       "height": 14,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.25, 0, -0.25],
-        "max": [0.25, 1.75, 0.25]
+        "min": [
+          -0.25,
+          0,
+          -0.25
+        ],
+        "max": [
+          0.25,
+          1.75,
+          0.25
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -394,8 +673,12 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/commercial.png",
       "triangles": 106,
-      "tags": ["immeuble", "remplissage"]
+      "tags": [
+        "immeuble",
+        "remplissage"
+      ]
     },
     {
       "id": "block_g",
@@ -404,10 +687,22 @@
       "source": "GLB format commercial/low-detail-building-g.glb",
       "height": 16,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.25, 0, -0.25],
-        "max": [0.25, 2, 0.25]
+        "min": [
+          -0.25,
+          0,
+          -0.25
+        ],
+        "max": [
+          0.25,
+          2,
+          0.25
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -416,8 +711,12 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/commercial.png",
       "triangles": 200,
-      "tags": ["immeuble", "remplissage"]
+      "tags": [
+        "immeuble",
+        "remplissage"
+      ]
     },
     {
       "id": "block_j",
@@ -426,10 +725,22 @@
       "source": "GLB format commercial/low-detail-building-j.glb",
       "height": 14,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.25, 0, -0.25],
-        "max": [0.25, 1.75, 0.25]
+        "min": [
+          -0.25,
+          0,
+          -0.25
+        ],
+        "max": [
+          0.25,
+          1.75,
+          0.25
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -438,8 +749,12 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/commercial.png",
       "triangles": 188,
-      "tags": ["immeuble", "remplissage"]
+      "tags": [
+        "immeuble",
+        "remplissage"
+      ]
     },
     {
       "id": "block_wide_a",
@@ -448,10 +763,22 @@
       "source": "GLB format commercial/low-detail-building-wide-a.glb",
       "height": 10,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.5, 0, -0.25],
-        "max": [0.5, 1.1, 0.25]
+        "min": [
+          -0.5,
+          0,
+          -0.25
+        ],
+        "max": [
+          0.5,
+          1.1,
+          0.25
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -460,8 +787,12 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/commercial.png",
       "triangles": 156,
-      "tags": ["immeuble", "remplissage"]
+      "tags": [
+        "immeuble",
+        "remplissage"
+      ]
     },
     {
       "id": "house_a",
@@ -470,10 +801,22 @@
       "source": "GLB format suburban/building-type-a.glb",
       "height": 6,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.65, 0, -0.514],
-        "max": [0.65, 0.834, 0.514]
+        "min": [
+          -0.65,
+          0,
+          -0.514
+        ],
+        "max": [
+          0.65,
+          0.834,
+          0.514
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -482,8 +825,11 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/suburban.png",
       "triangles": 1174,
-      "tags": ["maison"]
+      "tags": [
+        "maison"
+      ]
     },
     {
       "id": "house_c",
@@ -492,10 +838,22 @@
       "source": "GLB format suburban/building-type-c.glb",
       "height": 7,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.643, 0, -0.514],
-        "max": [0.643, 1.034, 0.514]
+        "min": [
+          -0.643,
+          0,
+          -0.514
+        ],
+        "max": [
+          0.643,
+          1.034,
+          0.514
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -504,8 +862,11 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/suburban.png",
       "triangles": 1196,
-      "tags": ["maison"]
+      "tags": [
+        "maison"
+      ]
     },
     {
       "id": "house_h",
@@ -514,10 +875,22 @@
       "source": "GLB format suburban/building-type-h.glb",
       "height": 5.5,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.65, 0, -0.458],
-        "max": [0.65, 0.737, 0.458]
+        "min": [
+          -0.65,
+          0,
+          -0.458
+        ],
+        "max": [
+          0.65,
+          0.737,
+          0.458
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -526,8 +899,11 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/suburban.png",
       "triangles": 770,
-      "tags": ["maison"]
+      "tags": [
+        "maison"
+      ]
     },
     {
       "id": "house_k",
@@ -536,10 +912,22 @@
       "source": "GLB format suburban/building-type-k.glb",
       "height": 8,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.46, 0, -0.51],
-        "max": [0.46, 1.15, 0.51]
+        "min": [
+          -0.46,
+          0,
+          -0.51
+        ],
+        "max": [
+          0.46,
+          1.15,
+          0.51
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -548,8 +936,11 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/suburban.png",
       "triangles": 1024,
-      "tags": ["maison"]
+      "tags": [
+        "maison"
+      ]
     },
     {
       "id": "house_p",
@@ -558,10 +949,22 @@
       "source": "GLB format suburban/building-type-p.glb",
       "height": 6.5,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.62, 0, -0.495],
-        "max": [0.62, 0.918, 0.495]
+        "min": [
+          -0.62,
+          0,
+          -0.495
+        ],
+        "max": [
+          0.62,
+          0.918,
+          0.495
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -570,8 +973,11 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/suburban.png",
       "triangles": 1282,
-      "tags": ["maison"]
+      "tags": [
+        "maison"
+      ]
     },
     {
       "id": "house_r",
@@ -580,10 +986,22 @@
       "source": "GLB format suburban/building-type-r.glb",
       "height": 8,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.514, 0, -0.51],
-        "max": [0.514, 1.141, 0.51]
+        "min": [
+          -0.514,
+          0,
+          -0.51
+        ],
+        "max": [
+          0.514,
+          1.141,
+          0.51
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -592,8 +1010,11 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/suburban.png",
       "triangles": 1030,
-      "tags": ["maison"]
+      "tags": [
+        "maison"
+      ]
     },
     {
       "id": "warehouse_a",
@@ -602,10 +1023,22 @@
       "source": "GLB format industrie/building-a.glb",
       "height": 9,
       "rotationY": 0,
-      "offset": [-0.001, 0, 0],
+      "offset": [
+        -0.001,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-1.041, 0, -0.621],
-        "max": [1.043, 1.47, 0.621]
+        "min": [
+          -1.041,
+          0,
+          -0.621
+        ],
+        "max": [
+          1.043,
+          1.47,
+          0.621
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -614,8 +1047,11 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/industrie.png",
       "triangles": 2046,
-      "tags": ["entrepot"]
+      "tags": [
+        "entrepot"
+      ]
     },
     {
       "id": "warehouse_g",
@@ -624,10 +1060,22 @@
       "source": "GLB format industrie/building-g.glb",
       "height": 8,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.839, 0, -0.642],
-        "max": [0.839, 1.28, 0.642]
+        "min": [
+          -0.839,
+          0,
+          -0.642
+        ],
+        "max": [
+          0.839,
+          1.28,
+          0.642
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -636,8 +1084,11 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/industrie.png",
       "triangles": 1242,
-      "tags": ["entrepot"]
+      "tags": [
+        "entrepot"
+      ]
     },
     {
       "id": "water_tower",
@@ -646,10 +1097,22 @@
       "source": "GLB format industrie/water-tower.glb",
       "height": 14,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.426, 0, -0.416],
-        "max": [0.426, 2.142, 0.416]
+        "min": [
+          -0.426,
+          0,
+          -0.416
+        ],
+        "max": [
+          0.426,
+          2.142,
+          0.416
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -658,8 +1121,11 @@
       },
       "keepColors": true,
       "cuttable": true,
+      "texture": "models/textures/industrie.png",
       "triangles": 968,
-      "tags": ["industrie"]
+      "tags": [
+        "industrie"
+      ]
     },
     {
       "id": "tree_default",
@@ -668,10 +1134,22 @@
       "source": "GLTF format nature/tree_default.glb",
       "height": 5,
       "rotationY": 0,
-      "offset": [0, 0.05, 0],
+      "offset": [
+        0,
+        0.05,
+        0
+      ],
       "bounds": {
-        "min": [-0.378, -0.05, -0.327],
-        "max": [0.378, 1.658, 0.327]
+        "min": [
+          -0.378,
+          -0.05,
+          -0.327
+        ],
+        "max": [
+          0.378,
+          1.658,
+          0.327
+        ]
       },
       "collision": {
         "shape": "circle",
@@ -680,7 +1158,9 @@
       "keepColors": true,
       "cuttable": false,
       "triangles": 114,
-      "tags": ["arbre"]
+      "tags": [
+        "arbre"
+      ]
     },
     {
       "id": "tree_oak",
@@ -689,10 +1169,22 @@
       "source": "GLTF format nature/tree_oak.glb",
       "height": 4.6,
       "rotationY": 0,
-      "offset": [0, 0.05, 0],
+      "offset": [
+        0,
+        0.05,
+        0
+      ],
       "bounds": {
-        "min": [-0.32, -0.05, -0.37],
-        "max": [0.32, 1.176, 0.37]
+        "min": [
+          -0.32,
+          -0.05,
+          -0.37
+        ],
+        "max": [
+          0.32,
+          1.176,
+          0.37
+        ]
       },
       "collision": {
         "shape": "circle",
@@ -701,7 +1193,9 @@
       "keepColors": true,
       "cuttable": false,
       "triangles": 196,
-      "tags": ["arbre"]
+      "tags": [
+        "arbre"
+      ]
     },
     {
       "id": "tree_fat",
@@ -710,10 +1204,22 @@
       "source": "GLTF format nature/tree_fat.glb",
       "height": 4.2,
       "rotationY": 0,
-      "offset": [0, 0.05, 0],
+      "offset": [
+        0,
+        0.05,
+        0
+      ],
       "bounds": {
-        "min": [-0.378, -0.05, -0.327],
-        "max": [0.378, 1.1, 0.327]
+        "min": [
+          -0.378,
+          -0.05,
+          -0.327
+        ],
+        "max": [
+          0.378,
+          1.1,
+          0.327
+        ]
       },
       "collision": {
         "shape": "circle",
@@ -722,7 +1228,9 @@
       "keepColors": true,
       "cuttable": false,
       "triangles": 50,
-      "tags": ["arbre"]
+      "tags": [
+        "arbre"
+      ]
     },
     {
       "id": "palm_tall",
@@ -731,10 +1239,22 @@
       "source": "GLTF format nature/tree_palmTall.glb",
       "height": 6,
       "rotationY": 0,
-      "offset": [0, 0.05, -0.003],
+      "offset": [
+        0,
+        0.05,
+        -0.003
+      ],
       "bounds": {
-        "min": [-0.517, -0.05, -0.515],
-        "max": [0.517, 1.306, 0.52]
+        "min": [
+          -0.517,
+          -0.05,
+          -0.515
+        ],
+        "max": [
+          0.517,
+          1.306,
+          0.52
+        ]
       },
       "collision": {
         "shape": "circle",
@@ -743,7 +1263,9 @@
       "keepColors": true,
       "cuttable": false,
       "triangles": 190,
-      "tags": ["palmier"]
+      "tags": [
+        "palmier"
+      ]
     },
     {
       "id": "palm_bend",
@@ -752,10 +1274,22 @@
       "source": "GLTF format nature/tree_palmBend.glb",
       "height": 5.5,
       "rotationY": 0,
-      "offset": [0, 0.05, 0],
+      "offset": [
+        0,
+        0.05,
+        0
+      ],
       "bounds": {
-        "min": [-0.468, -0.05, -0.506],
-        "max": [0.468, 1.33, 0.506]
+        "min": [
+          -0.468,
+          -0.05,
+          -0.506
+        ],
+        "max": [
+          0.468,
+          1.33,
+          0.506
+        ]
       },
       "collision": {
         "shape": "circle",
@@ -764,7 +1298,9 @@
       "keepColors": true,
       "cuttable": false,
       "triangles": 200,
-      "tags": ["palmier"]
+      "tags": [
+        "palmier"
+      ]
     },
     {
       "id": "palm_short",
@@ -773,10 +1309,22 @@
       "source": "GLTF format nature/tree_palmShort.glb",
       "height": 4.5,
       "rotationY": 0,
-      "offset": [0, 0.05, -0.003],
+      "offset": [
+        0,
+        0.05,
+        -0.003
+      ],
       "bounds": {
-        "min": [-0.517, -0.05, -0.515],
-        "max": [0.517, 1.006, 0.52]
+        "min": [
+          -0.517,
+          -0.05,
+          -0.515
+        ],
+        "max": [
+          0.517,
+          1.006,
+          0.52
+        ]
       },
       "collision": {
         "shape": "circle",
@@ -785,7 +1333,9 @@
       "keepColors": true,
       "cuttable": false,
       "triangles": 190,
-      "tags": ["palmier"]
+      "tags": [
+        "palmier"
+      ]
     },
     {
       "id": "bush",
@@ -794,16 +1344,30 @@
       "source": "GLTF format nature/plant_bushDetailed.glb",
       "height": 1,
       "rotationY": 0,
-      "offset": [0, 0.05, 0],
+      "offset": [
+        0,
+        0.05,
+        0
+      ],
       "bounds": {
-        "min": [-0.301, -0.05, -0.301],
-        "max": [0.301, 0.31, 0.301]
+        "min": [
+          -0.301,
+          -0.05,
+          -0.301
+        ],
+        "max": [
+          0.301,
+          0.31,
+          0.301
+        ]
       },
       "collision": null,
       "keepColors": true,
       "cuttable": false,
       "triangles": 104,
-      "tags": ["buisson"]
+      "tags": [
+        "buisson"
+      ]
     },
     {
       "id": "cone",
@@ -812,16 +1376,31 @@
       "source": "GLB format car/cone.glb",
       "height": 0.7,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.238, 0, -0.238],
-        "max": [0.238, 0.595, 0.238]
+        "min": [
+          -0.238,
+          0,
+          -0.238
+        ],
+        "max": [
+          0.238,
+          0.595,
+          0.238
+        ]
       },
       "collision": null,
       "keepColors": true,
       "cuttable": false,
+      "texture": "models/textures/car.png",
       "triangles": 172,
-      "tags": ["chantier"]
+      "tags": [
+        "chantier"
+      ]
     },
     {
       "id": "box",
@@ -830,10 +1409,22 @@
       "source": "GLB format car/box.glb",
       "height": 0.9,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.357, 0, -0.357],
-        "max": [0.357, 0.715, 0.357]
+        "min": [
+          -0.357,
+          0,
+          -0.357
+        ],
+        "max": [
+          0.357,
+          0.715,
+          0.357
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -842,8 +1433,11 @@
       },
       "keepColors": true,
       "cuttable": false,
+      "texture": "models/textures/car.png",
       "triangles": 124,
-      "tags": ["caisse"]
+      "tags": [
+        "caisse"
+      ]
     },
     {
       "id": "bench",
@@ -852,10 +1446,22 @@
       "source": "GLB format coaster/bench.glb",
       "height": 0.9,
       "rotationY": 0,
-      "offset": [0, 0, -0.018],
+      "offset": [
+        0,
+        0,
+        -0.018
+      ],
       "bounds": {
-        "min": [-0.4, 0, -0.225],
-        "max": [0.4, 0.491, 0.261]
+        "min": [
+          -0.4,
+          0,
+          -0.225
+        ],
+        "max": [
+          0.4,
+          0.491,
+          0.261
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -864,8 +1470,11 @@
       },
       "keepColors": true,
       "cuttable": false,
+      "texture": "models/textures/coaster.png",
       "triangles": 112,
-      "tags": ["mobilier"]
+      "tags": [
+        "mobilier"
+      ]
     },
     {
       "id": "trash",
@@ -874,10 +1483,22 @@
       "source": "GLB format coaster/trash.glb",
       "height": 1,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.212, 0, -0.212],
-        "max": [0.212, 0.437, 0.212]
+        "min": [
+          -0.212,
+          0,
+          -0.212
+        ],
+        "max": [
+          0.212,
+          0.437,
+          0.212
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -886,8 +1507,11 @@
       },
       "keepColors": true,
       "cuttable": false,
+      "texture": "models/textures/coaster.png",
       "triangles": 72,
-      "tags": ["mobilier"]
+      "tags": [
+        "mobilier"
+      ]
     },
     {
       "id": "container_a",
@@ -896,10 +1520,22 @@
       "source": "GLB format industrie/shipping-container-a.glb",
       "height": 2.6,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.186, 0, -0.411],
-        "max": [0.186, 0.348, 0.411]
+        "min": [
+          -0.186,
+          0,
+          -0.411
+        ],
+        "max": [
+          0.186,
+          0.348,
+          0.411
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -908,8 +1544,11 @@
       },
       "keepColors": true,
       "cuttable": false,
+      "texture": "models/textures/industrie.png",
       "triangles": 402,
-      "tags": ["conteneur"]
+      "tags": [
+        "conteneur"
+      ]
     },
     {
       "id": "container_b",
@@ -918,10 +1557,22 @@
       "source": "GLB format industrie/shipping-container-b.glb",
       "height": 2.6,
       "rotationY": 0,
-      "offset": [0, 0, 0],
+      "offset": [
+        0,
+        0,
+        0
+      ],
       "bounds": {
-        "min": [-0.186, 0, -0.411],
-        "max": [0.186, 0.348, 0.411]
+        "min": [
+          -0.186,
+          0,
+          -0.411
+        ],
+        "max": [
+          0.186,
+          0.348,
+          0.411
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -930,8 +1581,11 @@
       },
       "keepColors": true,
       "cuttable": false,
+      "texture": "models/textures/industrie.png",
       "triangles": 402,
-      "tags": ["conteneur"]
+      "tags": [
+        "conteneur"
+      ]
     },
     {
       "id": "tank",
@@ -940,10 +1594,22 @@
       "source": "GLB format industrie/detail-tank-large.glb",
       "height": 3,
       "rotationY": 0,
-      "offset": [0, 0, 0.07],
+      "offset": [
+        0,
+        0,
+        0.07
+      ],
       "bounds": {
-        "min": [-0.754, 0, -0.894],
-        "max": [0.754, 0.962, 0.754]
+        "min": [
+          -0.754,
+          0,
+          -0.894
+        ],
+        "max": [
+          0.754,
+          0.962,
+          0.754
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -952,8 +1618,11 @@
       },
       "keepColors": true,
       "cuttable": false,
+      "texture": "models/textures/industrie.png",
       "triangles": 566,
-      "tags": ["industrie"]
+      "tags": [
+        "industrie"
+      ]
     },
     {
       "id": "rock_a",
@@ -962,10 +1631,22 @@
       "source": "GLTF format nature/rock_largeA.glb",
       "height": 0.9,
       "rotationY": 0,
-      "offset": [0, 0.05, 0],
+      "offset": [
+        0,
+        0.05,
+        0
+      ],
       "bounds": {
-        "min": [-0.392, -0.05, -0.508],
-        "max": [0.392, 0.21, 0.508]
+        "min": [
+          -0.392,
+          -0.05,
+          -0.508
+        ],
+        "max": [
+          0.392,
+          0.21,
+          0.508
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -975,7 +1656,10 @@
       "keepColors": true,
       "cuttable": false,
       "triangles": 80,
-      "tags": ["rocher", "plage"]
+      "tags": [
+        "rocher",
+        "plage"
+      ]
     },
     {
       "id": "rock_c",
@@ -984,10 +1668,22 @@
       "source": "GLTF format nature/rock_largeC.glb",
       "height": 1.1,
       "rotationY": 0,
-      "offset": [0, 0.05, 0],
+      "offset": [
+        0,
+        0.05,
+        0
+      ],
       "bounds": {
-        "min": [-0.532, -0.05, -0.508],
-        "max": [0.532, 0.271, 0.508]
+        "min": [
+          -0.532,
+          -0.05,
+          -0.508
+        ],
+        "max": [
+          0.532,
+          0.271,
+          0.508
+        ]
       },
       "collision": {
         "shape": "rect",
@@ -997,7 +1693,10 @@
       "keepColors": true,
       "cuttable": false,
       "triangles": 72,
-      "tags": ["rocher", "plage"]
+      "tags": [
+        "rocher",
+        "plage"
+      ]
     }
   ]
 }

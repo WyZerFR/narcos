@@ -19,6 +19,7 @@ import {
 import type { Batch } from './batch';
 import { faceOf, mix, seeded, shade, SIDES, type Face } from './batch';
 import { buildQuartiers } from './buildQuartiers';
+import { blockModelHeights } from './propPlacements';
 import { buildAirport } from './buildAirport';
 import { AreaBatches, SEA_GROUP, type AreaGeometry } from './areaBatches';
 import { buildAreaGates, buildLandmark, towerTrim, type FacadeKit } from './buildLandmarks';
@@ -178,14 +179,14 @@ function door(ctx: Ctx, f: Face, u: number, w: number, h: number, glowColor: Col
 }
 
 /** Façade la plus proche d'une route (pour orienter la porte des immeubles). */
-function sideTowardRoad(ctx: Ctx, r: Rect): DoorSide {
+export function sideTowardRoad(data: GameData, r: Rect): DoorSide {
   const cx = (r.minX + r.maxX) / 2;
   const cz = (r.minZ + r.maxZ) / 2;
   let best: DoorSide = 'south';
   let bestDist = Infinity;
   for (const side of SIDES) {
     const f = faceOf(r, side);
-    for (const road of ctx.data.config.map.roads) {
+    for (const road of data.config.map.roads) {
       const rr = rectFromCenter(road, road);
       const px = f.cx + f.nx * 3;
       const pz = f.cz + f.nz * 3;
@@ -751,10 +752,20 @@ function buildFiller(ctx: Ctx, block: Block) {
   const rng = seeded(block.id);
   const r = footprint(block);
   if (block.style !== 'filler' && block.style !== 'tower')
-    return buildLandmark(ctx, facadeKit(ctx, rng), block, block.door ?? sideTowardRoad(ctx, r));
+    return buildLandmark(
+      ctx,
+      facadeKit(ctx, rng),
+      block,
+      block.door ?? sideTowardRoad(ctx.data, r),
+    );
   // façade importée (placements.json kits.towers / fillers) : seules les enseignes restent ici
   if (kitModelled(ctx.data, block.style === 'tower' ? 'towers' : 'fillers'))
-    return towerTrim(ctx, block, sideTowardRoad(ctx, r));
+    // enseignes au sommet du modèle (proportions naturelles : hauteur du modèle, pas du bloc)
+    return towerTrim(
+      ctx,
+      { ...block, height: blockModelHeights(ctx.data).get(block.id) ?? block.height },
+      sideTowardRoad(ctx.data, r),
+    );
   const wall = block.color ? shade(block.color, 1) : shade(palette.wall, 0.75 + rng() * 0.5);
   const dark = mix(palette.sky, palette.wall, 0.4).multiplyScalar(0.6);
   ctx.solid.block(
@@ -768,7 +779,7 @@ function buildFiller(ctx: Ctx, block: Block) {
   );
   parapet(ctx, r, block.height, wall.clone().multiplyScalar(0.7));
   rooftopClutter(ctx, r, block.height, rng, wall.clone().multiplyScalar(0.85));
-  const doorSide = sideTowardRoad(ctx, r);
+  const doorSide = sideTowardRoad(ctx.data, r);
   for (const side of SIDES) {
     const f = faceOf(r, side);
     windows(ctx, f, 1.8, block.height, rng, dark, side === doorSide ? 1.6 : 0);

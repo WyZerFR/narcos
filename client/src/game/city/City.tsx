@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { MeshBasicMaterial, Vector2, Vector3, type Camera } from 'three';
+import {
+  MeshBasicMaterial,
+  Vector2,
+  Vector3,
+  type Camera,
+  type Material,
+  type Texture,
+} from 'three';
 import { gameData, themeOf, type ThemeId } from '@narco/shared';
 import { themedData } from './themedData';
 import { localPlayer } from '../localPlayer';
@@ -9,6 +16,7 @@ import { SEA_GROUP } from './areaBatches';
 import { currentArea, useLoadedAreas } from '../areaStreaming';
 import { Decor } from './Decor';
 import { Halos } from './Halos';
+import { Panels } from './Panels';
 import { PropKits } from './PropKits';
 import { propKitItems } from './propPlacements';
 import { outlineMaterial, shadedMaterial } from '../materials';
@@ -91,7 +99,7 @@ export function City({
   );
   const propKits = useMemo(() => propKitItems(data), [data]);
   // thème doux (neutre) : halos des devantures et des lampadaires coupés
-  const { halos, glow, shading, outline } = themeOf(gameData.config, themeId);
+  const { halos, glow, shading, outline, panels } = themeOf(gameData.config, themeId);
   // thème jour : fenêtres, enseignes, guirlandes et lueurs en matériau éclairé (panneaux peints)
   const painted = glow === 'painted';
   const loaded = useLoadedAreas();
@@ -113,10 +121,31 @@ export function City({
       decorGlow: painted
         ? shadedMaterial({ vertexColors: true }, shading)
         : new MeshBasicMaterial({ vertexColors: true, toneMapped: false }),
-      // bâtiments importés : percés par la découpe comme les façades générées
-      propCut: applyCutout(shadedMaterial({ vertexColors: true }, shading)),
     }),
     [painted, shading],
+  );
+
+  // décor importé : un matériau par atlas de pack (couleurs d'origine) et par découpe
+  // (bâtiments percés devant le joueur comme les façades générées)
+  const propMaterials = useMemo(() => {
+    const cache = new Map<string, Material>();
+    const make = (texture: Texture | null, cut: boolean): Material => {
+      const key = `${texture?.uuid ?? 'sommets'}|${cut}`;
+      let m = cache.get(key);
+      if (!m) {
+        const base = shadedMaterial({ vertexColors: true, map: texture }, shading);
+        m = cut ? applyCutout(base) : base;
+        cache.set(key, m);
+      }
+      return m;
+    };
+    return { cache, make };
+  }, [shading]);
+  useEffect(
+    () => () => {
+      for (const m of propMaterials.cache.values()) m.dispose();
+    },
+    [propMaterials],
   );
 
   // contour (coque inversée) : bâtiments de l'area du joueur seulement (+1 draw call)
@@ -180,9 +209,9 @@ export function City({
         kits={propKits}
         loaded={warm ? loaded : null}
         data={data}
-        material={materials.decorSolid}
-        cutMaterial={materials.propCut}
+        materialFor={propMaterials.make}
       />
+      {panels && <Panels data={data} loaded={warm ? loaded : null} />}
       {halos && <Halos data={data} loaded={warm ? loaded : null} glowBoost={glowBoost} />}
       <CutoutDriver />
     </>

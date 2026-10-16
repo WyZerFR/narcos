@@ -82,7 +82,8 @@
         "curbShade": 0.72,
         "dash": "#f4f1e6",
         "stripe": "#f4f1e6"
-      }
+      },
+      "panels": true
     },
     "cartel": {
       "label": "Néo-cartel",
@@ -809,7 +810,8 @@
     "fallbackColor": "wall",
     "tintStrength": 0.7,
     "drawCallTarget": 60,
-    "drawCallBudget": 200
+    "drawCallBudget": 200,
+    "maxStretch": 1.15
   },
   "characters": {
     "locked": false,

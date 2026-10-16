@@ -1,6 +1,12 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import {
   BoxGeometry,
+  NearestFilter,
+  NearestMipmapLinearFilter,
+  RepeatWrapping,
+  SRGBColorSpace,
+  TextureLoader,
+  type Texture,
   BufferAttribute,
   Color,
   type BufferGeometry,
@@ -18,7 +24,9 @@ import { shade } from './batch';
  * Un modèle en échec est journalisé et remplacé par un cube neutre de la même emprise.
  */
 export type PropEntry =
-  { status: 'loading' } | { status: 'ready'; geometry: BufferGeometry } | { status: 'error' };
+  | { status: 'loading' }
+  | { status: 'ready'; geometry: BufferGeometry; texture: Texture | null }
+  | { status: 'error' };
 
 const cache = new Map<string, PropEntry>();
 const listeners = new Set<() => void>();
@@ -76,7 +84,7 @@ export function normalizeProp(root: Object3D, prop: Prop): BufferGeometry {
     new BufferAttribute(new Float32Array(count).fill(prop.cuttable ? 1 : 0), 1),
   );
   for (const name of Object.keys(g.attributes))
-    if (!['position', 'color', 'aCut'].includes(name)) g.deleteAttribute(name);
+    if (!['position', 'color', 'aCut', 'uv'].includes(name)) g.deleteAttribute(name);
   g.computeVertexNormals();
   g.computeBoundingBox();
   return g;
@@ -92,9 +100,13 @@ export function requestProp(id: string): void {
     return;
   }
   set(id, { status: 'loading' });
-  readModel(prop.model)
-    .then((buf) => loader.parseAsync(buf, ''))
-    .then((gltf) => set(id, { status: 'ready', geometry: normalizeProp(gltf.scene, prop) }))
+  Promise.all([
+    readModel(prop.model).then((buf) => loader.parseAsync(buf, '')),
+    prop.texture ? loadPropTexture(prop.texture) : null,
+  ])
+    .then(([gltf, texture]) =>
+      set(id, { status: 'ready', geometry: normalizeProp(gltf.scene, prop), texture }),
+    )
     .catch((err: unknown) => {
       console.warn(`[narco] modèle ${prop.model} non chargé, repli sur le cube`, err);
       set(id, { status: 'error' });
@@ -167,4 +179,38 @@ export function tintedGeometry(g: BufferGeometry, prop: Prop, config: GameConfig
     );
   }
   return out;
+}
+
+// ---------------------------------------------------------------- atlas de textures des packs
+
+const textures = new Map<string, Promise<Texture>>();
+
+/** Chargement d'un atlas (remplacé sous Node par les tests : pas d'image DOM). */
+let readTexture = (path: string): Promise<Texture> =>
+  new TextureLoader().loadAsync(`${import.meta.env.BASE_URL}${path}`);
+
+export function setTextureReader(reader: (path: string) => Promise<Texture>): void {
+  readTexture = reader;
+  textures.clear();
+}
+
+/**
+ * Atlas d'un pack, chargé une fois et partagé par tous ses props : couleurs d'origine,
+ * mipmaps, texels nets (aplats de couleur de l'atlas Kenney), espace sRGB.
+ */
+export function loadPropTexture(path: string): Promise<Texture> {
+  let p = textures.get(path);
+  if (!p) {
+    p = readTexture(path).then((t) => {
+      t.colorSpace = SRGBColorSpace;
+      t.magFilter = NearestFilter;
+      t.minFilter = NearestMipmapLinearFilter;
+      t.generateMipmaps = true;
+      t.wrapS = t.wrapT = RepeatWrapping;
+      t.needsUpdate = true;
+      return t;
+    });
+    textures.set(path, p);
+  }
+  return p;
 }

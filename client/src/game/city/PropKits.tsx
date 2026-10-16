@@ -1,5 +1,13 @@
 import { Component, useLayoutEffect, useMemo, useRef, type ErrorInfo, type ReactNode } from 'react';
-import { Euler, Matrix4, Quaternion, Vector3, type InstancedMesh, type Material } from 'three';
+import {
+  Euler,
+  Matrix4,
+  Quaternion,
+  Vector3,
+  type InstancedMesh,
+  type Material,
+  type Texture,
+} from 'three';
 import { gameData, type GameData, type PropCategory } from '@narco/shared';
 import { areaIdNear } from '../areaStreaming';
 import { fallbackGeometry, tintedGeometry, usePropEntry } from './propAssets';
@@ -36,8 +44,11 @@ interface KitProps {
   /** Areas chargées (null : préchauffage, rien n'est demandé). */
   loaded: ReadonlySet<string> | null;
   data: GameData;
-  material: Material;
-  cutMaterial: Material;
+  /**
+   * Matériau d'un prop : atlas de son pack (null : couleurs de sommets), découpe pour les
+   * bâtiments. Partagé par clé (le fournisseur garde le cache).
+   */
+  materialFor: (texture: Texture | null, cut: boolean) => Material;
   /** Repli forcé (error boundary). */
   failed?: boolean;
 }
@@ -47,7 +58,7 @@ interface KitProps {
  * Le modèle n'est demandé qu'une fois une de ses areas chargée ; rien n'est dessiné pendant le
  * chargement, le cube neutre si le modèle échoue.
  */
-function Kit({ id, items, loaded, data, material, cutMaterial, failed }: KitProps) {
+function Kit({ id, items, loaded, data, materialFor, failed }: KitProps) {
   const ref = useRef<InstancedMesh>(null);
   const prop = gameData.props.get(id);
   const areas = useMemo(() => items.map((it) => areaIdNear(it)), [items]);
@@ -87,11 +98,14 @@ function Kit({ id, items, loaded, data, material, cutMaterial, failed }: KitProp
     else active.delete(id);
     return () => void active.delete(id);
   }, [id, geometry, visible, prop]);
+  const texture = status !== 'error' && entry?.status === 'ready' ? entry.texture : null;
+  const material = materialFor(texture, Boolean(prop?.cuttable));
   if (!geometry || items.length === 0) return null;
   return (
     <instancedMesh
       ref={ref}
-      args={[geometry, prop?.cuttable ? cutMaterial : material, items.length]}
+      name={id}
+      args={[geometry, material, items.length]}
       frustumCulled={false}
     />
   );
