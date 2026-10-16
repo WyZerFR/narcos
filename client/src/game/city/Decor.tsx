@@ -30,6 +30,7 @@ import {
 } from '@narco/shared';
 import { Batch, shade } from './batch';
 import { areaIdNear } from '../areaStreaming';
+import { kitBlobs, setStaticBlobs } from '../blobRegistry';
 
 /** Une instance : position (au sol sauf `y`), rotation Y, échelle uniforme, teinte optionnelle. */
 interface Placement {
@@ -457,6 +458,13 @@ export function Decor({
       },
     ];
   }, [data, solidMaterial, glowMaterial]);
+
+  // ombres blob du décor (voitures, arbres, props) : un seul InstancedMesh, BlobShadows.tsx
+  useLayoutEffect(() => {
+    const { radius } = data.config.render.blob;
+    setStaticBlobs(kits.flatMap((k) => kitBlobs(k.key, k.items, radius)));
+    return () => setStaticBlobs([]);
+  }, [kits, data]);
 
   useLayoutEffect(
     () => () => {

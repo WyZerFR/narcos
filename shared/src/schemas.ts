@@ -94,7 +94,76 @@ export const CutoutSchema = z.object({
   softness: range(CUTOUT_LIMITS.softness),
 });
 
+/** Niveaux de qualité graphique (réglage client, Options). */
+export const QualitySchema = z.enum(['low', 'medium', 'high']);
+
+const LightSchema = z.object({
+  color: hexColor,
+  intensity: nonNeg,
+  /** Multiplicateur de la couleur (teintes de la palette éclaircies, > 1 autorisé). */
+  scale: pos.default(1),
+});
+
+/**
+ * Thème visuel (`config.theme.<id>`) : couleurs de base remplacées (ciel, asphalte, trottoirs…),
+ * brouillard, lumières. Lumières dynamiques : le soleil et, au plus, une lumière qui suit le
+ * joueur ; ambiante et hémisphère ne comptent pas (sans position).
+ */
+export const ThemeSchema = z.object({
+  label: z.string().min(1),
+  palette: PaletteSchema.partial(),
+  fog: z.object({ near: pos, far: pos }),
+  ambient: LightSchema.nullable(),
+  hemisphere: z.object({ sky: LightSchema, ground: LightSchema, intensity: nonNeg }).nullable(),
+  sun: LightSchema.extend({ position: z.tuple([z.number(), z.number(), z.number()]) }),
+  playerLight: LightSchema.extend({ distance: pos, decay: nonNeg, height: pos }).nullable(),
+});
+
+export const THEME_IDS = ['cartel', 'legacy_night'] as const;
+export const ThemeIdSchema = z.enum(THEME_IDS);
+
+export const ThemesSchema = z.object({
+  default: ThemeIdSchema,
+  cartel: ThemeSchema,
+  legacy_night: ThemeSchema,
+});
+
+/**
+ * Réglages techniques du rendu : budget de lumières dynamiques, ombre réelle (qualités
+ * autorisées, jamais sur écran tactile), ombres blob et halos de néons instanciés.
+ */
+export const RenderSchema = z.object({
+  maxDynamicLights: z.number().int().min(1).max(4),
+  realShadows: z.object({
+    qualities: z.array(QualitySchema),
+    touch: z.boolean(),
+    mapSize: z.number().int().min(256).max(4096),
+    /** Demi-côté (m) de la zone couverte autour du joueur. */
+    radius: pos,
+  }),
+  blob: z.object({
+    opacity: z.number().min(0).max(1),
+    /** Rayons (m) des ombres sous chaque type d'acteur ou d'objet. */
+    radius: z.object({ player: pos, npc: pos, car: pos, prop: pos, tree: pos }),
+  }),
+  halo: z.object({
+    /** Taille (m) d'un halo de devanture, d'un gyrophare. */
+    size: pos,
+    beaconSize: pos,
+    opacity: z.number().min(0).max(1),
+    /** Clignotement des gyrophares (Hz) et leurs couleurs (alternées). */
+    beaconHz: pos,
+    beaconColors: z.array(hexColor).min(1),
+  }),
+});
+
+/** Couleurs émissives autorisées (néons, enseignes, gyrophares) : nom → couleur. */
+export const NeonsSchema = z.record(z.string().min(1), hexColor);
+
 export const ConfigSchema = z.object({
+  theme: ThemesSchema,
+  render: RenderSchema,
+  neons: NeonsSchema,
   room: z.object({
     /** Parties simultanées au plus sur le serveur (les parties restaurées comptent). */
     maxRooms: z.number().int().positive(),
@@ -1142,3 +1211,7 @@ export const PalettesFileSchema = z.object({
 
 export type Swatch = z.infer<typeof SwatchSchema>;
 export type PalettesFile = z.infer<typeof PalettesFileSchema>;
+export type Theme = z.infer<typeof ThemeSchema>;
+export type ThemeId = z.infer<typeof ThemeIdSchema>;
+export type Quality = z.infer<typeof QualitySchema>;
+export type RenderParams = GameConfig['render'];

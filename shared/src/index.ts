@@ -34,3 +34,4 @@ export * from './modelBudget';
 export * from './cityBlocks';
 export * from './airport';
 export * from './areaSpots';
+export * from './theme';

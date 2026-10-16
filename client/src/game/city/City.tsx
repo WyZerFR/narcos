@@ -1,35 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { MeshBasicMaterial, MeshLambertMaterial, Vector2, Vector3, type Camera } from 'three';
-import { gameData } from '@narco/shared';
+import { MeshBasicMaterial, Vector2, Vector3, type Camera } from 'three';
+import { gameData, type ThemeId } from '@narco/shared';
+import { themedData } from './themedData';
 import { localPlayer } from '../localPlayer';
 import { buildCity } from './buildCity';
 import { SEA_GROUP } from './areaBatches';
 import { useLoadedAreas } from '../areaStreaming';
 import { Decor } from './Decor';
-import { shade } from './batch';
+import { Halos } from './Halos';
+import { litMaterial } from '../materials';
 import { applyCutout, cutoutUniforms, getCutout } from './cutout';
 
-const { palette, world } = gameData.config;
-// Teintes de la palette très éclaircies : lumière de nuit bleutée, assez forte pour lire les volumes.
-const SKY_LIGHT = shade(palette.wall, 10);
-const GROUND_LIGHT = shade(palette.ground, 6);
-const MOON = shade(palette.wall, 9);
-/** Fond derrière les murs d'un intérieur : le ciel, très assombri. */
-const INTERIOR_VOID = shade(palette.sky, 0.4);
-
-/** Ambiance de nuit : 2 lumières seulement (hémisphère + lune) ; brouillard dans la rue seulement. */
-export function NightAmbience({ interior = false }: { interior?: boolean }) {
-  return (
-    <>
-      <color attach="background" args={[interior ? INTERIOR_VOID : palette.sky]} />
-      {!interior && <fog attach="fog" args={[palette.sky, 35, 95]} />}
-      {/* Couleurs de lumière = teintes de la palette éclaircies (nuit bleutée, pas de noir pur). */}
-      <hemisphereLight args={[SKY_LIGHT, GROUND_LIGHT, 1.1]} />
-      <directionalLight position={[-12, 25, 10]} intensity={1.3} color={MOON} />
-    </>
-  );
-}
+const { world } = gameData.config;
 
 const playerCenter = new Vector3();
 const projected = new Vector3();
@@ -82,9 +65,21 @@ const WARMUP_FRAMES = 2;
  * voisines directes sont dessinées (la mer toujours) ; décor instancié filtré de même.
  * `lockVersion` : reconstruction quand le verrou d'une area change (portail de l'aéroport).
  */
-export function City({ glowBoost, lockVersion }: { glowBoost: number; lockVersion: number }) {
+export function City({
+  glowBoost,
+  lockVersion,
+  themeId,
+  shadows,
+}: {
+  glowBoost: number;
+  lockVersion: number;
+  themeId: ThemeId;
+  /** Ombre temps réel (qualité haute, hors tactile) : les murs la portent et la reçoivent. */
+  shadows: boolean;
+}) {
   // eslint-disable-next-line react-hooks/exhaustive-deps -- lockVersion : gameData muté en place
-  const geometry = useMemo(() => buildCity(gameData), [lockVersion]);
+  const data = useMemo(() => themedData(gameData, themeId), [themeId, lockVersion]);
+  const geometry = useMemo(() => buildCity(data), [data]);
   const loaded = useLoadedAreas();
   const [warm, setWarm] = useState(false);
   const frames = useRef(0);
@@ -94,9 +89,9 @@ export function City({ glowBoost, lockVersion }: { glowBoost: number; lockVersio
   // Bâtiments : découpe devant le joueur. Décor (bas) : matériaux sans découpe.
   const materials = useMemo(
     () => ({
-      solid: applyCutout(new MeshLambertMaterial({ vertexColors: true })),
+      solid: applyCutout(litMaterial({ vertexColors: true })),
       glow: applyCutout(new MeshBasicMaterial({ vertexColors: true, toneMapped: false })),
-      decorSolid: new MeshLambertMaterial({ vertexColors: true }),
+      decorSolid: litMaterial({ vertexColors: true }),
       decorGlow: new MeshBasicMaterial({ vertexColors: true, toneMapped: false }),
     }),
     [],
@@ -130,17 +125,25 @@ export function City({ glowBoost, lockVersion }: { glowBoost: number; lockVersio
         const visible = !warm || key === SEA_GROUP || loaded.has(key);
         return (
           <group key={key} visible={visible}>
-            {g.solid && <mesh geometry={g.solid} material={materials.solid} />}
+            {g.solid && (
+              <mesh
+                geometry={g.solid}
+                material={materials.solid}
+                castShadow={shadows}
+                receiveShadow={shadows}
+              />
+            )}
             {g.glow && <mesh geometry={g.glow} material={materials.glow} />}
           </group>
         );
       })}
       <Decor
         loaded={warm ? loaded : null}
-        data={gameData}
+        data={data}
         solidMaterial={materials.decorSolid}
         glowMaterial={materials.decorGlow}
       />
+      <Halos data={data} loaded={warm ? loaded : null} glowBoost={glowBoost} />
       <CutoutDriver />
     </>
   );

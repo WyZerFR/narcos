@@ -1,16 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { FRAME_PRIORITY } from './framePriority';
-import {
-  BoxGeometry,
-  Color,
-  Euler,
-  Matrix4,
-  MeshLambertMaterial,
-  Quaternion,
-  Vector3,
-  type InstancedMesh,
-} from 'three';
+import { BoxGeometry, Color, Euler, Matrix4, Quaternion, Vector3, type InstancedMesh } from 'three';
+import { litMaterial } from './materials';
 import { gameData } from '@narco/shared';
 import type { GameRoom, NpcView } from '../net/connection';
 import { npcSmoothed, useNpcList } from './npcState';
@@ -45,7 +37,7 @@ export function Npcs({ room }: { room: GameRoom }) {
     () => ({
       bodyGeo: new BoxGeometry(BODY.w, BODY.h, BODY.d).translate(0, BODY.h / 2, 0),
       headGeo: new BoxGeometry(HEAD, HEAD, HEAD).translate(0, BODY.h + HEAD / 2 + 0.02, 0),
-      material: new MeshLambertMaterial(),
+      material: litMaterial(),
     }),
     [],
   );

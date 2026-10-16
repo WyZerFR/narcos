@@ -1,3 +1,4 @@
+import { gameData, THEME_IDS } from '@narco/shared';
 import { characterSelectAvailable, openCharacterSelect } from './characterSelectStore';
 import { connection } from '../net/connection';
 import { QUALITY_PRESETS, updateSettings, useSettings, type Quality } from './settings';
@@ -24,7 +25,7 @@ function toggleFullscreen(): void {
 }
 
 export function SettingsPanel({ onClose }: { onClose: () => void }) {
-  const { quality, debug } = useSettings();
+  const { quality, theme, debug } = useSettings();
 
   return (
     <div
@@ -46,6 +47,22 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
                 onClick={() => updateSettings({ quality: q })}
               >
                 {QUALITY_PRESETS[q].label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="setting">
+          <span>Ambiance</span>
+          <div className="segmented">
+            {THEME_IDS.map((t) => (
+              <button
+                key={t}
+                type="button"
+                className={t === theme ? 'active' : ''}
+                onClick={() => updateSettings({ theme: t })}
+              >
+                {gameData.config.theme[t].label}
               </button>
             ))}
           </div>

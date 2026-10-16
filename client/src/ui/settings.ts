@@ -1,9 +1,14 @@
 import { useSyncExternalStore } from 'react';
+import { gameData, resolveThemeId, type ThemeId } from '@narco/shared';
 
-export type Quality = 'low' | 'medium' | 'high';
+import type { Quality } from '@narco/shared';
+
+export type { Quality };
 
 export interface Settings {
   quality: Quality;
+  /** Thème visuel (config.theme), choisi dans Options. */
+  theme: ThemeId;
   debug: boolean;
 }
 
@@ -39,7 +44,8 @@ function load(): Settings {
   const quality = saved.quality && saved.quality in QUALITY_PRESETS ? saved.quality : 'low';
   // ?debug=1 / ?debug=0 : réglage mémorisé, plus besoin du paramètre ensuite.
   const debug = debugParam !== null ? debugParam !== '0' : saved.debug === true;
-  const settings = { quality, debug };
+  const theme = resolveThemeId(gameData.config, saved.theme);
+  const settings = { quality, theme, debug };
   if (debugParam !== null) {
     try {
       localStorage.setItem(KEY, JSON.stringify(settings));

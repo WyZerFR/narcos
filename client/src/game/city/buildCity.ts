@@ -12,7 +12,7 @@ import {
   type Rect,
   visibleLocations,
 } from '@narco/shared';
-import type { Batch} from './batch';
+import type { Batch } from './batch';
 import { faceOf, mix, seeded, shade, SIDES, type Face } from './batch';
 import { buildQuartiers } from './buildQuartiers';
 import { buildAirport } from './buildAirport';

@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react';
+import type { MeshLambertMaterial } from 'three';
 import {
   Box3,
   BufferAttribute,
   BufferGeometry,
   Color,
   Group,
-  MeshLambertMaterial,
   SkinnedMesh,
   Vector4,
   type AnimationClip,
   type Material,
   type Object3D,
 } from 'three';
+import { facetedClone, litMaterial } from '../materials';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
@@ -120,7 +121,7 @@ const SLOT_COUNT = gameData.appearanceSlots.size + 1;
  * programme partagé, un seul draw call ; l'éclairage Lambert garde l'ombrage du modèle.
  */
 export function characterMaterial(): MeshLambertMaterial {
-  const mat = new MeshLambertMaterial({ vertexColors: true });
+  const mat = litMaterial({ vertexColors: true });
   const slotColors = Array.from({ length: SLOT_COUNT }, () => new Vector4(0, 0, 0, 0));
   mat.userData.slotColors = slotColors;
   mat.onBeforeCompile = (shader) => {
@@ -305,7 +306,7 @@ export function instantiate(asset: Pick<CharacterAsset, 'template'>): Group {
     const mesh = o as SkinnedMesh;
     if (!mesh.isMesh) return;
     const source = mesh.material as Material;
-    mesh.material = source.userData.slotColors ? characterMaterial() : source.clone();
+    mesh.material = source.userData.slotColors ? characterMaterial() : facetedClone(source);
   });
   return root;
 }
