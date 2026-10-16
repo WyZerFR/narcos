@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { connection } from '../net/connection';
 import { currentArea } from '../game/areaStreaming';
 import { getSettings } from './settings';
+import { gameData } from '@narco/shared';
+import { propDrawCalls } from '../game/city/PropKits';
 
 /** Alimenté par `DebugProbe` dans la scène ; lu ici 4 fois par seconde. */
 export const debugStats = { fps: 0, calls: 0, triangles: 0 };
@@ -11,8 +13,7 @@ export const debugStats = { fps: 0, calls: 0, triangles: 0 };
  * Budget iPad : < 200 au total, objectif < 60 par area (⚠ au-delà).
  */
 const callsByArea = new Map<string, number>();
-const AREA_TARGET = 60;
-const FRAME_BUDGET = 200;
+const { drawCallTarget: AREA_TARGET, drawCallBudget: FRAME_BUDGET } = gameData.config.props;
 
 export function DebugOverlay() {
   const ref = useRef<HTMLDivElement>(null);
@@ -34,7 +35,10 @@ export function DebugOverlay() {
         `${debugStats.fps.toFixed(0)} fps · ${debugStats.calls} draw calls${over} · ` +
         `${(debugStats.triangles / 1000).toFixed(1)}k tris · ${ping}\n` +
         `${theme} · ${quality} · area ${area || '—'}
-max par thème/area : ${perArea || '—'}`;
+max par thème/area : ${perArea || '—'}
+décor 3D : ${Object.entries(propDrawCalls())
+          .map(([c, n]) => `${c} ${n}`)
+          .join(' · ')}`;
       el.dataset.low = debugStats.fps < 30 ? '1' : '0';
     }, 250);
     return () => clearInterval(id);
