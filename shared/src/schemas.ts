@@ -117,17 +117,22 @@ export const ThemeSchema = z.object({
   hemisphere: z.object({ sky: LightSchema, ground: LightSchema, intensity: nonNeg }).nullable(),
   sun: LightSchema.extend({ position: z.tuple([z.number(), z.number(), z.number()]) }),
   playerLight: LightSchema.extend({ distance: pos, decay: nonNeg, height: pos }).nullable(),
+  /** Bloom (qualités moyen et haut) : faux pour un thème doux, émissifs non poussés. */
+  bloom: z.boolean().default(true),
+  /** Halos additifs des devantures et des lampadaires. */
+  halos: z.boolean().default(true),
   /** Applique les palettes par area (areas.json) : faux pour l'ancien thème, uniforme. */
   areaPalettes: z.boolean(),
 });
 
-export const THEME_IDS = ['cartel', 'legacy_night'] as const;
+export const THEME_IDS = ['cartel', 'legacy_night', 'neutral'] as const;
 export const ThemeIdSchema = z.enum(THEME_IDS);
 
 export const ThemesSchema = z.object({
   default: ThemeIdSchema,
   cartel: ThemeSchema,
   legacy_night: ThemeSchema,
+  neutral: ThemeSchema,
 });
 
 /**

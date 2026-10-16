@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { MeshBasicMaterial, Vector2, Vector3, type Camera } from 'three';
-import { gameData, type ThemeId } from '@narco/shared';
+import { gameData, themeOf, type ThemeId } from '@narco/shared';
 import { themedData } from './themedData';
 import { localPlayer } from '../localPlayer';
 import { buildCity } from './buildCity';
@@ -83,6 +83,8 @@ export function City({
   const data = useMemo(() => themedData(gameData, themeId), [themeId, lockVersion]);
   const geometry = useMemo(() => buildCity(data), [data]);
   const propKits = useMemo(() => propKitItems(data), [data]);
+  // thème doux (neutre) : halos des devantures et des lampadaires coupés
+  const halos = themeOf(gameData.config, themeId).halos;
   const loaded = useLoadedAreas();
   const [warm, setWarm] = useState(false);
   const frames = useRef(0);
@@ -144,6 +146,7 @@ export function City({
       })}
       <Decor
         loaded={warm ? loaded : null}
+        halos={halos}
         data={data}
         solidMaterial={materials.decorSolid}
         glowMaterial={materials.decorGlow}
@@ -155,7 +158,7 @@ export function City({
         material={materials.decorSolid}
         cutMaterial={materials.propCut}
       />
-      <Halos data={data} loaded={warm ? loaded : null} glowBoost={glowBoost} />
+      {halos && <Halos data={data} loaded={warm ? loaded : null} glowBoost={glowBoost} />}
       <CutoutDriver />
     </>
   );

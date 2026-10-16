@@ -248,12 +248,15 @@ export function Decor({
   loaded,
   solidMaterial,
   glowMaterial,
+  halos = true,
 }: {
   data: GameData;
   /** Areas chargées (null : toute l'île, au montage). */
   loaded: ReadonlySet<string> | null;
   solidMaterial: Material;
   glowMaterial: Material;
+  /** Halos au sol des lampadaires (coupés par un thème doux). */
+  halos?: boolean;
 }) {
   const kits = useMemo<Kit[]>(() => {
     const { palette, decor } = data.config;
@@ -460,7 +463,7 @@ export function Decor({
         items: lamps.map(({ color: _c, ...p }) => p),
       },
       { key: 'heads', geometry: head.build(), material: glowMaterial, items: lamps },
-      { key: 'pools', geometry: pool, material: poolMaterial, items: lamps },
+      { key: 'pools', hidden: !halos, geometry: pool, material: poolMaterial, items: lamps },
       {
         key: 'trees',
         hidden: kitModelled(data, 'trees'),
@@ -532,7 +535,7 @@ export function Decor({
         items: at(decor.cartons),
       },
     ];
-  }, [data, solidMaterial, glowMaterial]);
+  }, [data, solidMaterial, glowMaterial, halos]);
 
   // ombres blob du décor (voitures, arbres, props) : un seul InstancedMesh, BlobShadows.tsx
   useLayoutEffect(() => {

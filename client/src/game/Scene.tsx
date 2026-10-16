@@ -10,6 +10,7 @@ import {
   fitInteriorZoom,
   gameData,
   realShadowsEnabled,
+  themeOf,
   type ThemeId,
   interiorCameraTarget,
   smoothFactor,
@@ -180,6 +181,8 @@ export function Scene({ room }: { room: GameRoom }) {
   const { quality, theme, debug } = useSettings();
   const preset = QUALITY_PRESETS[quality];
   const shadows = realShadowsEnabled(gameData.config, quality, isTouchDevice());
+  // thème doux (neutre) : pas de bloom, émissifs non poussés au-dessus de 1
+  const bloom = themeOf(gameData.config, theme).bloom ? preset.bloom : 0;
   return (
     <Canvas
       key={quality /* l'antialias et les ombres ne se changent qu'en recréant le contexte */}
@@ -188,15 +191,15 @@ export function Scene({ room }: { room: GameRoom }) {
       gl={{ antialias: preset.antialias, powerPreference: 'high-performance' }}
       shadows={shadows}
     >
-      <World room={room} glowBoost={preset.glowBoost} themeId={theme} shadows={shadows} />
-      {preset.bloom > 0 && (
+      <World
+        room={room}
+        glowBoost={bloom > 0 ? preset.glowBoost : 1}
+        themeId={theme}
+        shadows={shadows}
+      />
+      {bloom > 0 && (
         <EffectComposer multisampling={0}>
-          <Bloom
-            mipmapBlur
-            luminanceThreshold={1}
-            luminanceSmoothing={0.2}
-            intensity={preset.bloom}
-          />
+          <Bloom mipmapBlur luminanceThreshold={1} luminanceSmoothing={0.2} intensity={bloom} />
         </EffectComposer>
       )}
       {debug && <DebugProbe />}

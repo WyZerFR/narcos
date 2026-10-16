@@ -63,6 +63,42 @@
       },
       "playerLight": null,
       "areaPalettes": false
+    },
+    "neutral": {
+      "label": "Neutre (jour doux)",
+      "palette": {
+        "sky": "#a9bccd",
+        "street": "#55585f",
+        "ground": "#8d929b"
+      },
+      "fog": {
+        "near": 90,
+        "far": 240
+      },
+      "ambient": null,
+      "hemisphere": {
+        "sky": {
+          "color": "#dfe9f3",
+          "intensity": 1,
+          "scale": 1
+        },
+        "ground": {
+          "color": "#8d929b",
+          "intensity": 1,
+          "scale": 1
+        },
+        "intensity": 1.6
+      },
+      "sun": {
+        "color": "#fff8ee",
+        "intensity": 1.6,
+        "scale": 1,
+        "position": [-30, 40, 18]
+      },
+      "playerLight": null,
+      "bloom": false,
+      "halos": false,
+      "areaPalettes": false
     }
   },
   "render": {
