@@ -88,6 +88,10 @@ export function checkTheme(
     if (dynamicLightCount(t) > config.render.maxDynamicLights)
       errors.push(`config.json : theme.${id} dépasse render.maxDynamicLights`);
     if (t.fog.near >= t.fog.far) errors.push(`config.json : theme.${id}.fog, near doit être < far`);
+    const areaIds = new Set([...areas].map((a) => a.id));
+    for (const areaId of Object.keys(t.grass?.density ?? {}))
+      if (areaIds.size > 0 && !areaIds.has(areaId))
+        errors.push(`config.json : theme.${id}.grass.density, area inconnue "${areaId}"`);
     if (t.outline?.qualities.includes('low'))
       errors.push(`config.json : theme.${id}.outline, jamais en qualité basse`);
     if (t.shading.steps.some((s, i) => i > 0 && s <= t.shading.steps[i - 1]!))

@@ -125,3 +125,19 @@ describe('thème jour : toon et contour', () => {
     expect(Math.atan2(y, Math.hypot(x, z))).toBeLessThan((35 * Math.PI) / 180);
   });
 });
+
+describe('herbe vivante : vent des touffes', () => {
+  it('vent dans le vertex shader (uniform, aucun calcul CPU par touffe), à la hauteur du brin', async () => {
+    const { windMaterial } = await import('./city/GrassTufts');
+    const m = windMaterial(gameData.config.theme.day.shading);
+    const shader = {
+      uniforms: {},
+      vertexShader: '#include <common>\n#include <begin_vertex>',
+      fragmentShader: '',
+    };
+    m.onBeforeCompile(shader as never, undefined as never);
+    expect(shader.vertexShader).toContain('uniform float uWindAmp;');
+    expect(shader.vertexShader).toMatch(/sin\(windPhase\) \* uWindAmp \* position\.y/);
+    expect(Object.keys(shader.uniforms)).toContain('uWindTime');
+  });
+});

@@ -17,6 +17,7 @@ import { currentArea, useLoadedAreas } from '../areaStreaming';
 import { Decor } from './Decor';
 import { Halos } from './Halos';
 import { Panels } from './Panels';
+import { GrassTufts } from './GrassTufts';
 import { PropKits } from './PropKits';
 import { propKitItems } from './propPlacements';
 import { outlineMaterial, shadedMaterial } from '../materials';
@@ -81,10 +82,13 @@ export function City({
   themeId,
   shadows,
   outlines = false,
+  wind = false,
 }: {
   glowBoost: number;
   /** Contour des bâtiments de l'area du joueur (qualité et thème le permettent). */
   outlines?: boolean;
+  /** Vent des touffes d'herbe (coupé en qualité basse). */
+  wind?: boolean;
   lockVersion: number;
   themeId: ThemeId;
   /** Ombre temps réel (qualité haute, hors tactile) : les murs la portent et la reçoivent. */
@@ -99,7 +103,10 @@ export function City({
   );
   const propKits = useMemo(() => propKitItems(data), [data]);
   // thème doux (neutre) : halos des devantures et des lampadaires coupés
-  const { halos, glow, shading, outline, panels, propTint } = themeOf(gameData.config, themeId);
+  const { halos, glow, shading, outline, panels, propTint, grass } = themeOf(
+    gameData.config,
+    themeId,
+  );
   // thème jour : fenêtres, enseignes, guirlandes et lueurs en matériau éclairé (panneaux peints)
   const painted = glow === 'painted';
   const loaded = useLoadedAreas();
@@ -212,6 +219,15 @@ export function City({
         materialFor={propMaterials.make}
         propTint={propTint}
       />
+      {grass && (
+        <GrassTufts
+          data={data}
+          grass={grass}
+          shading={shading}
+          loaded={warm ? loaded : null}
+          wind={wind}
+        />
+      )}
       {panels && <Panels data={data} loaded={warm ? loaded : null} />}
       {halos && <Halos data={data} loaded={warm ? loaded : null} glowBoost={glowBoost} />}
       <CutoutDriver />

@@ -40,3 +40,4 @@ export * from './props';
 export * from './crosswalks';
 export * from './greenery';
 export * from './shot';
+export * from './groundCover';
