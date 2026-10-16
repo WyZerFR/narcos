@@ -337,7 +337,23 @@ export const ConfigSchema = z.object({
     /** Rotation des aperçus de l'écran de sélection (rad/s). */
     previewSpinSpeed: pos,
     /** Caméra des aperçus : distance et hauteur (m), hauteur visée (m), champ (degrés). */
-    preview: z.object({ distance: pos, height: pos, lookY: pos, fov: range(CAMERA_LIMITS.fov) }),
+    /**
+     * Aperçu de l'écran de sélection : caméra, fond neutre et éclairage propres (jamais le thème,
+     * la couleur d'une area ou du sol : le canvas d'aperçu n'a ni halos, ni brouillard, ni ombres).
+     */
+    preview: z.object({
+      distance: pos,
+      height: pos,
+      lookY: pos,
+      fov: range(CAMERA_LIMITS.fov),
+      background: hexColor,
+      ambient: z.object({ color: hexColor, intensity: nonNeg }),
+      key: z.object({
+        color: hexColor,
+        intensity: nonNeg,
+        position: z.tuple([z.number(), z.number(), z.number()]),
+      }),
+    }),
     /** Hauteur des étiquettes de nom au-dessus de la tête (m). */
     labelMargin: z.number().nonnegative(),
     /** Locomotion affichée (`shared/src/locomotion.ts`) : allures, fondus, cap, penchement. */

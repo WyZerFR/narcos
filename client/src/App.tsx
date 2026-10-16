@@ -4,6 +4,7 @@ import { bindKeyboard } from './input/keyboard';
 import { Joystick } from './input/Joystick';
 import { Interaction } from './ui/Interaction';
 import { Scene } from './game/Scene';
+import { CanvasBoundary } from './ui/CanvasBoundary';
 import { Lobby } from './ui/Lobby';
 import { Hud } from './ui/Hud';
 import { DebugOverlay } from './ui/DebugOverlay';
@@ -41,7 +42,9 @@ export function App() {
         <CharacterSelect room={room} code={snapshot.code} />
       ) : room ? (
         <>
-          <Scene room={room} />
+          <CanvasBoundary label="Scène du jeu">
+            <Scene room={room} />
+          </CanvasBoundary>
           <Hud snapshot={snapshot} room={room} />
           {/* mode placement : flèches et boutons à la place du joystick et d'ACTION */}
           {!placing && <Joystick />}

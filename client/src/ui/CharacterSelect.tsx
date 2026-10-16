@@ -14,6 +14,8 @@ import {
 } from '../game/characters/characterAssets';
 import { lookOf } from '../game/Players';
 import { CharacterColors } from './CharacterColors';
+import { CanvasBoundary } from './CanvasBoundary';
+import { CubeBody } from '../game/characters/CharacterBody';
 import { closeCharacterSelect, useCharacterSelectStep } from './characterSelectStore';
 
 const CHARACTERS = [...gameData.characters.values()];
@@ -60,9 +62,34 @@ function Preview({ asset, appearance }: { asset: CharacterAsset; appearance: App
 export function PreviewCanvas({
   asset,
   appearance = NO_COLORS,
+  failed = false,
 }: {
   asset: CharacterAsset | null;
   appearance?: Appearance;
+  /** Modèle non chargé : cube neutre à la place (jamais un canvas vide). */
+  failed?: boolean;
+}) {
+  const [lost, setLost] = useState(false);
+  return (
+    <CanvasBoundary label="Aperçu du personnage">
+      <PreviewScene asset={asset} appearance={appearance} failed={failed} onLost={setLost} />
+      {lost && (
+        <span className="character-status">Aperçu 3D interrompu (contexte WebGL perdu)</span>
+      )}
+    </CanvasBoundary>
+  );
+}
+
+function PreviewScene({
+  asset,
+  appearance,
+  failed,
+  onLost,
+}: {
+  asset: CharacterAsset | null;
+  appearance: Appearance;
+  failed: boolean;
+  onLost: (lost: boolean) => void;
 }) {
   return (
     <Canvas
@@ -74,11 +101,26 @@ export function PreviewCanvas({
         near: 0.1,
         far: 50,
       }}
-      onCreated={({ camera }) => camera.lookAt(0, PREVIEW.lookY, 0)}
+      onCreated={({ camera, gl }) => {
+        camera.lookAt(0, PREVIEW.lookY, 0);
+        const canvas = gl.domElement;
+        canvas.addEventListener('webglcontextlost', () => {
+          console.warn('[narco] aperçu : contexte WebGL perdu');
+          onLost(true);
+        });
+        canvas.addEventListener('webglcontextrestored', () => onLost(false));
+      }}
     >
-      <hemisphereLight args={[gameData.config.palette.sky, gameData.config.palette.ground, 2.2]} />
-      <directionalLight position={[2, 5, 4]} intensity={1.6} />
+      {/* fond et lumières propres à l'aperçu (config.characters.preview), jamais le thème */}
+      <color attach="background" args={[PREVIEW.background]} />
+      <ambientLight color={PREVIEW.ambient.color} intensity={PREVIEW.ambient.intensity} />
+      <directionalLight
+        position={PREVIEW.key.position}
+        color={PREVIEW.key.color}
+        intensity={PREVIEW.key.intensity}
+      />
       {asset && <Preview key={asset.character.id} asset={asset} appearance={appearance} />}
+      {!asset && failed && <CubeBody ghost={false} />}
     </Canvas>
   );
 }
@@ -151,7 +193,10 @@ export function CharacterSelect({ room, code }: { room: GameRoom; code: string |
           ◀
         </button>
         <div className={`character-stage${shown.id === current ? ' selected' : ''}`}>
-          <PreviewCanvas asset={typeof asset === 'object' ? asset : null} />
+          <PreviewCanvas
+            asset={typeof asset === 'object' ? asset : null}
+            failed={asset === 'error'}
+          />
           {asset === 'loading' && <span className="character-status">Chargement…</span>}
           {asset === 'error' && <span className="character-status">Modèle indisponible</span>}
         </div>
