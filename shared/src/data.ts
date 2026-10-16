@@ -57,6 +57,7 @@ import { findSlits, obstaclesFrom } from './collision';
 import { dialogueVars, textVars } from './dialogue';
 import { areaAt, areaContainsRect, areaRects, areasEnvelope } from './areas';
 import { checkQuartier, generateQuartier, quartierFrame, type QuartierLayout } from './quartiers';
+import { checkTheme } from './theme';
 import { islandLayout, type IslandLayout } from './island';
 import { expandBlocks } from './cityBlocks';
 import { airportLayout } from './airport';
@@ -666,6 +667,9 @@ export function parseGameData(raw: RawGameData): GameData {
   errors.push(...checkAreas(config, areas, locFile.locations, quartiers));
   errors.push(...checkCity(config, areas, blocks, locFile.locations));
   errors.push(...checkAirport(config, areas));
+  errors.push(
+    ...checkTheme(config, locFile.locations, blocks, quartiersFile.quartiers, areas.values()),
+  );
   const marketReference = areas.get(areasFile.referenceAreaId);
   if (!marketReference || marketReference.locked)
     errors.push('areas.json : referenceAreaId inconnue ou verrouillée');

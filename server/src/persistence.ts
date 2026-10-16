@@ -4,6 +4,7 @@ import { dataDir } from './env';
 import { z } from 'zod';
 import {
   areaAt,
+  initialDiscovery,
   bagCapacity,
   bagTierFor,
   fitBag,
@@ -86,6 +87,8 @@ const StateJson = z.object({
       characterId: z.string().optional(),
       // ajouté avec la personnalisation : absent d'une ancienne sauvegarde (couleurs d'origine)
       appearance: z.record(z.string(), z.string()).optional(),
+      /** Brouillard de guerre (absent des anciennes sauvegardes : area de départ seule). */
+      discovered: z.array(z.string()).optional(),
       cart: z
         .array(
           z.object({
@@ -226,6 +229,7 @@ export function hydrateState(state: GameState, snap: RoomSnapshot): void {
     if (player.zone !== STREET && !gameData.interiors.has(player.zone)) player.zone = STREET;
     if (player.zone === STREET) Object.assign(player, streetRespawn(player));
     setLook(player, p.characterId, p.appearance ?? {});
+    player.discovered.push(...(p.discovered ?? initialDiscovery(gameData)));
     syncArea(player);
     state.players.set(id, player);
   }

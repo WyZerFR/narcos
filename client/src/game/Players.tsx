@@ -22,6 +22,7 @@ import { connection, type GameRoom, type PlayerView } from '../net/connection';
 import { readMoveIntent } from '../input/inputState';
 import { subscribeState } from '../net/gameView';
 import { localPlayer } from './localPlayer';
+import { remoteActorPositions } from './blobRegistry';
 import { screenToWorld } from './cameraState';
 import { isOccluded, setLabelAnchor } from './labels';
 import { getCutout } from './city/cutout';
@@ -259,6 +260,7 @@ export function RemotePlayer({ room, info }: { room: GameRoom; info: PlayerInfo 
   const buffer = useRef(new SnapshotBuffer(gameData.config.room.patchRateMs));
   const last = useRef({ x: NaN, z: NaN, rotY: NaN });
   const heading = useRef(room.state.players?.get(info.id)?.rotY ?? 0);
+  useEffect(() => () => void remoteActorPositions.delete(info.id), [info.id]);
 
   useFrame(() => {
     const p = room.state.players?.get(info.id);
@@ -274,6 +276,7 @@ export function RemotePlayer({ room, info }: { room: GameRoom; info: PlayerInfo 
     if (!s) return;
     // position interpolée : la locomotion en déduit la vitesse (pas des positions reçues)
     g.position.set(s.x, 0, s.z);
+    remoteActorPositions.set(info.id, { x: s.x, z: s.z });
     heading.current = s.rotY;
   }, FRAME_PRIORITY.actors);
 

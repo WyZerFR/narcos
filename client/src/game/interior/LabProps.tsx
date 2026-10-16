@@ -4,11 +4,11 @@ import {
   Color,
   IcosahedronGeometry,
   Matrix4,
-  MeshLambertMaterial,
   Quaternion,
   Vector3,
   type InstancedMesh,
 } from 'three';
+import { litMaterial } from '../materials';
 import { gameData, potProgress, potStatus, rotateOffset, rotatedSize } from '@narco/shared';
 import type { GameRoom } from '../../net/connection';
 import { gameNow, readPot, readRack } from '../../net/gameView';
@@ -52,7 +52,7 @@ export function LabProps({ room }: { room: GameRoom }) {
     return {
       plantGeo: plant.build(),
       bundleGeo: bundle.build(),
-      material: new MeshLambertMaterial({ vertexColors: true }),
+      material: litMaterial({ vertexColors: true }),
     };
   }, []);
 

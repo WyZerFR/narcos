@@ -9,6 +9,8 @@ import {
 import {
   fitInteriorZoom,
   gameData,
+  realShadowsEnabled,
+  type ThemeId,
   interiorCameraTarget,
   smoothFactor,
   STREET,
@@ -18,7 +20,9 @@ import { connection, type GameRoom } from '../net/connection';
 import { QUALITY_PRESETS, useSettings } from '../ui/settings';
 import { debugStats } from '../ui/DebugOverlay';
 import { localPlayer, resetLocalPlayer } from './localPlayer';
-import { City, NightAmbience } from './city/City';
+import { City } from './city/City';
+import { Ambience } from './Ambience';
+import { BlobShadows } from './BlobShadows';
 import { useAreaLocks } from './areaLocks';
 import { AreaBounds } from './AreaBounds';
 import { LabelProjector } from './labels';
@@ -121,7 +125,17 @@ function DebugProbe() {
   return null;
 }
 
-function World({ room, glowBoost }: { room: GameRoom; glowBoost: number }) {
+function World({
+  room,
+  glowBoost,
+  themeId,
+  shadows,
+}: {
+  room: GameRoom;
+  glowBoost: number;
+  themeId: ThemeId;
+  shadows: boolean;
+}) {
   const players = useRoomPlayers(room);
   const myId = connection.playerId;
   const myZone = players.find((p) => p.id === myId)?.zone ?? STREET;
@@ -131,13 +145,14 @@ function World({ room, glowBoost }: { room: GameRoom; glowBoost: number }) {
   useEffect(() => resetLocalPlayer(), [room]);
   return (
     <>
-      <NightAmbience interior={!inStreet} />
+      <Ambience themeId={themeId} interior={!inStreet} shadows={shadows} />
       {/* La ville reste montée (pas de reconstruction) mais n'est pas dessinée à l'intérieur. */}
       <group visible={inStreet}>
-        <City glowBoost={glowBoost} lockVersion={lockVersion} />
+        <City glowBoost={glowBoost} lockVersion={lockVersion} themeId={themeId} shadows={shadows} />
         <AreaBounds />
       </group>
       {inStreet && <Npcs room={room} />}
+      <BlobShadows room={room} zone={myZone} />
       {!inStreet && gameData.interiors.has(myZone) && (
         <Interior key={myZone} room={room} zoneId={myZone} glowBoost={glowBoost} />
       )}
@@ -156,18 +171,24 @@ function World({ room, glowBoost }: { room: GameRoom; glowBoost: number }) {
   );
 }
 
+/** Écran tactile (iPad, téléphone) : jamais d'ombre temps réel si config.render l'interdit. */
+function isTouchDevice(): boolean {
+  return navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches;
+}
+
 export function Scene({ room }: { room: GameRoom }) {
-  const { quality, debug } = useSettings();
+  const { quality, theme, debug } = useSettings();
   const preset = QUALITY_PRESETS[quality];
+  const shadows = realShadowsEnabled(gameData.config, quality, isTouchDevice());
   return (
     <Canvas
-      key={quality /* l'antialias ne se change qu'en recréant le contexte WebGL */}
+      key={quality /* l'antialias et les ombres ne se changent qu'en recréant le contexte */}
       className="scene"
       dpr={Math.min(preset.dpr, window.devicePixelRatio || 1)}
       gl={{ antialias: preset.antialias, powerPreference: 'high-performance' }}
-      shadows={false}
+      shadows={shadows}
     >
-      <World room={room} glowBoost={preset.glowBoost} />
+      <World room={room} glowBoost={preset.glowBoost} themeId={theme} shadows={shadows} />
       {preset.bloom > 0 && (
         <EffectComposer multisampling={0}>
           <Bloom

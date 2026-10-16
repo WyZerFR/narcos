@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
 import {
+  areaAt,
   areaRects,
+  discoveredAreaIds,
+  discoveryTargets,
   rectsOverlap,
   walkableAreas,
   footprint,
@@ -23,6 +26,8 @@ import { localPlayer } from '../game/localPlayer';
 const WIDTH = 160;
 const HEIGHT = 120;
 const REFRESH_MS = 100;
+/** Taille des pictogrammes (px CSS). */
+const ICON_PX = 11;
 
 const { config } = gameData;
 const { bounds } = config.world;
@@ -34,14 +39,26 @@ const ROADS = [
   ...LAYOUTS.flatMap((l) => [...l.roads, ...l.parking, l.plaza]),
 ];
 const AREAS = [...gameData.areas.values()];
+/** Teinte du brouillard : le ciel de la palette (comme la mer), presque opaque. */
+const FOG = gameData.config.palette.sky;
 // obstacles sur la terre marchable seulement (la mer et l'aéroport fermé ne sont pas des murs)
 const SOLIDS = obstaclesFrom(gameData).filter((r) =>
   walkableAreas(AREAS).some((a) => areaRects(a).some((t) => rectsOverlap(t, r))),
 );
 const PLACES = visibleLocations(gameData.locations.values()); // jamais la trappe cachée
+// pictogrammes des lieux notables, affichés une fois découverts (jamais trappe ni jardins)
+const ICONS = discoveryTargets(gameData).filter((t) => t.kind === 'place');
+
+/** Ids découverts par le joueur local (vide tant que le serveur n'a rien envoyé). */
+function myDiscoveries(room: GameRoom): Set<string> {
+  const out = new Set<string>();
+  room.state.players?.get(connection.playerId ?? '')?.discovered?.forEach((id) => out.add(id));
+  return out;
+}
 
 /**
  * Mini-carte : toute la zone, tournée comme la caméra (le haut de la carte = le haut de l'écran).
+ * Brouillard de guerre : les areas non découvertes sont sombres, sans icône ni autre joueur.
  * Canvas 2D, `pointer-events: none` : ne gêne jamais le joystick.
  */
 export function Minimap({ room }: { room: GameRoom }) {
@@ -86,6 +103,25 @@ export function Minimap({ room }: { room: GameRoom }) {
       for (const r of ROADS) rect(r, palette.street);
       for (const r of SOLIDS) rect(r, palette.wall);
       for (const loc of PLACES) rect(footprint(loc), loc.neonColor);
+      // brouillard : areas non découvertes recouvertes (ciel assombri), sans rien dessus
+      const known = myDiscoveries(room);
+      const areas = discoveredAreaIds(known);
+      ctx.globalAlpha = 0.96;
+      for (const a of AREAS) if (!areas.has(a.id)) for (const r of areaRects(a)) rect(r, FOG);
+      ctx.globalAlpha = 1;
+      // pictogrammes des lieux découverts, toujours droits à l'écran
+      ctx.font = `${ICON_PX}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      for (const t of ICONS) {
+        if (!known.has(t.id) || !t.icon) continue;
+        ctx.save();
+        ctx.translate(t.at.x, t.at.z);
+        ctx.rotate(-angle);
+        ctx.scale(1 / scale, 1 / scale);
+        ctx.fillText(t.icon, 0, 0);
+        ctx.restore();
+      }
 
       room.state.players?.forEach((p: PlayerView) => {
         // un joueur dans un intérieur (cave comprise) n'est pas sur la carte de la rue
@@ -93,6 +129,9 @@ export function Minimap({ room }: { room: GameRoom }) {
         const me = p.id === connection.playerId;
         const x = me && localPlayer.initialized ? localPlayer.x : p.x;
         const z = me && localPlayer.initialized ? localPlayer.z : p.z;
+        // les autres joueurs : visibles seulement dans une area découverte
+        const where = areaAt(AREAS, { x, z });
+        if (!me && (!where || !areas.has(where.id))) return;
         ctx.globalAlpha = p.connected ? 1 : 0.4;
         ctx.beginPath();
         ctx.arc(x, z, (me ? 4 : 3) / scale, 0, Math.PI * 2);

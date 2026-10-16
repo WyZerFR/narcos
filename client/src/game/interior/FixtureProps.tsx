@@ -3,11 +3,11 @@ import {
   BoxGeometry,
   Matrix4,
   MeshBasicMaterial,
-  MeshLambertMaterial,
   Quaternion,
   Vector3,
   type InstancedMesh,
 } from 'three';
+import { litMaterial } from '../materials';
 import { gameData, type Interior } from '@narco/shared';
 import type { GameRoom } from '../../net/connection';
 import { subscribeState } from '../../net/gameView';
@@ -42,7 +42,7 @@ export function FixtureProps({
   const { geometry, solidMat, glowMat } = useMemo(
     () => ({
       geometry: new BoxGeometry(1, 1, 1),
-      solidMat: new MeshLambertMaterial(),
+      solidMat: litMaterial(),
       glowMat: new MeshBasicMaterial({ toneMapped: false }),
     }),
     [],

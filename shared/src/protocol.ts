@@ -281,6 +281,8 @@ export type DebugMessage =
   | { cmd: 'teleportGarden'; index: number }
   | { cmd: 'setBagTier'; tier: number }
   | { cmd: 'clearBag' }
+  /** Brouillard de guerre du joueur : tout révéler ou tout masquer. */
+  | { cmd: 'discovery'; mode: 'all' | 'none' }
   /** Force le personnage d'un joueur (soi-même si `playerId` est absent), même figé. */
   | { cmd: 'setCharacter'; characterId: string; playerId?: string };
 

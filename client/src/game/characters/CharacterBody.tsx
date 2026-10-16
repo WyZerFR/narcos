@@ -84,12 +84,17 @@ export function CubeBody({ ghost }: { ghost: boolean }) {
     <>
       <mesh position={[0, SIZE / 2, 0]}>
         <boxGeometry args={[SIZE, SIZE, SIZE]} />
-        <meshLambertMaterial color={palette.wall} transparent={ghost} opacity={ghost ? 0.35 : 1} />
+        <meshLambertMaterial
+          flatShading
+          color={palette.wall}
+          transparent={ghost}
+          opacity={ghost ? 0.35 : 1}
+        />
       </mesh>
       {/* « nez » : indique la direction du regard */}
       <mesh position={[0, SIZE * 0.7, SIZE * 0.55]}>
         <boxGeometry args={[SIZE * 0.3, SIZE * 0.2, SIZE * 0.2]} />
-        <meshLambertMaterial color={palette.sky} />
+        <meshLambertMaterial flatShading color={palette.sky} />
       </mesh>
     </>
   );

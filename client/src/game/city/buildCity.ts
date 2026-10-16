@@ -12,7 +12,7 @@ import {
   type Rect,
   visibleLocations,
 } from '@narco/shared';
-import type { Batch} from './batch';
+import type { Batch } from './batch';
 import { faceOf, mix, seeded, shade, SIDES, type Face } from './batch';
 import { buildQuartiers } from './buildQuartiers';
 import { buildAirport } from './buildAirport';
@@ -37,7 +37,8 @@ interface Ctx {
   /** Batches de l'area courante (aiguillés par `router`). */
   readonly solid: Batch;
   readonly glow: Batch;
-  data: GameData;
+  /** Données vues avec la palette de l'area courante (areas.json ). */
+  readonly data: GameData;
   router: AreaBatches;
 }
 
@@ -46,6 +47,7 @@ export type CityGeometry = Map<string, AreaGeometry>;
 
 export function buildCity(data: GameData): CityGeometry {
   const router = new AreaBatches(data.areas.values());
+  const byArea = areaPalettes(data);
   const ctx: Ctx = {
     get solid() {
       return router.solid;
@@ -53,7 +55,9 @@ export function buildCity(data: GameData): CityGeometry {
     get glow() {
       return router.glow;
     },
-    data,
+    get data() {
+      return byArea.get(router.key) ?? data;
+    },
     router,
   };
   buildGround(ctx);
@@ -70,6 +74,18 @@ export function buildCity(data: GameData): CityGeometry {
   router.use(data.config.airport.areaId);
   buildAirport(ctx, facadeKit(ctx, seeded('airport')));
   return router.build();
+}
+
+/** Une vue des données par area : palette de base remplacée par celle de l'area. */
+function areaPalettes(data: GameData): Map<string, GameData> {
+  const out = new Map<string, GameData>();
+  for (const area of data.areas.values())
+    if (Object.keys(area.palette).length > 0)
+      out.set(area.id, {
+        ...data,
+        config: { ...data.config, palette: { ...data.config.palette, ...area.palette } },
+      });
+  return out;
 }
 
 // ---------------------------------------------------------------- éléments communs
@@ -360,7 +376,7 @@ function bank(ctx: Ctx, loc: GameLocation, rng: () => number) {
   const colH = h - 1.6;
   for (let i = 0; i < cols; i++) {
     const u = (i / (cols - 1) - 0.5) * f.len * 0.7;
-    ctx.solid.faceBox(f, u, 0.2 + colH / 2, 0.5, colH, 0.5, stone, 0.25);
+    ctx.solid.faceBox(f, u, 0.2 + colH / 2, 0.5, colH, 0.5, shade(loc.neonColor, 0.75), 0.25);
   }
   // entablement + fronton en gradins
   ctx.solid.faceBox(f, 0, colH + 0.5, f.len * 0.85, 0.6, 0.7, stone, 0.3);

@@ -27,6 +27,7 @@ export interface AreaGeometry {
 export class AreaBatches {
   private groups = new Map<string, { solid: Batch; glow: Batch }>();
   private cur: { solid: Batch; glow: Batch };
+  private curKey = SEA_GROUP;
   private readonly areas: Area[];
 
   constructor(areas: Iterable<Area>) {
@@ -43,6 +44,11 @@ export class AreaBatches {
     return g;
   }
 
+  /** Groupe courant : id d'area, ou `SEA_GROUP`. */
+  get key(): string {
+    return this.curKey;
+  }
+
   get solid(): Batch {
     return this.cur.solid;
   }
@@ -57,6 +63,7 @@ export class AreaBatches {
     next.solid.cuttable = this.cur.solid.cuttable;
     next.glow.cuttable = this.cur.glow.cuttable;
     this.cur = next;
+    this.curKey = key;
   }
 
   /** Les primitives suivantes vont dans l'area de `p` (la plus proche hors de l'île). */

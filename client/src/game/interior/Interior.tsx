@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
-import { MeshBasicMaterial, MeshLambertMaterial } from 'three';
+import { MeshBasicMaterial } from 'three';
+import { litMaterial } from '../materials';
 import { gameData } from '@narco/shared';
 import { applyCutout } from '../city/cutout';
 import { buildRoom } from './buildRoom';
@@ -23,7 +24,7 @@ export function Interior({
   const geometry = useMemo(() => buildRoom(interior), [interior]);
   const materials = useMemo(
     () => ({
-      solid: applyCutout(new MeshLambertMaterial({ vertexColors: true })),
+      solid: applyCutout(litMaterial({ vertexColors: true })),
       glow: applyCutout(new MeshBasicMaterial({ vertexColors: true, toneMapped: false })),
     }),
     [],

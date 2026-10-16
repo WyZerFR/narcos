@@ -30,6 +30,7 @@ import {
 } from '@narco/shared';
 import { Batch, shade } from './batch';
 import { areaIdNear } from '../areaStreaming';
+import { kitBlobs, setStaticBlobs } from '../blobRegistry';
 
 /** Une instance : position (au sol sauf `y`), rotation Y, échelle uniforme, teinte optionnelle. */
 interface Placement {
@@ -355,13 +356,62 @@ export function Decor({
         shade(palette.neon, 0.45),
       );
     }
+    // voitures de police garées : caisse à la couleur du commissariat, rampe aux gyrophares
+    const policeBlock = data.blocks.find((b) => b.style === 'police');
+    const policeBody = new Batch();
+    policeBody.block(
+      0,
+      0.25,
+      0,
+      length,
+      height * 0.45,
+      width,
+      shade(policeBlock?.color ?? palette.wall, 1.1),
+    );
+    policeBody.block(
+      -length * 0.08,
+      0.25 + height * 0.45,
+      0,
+      length * 0.5,
+      height * 0.4,
+      width * 0.88,
+      shade(palette.sky, 2.2),
+    );
+    policeBody.block(
+      length * 0.15,
+      0.25,
+      0,
+      length * 0.3,
+      height * 0.46,
+      width + 0.02,
+      shade(palette.sky, 1.4),
+    );
+    const policeBar = new Batch();
+    const beacons = data.config.render.halo.beaconColors;
+    beacons.forEach((c, i) => {
+      const z = (i / Math.max(1, beacons.length - 1) - 0.5) * width * 0.6;
+      policeBar.box(
+        -length * 0.08,
+        0.25 + height * 0.85 + 0.1,
+        z,
+        0.4,
+        0.18,
+        width * 0.28,
+        shade(c, 1.2),
+      );
+    });
+    const policeCars: Placement[] = decor.cars
+      .filter((c) => c.police)
+      .map((c) => ({ x: c.x, z: c.z, rotY: c.rotation === 90 ? Math.PI / 2 : 0 }));
     const cars: Placement[] = [
-      ...decor.cars.map((c) => ({
-        x: c.x,
-        z: c.z,
-        rotY: c.rotation === 90 ? Math.PI / 2 : 0,
-        color: shade(palette[c.color], c.color === 'neon' ? 0.9 : 1.6),
-      })),
+      ...decor.cars
+        .filter((c) => !c.police)
+        .map((c) => ({
+          x: c.x,
+          z: c.z,
+          rotY: c.rotation === 90 ? Math.PI / 2 : 0,
+          color: shade(palette[c.color], c.color === 'neon' ? 0.9 : 1.6),
+        })),
       // voitures garées des impasses : teinte d'une façade du quartier
       ...[...data.quartierLayouts.values()].flatMap((l) => {
         const facades = data.quartiers.get(l.id)!.palette.facades;
@@ -431,6 +481,13 @@ export function Decor({
         items: cars.map(({ color: _c, ...p }) => p),
       },
       {
+        key: 'policeCars',
+        geometry: policeBody.build(),
+        material: solidMaterial,
+        items: policeCars,
+      },
+      { key: 'policeBars', geometry: policeBar.build(), material: glowMaterial, items: policeCars },
+      {
         key: 'bins',
         geometry: bin.build(),
         material: solidMaterial,
@@ -457,6 +514,13 @@ export function Decor({
       },
     ];
   }, [data, solidMaterial, glowMaterial]);
+
+  // ombres blob du décor (voitures, arbres, props) : un seul InstancedMesh, BlobShadows.tsx
+  useLayoutEffect(() => {
+    const { radius } = data.config.render.blob;
+    setStaticBlobs(kits.flatMap((k) => kitBlobs(k.key, k.items, radius)));
+    return () => setStaticBlobs([]);
+  }, [kits, data]);
 
   useLayoutEffect(
     () => () => {

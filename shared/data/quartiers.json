@@ -24,7 +24,7 @@
         "depth": [6, 8.5],
         "height": [3.6, 4.4],
         "setback": [1.2, 2.5],
-        "roofs": ["flat", "gable", "sawtooth"],
+        "roofs": ["sawtooth", "flat", "sawtooth"],
         "porchChance": 0.4,
         "garageChance": 0.35,
         "storeyChance": 0.5,
@@ -32,15 +32,15 @@
         "windowLitChance": 0.6
       },
       "palette": {
-        "facades": ["#e8b33a", "#d9962b", "#f2c94c", "#c98a2e"],
-        "roofs": ["#8a5a1e", "#a8742a", "#6e4716"],
-        "doors": ["#4a2e12", "#2f1d0b", "#5c3a17"],
-        "neon": "#fff44f",
-        "windows": "#ffd98a",
-        "lamp": "#ffb347",
-        "ground": "#4a4132",
-        "sidewalk": "#7a6b52",
-        "road": "#2b261f"
+        "facades": ["#5d6470", "#4a4f57", "#6b5a4e", "#3f454d"],
+        "roofs": ["#2e3238", "#3b3f45", "#4a3a30"],
+        "doors": ["#1d1f24", "#2a1a1a", "#3a2020"],
+        "neon": "#ff0054",
+        "windows": "#ff8fa3",
+        "lamp": "#ff4d5e",
+        "ground": "#24212a",
+        "sidewalk": "#3a3540",
+        "road": "#1a181d"
       },
       "decor": {
         "streetlightSpacing": 14,
@@ -52,7 +52,7 @@
         "garlandSpacing": 0
       },
       "arch": {
-        "label": "EL JEFE — Territoire du cartel",
+        "label": "💀 EL JEFE — Territoire du cartel",
         "height": 5.5
       },
       "landmark": {
@@ -72,6 +72,19 @@
         "plazaDepth": 16,
         "plazaWidth": 58,
         "npcWaypointSpacing": 12
+      },
+      "archivedPalettes": {
+        "cartel_yellow": {
+          "facades": ["#e8b33a", "#d9962b", "#f2c94c", "#c98a2e"],
+          "roofs": ["#8a5a1e", "#a8742a", "#6e4716"],
+          "doors": ["#4a2e12", "#2f1d0b", "#5c3a17"],
+          "neon": "#fff44f",
+          "windows": "#ffd98a",
+          "lamp": "#ffb347",
+          "ground": "#4a4132",
+          "sidewalk": "#7a6b52",
+          "road": "#2b261f"
+        }
       }
     },
     {

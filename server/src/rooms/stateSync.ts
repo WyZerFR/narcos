@@ -1,5 +1,12 @@
 import { ArraySchema } from '@colyseus/schema';
-import { areaAt, gameData, resolveAppearance, resolveCharacterId, STREET } from '@narco/shared';
+import {
+  areaAt,
+  discoverAt,
+  gameData,
+  resolveAppearance,
+  resolveCharacterId,
+  STREET,
+} from '@narco/shared';
 import type {
   CutJob as CutJobData,
   Inventory,
@@ -20,6 +27,13 @@ const AREAS = [...gameData.areas.values()];
 export function syncArea(player: Player): void {
   const id = player.zone === STREET ? (areaAt(AREAS, player)?.id ?? '') : '';
   if (player.area !== id) player.area = id;
+}
+
+/** Découvertes autour du joueur dans la rue (ajoutées seulement : le patch ne porte que le neuf). */
+export function syncDiscovery(player: Player): void {
+  if (player.zone !== STREET) return;
+  const found = discoverAt(gameData, player, new Set(player.discovered));
+  if (found.length > 0) player.discovered.push(...found);
 }
 
 export function makeSlots(count: number): ArraySchema<Slot> {

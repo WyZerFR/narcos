@@ -142,6 +142,94 @@ function gunshop(ctx: LandmarkCtx, kit: FacadeKit, b: Block, f: Face) {
   ctx.glow.faceBox(f, 0, b.height + 1.6, 3.2, 0.5, 0.25, red, -0.5);
   ctx.glow.faceBox(f, -0.8, b.height + 1.2, 1.6, 0.4, 0.25, red, -0.5);
   ctx.glow.faceBox(f, -1.1, b.height + 0.55, 0.5, 1.2, 0.25, red, -0.5, -0.25);
+  // enseigne cible : anneau carré, réticule et mouche, sur l'angle de la façade
+  const u = f.len / 2 - 1.8;
+  const y = SHOP_H + SIGN_H + 1.6;
+  const gold = shade(ctx.data.config.palette.neon, 1);
+  for (const [du, dy, w, h] of [
+    [0, 0.9, 2, 0.14],
+    [0, -0.9, 2, 0.14],
+    [0.93, 0, 0.14, 1.9],
+    [-0.93, 0, 0.14, 1.9],
+    [0, 0, 1.2, 0.08],
+    [0, 0, 0.08, 1.2],
+  ] as const)
+    ctx.glow.faceBox(f, u + du, y + dy, w, h, 0.08, red, 0.08);
+  ctx.glow.faceBox(f, u, y, 0.36, 0.36, 0.1, gold, 0.1);
+}
+
+/**
+ * Parc de conteneurs du cartel : dalle, conteneurs empilés en quinconce (couleurs dérivées du
+ * mur), liseré néon menaçant. Volume solide = l'emprise du bloc (collision inchangée).
+ */
+function containers(ctx: LandmarkCtx, kit: FacadeKit, b: Block, f: Face) {
+  const r = footprint(b);
+  ctx.solid.floor(r, 0.05, shade(ctx.data.config.palette.ground, 1.2));
+  const len = 6;
+  const wid = 2.4;
+  const hgt = b.height / 2;
+  const tints = [1, 0.7, 1.3, 0.85];
+  let k = 0;
+  for (let x = r.minX + len / 2; x + len / 2 <= r.maxX + 1e-6; x += len)
+    for (let z = r.minZ + wid / 2 + 0.2; z + wid / 2 <= r.maxZ + 1e-6; z += wid + 0.3)
+      for (let level = 0; level < 2; level++) {
+        if (level === 1 && (k + level) % 3 === 0) continue;
+        const c = wallOf(ctx, b, tints[(k + level) % tints.length]!);
+        ctx.solid.block(x, level * hgt, z, len - 0.2, hgt - 0.05, wid, c);
+        // nervures des portes au bout du conteneur
+        ctx.solid.block(
+          x + len / 2 - 0.12,
+          level * hgt + 0.2,
+          z,
+          0.1,
+          hgt - 0.45,
+          wid - 0.4,
+          wallOf(ctx, b, 0.5),
+        );
+        k++;
+      }
+  kit.furniture(() => ctx.glow.faceBox(f, 0, 0.15, f.len, 0.1, 0.1, neon(ctx, b), 0.2));
+}
+
+/**
+ * Usine abandonnée : grand volume, toit en sheds, vitres brisées (sombres) à rares carreaux
+ * allumés, cheminée, enseigne rouge qui grésille (halo).
+ */
+function factory(ctx: LandmarkCtx, kit: FacadeKit, b: Block, f: Face) {
+  const r = footprint(b);
+  const h = b.height;
+  ctx.solid.block(b.position.x, 0, b.position.z, b.size.w, h - 1.5, b.size.d, wallOf(ctx, b));
+  // sheds : dents de scie le long de X
+  const teeth = Math.max(2, Math.round(b.size.w / 4));
+  const tw = b.size.w / teeth;
+  for (let i = 0; i < teeth; i++) {
+    const x = r.minX + tw * (i + 0.5);
+    ctx.solid.box(
+      x,
+      h - 0.75,
+      b.position.z,
+      tw * 0.98,
+      1.5,
+      b.size.d,
+      wallOf(ctx, b, 0.7),
+      0,
+      0,
+      0.5,
+    );
+  }
+  const broken = shade(ctx.data.config.palette.sky, 0.5);
+  for (const side of SIDES) {
+    const s = faceOf(r, side);
+    for (let u = -s.len / 2 + 1.5; u < s.len / 2 - 1; u += 2.2) {
+      const lit = Math.abs(Math.sin(u * 12.9898 + b.position.x)) > 0.85;
+      if (lit) ctx.glow.facePlane(s, u, h * 0.55, 1.4, 2, neon(ctx, b, 0.5));
+      else ctx.solid.facePlane(s, u, h * 0.55, 1.4, 2, broken);
+    }
+  }
+  // cheminée de brique, porte de quai
+  ctx.solid.block(r.maxX - 1.5, 0, r.minZ + 1.5, 1.2, h + 5, 1.2, wallOf(ctx, b, 0.85));
+  ctx.solid.faceBox(f, -f.len * 0.2, 2, 4, 4, 0.15, wallOf(ctx, b, 0.55));
+  kit.door(f, f.len * 0.25, 1.2, 2.3, neon(ctx, b, 0.6));
 }
 
 /** Laverie : grande vitrine blanche, rangée de hublots de machines. */
@@ -275,6 +363,10 @@ export function buildLandmark(ctx: LandmarkCtx, kit: FacadeKit, b: Block, front:
       return store(ctx, kit, b, f);
     case 'parking':
       return parking(ctx, b, f);
+    case 'containers':
+      return containers(ctx, kit, b, f);
+    case 'factory':
+      return factory(ctx, kit, b, f);
     default:
       return;
   }

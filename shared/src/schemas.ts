@@ -94,7 +94,80 @@ export const CutoutSchema = z.object({
   softness: range(CUTOUT_LIMITS.softness),
 });
 
+/** Niveaux de qualité graphique (réglage client, Options). */
+export const QualitySchema = z.enum(['low', 'medium', 'high']);
+
+const LightSchema = z.object({
+  color: hexColor,
+  intensity: nonNeg,
+  /** Multiplicateur de la couleur (teintes de la palette éclaircies, > 1 autorisé). */
+  scale: pos.default(1),
+});
+
+/**
+ * Thème visuel (`config.theme.<id>`) : couleurs de base remplacées (ciel, asphalte, trottoirs…),
+ * brouillard, lumières. Lumières dynamiques : le soleil et, au plus, une lumière qui suit le
+ * joueur ; ambiante et hémisphère ne comptent pas (sans position).
+ */
+export const ThemeSchema = z.object({
+  label: z.string().min(1),
+  palette: PaletteSchema.partial(),
+  fog: z.object({ near: pos, far: pos }),
+  ambient: LightSchema.nullable(),
+  hemisphere: z.object({ sky: LightSchema, ground: LightSchema, intensity: nonNeg }).nullable(),
+  sun: LightSchema.extend({ position: z.tuple([z.number(), z.number(), z.number()]) }),
+  playerLight: LightSchema.extend({ distance: pos, decay: nonNeg, height: pos }).nullable(),
+  /** Applique les palettes par area (areas.json) : faux pour l'ancien thème, uniforme. */
+  areaPalettes: z.boolean(),
+});
+
+export const THEME_IDS = ['cartel', 'legacy_night'] as const;
+export const ThemeIdSchema = z.enum(THEME_IDS);
+
+export const ThemesSchema = z.object({
+  default: ThemeIdSchema,
+  cartel: ThemeSchema,
+  legacy_night: ThemeSchema,
+});
+
+/**
+ * Réglages techniques du rendu : budget de lumières dynamiques, ombre réelle (qualités
+ * autorisées, jamais sur écran tactile), ombres blob et halos de néons instanciés.
+ */
+export const RenderSchema = z.object({
+  maxDynamicLights: z.number().int().min(1).max(4),
+  realShadows: z.object({
+    qualities: z.array(QualitySchema),
+    touch: z.boolean(),
+    mapSize: z.number().int().min(256).max(4096),
+    /** Demi-côté (m) de la zone couverte autour du joueur. */
+    radius: pos,
+  }),
+  blob: z.object({
+    opacity: z.number().min(0).max(1),
+    /** Rayons (m) des ombres sous chaque type d'acteur ou d'objet. */
+    radius: z.object({ player: pos, npc: pos, car: pos, prop: pos, tree: pos }),
+  }),
+  halo: z.object({
+    /** Taille (m) d'un halo de devanture, d'un gyrophare. */
+    size: pos,
+    beaconSize: pos,
+    opacity: z.number().min(0).max(1),
+    /** Clignotement des gyrophares (Hz) et leurs couleurs (alternées). */
+    beaconHz: pos,
+    beaconColors: z.array(hexColor).min(1),
+  }),
+});
+
+/** Couleurs émissives autorisées (néons, enseignes, gyrophares) : nom → couleur. */
+export const NeonsSchema = z.record(z.string().min(1), hexColor);
+
 export const ConfigSchema = z.object({
+  theme: ThemesSchema,
+  render: RenderSchema,
+  neons: NeonsSchema,
+  /** Brouillard de guerre de la mini-carte : rayon (m) de découverte des areas et des lieux. */
+  discovery: z.object({ radius: pos }),
   room: z.object({
     /** Parties simultanées au plus sur le serveur (les parties restaurées comptent). */
     maxRooms: z.number().int().positive(),
@@ -218,6 +291,8 @@ export const ConfigSchema = z.object({
       Vec2Schema.extend({
         rotation: z.union([z.literal(0), z.literal(90)]),
         color: PaletteKeySchema,
+        /** Voiture de police garée (caisse blanche, rampe rouge/bleu), même collision. */
+        police: z.boolean().default(false),
       }),
     ),
     trees: z.array(Vec2Schema.extend({ scale: pos })),
@@ -817,6 +892,8 @@ export const LocationSchema = z.object({
   dialogue: z.string().min(1).optional(),
   /** Libellé du bouton ACTION devant ce lieu (défaut « Entrer : nom »). */
   actionLabel: z.string().min(1).optional(),
+  /** Pictogramme du lieu (mini-carte, enseigne) ; aucun pour un lieu caché. */
+  icon: z.string().min(1).max(4).optional(),
   /** Lieu caché : ni étiquette flottante, ni marqueur de mini-carte, ni bâtiment rendu. */
   hidden: z.boolean().default(false),
   catalog: z.array(CatalogEntrySchema),
@@ -839,6 +916,9 @@ export const BlockStyleSchema = z.enum([
   'kebab',
   'store',
   'parking',
+  /** Zone industrielle du cartel : parc de conteneurs empilés, usine abandonnée. */
+  'containers',
+  'factory',
 ]);
 
 /** Immeuble sans fonction : ferme les îlots, crée les ruelles, donne son visage au quartier. */
@@ -852,6 +932,8 @@ export const BlockSchema = z.object({
   /** Enseigne néon (étiquette lisible depuis la caméra de jeu), sans interaction. */
   sign: z.string().min(1).optional(),
   neonColor: hexColor.optional(),
+  /** Pictogramme du repère (mini-carte, enseigne), seulement pour un lieu notable. */
+  icon: z.string().min(1).max(4).optional(),
   /** Façade de l'enseigne et de la vitrine (défaut : la plus proche d'une route). */
   door: DoorSideSchema.optional(),
 });
@@ -942,6 +1024,19 @@ export const AreaSchema = z.object({
   /** 0 (calme) à 5 (très dangereux) : lu par la police plus tard. */
   dangerLevel: z.number().int().min(0).max(5),
   controlledBy: AreaControlSchema,
+  /**
+   * Ambiance de l'area : couleurs de base remplacées pour ses bâtiments et son sol (briques des
+   * bas-fonds, verre du centre, métal du cartel, gris de l'aéroport). Thème néo-cartel seulement.
+   */
+  palette: PaletteSchema.pick({
+    ground: true,
+    street: true,
+    wall: true,
+    neon: true,
+    vegetation: true,
+  })
+    .partial()
+    .default({}),
 });
 
 /** Boîte englobante du polygone, calculée au chargement (`bounds`). */
@@ -968,6 +1063,19 @@ const chance = z.number().min(0).max(1);
 export const RoofSchema = z.enum(['flat', 'gable', 'sawtooth']);
 
 /** Paramètres du générateur d'une impasse (logique pure, déterministe par `seed`). */
+/** Couleurs d'un quartier généré (façades, toits, portes, néon, fenêtres, lampadaires, sols). */
+const QuartierPaletteSchema = z.object({
+  facades: z.array(hexColor).min(1),
+  roofs: z.array(hexColor).min(1),
+  doors: z.array(hexColor).min(1),
+  neon: hexColor,
+  windows: hexColor,
+  lamp: hexColor,
+  ground: hexColor,
+  sidewalk: hexColor,
+  road: hexColor,
+});
+
 export const QuartierSchema = z.object({
   id: z.string().min(1),
   /** Area (areas.json) que le quartier remplit ; son entrée donne sur une area voisine. */
@@ -1018,17 +1126,9 @@ export const QuartierSchema = z.object({
     storeyHeight: pos,
     windowLitChance: chance,
   }),
-  palette: z.object({
-    facades: z.array(hexColor).min(1),
-    roofs: z.array(hexColor).min(1),
-    doors: z.array(hexColor).min(1),
-    neon: hexColor,
-    windows: hexColor,
-    lamp: hexColor,
-    ground: hexColor,
-    sidewalk: hexColor,
-    road: hexColor,
-  }),
+  palette: QuartierPaletteSchema,
+  /** Palettes mises de côté (non utilisées), gardées pour y revenir : nom → palette. */
+  archivedPalettes: z.record(z.string().min(1), QuartierPaletteSchema).default({}),
   decor: z.object({
     /** Distance minimale entre deux lampadaires (m). */
     streetlightSpacing: pos,
@@ -1142,3 +1242,7 @@ export const PalettesFileSchema = z.object({
 
 export type Swatch = z.infer<typeof SwatchSchema>;
 export type PalettesFile = z.infer<typeof PalettesFileSchema>;
+export type Theme = z.infer<typeof ThemeSchema>;
+export type ThemeId = z.infer<typeof ThemeIdSchema>;
+export type Quality = z.infer<typeof QualitySchema>;
+export type RenderParams = GameConfig['render'];

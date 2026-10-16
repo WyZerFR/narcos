@@ -30,11 +30,12 @@
       },
       "height": 5,
       "color": "#5b5148",
-      "neonColor": "#ff3e9a",
+      "neonColor": "#00f5d4",
       "door": "north",
       "interactRadius": 3,
       "enterText": "Le local. Ça sent la moisissure et l'ambition.",
-      "catalog": []
+      "catalog": [],
+      "icon": "🏠"
     },
     {
       "id": "epicerie",
@@ -53,11 +54,12 @@
       },
       "height": 7,
       "color": "#3f6e6a",
-      "neonColor": "#3dff8f",
+      "neonColor": "#ff8a1f",
       "door": "south",
       "interactRadius": 3,
       "enterText": "Supérette Chez Momo. La clochette de la porte a vu des choses.",
-      "catalog": []
+      "catalog": [],
+      "icon": "🛒"
     },
     {
       "id": "repaire_jefe",
@@ -76,7 +78,7 @@
       },
       "height": 18,
       "color": "#2b2a3d",
-      "neonColor": "#ffcc33",
+      "neonColor": "#ff0054",
       "door": "north",
       "interactRadius": 3,
       "dialogue": "el_jefe",
@@ -93,7 +95,8 @@
           "price": 40,
           "unlockAct": 2
         }
-      ]
+      ],
+      "icon": "💀"
     },
     {
       "id": "banque",
@@ -112,11 +115,12 @@
       },
       "height": 9,
       "color": "#8a8478",
-      "neonColor": "#4dd2ff",
+      "neonColor": "#ffb703",
       "door": "south",
       "interactRadius": 3,
       "enterText": "Banque du Quartier. Marbre au sol, plantes en plastique, aucune question.",
-      "catalog": []
+      "catalog": [],
+      "icon": "$"
     },
     {
       "id": "shop",
@@ -139,7 +143,8 @@
       "door": "south",
       "interactRadius": 3,
       "enterText": "Bricoshop : tout pour le jardinage. Surtout pour le jardinage.",
-      "catalog": []
+      "catalog": [],
+      "icon": "🔧"
     },
     {
       "id": "point_relais",
@@ -161,7 +166,8 @@
       "neonColor": "#33d6ff",
       "door": "south",
       "interactRadius": 3,
-      "catalog": []
+      "catalog": [],
+      "icon": "📦"
     },
     {
       "id": "ruelle_nord",
@@ -370,7 +376,8 @@
       "sign": "PD · POLICE",
       "neonColor": "#4d7dff",
       "door": "north",
-      "color": "#3d4a66"
+      "color": "#c9d3e3",
+      "icon": "🚓"
     },
     {
       "id": "nw_ancien_local",
@@ -421,12 +428,8 @@
         "w": 14,
         "d": 9
       },
-      "height": 6,
-      "style": "dealership",
-      "sign": "AUTO DELUXE",
-      "neonColor": "#33d6ff",
-      "door": "north",
-      "color": "#5a6478"
+      "height": 16,
+      "style": "tower_lot"
     },
     {
       "id": "bf_nord_ouest",
@@ -525,9 +528,10 @@
       "height": 7,
       "style": "laundry",
       "sign": "LAVERIE",
-      "neonColor": "#7ee8ff",
+      "neonColor": "#4dd2ff",
       "door": "south",
-      "color": "#6a7f8c"
+      "color": "#6a7f8c",
+      "icon": "🧺"
     },
     {
       "id": "co_milieu",
@@ -542,9 +546,10 @@
       "height": 8,
       "style": "gunshop",
       "sign": "AMMU-NATION",
-      "neonColor": "#ff4d5e",
+      "neonColor": "#ff8a1f",
       "door": "south",
-      "color": "#4a4a44"
+      "color": "#7a2a22",
+      "icon": "🎯"
     },
     {
       "id": "co_est",
@@ -561,7 +566,8 @@
       "sign": "BARBIER",
       "neonColor": "#ff3e9a",
       "door": "south",
-      "color": "#6b4a52"
+      "color": "#6b4a52",
+      "icon": "✂️"
     },
     {
       "id": "co_sud_ouest",
@@ -595,7 +601,8 @@
       "sign": "KEBAB",
       "neonColor": "#ffc56b",
       "door": "north",
-      "color": "#7a5a3a"
+      "color": "#7a5a3a",
+      "icon": "🥙"
     },
     {
       "id": "co_sud_est_bazar",
@@ -641,8 +648,13 @@
         "w": 20,
         "d": 20
       },
-      "height": 14,
-      "style": "tower_lot"
+      "height": 6,
+      "style": "dealership",
+      "sign": "AUTO DELUXE",
+      "neonColor": "#33d6ff",
+      "door": "south",
+      "color": "#5a6478",
+      "icon": "🚗"
     },
     {
       "id": "co_bras_est",
@@ -660,6 +672,40 @@
       "neonColor": "#ff8a1f",
       "door": "south",
       "color": "#5a4b5e"
+    },
+    {
+      "id": "cartel_conteneurs",
+      "position": {
+        "x": 150,
+        "z": 101
+      },
+      "size": {
+        "w": 18,
+        "d": 8
+      },
+      "height": 5.2,
+      "style": "containers",
+      "color": "#5d6470",
+      "neonColor": "#ff0054",
+      "sign": "💀 DOCKS",
+      "door": "north"
+    },
+    {
+      "id": "cartel_usine",
+      "position": {
+        "x": 198,
+        "z": 101.5
+      },
+      "size": {
+        "w": 18,
+        "d": 9
+      },
+      "height": 9,
+      "style": "factory",
+      "color": "#4a3f3f",
+      "neonColor": "#ff4d5e",
+      "sign": "USINE",
+      "door": "north"
     }
   ]
 }
