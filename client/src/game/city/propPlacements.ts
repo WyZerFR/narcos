@@ -1,6 +1,7 @@
 import {
   allPlacements,
   footprint,
+  greeneryLayout,
   lotCars,
   type GameData,
   type PropKitId,
@@ -33,7 +34,10 @@ function spots(data: GameData, kit: PropKitId): Spot[] {
       return [
         ...decor.trees.map((t, i) => ({ x: t.x, z: t.z, rotY: i, scale: t.scale })),
         ...layouts.flatMap((l) => l.trees).map((t, i) => ({ ...t, rotY: i + decor.trees.length })),
+        ...greeneryLayout(data).trees.map((t, i) => ({ ...t, rotY: i * 2.1 })),
       ];
+    case 'bushes':
+      return greeneryLayout(data).bushes.map((b, i) => ({ ...b, rotY: i * 1.7 }));
     case 'palms':
       return data.island.palms.map((p, i) => ({ x: p.x, z: p.z, rotY: i * 1.3 }));
     case 'cars':
@@ -92,27 +96,88 @@ export function propKitItems(data: GameData): Map<string, PropItem[]> {
   ][]) {
     if (cfg.props.length === 0) continue;
     spots(data, kit).forEach((s, i) => {
+      const rotY = s.rotY + rad(cfg.rotationY);
+      if (cfg.fit === 'box' && s.box) {
+        const fit = fitBox(data, cfg.props, s.box, rotY, cfg.heightScale, i);
+        if (fit) push(fit.id, { x: s.x, z: s.z, rotY, sx: fit.sx, sy: fit.sy, sz: fit.sz });
+        return;
+      }
       const id = cfg.props[i % cfg.props.length]!;
       const prop = data.props.get(id);
       if (!prop) return;
       const size = propSize(prop);
-      const rotY = s.rotY + rad(cfg.rotationY);
-      if (cfg.fit === 'box' && s.box) {
-        const t = turned(rotY);
-        push(id, {
-          x: s.x,
-          z: s.z,
-          rotY,
-          sx: (t ? s.box.d : s.box.w) / size.w,
-          sy: (s.box.h * cfg.heightScale) / size.h,
-          sz: (t ? s.box.w : s.box.d) / size.d,
-        });
-      } else if (cfg.fit === 'length')
-        push(id, { x: s.x, z: s.z, rotY, sx: carSize.length / size.d });
+      if (cfg.fit === 'length') push(id, { x: s.x, z: s.z, rotY, sx: carSize.length / size.d });
       else push(id, { x: s.x, z: s.z, rotY, sx: (s.scale ?? 1) * cfg.heightScale });
     });
   }
   for (const p of allPlacements(data.placements))
     push(p.prop, { x: p.x, z: p.z, rotY: rad(p.rotation), sx: p.scale });
+  return out;
+}
+
+/** Ajustement d'un bâtiment importé dans une emprise : modèle retenu et échelles par axe. */
+export interface BoxFit {
+  id: string;
+  sx: number;
+  sy: number;
+  sz: number;
+}
+
+/**
+ * Proportions naturelles : parmi les props du kit, celui dont le rapport largeur / profondeur
+ * colle le mieux à l'emprise (en alternance entre les quasi-ex æquo), échelle uniforme qui
+ * tient dans l'emprise, puis chaque axe étiré d'au plus `config.props.maxStretch` vers
+ * l'emprise et la hauteur voulue : jamais de déformation visible.
+ */
+export function fitBox(
+  data: GameData,
+  ids: readonly string[],
+  box: { w: number; h: number; d: number },
+  rotY: number,
+  heightScale: number,
+  index: number,
+): BoxFit | null {
+  const t = turned(rotY);
+  const lw = t ? box.d : box.w;
+  const ld = t ? box.w : box.d;
+  const scored = ids.flatMap((id) => {
+    const prop = data.props.get(id);
+    if (!prop) return [];
+    const s = propSize(prop);
+    return [{ id, s, err: Math.abs(Math.log(lw / ld / (s.w / s.d))) }];
+  });
+  if (scored.length === 0) return null;
+  const best = Math.min(...scored.map((c) => c.err));
+  const near = scored.filter((c) => c.err <= best + 0.1);
+  const { id, s } = near[index % near.length]!;
+  const k = data.config.props.maxStretch;
+  const s0 = Math.min(lw / s.w, ld / s.d);
+  const clamp = (v: number) => Math.min(Math.max(v, s0), s0 * k);
+  return { id, sx: clamp(lw / s.w), sy: clamp((box.h * heightScale) / s.h), sz: clamp(ld / s.d) };
+}
+
+const heights = new WeakMap<GameData, Map<string, number>>();
+
+/**
+ * Hauteur réelle (m) des blocs dont la façade est importée (tours, remplissage) : les enseignes
+ * générées se posent au sommet du modèle, pas à la hauteur du bloc.
+ */
+export function blockModelHeights(data: GameData): Map<string, number> {
+  let out = heights.get(data);
+  if (out) return out;
+  out = new Map();
+  for (const kit of ['towers', 'fillers'] as const) {
+    const cfg = data.placements.kits[kit];
+    if (cfg.props.length === 0) continue;
+    data.blocks
+      .filter((b) => b.style === (kit === 'towers' ? 'tower' : 'filler'))
+      .forEach((b, i) => {
+        const r = footprint(b);
+        const box = { w: r.maxX - r.minX, h: b.height, d: r.maxZ - r.minZ };
+        const fit = fitBox(data, cfg.props, box, rad(cfg.rotationY), cfg.heightScale, i);
+        if (fit) out!.set(b.id, propSize(data.props.get(fit.id)!).h * fit.sy);
+      });
+  }
+  heights.set(data, out);
   return out;
 }

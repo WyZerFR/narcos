@@ -11,11 +11,15 @@ import {
   type GameData,
   type GameLocation,
   type Rect,
+  type Theme,
+  intersectionCrosswalks,
+  themeOf,
   visibleLocations,
 } from '@narco/shared';
 import type { Batch } from './batch';
 import { faceOf, mix, seeded, shade, SIDES, type Face } from './batch';
 import { buildQuartiers } from './buildQuartiers';
+import { blockModelHeights } from './propPlacements';
 import { buildAirport } from './buildAirport';
 import { AreaBatches, SEA_GROUP, type AreaGeometry } from './areaBatches';
 import { buildAreaGates, buildLandmark, towerTrim, type FacadeKit } from './buildLandmarks';
@@ -40,13 +44,18 @@ interface Ctx {
   readonly glow: Batch;
   /** Données vues avec la palette de l'area courante (areas.json ). */
   readonly data: GameData;
+  /** Thème rendu (couleurs du sol, panneaux). */
+  readonly theme: Theme;
   router: AreaBatches;
 }
 
 /** Géométries par area (id d'area, ou `SEA_GROUP` pour la mer) : chargées séparément. */
 export type CityGeometry = Map<string, AreaGeometry>;
 
-export function buildCity(data: GameData): CityGeometry {
+export function buildCity(
+  data: GameData,
+  theme: Theme = themeOf(data.config, data.config.theme.default),
+): CityGeometry {
   const router = new AreaBatches(data.areas.values());
   const byArea = areaPalettes(data);
   const ctx: Ctx = {
@@ -59,6 +68,7 @@ export function buildCity(data: GameData): CityGeometry {
     get data() {
       return byArea.get(router.key) ?? data;
     },
+    theme,
     router,
   };
   buildGround(ctx);
@@ -169,14 +179,14 @@ function door(ctx: Ctx, f: Face, u: number, w: number, h: number, glowColor: Col
 }
 
 /** Façade la plus proche d'une route (pour orienter la porte des immeubles). */
-function sideTowardRoad(ctx: Ctx, r: Rect): DoorSide {
+export function sideTowardRoad(data: GameData, r: Rect): DoorSide {
   const cx = (r.minX + r.maxX) / 2;
   const cz = (r.minZ + r.maxZ) / 2;
   let best: DoorSide = 'south';
   let bestDist = Infinity;
   for (const side of SIDES) {
     const f = faceOf(r, side);
-    for (const road of ctx.data.config.map.roads) {
+    for (const road of data.config.map.roads) {
       const rr = rectFromCenter(road, road);
       const px = f.cx + f.nx * 3;
       const pz = f.cz + f.nz * 3;
@@ -236,28 +246,29 @@ function buildGround(ctx: Ctx) {
   ctx.solid.cuttable = false;
   buildIsland(ctx);
 
+  const surface = ctx.theme.surface;
   const roads = map.roads.map((r) => rectFromCenter(r, r));
-  const curb = shade(palette.ground, 0.8);
+  const curb = shade(palette.ground, surface.curbShade);
   roads.forEach((road, i) => {
     const others = roads.filter((_, j) => j !== i);
     // routes et trottoirs découpés par area (une avenue traverse plusieurs areas)
     for (const piece of router.split(road)) {
       router.use(piece.areaId);
-      ctx.solid.floor(piece.rect, 0.02, shade(palette.street, 1.6));
+      ctx.solid.floor(piece.rect, 0.02, shade(palette.street, surface.roadShade));
     }
     for (const strip of sidewalkStrips(road, others, map.sidewalkWidth))
       for (const { areaId, rect: s } of router.split(strip)) {
         router.use(areaId);
         const cx = (s.minX + s.maxX) / 2;
         const cz = (s.minZ + s.maxZ) / 2;
-        const color = shade(palette.ground, 1.3);
+        const color = shade(palette.ground, surface.sidewalkShade);
         ctx.solid.block(cx, 0, cz, s.maxX - s.minX, 0.12, s.maxZ - s.minZ, color);
         // bordure de trottoir, un ton plus sombre
         ctx.solid.block(cx, 0.12, cz, s.maxX - s.minX, 0.02, s.maxZ - s.minZ, curb);
       }
     // marquage central en pointillés, interrompu aux croisements
     const alongX = road.maxX - road.minX >= road.maxZ - road.minZ;
-    const dash = shade(palette.neon, 0.55);
+    const dash = surface.dash ? shade(surface.dash, 1) : shade(palette.neon, 0.55);
     const len = alongX ? road.maxX - road.minX : road.maxZ - road.minZ;
     for (let t = 1; t + 2 < len; t += 4) {
       const r: Rect = alongX
@@ -280,8 +291,9 @@ function buildGround(ctx: Ctx) {
     }
   });
 
-  const stripe = shade(palette.ground, 3.4);
-  for (const cw of map.crosswalks) {
+  const stripe = surface.stripe ? shade(surface.stripe, 1) : shade(palette.ground, 3.4);
+  const auto = intersectionCrosswalks(roads, map.autoCrosswalks, map.crosswalks);
+  for (const cw of [...map.crosswalks, ...auto]) {
     for (let t = -cw.length / 2 + 0.5; t < cw.length / 2; t += 1) {
       const r =
         cw.axis === 'z'
@@ -302,11 +314,15 @@ function buildIsland(ctx: Ctx) {
   const { palette, world, island } = ctx.data.config;
   const { router } = ctx;
   const sea = island.seaLevel;
+  const { surface } = ctx.theme;
+  // terre des areas hors routes et trottoirs (jour : herbe)
   router.use(SEA_GROUP);
   ctx.solid.floor(expandRect(world.bounds, island.seaMargin), sea, shade(palette.sea, 1));
   for (const area of ctx.data.areas.values()) {
     router.use(area.id);
-    for (const r of areaRects(area)) ctx.solid.floor(r, 0, shade(palette.ground, 0.7));
+    const ground = ctx.data.config.palette.ground;
+    const land = surface.land ? shade(surface.land, 1) : shade(ground, surface.landShade);
+    for (const r of areaRects(area)) ctx.solid.floor(r, 0, land);
   }
   // falaise : paroi du sol jusqu'à la mer, collée au bord côté terre
   const rock = shade(palette.ground, 0.5);
@@ -736,10 +752,20 @@ function buildFiller(ctx: Ctx, block: Block) {
   const rng = seeded(block.id);
   const r = footprint(block);
   if (block.style !== 'filler' && block.style !== 'tower')
-    return buildLandmark(ctx, facadeKit(ctx, rng), block, block.door ?? sideTowardRoad(ctx, r));
+    return buildLandmark(
+      ctx,
+      facadeKit(ctx, rng),
+      block,
+      block.door ?? sideTowardRoad(ctx.data, r),
+    );
   // façade importée (placements.json kits.towers / fillers) : seules les enseignes restent ici
   if (kitModelled(ctx.data, block.style === 'tower' ? 'towers' : 'fillers'))
-    return towerTrim(ctx, block, sideTowardRoad(ctx, r));
+    // enseignes au sommet du modèle (proportions naturelles : hauteur du modèle, pas du bloc)
+    return towerTrim(
+      ctx,
+      { ...block, height: blockModelHeights(ctx.data).get(block.id) ?? block.height },
+      sideTowardRoad(ctx.data, r),
+    );
   const wall = block.color ? shade(block.color, 1) : shade(palette.wall, 0.75 + rng() * 0.5);
   const dark = mix(palette.sky, palette.wall, 0.4).multiplyScalar(0.6);
   ctx.solid.block(
@@ -753,7 +779,7 @@ function buildFiller(ctx: Ctx, block: Block) {
   );
   parapet(ctx, r, block.height, wall.clone().multiplyScalar(0.7));
   rooftopClutter(ctx, r, block.height, rng, wall.clone().multiplyScalar(0.85));
-  const doorSide = sideTowardRoad(ctx, r);
+  const doorSide = sideTowardRoad(ctx.data, r);
   for (const side of SIDES) {
     const f = faceOf(r, side);
     windows(ctx, f, 1.8, block.height, rng, dark, side === doorSide ? 1.6 : 0);

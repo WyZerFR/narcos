@@ -39,7 +39,8 @@ import { Ambience } from './Ambience';
 import { localPlayer } from './localPlayer';
 import { getStaticBlobs } from './blobRegistry';
 import { readPublic } from './testScene';
-import { setPropReader } from './city/propAssets';
+import { setPropReader, setTextureReader } from './city/propAssets';
+import { Texture } from 'three';
 
 /**
  * Non-régression de la boucle de rendu (#185 « Maximum update depth exceeded ») : la scène de la
@@ -86,6 +87,7 @@ describe('boucle de rendu de la scène', () => {
     });
     // décor importé : les vrais GLB de client/public
     setPropReader(readPublic);
+    setTextureReader(() => Promise.resolve(new Texture()));
     Object.assign(localPlayer, { initialized: true, x: spawn.x, z: spawn.z, zone: STREET });
 
     let scene: Awaited<ReturnType<typeof ReactThreeTestRenderer.create>> | null = null;

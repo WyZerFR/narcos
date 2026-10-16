@@ -35,7 +35,7 @@
       "interactRadius": 3,
       "enterText": "Le local. Ça sent la moisissure et l'ambition.",
       "catalog": [],
-      "icon": "🏠"
+      "icon": "🧪"
     },
     {
       "id": "epicerie",
@@ -59,7 +59,8 @@
       "interactRadius": 3,
       "enterText": "Supérette Chez Momo. La clochette de la porte a vu des choses.",
       "catalog": [],
-      "icon": "🛒"
+      "icon": "🛒",
+      "panel": "ÉPICERIE"
     },
     {
       "id": "repaire_jefe",
@@ -120,7 +121,8 @@
       "interactRadius": 3,
       "enterText": "Banque du Quartier. Marbre au sol, plantes en plastique, aucune question.",
       "catalog": [],
-      "icon": "$"
+      "icon": "$",
+      "panel": "BANK"
     },
     {
       "id": "shop",
@@ -144,7 +146,8 @@
       "interactRadius": 3,
       "enterText": "Bricoshop : tout pour le jardinage. Surtout pour le jardinage.",
       "catalog": [],
-      "icon": "🔧"
+      "icon": "🔧",
+      "panel": "BRICOSHOP"
     },
     {
       "id": "point_relais",
@@ -377,7 +380,8 @@
       "neonColor": "#4d7dff",
       "door": "north",
       "color": "#c9d3e3",
-      "icon": "🚓"
+      "icon": "🚓",
+      "panel": "PD · POLICE"
     },
     {
       "id": "nw_ancien_local",
@@ -531,7 +535,8 @@
       "neonColor": "#4dd2ff",
       "door": "south",
       "color": "#6a7f8c",
-      "icon": "🧺"
+      "icon": "🧺",
+      "panel": "LAUNDROMAT"
     },
     {
       "id": "co_milieu",
@@ -549,7 +554,8 @@
       "neonColor": "#ff8a1f",
       "door": "south",
       "color": "#7a2a22",
-      "icon": "🎯"
+      "icon": "🎯",
+      "panel": "AMMU-NATION"
     },
     {
       "id": "co_est",
@@ -567,7 +573,8 @@
       "neonColor": "#ff3e9a",
       "door": "south",
       "color": "#6b4a52",
-      "icon": "✂️"
+      "icon": "✂️",
+      "panel": "BARBERSHOP"
     },
     {
       "id": "co_sud_ouest",
@@ -584,7 +591,8 @@
       "sign": "PARKING",
       "neonColor": "#4dd2ff",
       "door": "north",
-      "color": "#3a3a44"
+      "color": "#3a3a44",
+      "panel": "PARKING"
     },
     {
       "id": "co_sud_est",
@@ -602,7 +610,8 @@
       "neonColor": "#ffc56b",
       "door": "north",
       "color": "#7a5a3a",
-      "icon": "🥙"
+      "icon": "🥙",
+      "panel": "KEBAB"
     },
     {
       "id": "co_sud_est_bazar",
@@ -619,7 +628,8 @@
       "sign": "ÉLECTRO DISCOUNT",
       "neonColor": "#3dff8f",
       "door": "north",
-      "color": "#4f5a6a"
+      "color": "#4f5a6a",
+      "panel": "COMMERCES"
     },
     {
       "id": "co_bras_ouest",
@@ -636,7 +646,8 @@
       "sign": "PRÊTEUR SUR GAGES",
       "neonColor": "#ffcc33",
       "door": "south",
-      "color": "#5b4f3a"
+      "color": "#5b4f3a",
+      "panel": "COMMERCES"
     },
     {
       "id": "co_bras_milieu",
@@ -654,7 +665,8 @@
       "neonColor": "#33d6ff",
       "door": "south",
       "color": "#5a6478",
-      "icon": "🚗"
+      "icon": "🚗",
+      "panel": "AUTO DELUXE"
     },
     {
       "id": "co_bras_est",
@@ -671,7 +683,8 @@
       "sign": "TABAC",
       "neonColor": "#ff8a1f",
       "door": "south",
-      "color": "#5a4b5e"
+      "color": "#5a4b5e",
+      "panel": "COMMERCES"
     },
     {
       "id": "cartel_conteneurs",

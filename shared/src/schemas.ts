@@ -114,7 +114,45 @@ const LightSchema = z.object({
 export const ThemeSchema = z.object({
   label: z.string().min(1),
   palette: PaletteSchema.partial(),
-  fog: z.object({ near: pos, far: pos }),
+  /** Brume : distances (m) et teinte (absente : le ciel de la palette). */
+  fog: z.object({ near: pos, far: pos, color: hexColor.optional() }),
+  /** Tone mapping du rendu et exposition (`aces` : défaut de R3F, désature les tons clairs). */
+  toneMapping: z.enum(['aces', 'agx', 'neutral', 'linear', 'none']).default('aces'),
+  exposure: pos.default(1),
+  /**
+   * Ombrage des bâtiments, props et véhicules : `lambert` (continu) ou `toon` (paliers de
+   * lumière, texture de dégradé générée en code ; `steps` = luminosité de chaque palier).
+   */
+  shading: z
+    .object({
+      mode: z.enum(['lambert', 'toon']),
+      steps: z.array(z.number().min(0).max(1)).min(2).max(5),
+    })
+    .default({ mode: 'lambert', steps: [0.4, 0.7, 1] }),
+  /**
+   * Contour (coque inversée) des bâtiments de l'area du joueur : qualités où il est dessiné
+   * (jamais en basse), épaisseur (m), couleur. null : aucun.
+   */
+  outline: z
+    .object({ qualities: z.array(QualitySchema), width: pos, color: hexColor })
+    .nullable()
+    .default(null),
+  /** Couleurs du sol (facteurs sur la palette) ; absentes : valeurs historiques. */
+  surface: z
+    .object({
+      /** Terre des areas hors routes (jour : herbe) ; absente = ground × landShade. */
+      land: hexColor.optional(),
+      landShade: pos.default(0.7),
+      roadShade: pos.default(1.6),
+      sidewalkShade: pos.default(1.3),
+      curbShade: pos.default(0.8),
+      /** Marquages : pointillés centraux et passages piétons (absents : néon et trottoir). */
+      dash: hexColor.optional(),
+      stripe: hexColor.optional(),
+    })
+    .default({ landShade: 0.7, roadShade: 1.6, sidewalkShade: 1.3, curbShade: 0.8 }),
+  /** Panneaux peints lisibles sur les façades à enseigne (`panel` des lieux et blocs). */
+  panels: z.boolean().default(false),
   ambient: LightSchema.nullable(),
   hemisphere: z.object({ sky: LightSchema, ground: LightSchema, intensity: nonNeg }).nullable(),
   sun: LightSchema.extend({ position: z.tuple([z.number(), z.number(), z.number()]) }),
@@ -213,6 +251,8 @@ export const PropsConfigSchema = z.object({
   fallbackColor: PaletteKeySchema,
   /** Teinte d'un prop sans `keepColors` : part de la teinte de palette mêlée à l'original. */
   tintStrength: z.number().min(0).max(1),
+  /** Étirement maximal d'un axe par rapport aux autres (bâtiments ajustés à une emprise). */
+  maxStretch: z.number().min(1).max(1.5),
   /** Objectif de draw calls par area (overlay debug) et plafond total. */
   drawCallTarget: z.number().int().positive(),
   drawCallBudget: z.number().int().positive(),
@@ -280,6 +320,11 @@ export const ConfigSchema = z.object({
     crosswalks: z.array(
       z.object({ x: z.number(), z: z.number(), axis: z.enum(['x', 'z']), length: pos, width: pos }),
     ),
+    /**
+     * Passages piétons générés à chaque carrefour des routes, sur chaque branche : écart au bord
+     * du carrefour (m), largeur de la bande (m). Ceux déjà déclarés dans `crosswalks` priment.
+     */
+    autoCrosswalks: z.object({ enabled: z.boolean(), gap: nonNeg, width: pos }),
     /**
      * Panneaux d'entrée d'area au-dessus d'une route (`axis` = sens de la route) : décor sans
      * collision, étiquette au nom de l'area. Les impasses ont déjà leur arche (`quartiers.json`).
@@ -356,11 +401,36 @@ export const ConfigSchema = z.object({
       }),
     ),
     trees: z.array(Vec2Schema.extend({ scale: pos })),
+    /**
+     * Verdure générée (arbres et buissons sans collision, comme `trees`) : le long des avenues
+     * (pas, retrait au-delà du trottoir) et dans les parcelles libres (grille, chance), à
+     * `clearance` m des obstacles et des routes, `doorClearance` m des portes.
+     */
+    greenery: z.object({
+      seed: z.string().min(1),
+      avenueSpacing: pos,
+      avenueOffset: nonNeg,
+      parcelSpacing: pos,
+      parcelChance: z.number().min(0).max(1),
+      bushShare: z.number().min(0).max(1),
+      clearance: nonNeg,
+      doorClearance: nonNeg,
+      scale: z.object({ min: pos, max: pos }),
+    }),
     bins: z.array(Vec2Schema),
     crates: z.array(Vec2Schema),
     cartons: z.array(Vec2Schema),
   }),
   props: PropsConfigSchema,
+  /**
+   * Mode debug `?shot=<area>` : point de vue fixe par area pour comparer avec l'image de
+   * référence (caméra de jeu : élévation, rotation, distance), visée au centre de l'area.
+   */
+  debugShot: z.object({
+    elevation: range(CAMERA_LIMITS.elevation),
+    rotation: range(CAMERA_LIMITS.rotation),
+    zoom: pos,
+  }),
   /** Cadrage retenu. `zoom` = distance caméra → cible (m) ; en ortho, cadrage équivalent. */
   camera: CameraSchema,
   /** Caméra dans les intérieurs (pièces plus petites, vue plus plongeante). */
@@ -954,6 +1024,11 @@ export const SilhouetteSchema = z.enum([
 export const DoorSideSchema = z.enum(['north', 'south', 'east', 'west']);
 
 export const LocationSchema = z.object({
+  /** Panneau peint lisible sur la façade (thème jour, `theme.panels`), en capitales. */ panel: z
+    .string()
+    .min(1)
+    .max(24)
+    .optional(),
   id: z.string().min(1),
   name: z.string().min(1),
   zone: z.string().min(1),
@@ -1009,6 +1084,11 @@ export const BlockStyleSchema = z.enum([
 
 /** Immeuble sans fonction : ferme les îlots, crée les ruelles, donne son visage au quartier. */
 export const BlockSchema = z.object({
+  /** Panneau peint lisible sur la façade (thème jour, `theme.panels`), en capitales. */ panel: z
+    .string()
+    .min(1)
+    .max(24)
+    .optional(),
   id: z.string().min(1),
   position: Vec2Schema,
   size: z.object({ w: pos, d: pos }),
@@ -1382,6 +1462,11 @@ export const PropSchema = z.object({
   /** Garde les couleurs du modèle ; sinon teinte de la palette (`tint`). */
   keepColors: z.boolean(),
   tint: PaletteKeySchema.optional(),
+  /** Atlas de couleurs d'origine du pack (UV gardées), partagé ; absent = couleurs de sommets. */
+  texture: z
+    .string()
+    .regex(/^models\/textures\/[a-z0-9-]+\.png$/)
+    .optional(),
   /** Percé par la découpe devant le joueur (bâtiments). */
   cuttable: z.boolean(),
   triangles: z.number().int().positive(),
@@ -1422,6 +1507,7 @@ export const PROP_KIT_IDS = [
   'houses',
   'towers',
   'fillers',
+  'bushes',
 ] as const;
 export type PropKitId = (typeof PROP_KIT_IDS)[number];
 

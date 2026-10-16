@@ -248,3 +248,18 @@ describe('voisines et points d’arrivée', () => {
     }
   });
 });
+
+describe('mode debug ?shot=<area>', () => {
+  it('un point visé dans chaque area, null pour une area inconnue', async () => {
+    const { shotTarget } = await import('./shot');
+    const { obstaclesFrom } = await import('./collision');
+    const obstacles = obstaclesFrom(gameData);
+    for (const a of gameData.areas.values()) {
+      const p = shotTarget(gameData, a.id, obstacles);
+      expect(p, a.id).not.toBeNull();
+      expect(areaAt([a], p!), a.id).not.toBeNull();
+    }
+    expect(shotTarget(gameData, 'nulle_part', obstacles)).toBeNull();
+    expect(gameData.config.debugShot.zoom).toBeGreaterThan(0);
+  });
+});

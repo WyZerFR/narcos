@@ -112,3 +112,27 @@ describe('décor 3D importé (props.json)', () => {
     expect(() => parseGameData(moved)).toThrow(/doit être dans models\//);
   });
 });
+
+describe('atlas de textures des packs', () => {
+  const props = [...gameData.props.values()];
+  const atlases = new Set(props.flatMap((p) => (p.texture ? [p.texture] : [])));
+
+  it('textures d’origine gardées : UV dans le GLB, atlas partagé par pack ≤ 1024 px', () => {
+    expect(atlases.size).toBeGreaterThan(0);
+    for (const p of props) {
+      const json = glbJson(join(PUBLIC, p.model)) as GltfJson & {
+        meshes: { primitives: { attributes: Record<string, number> }[] }[];
+      };
+      const attrs = json.meshes[0]!.primitives[0]!.attributes;
+      expect('TEXCOORD_0' in attrs, p.id).toBe(Boolean(p.texture));
+    }
+    let bytes = 0;
+    for (const t of atlases) {
+      const png = readFileSync(join(PUBLIC, t));
+      const [w, h] = [png.readUInt32BE(16), png.readUInt32BE(20)];
+      expect(Math.max(w, h), t).toBeLessThanOrEqual(1024);
+      bytes += w * h * 4 * (4 / 3); // RGBA + mipmaps
+    }
+    expect(bytes).toBeLessThan(30 * 1024 * 1024);
+  });
+});

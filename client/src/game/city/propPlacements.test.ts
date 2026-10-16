@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { footprint, gameData, allPlacements, type Rect } from '@narco/shared';
-import { propKitItems } from './propPlacements';
+import { blockModelHeights, propKitItems } from './propPlacements';
 import { propSize } from './propAssets';
 import type { PropItem } from './PropKits';
 
@@ -25,12 +25,17 @@ function instancesOf(ids: readonly string[]): [string, PropItem][] {
   return ids.flatMap((id) => (items.get(id) ?? []).map((it): [string, PropItem] => [id, it]));
 }
 
-const close = (a: Rect, b: Rect) => {
-  for (const k of ['minX', 'maxX', 'minZ', 'maxZ'] as const) expect(a[k]).toBeCloseTo(b[k], 3);
+/** Le modèle tient dans l'emprise (jamais de débord) ; part de l'emprise couverte notée. */
+const coverage: number[] = [];
+const within = (a: Rect, b: Rect) => {
+  for (const k of ['minX', 'minZ'] as const) expect(a[k]).toBeGreaterThanOrEqual(b[k] - 1e-6);
+  for (const k of ['maxX', 'maxZ'] as const) expect(a[k]).toBeLessThanOrEqual(b[k] + 1e-6);
+  coverage.push(((a.maxX - a.minX) * (a.maxZ - a.minZ)) / ((b.maxX - b.minX) * (b.maxZ - b.minZ)));
 };
+const { maxStretch } = gameData.config.props;
 
 describe('décor importé dans la ville', () => {
-  it('maisons : une par maison générée, dans son emprise exacte, façade vers la rue', () => {
+  it('maisons : une par maison générée, dans son emprise, façade vers la rue', () => {
     const houses = [...gameData.quartierLayouts.values()].flatMap((l) => l.houses);
     const placed = instancesOf(kits.houses.props);
     expect(placed).toHaveLength(houses.length);
@@ -39,13 +44,13 @@ describe('décor importé dans la ville', () => {
       const cz = (h.rect.minZ + h.rect.maxZ) / 2;
       const hit = placed.find(([, it]) => it.x === cx && it.z === cz);
       expect(hit, h.id).toBeDefined();
-      close(worldRect(hit![0], hit![1]), h.rect);
+      within(worldRect(hit![0], hit![1]), h.rect);
       // avant du modèle (+Z) tourné vers la rue : +X pour une maison à l'ouest de l'axe
       expect(Math.sin(hit![1].rotY!)).toBeCloseTo(h.side < 0 ? 1 : -1);
     }
   });
 
-  it('tours et immeubles de remplissage : emprise et hauteur du bloc', () => {
+  it("tours et immeubles de remplissage : dans l'emprise du bloc, proportions naturelles", () => {
     for (const [style, kit] of [
       ['tower', kits.towers],
       ['filler', kits.fillers],
@@ -55,9 +60,10 @@ describe('décor importé dans la ville', () => {
       expect(placed).toHaveLength(blocks.length);
       for (const b of blocks) {
         const hit = placed.find(([, it]) => it.x === b.position.x && it.z === b.position.z)!;
-        close(worldRect(hit[0], hit[1]), footprint(b));
+        within(worldRect(hit[0], hit[1]), footprint(b));
         const h = propSize(gameData.props.get(hit[0])!).h * hit[1].sy!;
-        expect(h).toBeCloseTo(b.height * kit.heightScale, 3);
+        // hauteur naturelle du modèle : les enseignes générées s'y posent
+        expect(blockModelHeights(gameData).get(b.id)).toBeCloseTo(h, 6);
       }
     }
   });
@@ -77,5 +83,20 @@ describe('décor importé dans la ville', () => {
         items.get(p.prop)?.some((it) => it.x === p.x && it.z === p.z),
         p.prop,
       ).toBe(true);
+  });
+});
+
+describe('proportions des bâtiments importés', () => {
+  it(`échelle non uniforme bornée à ${maxStretch}, emprises bien couvertes`, () => {
+    for (const kit of [kits.houses, kits.towers, kits.fillers])
+      for (const [, it] of instancesOf(kit.props)) {
+        const s = [it.sx!, it.sy!, it.sz!];
+        expect(Math.max(...s) / Math.min(...s)).toBeLessThanOrEqual(maxStretch + 1e-9);
+      }
+    const mean = coverage.reduce((a, b) => a + b, 0) / coverage.length;
+    console.info(
+      `emprise couverte : moyenne ${(mean * 100).toFixed(0)} %, min ${(Math.min(...coverage) * 100).toFixed(0)} %`,
+    );
+    expect(mean).toBeGreaterThan(0.7);
   });
 });

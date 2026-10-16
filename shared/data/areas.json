@@ -38,8 +38,8 @@
       "themePalettes": {
         "day": {
           "wall": "#a86a54",
-          "ground": "#c2bcb2",
-          "street": "#6a6c70"
+          "ground": "#d9d3c6",
+          "street": "#4f5258"
         }
       }
     },
@@ -75,8 +75,8 @@
       "palette": {},
       "themePalettes": {
         "day": {
-          "ground": "#c8c3b8",
-          "street": "#6d7076"
+          "ground": "#d9d3c6",
+          "street": "#4f5258"
         }
       }
     },
@@ -116,8 +116,8 @@
       "themePalettes": {
         "day": {
           "wall": "#8fb0cc",
-          "ground": "#d3d0c8",
-          "street": "#707379"
+          "ground": "#d9d3c6",
+          "street": "#4f5258"
         }
       }
     },
@@ -165,8 +165,8 @@
       "themePalettes": {
         "day": {
           "wall": "#c4b49e",
-          "ground": "#cfc8bb",
-          "street": "#6d7076"
+          "ground": "#d9d3c6",
+          "street": "#4f5258"
         }
       }
     },
@@ -207,8 +207,8 @@
       "themePalettes": {
         "day": {
           "wall": "#8c8287",
-          "ground": "#bdb6ae",
-          "street": "#66686d"
+          "ground": "#d9d3c6",
+          "street": "#4f5258"
         }
       }
     },
@@ -250,8 +250,8 @@
       "themePalettes": {
         "day": {
           "wall": "#a7b0b8",
-          "ground": "#c9ccd0",
-          "street": "#5f6368"
+          "ground": "#d9d3c6",
+          "street": "#4f5258"
         }
       }
     }

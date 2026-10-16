@@ -88,6 +88,10 @@ export function checkTheme(
     if (dynamicLightCount(t) > config.render.maxDynamicLights)
       errors.push(`config.json : theme.${id} dépasse render.maxDynamicLights`);
     if (t.fog.near >= t.fog.far) errors.push(`config.json : theme.${id}.fog, near doit être < far`);
+    if (t.outline?.qualities.includes('low'))
+      errors.push(`config.json : theme.${id}.outline, jamais en qualité basse`);
+    if (t.shading.steps.some((s, i) => i > 0 && s <= t.shading.steps[i - 1]!))
+      errors.push(`config.json : theme.${id}.shading.steps doit être croissant`);
   }
   const allowed = new Set(Object.values(config.neons).map((c) => c.toLowerCase()));
   for (const u of emissiveUses(config, locations, blocks, quartiers, areas))

@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { areaAt, areaNeighbors, gameData, nearestArea, type Vec2 } from '@narco/shared';
 import { localPlayer } from './localPlayer';
+import { getShot } from './shotMode';
 
 /**
  * Chargement par area : l'area du joueur local et ses voisines directes sont rendues, le reste
@@ -18,7 +19,8 @@ const listeners = new Set<() => void>();
 
 function refresh() {
   if (!localPlayer.initialized) return;
-  const id = areaAt(AREAS, localPlayer)?.id;
+  // mode ?shot=<area> : l'area visée est chargée, quelle que soit la position du joueur
+  const id = areaAt(AREAS, getShot() ?? localPlayer)?.id;
   if (!id || id === current) return;
   current = id;
   loaded = new Set([id, ...(NEIGHBORS.get(id) ?? [])]);

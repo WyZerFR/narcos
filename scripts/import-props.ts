@@ -10,7 +10,7 @@
  * Boîte englobante, décalage d'origine et emprise de collision calculés ici.
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { inflateSync } from 'node:zlib';
 import { BufferAttribute, BufferGeometry, Matrix4, Quaternion, Vector3 } from 'three';
 import { SimplifyModifier } from 'three/examples/jsm/modifiers/SimplifyModifier.js';
@@ -182,12 +182,18 @@ interface Part {
   geometry: BufferGeometry; // position (monde) + uv éventuel, indexée
   factor: [number, number, number];
   texture: { w: number; h: number; rgba: Uint8Array } | null;
+  /** Fichier de la texture (atlas du pack), null si intégrée ou absente. */
+  texturePath: string | null;
 }
 
 /** Primitives triangulées de la scène, positions dans le repère de la scène. */
 function partsOf(file: string): Part[] {
   const { json, bin } = parseGlb(file);
   const images = new Map<number, Part['texture']>();
+  const imagePath = (index: number): string | null => {
+    const uri = json.images![index]!.uri;
+    return uri && !uri.startsWith('data:') ? join(dirname(file), decodeURIComponent(uri)) : null;
+  };
   const imageOf = (index: number): Part['texture'] => {
     if (!images.has(index)) {
       const im = json.images![index]!;
@@ -221,10 +227,10 @@ function partsOf(file: string): Part[] {
       const mat = p.material !== undefined ? json.materials?.[p.material] : undefined;
       const pbr = mat?.pbrMetallicRoughness;
       const tex = pbr?.baseColorTexture;
-      const texture =
-        tex && p.attributes.TEXCOORD_0 !== undefined
-          ? imageOf(json.textures![tex.index]!.source!)
-          : null;
+      const source =
+        tex && p.attributes.TEXCOORD_0 !== undefined ? json.textures![tex.index]!.source! : null;
+      const texture = source !== null ? imageOf(source) : null;
+      const texturePath = source !== null ? imagePath(source) : null;
       if (texture) {
         const uv = readAccessor(json, bin, p.attributes.TEXCOORD_0!);
         g.setAttribute('uv', new BufferAttribute(new Float32Array(uv.data), 2));
@@ -235,7 +241,7 @@ function partsOf(file: string): Part[] {
           : [...Array(pos.data.length / 3).keys()];
       g.setIndex(index);
       const f = pbr?.baseColorFactor ?? [1, 1, 1, 1];
-      parts.push({ geometry: g, factor: [f[0]!, f[1]!, f[2]!], texture });
+      parts.push({ geometry: g, factor: [f[0]!, f[1]!, f[2]!], texture, texturePath });
     }
     for (const c of node.children ?? []) visit(c, world);
   };
@@ -271,17 +277,27 @@ async function simplify(
   return best && triangles(best) / start >= minKeep ? best : null;
 }
 
-/** Positions non indexées et couleurs RGBA (0-255, linéaires), une couleur par face. */
-function bake(parts: Part[]): { positions: Float32Array; colors: Uint8Array } {
+/**
+ * Positions non indexées, couleurs RGBA (0-255, linéaires) et UV. Modèle entièrement texturé
+ * par un atlas en fichier : UV gardées, couleur = facteur du matériau (texture d'origine au
+ * rendu). Sinon : une couleur par face (texture échantillonnée au centre de ses UV, ou facteur).
+ */
+function bake(parts: Part[]): {
+  positions: Float32Array;
+  colors: Uint8Array;
+  uvs: Float32Array | null;
+} {
+  const keepUv = parts.every((p) => p.texturePath && p.geometry.attributes.uv);
   const pos: number[] = [];
   const col: number[] = [];
+  const uvs: number[] = [];
   for (const { geometry, factor, texture } of parts) {
     const g = geometry.index ? geometry.toNonIndexed() : geometry;
     const p = g.attributes.position!;
     const uv = g.attributes.uv;
     for (let v = 0; v < p.count; v += 3) {
       let rgb = [...factor];
-      if (texture && uv) {
+      if (!keepUv && texture && uv) {
         const u = (uv.getX(v) + uv.getX(v + 1) + uv.getX(v + 2)) / 3;
         const w = (uv.getY(v) + uv.getY(v + 1) + uv.getY(v + 2)) / 3;
         const fract = (x: number) => x - Math.floor(x);
@@ -293,14 +309,28 @@ function bake(parts: Part[]): { positions: Float32Array; colors: Uint8Array } {
       for (let k = 0; k < 3; k++) {
         pos.push(p.getX(v + k), p.getY(v + k), p.getZ(v + k));
         col.push(...rgb.map((c) => Math.round(Math.min(1, Math.max(0, c)) * 255)), 255);
+        if (keepUv && uv) uvs.push(uv.getX(v + k), uv.getY(v + k));
       }
     }
   }
-  return { positions: new Float32Array(pos), colors: new Uint8Array(col) };
+  return {
+    positions: new Float32Array(pos),
+    colors: new Uint8Array(col),
+    uvs: keepUv ? new Float32Array(uvs) : null,
+  };
 }
 
-/** GLB minimal : un nœud, un maillage, une primitive (POSITION + COLOR_0), un matériau. */
-function writeGlb(file: string, name: string, positions: Float32Array, colors: Uint8Array) {
+/**
+ * GLB minimal : un nœud, un maillage, une primitive (POSITION, COLOR_0, TEXCOORD_0 si texturé),
+ * un matériau. La texture n'est pas intégrée : l'atlas du pack est un fichier partagé.
+ */
+function writeGlb(
+  file: string,
+  name: string,
+  positions: Float32Array,
+  colors: Uint8Array,
+  uvs: Float32Array | null,
+) {
   const n = positions.length / 3;
   const min = [Infinity, Infinity, Infinity];
   const max = [-Infinity, -Infinity, -Infinity];
@@ -309,30 +339,37 @@ function writeGlb(file: string, name: string, positions: Float32Array, colors: U
       min[k] = Math.min(min[k]!, positions[i * 3 + k]!);
       max[k] = Math.max(max[k]!, positions[i * 3 + k]!);
     }
+  const attributes: Record<string, number> = { POSITION: 0, COLOR_0: 1 };
+  const accessors: object[] = [
+    { bufferView: 0, componentType: 5126, count: n, type: 'VEC3', min, max },
+    { bufferView: 1, componentType: 5121, normalized: true, count: n, type: 'VEC4' },
+  ];
+  const bufferViews: object[] = [
+    { buffer: 0, byteOffset: 0, byteLength: n * 12, target: 34962 },
+    { buffer: 0, byteOffset: n * 12, byteLength: n * 4, target: 34962 },
+  ];
+  const chunks = [Buffer.from(positions.buffer), Buffer.from(colors.buffer)];
+  if (uvs) {
+    attributes.TEXCOORD_0 = 2;
+    accessors.push({ bufferView: 2, componentType: 5126, count: n, type: 'VEC2' });
+    bufferViews.push({ buffer: 0, byteOffset: n * 16, byteLength: n * 8, target: 34962 });
+    chunks.push(Buffer.from(uvs.buffer));
+  }
   const json = {
     asset: { version: '2.0', generator: 'narco import-props' },
     scene: 0,
     scenes: [{ nodes: [0] }],
     nodes: [{ mesh: 0, name }],
-    meshes: [{ name, primitives: [{ attributes: { POSITION: 0, COLOR_0: 1 }, material: 0 }] }],
+    meshes: [{ name, primitives: [{ attributes, material: 0 }] }],
     materials: [{ pbrMetallicRoughness: { metallicFactor: 0, roughnessFactor: 1 } }],
-    accessors: [
-      { bufferView: 0, componentType: 5126, count: n, type: 'VEC3', min, max },
-      { bufferView: 1, componentType: 5121, normalized: true, count: n, type: 'VEC4' },
-    ],
-    bufferViews: [
-      { buffer: 0, byteOffset: 0, byteLength: n * 12, target: 34962 },
-      { buffer: 0, byteOffset: n * 12, byteLength: n * 4, target: 34962 },
-    ],
-    buffers: [{ byteLength: n * 16 }],
+    accessors,
+    bufferViews,
+    buffers: [{ byteLength: n * (uvs ? 24 : 16) }],
   };
   const pad = (b: Buffer, fill: number) =>
     Buffer.concat([b, Buffer.alloc((4 - (b.length % 4)) % 4, fill)]);
   const jsonChunk = pad(Buffer.from(JSON.stringify(json)), 0x20);
-  const binChunk = pad(
-    Buffer.concat([Buffer.from(positions.buffer), Buffer.from(colors.buffer)]),
-    0,
-  );
+  const binChunk = pad(Buffer.concat(chunks), 0);
   const header = Buffer.alloc(12);
   header.writeUInt32LE(0x46546c67, 0);
   header.writeUInt32LE(2, 4);
@@ -349,6 +386,21 @@ function writeGlb(file: string, name: string, positions: Float32Array, colors: U
     Buffer.concat([header, chunk(jsonChunk, 0x4e4f534a), chunk(binChunk, 0x004e4942)]),
   );
   return { min, max };
+}
+
+/** Atlas d'un pack copié une fois : `models/textures/<pack>.png` (côté ≤ maxTextureSize). */
+function copyTexture(src: string, pack: string, maxSize: number): string {
+  const bytes = readFileSync(src);
+  const size = Math.max(bytes.readUInt32BE(16), bytes.readUInt32BE(20));
+  if (size > maxSize) throw new Error(`${src} : ${size}px, au-delà de ${maxSize}px`);
+  const slug = pack
+    .toLowerCase()
+    .replace(/^(glb|gltf) format /, '')
+    .replace(/[^a-z0-9]+/g, '-');
+  const path = `models/textures/${slug}.png`;
+  mkdirSync(join(ROOT, 'client/public/models/textures'), { recursive: true });
+  writeFileSync(join(ROOT, 'client/public', path), bytes);
+  return path;
 }
 
 const selection = JSON.parse(
@@ -392,11 +444,18 @@ for (const s of selection.models) {
       );
       continue;
     }
-    kept = [{ geometry: simple, factor: parts[0]!.factor, texture: parts[0]!.texture }];
+    kept = [{ ...parts[0]!, geometry: simple }];
   }
-  const { positions, colors } = bake(kept);
+  const { positions, colors, uvs } = bake(kept);
   const model = `models/${s.category}/${s.id}.glb`;
-  const b = writeGlb(join(ROOT, 'client/public', model), s.id, positions, colors);
+  const b = writeGlb(join(ROOT, 'client/public', model), s.id, positions, colors, uvs);
+  const texture = uvs
+    ? copyTexture(
+        kept[0]!.texturePath!,
+        basename(dirname(s.source)),
+        budget[s.category].maxTextureSize,
+      )
+    : null;
   const scale = s.height / (b.max[1]! - b.min[1]!);
   const turned = Math.abs(Math.round(s.rotationY / 90)) % 2 === 1;
   const w = (turned ? b.max[2]! - b.min[2]! : b.max[0]! - b.min[0]!) * scale;
@@ -428,6 +487,7 @@ for (const s of selection.models) {
     keepColors: s.keepColors ?? true,
     ...(s.tint ? { tint: s.tint } : {}),
     cuttable: s.cuttable ?? false,
+    ...(texture ? { texture } : {}),
     triangles: positions.length / 9,
     tags: s.tags,
   });
