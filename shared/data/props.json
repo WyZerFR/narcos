@@ -1,0 +1,1003 @@
+{
+  "license": "Kenney (kenney.nl) : Car Kit, City Kit Commercial, City Kit Industrial, City Kit Suburban, Coaster Kit, Nature Kit. Licence CC0 1.0 (domaine public), déduite des noms des packs : à confirmer.",
+  "props": [
+    {
+      "id": "sedan",
+      "category": "vehicules",
+      "model": "models/vehicules/sedan.glb",
+      "source": "GLB format car/sedan.glb",
+      "height": 1.5,
+      "rotationY": 0,
+      "offset": [0, 0, 0.025],
+      "bounds": {
+        "min": [-0.75, 0, -1.3],
+        "max": [0.75, 1.3, 1.25]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 1.731,
+        "d": 2.942
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 979,
+      "tags": ["voiture", "civile"]
+    },
+    {
+      "id": "sedan_sports",
+      "category": "vehicules",
+      "model": "models/vehicules/sedan_sports.glb",
+      "source": "GLB format car/sedan-sports.glb",
+      "height": 1.35,
+      "rotationY": 0,
+      "offset": [0, 0, 0.025],
+      "bounds": {
+        "min": [-0.65, 0, -1.3],
+        "max": [0.65, 1.1, 1.25]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 1.595,
+        "d": 3.13
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 980,
+      "tags": ["voiture", "civile"]
+    },
+    {
+      "id": "suv_luxury",
+      "category": "vehicules",
+      "model": "models/vehicules/suv_luxury.glb",
+      "source": "GLB format car/suv-luxury.glb",
+      "height": 1.65,
+      "rotationY": 0,
+      "offset": [0, 0, -0.025],
+      "bounds": {
+        "min": [-0.75, 0, -1.4],
+        "max": [0.75, 1.3, 1.45]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 1.904,
+        "d": 3.617
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 979,
+      "tags": ["voiture", "civile", "luxe"]
+    },
+    {
+      "id": "hatchback_sports",
+      "category": "vehicules",
+      "model": "models/vehicules/hatchback_sports.glb",
+      "source": "GLB format car/hatchback-sports.glb",
+      "height": 1.4,
+      "rotationY": 0,
+      "offset": [0, 0, 0.025],
+      "bounds": {
+        "min": [-0.65, 0, -1.45],
+        "max": [0.65, 1.1, 1.4]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 1.655,
+        "d": 3.627
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 979,
+      "tags": ["voiture", "civile"]
+    },
+    {
+      "id": "taxi",
+      "category": "vehicules",
+      "model": "models/vehicules/taxi.glb",
+      "source": "GLB format car/taxi.glb",
+      "height": 1.7,
+      "rotationY": 0,
+      "offset": [0, 0, 0.025],
+      "bounds": {
+        "min": [-0.75, 0, -1.4],
+        "max": [0.75, 1.5, 1.35]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 1.7,
+        "d": 3.117
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 980,
+      "tags": ["voiture", "civile"]
+    },
+    {
+      "id": "van",
+      "category": "vehicules",
+      "model": "models/vehicules/van.glb",
+      "source": "GLB format car/van.glb",
+      "height": 1.9,
+      "rotationY": 0,
+      "offset": [0, 0, 0.025],
+      "bounds": {
+        "min": [-0.75, 0, -1.4],
+        "max": [0.75, 1.35, 1.35]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 2.111,
+        "d": 3.87
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 979,
+      "tags": ["utilitaire"]
+    },
+    {
+      "id": "police",
+      "category": "vehicules",
+      "model": "models/vehicules/police.glb",
+      "source": "GLB format car/police.glb",
+      "height": 1.6,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.75, 0, -1.55],
+        "max": [0.75, 1.3, 1.55]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 1.846,
+        "d": 3.815
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 979,
+      "tags": ["voiture", "police"]
+    },
+    {
+      "id": "skyscraper_a",
+      "category": "batiments",
+      "model": "models/batiments/skyscraper_a.glb",
+      "source": "GLB format commercial/building-skyscraper-a.glb",
+      "height": 30,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.68, 0, -0.68],
+        "max": [0.68, 2.88, 0.68]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 14.167,
+        "d": 14.167
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 1292,
+      "tags": ["tour"]
+    },
+    {
+      "id": "skyscraper_b",
+      "category": "batiments",
+      "model": "models/batiments/skyscraper_b.glb",
+      "source": "GLB format commercial/building-skyscraper-b.glb",
+      "height": 40,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.68, 0, -0.68],
+        "max": [0.68, 4.48, 0.68]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 12.143,
+        "d": 12.143
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 1592,
+      "tags": ["tour"]
+    },
+    {
+      "id": "skyscraper_c",
+      "category": "batiments",
+      "model": "models/batiments/skyscraper_c.glb",
+      "source": "GLB format commercial/building-skyscraper-c.glb",
+      "height": 36,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.64, 0, -0.694],
+        "max": [0.64, 4.08, 0.694]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 11.294,
+        "d": 12.246
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 1704,
+      "tags": ["tour"]
+    },
+    {
+      "id": "skyscraper_d",
+      "category": "batiments",
+      "model": "models/batiments/skyscraper_d.glb",
+      "source": "GLB format commercial/building-skyscraper-d.glb",
+      "height": 46,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.64, 0, -0.694],
+        "max": [0.64, 5.47, 0.694]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 10.764,
+        "d": 11.671
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 1892,
+      "tags": ["tour"]
+    },
+    {
+      "id": "skyscraper_e",
+      "category": "batiments",
+      "model": "models/batiments/skyscraper_e.glb",
+      "source": "GLB format commercial/building-skyscraper-e.glb",
+      "height": 34,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.647, 0, -0.621],
+        "max": [0.648, 4.08, 0.621]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 10.792,
+        "d": 10.35
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 1156,
+      "tags": ["tour"]
+    },
+    {
+      "id": "shop_a",
+      "category": "batiments",
+      "model": "models/batiments/shop_a.glb",
+      "source": "GLB format commercial/building-a.glb",
+      "height": 12,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.442, 0, -0.47],
+        "max": [0.442, 1.293, 0.47]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 8.2,
+        "d": 8.724
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 1252,
+      "tags": ["immeuble", "commerce"]
+    },
+    {
+      "id": "shop_c",
+      "category": "batiments",
+      "model": "models/batiments/shop_c.glb",
+      "source": "GLB format commercial/building-c.glb",
+      "height": 9,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.442, 0, -0.545],
+        "max": [0.442, 0.893, 0.545]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 8.905,
+        "d": 10.985
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 1195,
+      "tags": ["immeuble", "commerce"]
+    },
+    {
+      "id": "shop_e",
+      "category": "batiments",
+      "model": "models/batiments/shop_e.glb",
+      "source": "GLB format commercial/building-e.glb",
+      "height": 9,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.82, 0, -0.504],
+        "max": [0.82, 0.893, 0.504]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 16.529,
+        "d": 10.158
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 1509,
+      "tags": ["immeuble", "commerce"]
+    },
+    {
+      "id": "shop_h",
+      "category": "batiments",
+      "model": "models/batiments/shop_h.glb",
+      "source": "GLB format commercial/building-h.glb",
+      "height": 12,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.442, 0, -0.504],
+        "max": [0.442, 1.293, 0.504]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 8.2,
+        "d": 9.354
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 1512,
+      "tags": ["immeuble", "commerce"]
+    },
+    {
+      "id": "block_a",
+      "category": "batiments",
+      "model": "models/batiments/block_a.glb",
+      "source": "GLB format commercial/low-detail-building-a.glb",
+      "height": 16,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.25, 0, -0.25],
+        "max": [0.25, 2, 0.25]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 4,
+        "d": 4
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 188,
+      "tags": ["immeuble", "remplissage"]
+    },
+    {
+      "id": "block_d",
+      "category": "batiments",
+      "model": "models/batiments/block_d.glb",
+      "source": "GLB format commercial/low-detail-building-d.glb",
+      "height": 14,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.25, 0, -0.25],
+        "max": [0.25, 1.75, 0.25]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 4,
+        "d": 4
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 106,
+      "tags": ["immeuble", "remplissage"]
+    },
+    {
+      "id": "block_g",
+      "category": "batiments",
+      "model": "models/batiments/block_g.glb",
+      "source": "GLB format commercial/low-detail-building-g.glb",
+      "height": 16,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.25, 0, -0.25],
+        "max": [0.25, 2, 0.25]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 4,
+        "d": 4
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 200,
+      "tags": ["immeuble", "remplissage"]
+    },
+    {
+      "id": "block_j",
+      "category": "batiments",
+      "model": "models/batiments/block_j.glb",
+      "source": "GLB format commercial/low-detail-building-j.glb",
+      "height": 14,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.25, 0, -0.25],
+        "max": [0.25, 1.75, 0.25]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 4,
+        "d": 4
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 188,
+      "tags": ["immeuble", "remplissage"]
+    },
+    {
+      "id": "block_wide_a",
+      "category": "batiments",
+      "model": "models/batiments/block_wide_a.glb",
+      "source": "GLB format commercial/low-detail-building-wide-a.glb",
+      "height": 10,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.5, 0, -0.25],
+        "max": [0.5, 1.1, 0.25]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 9.091,
+        "d": 4.545
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 156,
+      "tags": ["immeuble", "remplissage"]
+    },
+    {
+      "id": "house_a",
+      "category": "batiments",
+      "model": "models/batiments/house_a.glb",
+      "source": "GLB format suburban/building-type-a.glb",
+      "height": 6,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.65, 0, -0.514],
+        "max": [0.65, 0.834, 0.514]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 9.358,
+        "d": 7.401
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 1174,
+      "tags": ["maison"]
+    },
+    {
+      "id": "house_c",
+      "category": "batiments",
+      "model": "models/batiments/house_c.glb",
+      "source": "GLB format suburban/building-type-c.glb",
+      "height": 7,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.643, 0, -0.514],
+        "max": [0.643, 1.034, 0.514]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 8.712,
+        "d": 6.963
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 1196,
+      "tags": ["maison"]
+    },
+    {
+      "id": "house_h",
+      "category": "batiments",
+      "model": "models/batiments/house_h.glb",
+      "source": "GLB format suburban/building-type-h.glb",
+      "height": 5.5,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.65, 0, -0.458],
+        "max": [0.65, 0.737, 0.458]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 9.695,
+        "d": 6.831
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 770,
+      "tags": ["maison"]
+    },
+    {
+      "id": "house_k",
+      "category": "batiments",
+      "model": "models/batiments/house_k.glb",
+      "source": "GLB format suburban/building-type-k.glb",
+      "height": 8,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.46, 0, -0.51],
+        "max": [0.46, 1.15, 0.51]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 6.409,
+        "d": 7.098
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 1024,
+      "tags": ["maison"]
+    },
+    {
+      "id": "house_p",
+      "category": "batiments",
+      "model": "models/batiments/house_p.glb",
+      "source": "GLB format suburban/building-type-p.glb",
+      "height": 6.5,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.62, 0, -0.495],
+        "max": [0.62, 0.918, 0.495]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 8.78,
+        "d": 7.01
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 1282,
+      "tags": ["maison"]
+    },
+    {
+      "id": "house_r",
+      "category": "batiments",
+      "model": "models/batiments/house_r.glb",
+      "source": "GLB format suburban/building-type-r.glb",
+      "height": 8,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.514, 0, -0.51],
+        "max": [0.514, 1.141, 0.51]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 7.207,
+        "d": 7.151
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 1030,
+      "tags": ["maison"]
+    },
+    {
+      "id": "warehouse_a",
+      "category": "batiments",
+      "model": "models/batiments/warehouse_a.glb",
+      "source": "GLB format industrie/building-a.glb",
+      "height": 9,
+      "rotationY": 0,
+      "offset": [-0.001, 0, 0],
+      "bounds": {
+        "min": [-1.041, 0, -0.621],
+        "max": [1.043, 1.47, 0.621]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 12.757,
+        "d": 7.604
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 2046,
+      "tags": ["entrepot"]
+    },
+    {
+      "id": "warehouse_g",
+      "category": "batiments",
+      "model": "models/batiments/warehouse_g.glb",
+      "source": "GLB format industrie/building-g.glb",
+      "height": 8,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.839, 0, -0.642],
+        "max": [0.839, 1.28, 0.642]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 10.488,
+        "d": 8.022
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 1242,
+      "tags": ["entrepot"]
+    },
+    {
+      "id": "water_tower",
+      "category": "batiments",
+      "model": "models/batiments/water_tower.glb",
+      "source": "GLB format industrie/water-tower.glb",
+      "height": 14,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.426, 0, -0.416],
+        "max": [0.426, 2.142, 0.416]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 5.571,
+        "d": 5.437
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "triangles": 968,
+      "tags": ["industrie"]
+    },
+    {
+      "id": "tree_default",
+      "category": "vegetation",
+      "model": "models/vegetation/tree_default.glb",
+      "source": "GLTF format nature/tree_default.glb",
+      "height": 5,
+      "rotationY": 0,
+      "offset": [0, 0.05, 0],
+      "bounds": {
+        "min": [-0.378, -0.05, -0.327],
+        "max": [0.378, 1.658, 0.327]
+      },
+      "collision": {
+        "shape": "circle",
+        "r": 0.172
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 114,
+      "tags": ["arbre"]
+    },
+    {
+      "id": "tree_oak",
+      "category": "vegetation",
+      "model": "models/vegetation/tree_oak.glb",
+      "source": "GLTF format nature/tree_oak.glb",
+      "height": 4.6,
+      "rotationY": 0,
+      "offset": [0, 0.05, 0],
+      "bounds": {
+        "min": [-0.32, -0.05, -0.37],
+        "max": [0.32, 1.176, 0.37]
+      },
+      "collision": {
+        "shape": "circle",
+        "r": 0.216
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 196,
+      "tags": ["arbre"]
+    },
+    {
+      "id": "tree_fat",
+      "category": "vegetation",
+      "model": "models/vegetation/tree_fat.glb",
+      "source": "GLTF format nature/tree_fat.glb",
+      "height": 4.2,
+      "rotationY": 0,
+      "offset": [0, 0.05, 0],
+      "bounds": {
+        "min": [-0.378, -0.05, -0.327],
+        "max": [0.378, 1.1, 0.327]
+      },
+      "collision": {
+        "shape": "circle",
+        "r": 0.215
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 50,
+      "tags": ["arbre"]
+    },
+    {
+      "id": "palm_tall",
+      "category": "vegetation",
+      "model": "models/vegetation/palm_tall.glb",
+      "source": "GLTF format nature/tree_palmTall.glb",
+      "height": 6,
+      "rotationY": 0,
+      "offset": [0, 0.05, -0.003],
+      "bounds": {
+        "min": [-0.517, -0.05, -0.515],
+        "max": [0.517, 1.306, 0.52]
+      },
+      "collision": {
+        "shape": "circle",
+        "r": 0.412
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 190,
+      "tags": ["palmier"]
+    },
+    {
+      "id": "palm_bend",
+      "category": "vegetation",
+      "model": "models/vegetation/palm_bend.glb",
+      "source": "GLTF format nature/tree_palmBend.glb",
+      "height": 5.5,
+      "rotationY": 0,
+      "offset": [0, 0.05, 0],
+      "bounds": {
+        "min": [-0.468, -0.05, -0.506],
+        "max": [0.468, 1.33, 0.506]
+      },
+      "collision": {
+        "shape": "circle",
+        "r": 0.336
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 200,
+      "tags": ["palmier"]
+    },
+    {
+      "id": "palm_short",
+      "category": "vegetation",
+      "model": "models/vegetation/palm_short.glb",
+      "source": "GLTF format nature/tree_palmShort.glb",
+      "height": 4.5,
+      "rotationY": 0,
+      "offset": [0, 0.05, -0.003],
+      "bounds": {
+        "min": [-0.517, -0.05, -0.515],
+        "max": [0.517, 1.006, 0.52]
+      },
+      "collision": {
+        "shape": "circle",
+        "r": 0.397
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 190,
+      "tags": ["palmier"]
+    },
+    {
+      "id": "bush",
+      "category": "vegetation",
+      "model": "models/vegetation/bush.glb",
+      "source": "GLTF format nature/plant_bushDetailed.glb",
+      "height": 1,
+      "rotationY": 0,
+      "offset": [0, 0.05, 0],
+      "bounds": {
+        "min": [-0.301, -0.05, -0.301],
+        "max": [0.301, 0.31, 0.301]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 104,
+      "tags": ["buisson"]
+    },
+    {
+      "id": "cone",
+      "category": "props",
+      "model": "models/props/cone.glb",
+      "source": "GLB format car/cone.glb",
+      "height": 0.7,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.238, 0, -0.238],
+        "max": [0.238, 0.595, 0.238]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 172,
+      "tags": ["chantier"]
+    },
+    {
+      "id": "box",
+      "category": "props",
+      "model": "models/props/box.glb",
+      "source": "GLB format car/box.glb",
+      "height": 0.9,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.357, 0, -0.357],
+        "max": [0.357, 0.715, 0.357]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 0.9,
+        "d": 0.9
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 124,
+      "tags": ["caisse"]
+    },
+    {
+      "id": "bench",
+      "category": "props",
+      "model": "models/props/bench.glb",
+      "source": "GLB format coaster/bench.glb",
+      "height": 0.9,
+      "rotationY": 0,
+      "offset": [0, 0, -0.018],
+      "bounds": {
+        "min": [-0.4, 0, -0.225],
+        "max": [0.4, 0.491, 0.261]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 1.465,
+        "d": 0.891
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 112,
+      "tags": ["mobilier"]
+    },
+    {
+      "id": "trash",
+      "category": "props",
+      "model": "models/props/trash.glb",
+      "source": "GLB format coaster/trash.glb",
+      "height": 1,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.212, 0, -0.212],
+        "max": [0.212, 0.437, 0.212]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 0.97,
+        "d": 0.97
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 72,
+      "tags": ["mobilier"]
+    },
+    {
+      "id": "container_a",
+      "category": "props",
+      "model": "models/props/container_a.glb",
+      "source": "GLB format industrie/shipping-container-a.glb",
+      "height": 2.6,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.186, 0, -0.411],
+        "max": [0.186, 0.348, 0.411]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 2.783,
+        "d": 6.144
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 402,
+      "tags": ["conteneur"]
+    },
+    {
+      "id": "container_b",
+      "category": "props",
+      "model": "models/props/container_b.glb",
+      "source": "GLB format industrie/shipping-container-b.glb",
+      "height": 2.6,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.186, 0, -0.411],
+        "max": [0.186, 0.348, 0.411]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 2.783,
+        "d": 6.144
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 402,
+      "tags": ["conteneur"]
+    },
+    {
+      "id": "tank",
+      "category": "props",
+      "model": "models/props/tank.glb",
+      "source": "GLB format industrie/detail-tank-large.glb",
+      "height": 3,
+      "rotationY": 0,
+      "offset": [0, 0, 0.07],
+      "bounds": {
+        "min": [-0.754, 0, -0.894],
+        "max": [0.754, 0.962, 0.754]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 4.706,
+        "d": 5.143
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 566,
+      "tags": ["industrie"]
+    },
+    {
+      "id": "rock_a",
+      "category": "props",
+      "model": "models/props/rock_a.glb",
+      "source": "GLTF format nature/rock_largeA.glb",
+      "height": 0.9,
+      "rotationY": 0,
+      "offset": [0, 0.05, 0],
+      "bounds": {
+        "min": [-0.392, -0.05, -0.508],
+        "max": [0.392, 0.21, 0.508]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 2.719,
+        "d": 3.518
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 80,
+      "tags": ["rocher", "plage"]
+    },
+    {
+      "id": "rock_c",
+      "category": "props",
+      "model": "models/props/rock_c.glb",
+      "source": "GLTF format nature/rock_largeC.glb",
+      "height": 1.1,
+      "rotationY": 0,
+      "offset": [0, 0.05, 0],
+      "bounds": {
+        "min": [-0.532, -0.05, -0.508],
+        "max": [0.532, 0.271, 0.508]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 3.646,
+        "d": 3.479
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "triangles": 72,
+      "tags": ["rocher", "plage"]
+    }
+  ]
+}

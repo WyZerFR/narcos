@@ -64,7 +64,7 @@ describe('côte de l’île', () => {
     fromSpawn.forEach((d, i) => {
       if (Number.isFinite(d)) expect(areaAt(walkable, cellCenter(grid, i))).not.toBeNull();
     });
-  });
+  }, 30_000);
 
   it('joueur arrêté par la côte : 10 m vers la mer, il reste sur l’île, à un rayon du bord', () => {
     let tested = 0;

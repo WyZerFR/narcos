@@ -76,3 +76,19 @@ describe('thème visuel', () => {
     expect(gameData.locations.get('repaire_jefe')!.neonColor).toBe(config.neons.magenta);
   });
 });
+
+describe('thème neutre', () => {
+  const { theme } = gameData.config;
+
+  it('éclairage doux : sans bloom, halos coupés, brouillard plus léger, thèmes existants gardés', () => {
+    expect(THEME_IDS).toEqual(['cartel', 'legacy_night', 'neutral']);
+    expect(theme.neutral.bloom).toBe(false);
+    expect(theme.neutral.halos).toBe(false);
+    expect(theme.neutral.playerLight).toBeNull();
+    expect(theme.neutral.fog.near).toBeGreaterThan(theme.cartel.fog.near);
+    expect(theme.neutral.fog.far).toBeGreaterThan(theme.cartel.fog.far);
+    // les thèmes existants gardent bloom et halos (défaut du schéma)
+    expect(theme.cartel.bloom && theme.cartel.halos).toBe(true);
+    expect(theme.legacy_night.bloom && theme.legacy_night.halos).toBe(true);
+  });
+});

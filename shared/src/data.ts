@@ -11,8 +11,14 @@ import areasJson from '../data/areas.json';
 import quartiersJson from '../data/quartiers.json';
 import charactersJson from '../data/characters.json';
 import palettesJson from '../data/palettes.json';
+import propsJson from '../data/props.json';
+import placementsJson from '../data/placements.json';
 import {
   PalettesFileSchema,
+  PropsFileSchema,
+  PlacementsFileSchema,
+  type PlacementsFile,
+  type Prop,
   type Swatch,
   ConfigSchema,
   EconomySchema,
@@ -54,6 +60,7 @@ import { footprint, interactionPoint } from './locations';
 import { interiorBounds, interiorObstacles, scaleInterior } from './zones';
 
 import { findSlits, obstaclesFrom } from './collision';
+import { checkPlacements } from './props';
 import { dialogueVars, textVars } from './dialogue';
 import { areaAt, areaContainsRect, areaRects, areasEnvelope } from './areas';
 import { checkQuartier, generateQuartier, quartierFrame, type QuartierLayout } from './quartiers';
@@ -146,6 +153,10 @@ export interface GameData {
   characters: ReadonlyMap<string, Character>;
   /** Zones personnalisables (`palettes.json`), dans l'ordre du fichier. */
   appearanceSlots: ReadonlyMap<string, AppearanceSlot>;
+  /** Décor 3D importé (`props.json`), indexé par id. */
+  props: ReadonlyMap<string, Prop>;
+  /** Décor généré remplacé par des modèles et props posés (`placements.json`). */
+  placements: PlacementsFile;
 }
 
 /** Zone personnalisable d'un personnage et ses teintes. */
@@ -170,6 +181,10 @@ export interface RawGameData {
   quartiers: unknown;
   characters: unknown;
   palettes: unknown;
+  /** Absent : `props.json`. */
+  props?: unknown;
+  /** Absent : `placements.json`. */
+  placements?: unknown;
 }
 
 function parse<T>(file: string, schema: z.ZodType<T>, raw: unknown): T {
@@ -444,6 +459,16 @@ export function parseGameData(raw: RawGameData): GameData {
     ),
   );
 
+  const props = indexById(
+    'props.json',
+    parse('props.json', PropsFileSchema, raw.props ?? propsJson).props,
+  );
+  const placements = parse(
+    'placements.json',
+    PlacementsFileSchema,
+    raw.placements ?? placementsJson,
+  );
+
   const items = indexById('items.json', itemsFile.items);
   const zones = indexById('locations.json (zones)', locFile.zones);
   const locations = indexById('locations.json', locFile.locations);
@@ -564,6 +589,8 @@ export function parseGameData(raw: RawGameData): GameData {
     blocks,
     areas,
     quartierLayouts,
+    props,
+    placements,
   }).map((r) => expandRect(r, config.npc.radius));
   for (const [i, wp] of npcs.waypoints.entries())
     if (
@@ -664,6 +691,33 @@ export function parseGameData(raw: RawGameData): GameData {
   const ring = config.characters.ring;
   if (ring.innerRadius >= ring.outerRadius)
     errors.push('config.json : characters.ring.innerRadius doit être < outerRadius');
+  for (const p of props.values()) {
+    if (!p.keepColors && !p.tint)
+      errors.push(`props.json : "${p.id}" sans keepColors doit avoir une teinte (tint)`);
+    if (!p.model.startsWith(`models/${p.category}/`))
+      errors.push(`props.json : "${p.id}" doit être dans models/${p.category}/`);
+    if (p.triangles > config.props.budget[p.category].maxTriangles)
+      errors.push(`props.json : "${p.id}" dépasse le budget de triangles de ${p.category}`);
+  }
+  errors.push(
+    ...checkPlacements(
+      config,
+      props,
+      placements,
+      areas,
+      locations.values(),
+      quartierLayouts.values(),
+      obstaclesFrom({
+        config,
+        locations,
+        blocks,
+        areas,
+        quartierLayouts,
+        props,
+        placements: { ...placements, areas: {} },
+      }),
+    ),
+  );
   errors.push(...checkAreas(config, areas, locFile.locations, quartiers));
   errors.push(...checkCity(config, areas, blocks, locFile.locations));
   errors.push(...checkAirport(config, areas));
@@ -766,6 +820,8 @@ export function parseGameData(raw: RawGameData): GameData {
     island: islandLayout(areas.values(), config.island),
     characters,
     appearanceSlots,
+    props,
+    placements,
   };
 }
 
@@ -783,4 +839,6 @@ export const gameData: GameData = parseGameData({
   quartiers: quartiersJson,
   characters: charactersJson,
   palettes: palettesJson,
+  props: propsJson,
+  placements: placementsJson,
 });

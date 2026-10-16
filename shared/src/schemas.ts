@@ -117,17 +117,22 @@ export const ThemeSchema = z.object({
   hemisphere: z.object({ sky: LightSchema, ground: LightSchema, intensity: nonNeg }).nullable(),
   sun: LightSchema.extend({ position: z.tuple([z.number(), z.number(), z.number()]) }),
   playerLight: LightSchema.extend({ distance: pos, decay: nonNeg, height: pos }).nullable(),
+  /** Bloom (qualités moyen et haut) : faux pour un thème doux, émissifs non poussés. */
+  bloom: z.boolean().default(true),
+  /** Halos additifs des devantures et des lampadaires. */
+  halos: z.boolean().default(true),
   /** Applique les palettes par area (areas.json) : faux pour l'ancien thème, uniforme. */
   areaPalettes: z.boolean(),
 });
 
-export const THEME_IDS = ['cartel', 'legacy_night'] as const;
+export const THEME_IDS = ['cartel', 'legacy_night', 'neutral'] as const;
 export const ThemeIdSchema = z.enum(THEME_IDS);
 
 export const ThemesSchema = z.object({
   default: ThemeIdSchema,
   cartel: ThemeSchema,
   legacy_night: ThemeSchema,
+  neutral: ThemeSchema,
 });
 
 /**
@@ -158,6 +163,39 @@ export const RenderSchema = z.object({
     beaconColors: z.array(hexColor).min(1),
   }),
 });
+
+/** Catégories de décor 3D importé : dossier `client/public/models/<catégorie>/`. */
+export const PROP_CATEGORIES = ['batiments', 'vehicules', 'props', 'vegetation'] as const;
+export const PropCategorySchema = z.enum(PROP_CATEGORIES);
+
+const PropBudgetSchema = z.object({
+  maxTriangles: z.number().int().positive(),
+  maxTextures: z.number().int().min(0),
+  maxTextureSize: z.number().int().positive(),
+  maxFileMB: pos,
+});
+
+/** Décor 3D importé (`props.json`) : budgets par catégorie, import, rendu. */
+export const PropsConfigSchema = z.object({
+  /** Budget iPad par fichier et par catégorie (`npm run models -- --props`). */
+  budget: z.record(PropCategorySchema, PropBudgetSchema),
+  /** Poids total maximal des modèles retenus (Mo). */
+  maxTotalMB: pos,
+  /** Collision d'un arbre : cercle de rayon = ratio × demi-côté de la boîte au sol (le tronc). */
+  vegetationCollisionRatio: z.number().min(0.05).max(1),
+  /** Tolérance (fraction de la hauteur) pour dire qu'un modèle a son origine au pied. */
+  originTolerance: z.number().min(0).max(0.5),
+  /** Distance minimale (m) entre un prop posé et une porte ou un point d'interaction. */
+  doorClearance: pos,
+  /** Couleur du cube de repli (modèle en échec) : clé de la palette. */
+  fallbackColor: PaletteKeySchema,
+  /** Teinte d'un prop sans `keepColors` : part de la teinte de palette mêlée à l'original. */
+  tintStrength: z.number().min(0).max(1),
+  /** Objectif de draw calls par area (overlay debug) et plafond total. */
+  drawCallTarget: z.number().int().positive(),
+  drawCallBudget: z.number().int().positive(),
+});
+export type PropsConfig = z.infer<typeof PropsConfigSchema>;
 
 /** Couleurs émissives autorisées (néons, enseignes, gyrophares) : nom → couleur. */
 export const NeonsSchema = z.record(z.string().min(1), hexColor);
@@ -300,6 +338,7 @@ export const ConfigSchema = z.object({
     crates: z.array(Vec2Schema),
     cartons: z.array(Vec2Schema),
   }),
+  props: PropsConfigSchema,
   /** Cadrage retenu. `zoom` = distance caméra → cible (m) ; en ortho, cadrage équivalent. */
   camera: CameraSchema,
   /** Caméra dans les intérieurs (pièces plus petites, vue plus plongeante). */
@@ -1262,3 +1301,101 @@ export type Theme = z.infer<typeof ThemeSchema>;
 export type ThemeId = z.infer<typeof ThemeIdSchema>;
 export type Quality = z.infer<typeof QualitySchema>;
 export type RenderParams = GameConfig['render'];
+
+// ---------------------------------------------------------------- décor 3D importé (props.json)
+
+const vec3 = z.tuple([z.number(), z.number(), z.number()]);
+
+/** Emprise au sol (m, après mise à l'échelle) : rectangle centré ou cercle, jamais le maillage. */
+export const PropCollisionSchema = z.discriminatedUnion('shape', [
+  z.object({ shape: z.literal('rect'), w: pos, d: pos }),
+  z.object({ shape: z.literal('circle'), r: pos }),
+]);
+
+export const PropSchema = z.object({
+  id: slug,
+  category: PropCategorySchema,
+  /** Fichier relatif à `client/public` (dossier de la catégorie). */
+  model: z.string().regex(/^models\/[a-z]+\/[a-z0-9_-]+\.glb$/),
+  /** Provenance dans le pack brut (`public/maps/3D/`, hors dépôt). */
+  source: z.string().min(1),
+  /** Hauteur réelle voulue (m) : échelle uniforme = height / hauteur de la boîte. */
+  height: pos,
+  /** Rotation corrective (degrés, autour de Y) : façade ou avant du modèle vers +Z. */
+  rotationY: z.number().min(-180).max(180),
+  /** Décalage (unités du fichier) qui ramène le pied centré de la boîte à l'origine. */
+  offset: vec3,
+  /** Boîte englobante du fichier (unités du fichier), mesurée à l'import. */
+  bounds: z.object({ min: vec3, max: vec3 }),
+  /** Emprise de collision, null = décor traversable (petit prop). */
+  collision: PropCollisionSchema.nullable(),
+  /** Garde les couleurs du modèle ; sinon teinte de la palette (`tint`). */
+  keepColors: z.boolean(),
+  tint: PaletteKeySchema.optional(),
+  /** Percé par la découpe devant le joueur (bâtiments). */
+  cuttable: z.boolean(),
+  triangles: z.number().int().positive(),
+  tags: z.array(slug),
+});
+
+export const PropsFileSchema = z.object({
+  /** Origine et licence des modèles. */
+  license: z.string().min(1),
+  props: z.array(PropSchema),
+});
+
+export type Prop = z.infer<typeof PropSchema>;
+export type PropCategory = z.infer<typeof PropCategorySchema>;
+export type PropCollision = z.infer<typeof PropCollisionSchema>;
+
+// ---------------------------------------------------------------- placements du décor (placements.json)
+
+/** Décor généré remplacé par des modèles : liste de props (tirés en alternance) et ajustement. */
+export const PropKitSchema = z.object({
+  /** Vide : le générateur actuel reste. */
+  props: z.array(slug),
+  /**
+   * `height` : hauteur réelle du prop ; `length` : longueur (Z du prop) = longueur de la voiture
+   * générée ; `box` : emprise générée (largeur, profondeur) et hauteur × `heightScale`.
+   */
+  fit: z.enum(['height', 'length', 'box']),
+  /** Rotation ajoutée (degrés) : avant du prop (+Z) vers l'axe du décor généré. */
+  rotationY: z.number().min(-180).max(180).default(0),
+  heightScale: pos.default(1),
+});
+
+export const PROP_KIT_IDS = [
+  'trees',
+  'palms',
+  'cars',
+  'policeCars',
+  'houses',
+  'towers',
+  'fillers',
+] as const;
+export type PropKitId = (typeof PROP_KIT_IDS)[number];
+
+/** Un prop posé à la main dans une area. */
+export const PropPlacementSchema = z.object({
+  prop: slug,
+  x: z.number(),
+  z: z.number(),
+  /** Quart de tour seulement : l'emprise reste un rectangle aligné sur les axes. */
+  rotation: z.union([z.literal(0), z.literal(90), z.literal(180), z.literal(270)]).default(0),
+  scale: pos.default(1),
+});
+
+export const PlacementsFileSchema = z.object({
+  kits: z.object(
+    Object.fromEntries(PROP_KIT_IDS.map((k) => [k, PropKitSchema])) as Record<
+      PropKitId,
+      typeof PropKitSchema
+    >,
+  ),
+  /** Props posés, par id d'area. */
+  areas: z.record(slug, z.array(PropPlacementSchema)),
+});
+
+export type PropKit = z.infer<typeof PropKitSchema>;
+export type PropPlacement = z.infer<typeof PropPlacementSchema>;
+export type PlacementsFile = z.infer<typeof PlacementsFileSchema>;

@@ -19,6 +19,7 @@ import {
   airportLayout,
   expandRect,
   interactionPoint,
+  kitModelled,
   lotCars,
   rectFromCenter,
   rectContainsPoint,
@@ -120,6 +121,8 @@ interface Kit {
   geometry: BufferGeometry;
   material: Material;
   items: Placement[];
+  /** Remplacé par un modèle importé (placements.json) : non dessiné, ombres blob gardées. */
+  hidden?: boolean;
 }
 
 /**
@@ -230,7 +233,7 @@ function Instances({ kit, loaded }: { kit: Kit; loaded: ReadonlySet<string> | nu
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     mesh.computeBoundingSphere();
   }, [kit, areas, loaded]);
-  if (kit.items.length === 0) return null;
+  if (kit.items.length === 0 || kit.hidden) return null;
   return (
     <instancedMesh
       ref={ref}
@@ -245,12 +248,15 @@ export function Decor({
   loaded,
   solidMaterial,
   glowMaterial,
+  halos = true,
 }: {
   data: GameData;
   /** Areas chargées (null : toute l'île, au montage). */
   loaded: ReadonlySet<string> | null;
   solidMaterial: Material;
   glowMaterial: Material;
+  /** Halos au sol des lampadaires (coupés par un thème doux). */
+  halos?: boolean;
 }) {
   const kits = useMemo<Kit[]>(() => {
     const { palette, decor } = data.config;
@@ -457,9 +463,10 @@ export function Decor({
         items: lamps.map(({ color: _c, ...p }) => p),
       },
       { key: 'heads', geometry: head.build(), material: glowMaterial, items: lamps },
-      { key: 'pools', geometry: pool, material: poolMaterial, items: lamps },
+      { key: 'pools', hidden: !halos, geometry: pool, material: poolMaterial, items: lamps },
       {
         key: 'trees',
+        hidden: kitModelled(data, 'trees'),
         geometry: tree.build(),
         material: solidMaterial,
         items: [
@@ -469,24 +476,39 @@ export function Decor({
       },
       {
         key: 'palms',
+        hidden: kitModelled(data, 'palms'),
         geometry: palm.build(),
         material: solidMaterial,
         items: data.island.palms.map((p, i) => ({ ...p, rotY: i * 1.3 })),
       },
-      { key: 'cars', geometry: car.build(), material: solidMaterial, items: cars },
+      {
+        key: 'cars',
+        hidden: kitModelled(data, 'cars'),
+        geometry: car.build(),
+        material: solidMaterial,
+        items: cars,
+      },
       {
         key: 'carLights',
+        hidden: kitModelled(data, 'cars'),
         geometry: carLights.build(),
         material: glowMaterial,
         items: cars.map(({ color: _c, ...p }) => p),
       },
       {
         key: 'policeCars',
+        hidden: kitModelled(data, 'policeCars'),
         geometry: policeBody.build(),
         material: solidMaterial,
         items: policeCars,
       },
-      { key: 'policeBars', geometry: policeBar.build(), material: glowMaterial, items: policeCars },
+      {
+        key: 'policeBars',
+        hidden: kitModelled(data, 'policeCars'),
+        geometry: policeBar.build(),
+        material: glowMaterial,
+        items: policeCars,
+      },
       {
         key: 'bins',
         geometry: bin.build(),
@@ -513,7 +535,7 @@ export function Decor({
         items: at(decor.cartons),
       },
     ];
-  }, [data, solidMaterial, glowMaterial]);
+  }, [data, solidMaterial, glowMaterial, halos]);
 
   // ombres blob du décor (voitures, arbres, props) : un seul InstancedMesh, BlobShadows.tsx
   useLayoutEffect(() => {

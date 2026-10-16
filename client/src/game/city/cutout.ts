@@ -54,7 +54,11 @@ varying vec3 vCutWorld;
 
 const VERTEX_BODY = /* glsl */ `
 vCut = aCut;
+#ifdef USE_INSTANCING
+vCutWorld = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;
+#else
 vCutWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;
+#endif
 `;
 
 const FRAGMENT_DECL = /* glsl */ `

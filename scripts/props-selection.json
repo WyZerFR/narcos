@@ -1,0 +1,419 @@
+{
+  "sourceDir": "public/maps/3D",
+  "license": "Kenney (kenney.nl) : Car Kit, City Kit Commercial, City Kit Industrial, City Kit Suburban, Coaster Kit, Nature Kit. Licence CC0 1.0 (domaine public), déduite des noms des packs : à confirmer.",
+  "minKeepRatio": 0.4,
+  "models": [
+    {
+      "id": "sedan",
+      "source": "GLB format car/sedan.glb",
+      "category": "vehicules",
+      "height": 1.5,
+      "rotationY": 0,
+      "tags": ["voiture", "civile"]
+    },
+    {
+      "id": "sedan_sports",
+      "source": "GLB format car/sedan-sports.glb",
+      "category": "vehicules",
+      "height": 1.35,
+      "rotationY": 0,
+      "tags": ["voiture", "civile"]
+    },
+    {
+      "id": "suv",
+      "source": "GLB format car/suv.glb",
+      "category": "vehicules",
+      "height": 1.7,
+      "rotationY": 0,
+      "tags": ["voiture", "civile"]
+    },
+    {
+      "id": "suv_luxury",
+      "source": "GLB format car/suv-luxury.glb",
+      "category": "vehicules",
+      "height": 1.65,
+      "rotationY": 0,
+      "tags": ["voiture", "civile", "luxe"]
+    },
+    {
+      "id": "hatchback_sports",
+      "source": "GLB format car/hatchback-sports.glb",
+      "category": "vehicules",
+      "height": 1.4,
+      "rotationY": 0,
+      "tags": ["voiture", "civile"]
+    },
+    {
+      "id": "taxi",
+      "source": "GLB format car/taxi.glb",
+      "category": "vehicules",
+      "height": 1.7,
+      "rotationY": 0,
+      "tags": ["voiture", "civile"]
+    },
+    {
+      "id": "van",
+      "source": "GLB format car/van.glb",
+      "category": "vehicules",
+      "height": 1.9,
+      "rotationY": 0,
+      "tags": ["utilitaire"]
+    },
+    {
+      "id": "delivery",
+      "source": "GLB format car/delivery.glb",
+      "category": "vehicules",
+      "height": 2.3,
+      "rotationY": 0,
+      "tags": ["utilitaire"]
+    },
+    {
+      "id": "police",
+      "source": "GLB format car/police.glb",
+      "category": "vehicules",
+      "height": 1.6,
+      "rotationY": 0,
+      "tags": ["voiture", "police"]
+    },
+
+    {
+      "id": "skyscraper_a",
+      "source": "GLB format commercial/building-skyscraper-a.glb",
+      "category": "batiments",
+      "height": 30,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["tour"]
+    },
+    {
+      "id": "skyscraper_b",
+      "source": "GLB format commercial/building-skyscraper-b.glb",
+      "category": "batiments",
+      "height": 40,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["tour"]
+    },
+    {
+      "id": "skyscraper_c",
+      "source": "GLB format commercial/building-skyscraper-c.glb",
+      "category": "batiments",
+      "height": 36,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["tour"]
+    },
+    {
+      "id": "skyscraper_d",
+      "source": "GLB format commercial/building-skyscraper-d.glb",
+      "category": "batiments",
+      "height": 46,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["tour"]
+    },
+    {
+      "id": "skyscraper_e",
+      "source": "GLB format commercial/building-skyscraper-e.glb",
+      "category": "batiments",
+      "height": 34,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["tour"]
+    },
+    {
+      "id": "shop_a",
+      "source": "GLB format commercial/building-a.glb",
+      "category": "batiments",
+      "height": 12,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["immeuble", "commerce"]
+    },
+    {
+      "id": "shop_c",
+      "source": "GLB format commercial/building-c.glb",
+      "category": "batiments",
+      "height": 9,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["immeuble", "commerce"]
+    },
+    {
+      "id": "shop_e",
+      "source": "GLB format commercial/building-e.glb",
+      "category": "batiments",
+      "height": 9,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["immeuble", "commerce"]
+    },
+    {
+      "id": "shop_h",
+      "source": "GLB format commercial/building-h.glb",
+      "category": "batiments",
+      "height": 12,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["immeuble", "commerce"]
+    },
+    {
+      "id": "block_a",
+      "source": "GLB format commercial/low-detail-building-a.glb",
+      "category": "batiments",
+      "height": 16,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["immeuble", "remplissage"]
+    },
+    {
+      "id": "block_d",
+      "source": "GLB format commercial/low-detail-building-d.glb",
+      "category": "batiments",
+      "height": 14,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["immeuble", "remplissage"]
+    },
+    {
+      "id": "block_g",
+      "source": "GLB format commercial/low-detail-building-g.glb",
+      "category": "batiments",
+      "height": 16,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["immeuble", "remplissage"]
+    },
+    {
+      "id": "block_j",
+      "source": "GLB format commercial/low-detail-building-j.glb",
+      "category": "batiments",
+      "height": 14,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["immeuble", "remplissage"]
+    },
+    {
+      "id": "block_wide_a",
+      "source": "GLB format commercial/low-detail-building-wide-a.glb",
+      "category": "batiments",
+      "height": 10,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["immeuble", "remplissage"]
+    },
+    {
+      "id": "house_a",
+      "source": "GLB format suburban/building-type-a.glb",
+      "category": "batiments",
+      "height": 6,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["maison"]
+    },
+    {
+      "id": "house_c",
+      "source": "GLB format suburban/building-type-c.glb",
+      "category": "batiments",
+      "height": 7,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["maison"]
+    },
+    {
+      "id": "house_h",
+      "source": "GLB format suburban/building-type-h.glb",
+      "category": "batiments",
+      "height": 5.5,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["maison"]
+    },
+    {
+      "id": "house_k",
+      "source": "GLB format suburban/building-type-k.glb",
+      "category": "batiments",
+      "height": 8,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["maison"]
+    },
+    {
+      "id": "house_p",
+      "source": "GLB format suburban/building-type-p.glb",
+      "category": "batiments",
+      "height": 6.5,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["maison"]
+    },
+    {
+      "id": "house_r",
+      "source": "GLB format suburban/building-type-r.glb",
+      "category": "batiments",
+      "height": 8,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["maison"]
+    },
+    {
+      "id": "warehouse_a",
+      "source": "GLB format industrie/building-a.glb",
+      "category": "batiments",
+      "height": 9,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["entrepot"]
+    },
+    {
+      "id": "warehouse_g",
+      "source": "GLB format industrie/building-g.glb",
+      "category": "batiments",
+      "height": 8,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["entrepot"]
+    },
+    {
+      "id": "water_tower",
+      "source": "GLB format industrie/water-tower.glb",
+      "category": "batiments",
+      "height": 14,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["industrie"]
+    },
+
+    {
+      "id": "tree_default",
+      "source": "GLTF format nature/tree_default.glb",
+      "category": "vegetation",
+      "height": 5,
+      "rotationY": 0,
+      "tags": ["arbre"]
+    },
+    {
+      "id": "tree_oak",
+      "source": "GLTF format nature/tree_oak.glb",
+      "category": "vegetation",
+      "height": 4.6,
+      "rotationY": 0,
+      "tags": ["arbre"]
+    },
+    {
+      "id": "tree_fat",
+      "source": "GLTF format nature/tree_fat.glb",
+      "category": "vegetation",
+      "height": 4.2,
+      "rotationY": 0,
+      "tags": ["arbre"]
+    },
+    {
+      "id": "palm_tall",
+      "source": "GLTF format nature/tree_palmTall.glb",
+      "category": "vegetation",
+      "height": 6,
+      "rotationY": 0,
+      "tags": ["palmier"]
+    },
+    {
+      "id": "palm_bend",
+      "source": "GLTF format nature/tree_palmBend.glb",
+      "category": "vegetation",
+      "height": 5.5,
+      "rotationY": 0,
+      "tags": ["palmier"]
+    },
+    {
+      "id": "palm_short",
+      "source": "GLTF format nature/tree_palmShort.glb",
+      "category": "vegetation",
+      "height": 4.5,
+      "rotationY": 0,
+      "tags": ["palmier"]
+    },
+    {
+      "id": "bush",
+      "source": "GLTF format nature/plant_bushDetailed.glb",
+      "category": "vegetation",
+      "height": 1,
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["buisson"]
+    },
+
+    {
+      "id": "cone",
+      "source": "GLB format car/cone.glb",
+      "category": "props",
+      "height": 0.7,
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["chantier"]
+    },
+    {
+      "id": "box",
+      "source": "GLB format car/box.glb",
+      "category": "props",
+      "height": 0.9,
+      "rotationY": 0,
+      "tags": ["caisse"]
+    },
+    {
+      "id": "bench",
+      "source": "GLB format coaster/bench.glb",
+      "category": "props",
+      "height": 0.9,
+      "rotationY": 0,
+      "tags": ["mobilier"]
+    },
+    {
+      "id": "trash",
+      "source": "GLB format coaster/trash.glb",
+      "category": "props",
+      "height": 1,
+      "rotationY": 0,
+      "tags": ["mobilier"]
+    },
+    {
+      "id": "container_a",
+      "source": "GLB format industrie/shipping-container-a.glb",
+      "category": "props",
+      "height": 2.6,
+      "rotationY": 0,
+      "tags": ["conteneur"]
+    },
+    {
+      "id": "container_b",
+      "source": "GLB format industrie/shipping-container-b.glb",
+      "category": "props",
+      "height": 2.6,
+      "rotationY": 0,
+      "tags": ["conteneur"]
+    },
+    {
+      "id": "tank",
+      "source": "GLB format industrie/detail-tank-large.glb",
+      "category": "props",
+      "height": 3,
+      "rotationY": 0,
+      "tags": ["industrie"]
+    },
+    {
+      "id": "rock_a",
+      "source": "GLTF format nature/rock_largeA.glb",
+      "category": "props",
+      "height": 0.9,
+      "rotationY": 0,
+      "tags": ["rocher", "plage"]
+    },
+    {
+      "id": "rock_c",
+      "source": "GLTF format nature/rock_largeC.glb",
+      "category": "props",
+      "height": 1.1,
+      "rotationY": 0,
+      "tags": ["rocher", "plage"]
+    }
+  ]
+}

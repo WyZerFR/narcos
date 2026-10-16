@@ -36,3 +36,4 @@ export * from './airport';
 export * from './areaSpots';
 export * from './theme';
 export * from './discovery';
+export * from './props';
