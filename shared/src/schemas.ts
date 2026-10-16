@@ -422,6 +422,15 @@ export const ConfigSchema = z.object({
     cartons: z.array(Vec2Schema),
   }),
   props: PropsConfigSchema,
+  /**
+   * Mode debug `?shot=<area>` : point de vue fixe par area pour comparer avec l'image de
+   * référence (caméra de jeu : élévation, rotation, distance), visée au centre de l'area.
+   */
+  debugShot: z.object({
+    elevation: range(CAMERA_LIMITS.elevation),
+    rotation: range(CAMERA_LIMITS.rotation),
+    zoom: pos,
+  }),
   /** Cadrage retenu. `zoom` = distance caméra → cible (m) ; en ortho, cadrage équivalent. */
   camera: CameraSchema,
   /** Caméra dans les intérieurs (pièces plus petites, vue plus plongeante). */

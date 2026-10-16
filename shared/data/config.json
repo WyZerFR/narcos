@@ -813,6 +813,11 @@
     "drawCallBudget": 200,
     "maxStretch": 1.15
   },
+  "debugShot": {
+    "elevation": 52,
+    "rotation": 45,
+    "zoom": 95
+  },
   "characters": {
     "locked": false,
     "defaultId": "perso_1",

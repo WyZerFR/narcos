@@ -21,6 +21,7 @@ import { connection, type GameRoom } from '../net/connection';
 import { QUALITY_PRESETS, useSettings } from '../ui/settings';
 import { debugStats } from '../ui/DebugOverlay';
 import { localPlayer, resetLocalPlayer } from './localPlayer';
+import { getShot } from './shotMode';
 import { City } from './city/City';
 import { Ambience } from './Ambience';
 import { BlobShadows } from './BlobShadows';
@@ -66,6 +67,12 @@ function CameraRig() {
       const fit = fitInteriorZoom(interior, c, width / height, interiorFraming);
       if (fit > c.zoom) c = { ...c, zoom: fit };
       follow = interiorCameraTarget(localPlayer, interiorFraming);
+    }
+    // mode debug ?shot=<area> : point de vue fixe sur l'area (comparaison avec la référence)
+    const shot = !interior && !placing ? getShot() : null;
+    if (shot) {
+      c = { ...c, ...gameData.config.debugShot };
+      follow = shot;
     }
     const t = smoothFactor(cameraRig.followStiffness, Math.min(dt, 0.1));
     target.current.x += (follow.x - target.current.x) * t;

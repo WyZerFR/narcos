@@ -39,3 +39,4 @@ export * from './discovery';
 export * from './props';
 export * from './crosswalks';
 export * from './greenery';
+export * from './shot';
