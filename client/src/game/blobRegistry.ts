@@ -22,18 +22,27 @@ export const BLOB_KIT_KINDS: Readonly<Record<string, BlobKind>> = {
 };
 
 /** Ombres fixes du décor (voitures garées, arbres, props), publiées par Decor au montage. */
-let staticBlobs: readonly Blob[] = [];
-let staticVersion = 0;
+export interface StaticBlobs {
+  list: readonly Blob[];
+  version: number;
+}
+
+/**
+ * Instantané lu par `useSyncExternalStore` : le MÊME objet tant que rien ne change (un objet
+ * neuf à chaque lecture fait reboucler React : erreur #185, « Maximum update depth exceeded »).
+ */
+let snapshot: StaticBlobs = { list: [], version: 0 };
 const listeners = new Set<() => void>();
 
 export function setStaticBlobs(list: readonly Blob[]): void {
-  staticBlobs = list;
-  staticVersion++;
+  // vider une liste déjà vide (démontage) ne réveille personne
+  if (list === snapshot.list || (list.length === 0 && snapshot.list.length === 0)) return;
+  snapshot = { list, version: snapshot.version + 1 };
   for (const fn of listeners) fn();
 }
 
-export function getStaticBlobs(): { list: readonly Blob[]; version: number } {
-  return { list: staticBlobs, version: staticVersion };
+export function getStaticBlobs(): StaticBlobs {
+  return snapshot;
 }
 
 export function onStaticBlobs(fn: () => void): () => void {
