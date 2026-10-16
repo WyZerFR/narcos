@@ -1,6 +1,52 @@
 {
   "theme": {
-    "default": "cartel",
+    "default": "day",
+    "day": {
+      "label": "Jour",
+      "palette": {
+        "sky": "#8ec5ea",
+        "street": "#6d7076",
+        "ground": "#c8c3b8",
+        "wall": "#b9ab9b",
+        "vegetation": "#5aa845",
+        "sea": "#2cc5c0",
+        "sand": "#eadcb4",
+        "windows": "#9cc9e8"
+      },
+      "fog": {
+        "near": 120,
+        "far": 320
+      },
+      "ambient": {
+        "color": "#ffffff",
+        "intensity": 1.6,
+        "scale": 1
+      },
+      "hemisphere": null,
+      "sun": {
+        "color": "#ffe2b8",
+        "intensity": 2.2,
+        "scale": 1,
+        "position": [-40, 60, 25]
+      },
+      "playerLight": null,
+      "bloom": false,
+      "halos": false,
+      "glow": "painted",
+      "interiorAmbient": {
+        "color": "#ffd9a8",
+        "intensity": 1.4,
+        "scale": 1
+      },
+      "quartierPalette": {
+        "ground": "#8dbf6a",
+        "sidewalk": "#cfcac0",
+        "road": "#6d7076",
+        "windows": "#9cc9e8"
+      },
+      "fogOfWar": "#6f8597",
+      "areaPalettes": false
+    },
     "cartel": {
       "label": "Néo-cartel",
       "palette": {
@@ -687,7 +733,12 @@
         "maxTextureSize": 1024,
         "maxFileMB": 1
       },
-      "props": { "maxTriangles": 1000, "maxTextures": 1, "maxTextureSize": 1024, "maxFileMB": 1 },
+      "props": {
+        "maxTriangles": 1000,
+        "maxTextures": 1,
+        "maxTextureSize": 1024,
+        "maxFileMB": 1
+      },
       "vegetation": {
         "maxTriangles": 500,
         "maxTextures": 1,

@@ -84,7 +84,9 @@ export function City({
   const geometry = useMemo(() => buildCity(data), [data]);
   const propKits = useMemo(() => propKitItems(data), [data]);
   // thème doux (neutre) : halos des devantures et des lampadaires coupés
-  const halos = themeOf(gameData.config, themeId).halos;
+  const { halos, glow } = themeOf(gameData.config, themeId);
+  // thème jour : fenêtres, enseignes, guirlandes et lueurs en matériau éclairé (panneaux peints)
+  const painted = glow === 'painted';
   const loaded = useLoadedAreas();
   const [warm, setWarm] = useState(false);
   const frames = useRef(0);
@@ -95,13 +97,19 @@ export function City({
   const materials = useMemo(
     () => ({
       solid: applyCutout(litMaterial({ vertexColors: true })),
-      glow: applyCutout(new MeshBasicMaterial({ vertexColors: true, toneMapped: false })),
+      glow: applyCutout(
+        painted
+          ? litMaterial({ vertexColors: true })
+          : new MeshBasicMaterial({ vertexColors: true, toneMapped: false }),
+      ),
       decorSolid: litMaterial({ vertexColors: true }),
-      decorGlow: new MeshBasicMaterial({ vertexColors: true, toneMapped: false }),
+      decorGlow: painted
+        ? litMaterial({ vertexColors: true })
+        : new MeshBasicMaterial({ vertexColors: true, toneMapped: false }),
       // bâtiments importés : percés par la découpe comme les façades générées
       propCut: applyCutout(litMaterial({ vertexColors: true })),
     }),
-    [],
+    [painted],
   );
 
   // En qualité moyen/haut, les émissifs passent au-dessus de 1 pour déclencher le bloom.

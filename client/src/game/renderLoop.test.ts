@@ -94,13 +94,13 @@ describe('boucle de rendu de la scène', () => {
         createElement(
           'group',
           null,
-          counted('Ambience', createElement(Ambience, { themeId: 'cartel' })),
+          counted('Ambience', createElement(Ambience, { themeId: gameData.config.theme.default })),
           counted(
             'City',
             createElement(City, {
               glowBoost: 1,
               lockVersion: 0,
-              themeId: 'cartel',
+              themeId: gameData.config.theme.default,
               shadows: false,
             }),
           ),

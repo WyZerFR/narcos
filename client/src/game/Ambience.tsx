@@ -79,6 +79,8 @@ export function Ambience({
 }) {
   const theme = themeOf(config, themeId);
   const palette = themedPalette(config, themeId);
+  // intérieurs : lumière propre au thème (jour : chaude), sinon celle de la rue
+  const ambient = (interior && theme.interiorAmbient) || theme.ambient;
   // Fond derrière les murs d'un intérieur : le ciel, très assombri.
   const background = useMemo(
     () => (interior ? new Color(palette.sky).multiplyScalar(0.4) : new Color(palette.sky)),
@@ -88,9 +90,7 @@ export function Ambience({
     <>
       <color attach="background" args={[background]} />
       {!interior && <fog attach="fog" args={[palette.sky, theme.fog.near, theme.fog.far]} />}
-      {theme.ambient && (
-        <ambientLight color={lightColor(theme.ambient)} intensity={theme.ambient.intensity} />
-      )}
+      {ambient && <ambientLight color={lightColor(ambient)} intensity={ambient.intensity} />}
       {theme.hemisphere && (
         <hemisphereLight
           args={[

@@ -38,6 +38,8 @@ export const PaletteSchema = z.object({
   /** Mer autour de l'île et sable des plages. */
   sea: hexColor,
   sand: hexColor,
+  /** Fenêtres allumées (thème jour : vitres bleutées) ; absent = néon de la palette. */
+  windows: hexColor.optional(),
 });
 
 /**
@@ -121,15 +123,30 @@ export const ThemeSchema = z.object({
   bloom: z.boolean().default(true),
   /** Halos additifs des devantures et des lampadaires. */
   halos: z.boolean().default(true),
+  /**
+   * Fenêtres, enseignes, guirlandes et lueurs : `emissive` (nuit, non éclairées, bloom) ou
+   * `painted` (jour : matériau éclairé classique, panneaux peints, gyrophares en couleurs plates).
+   */
+  glow: z.enum(['emissive', 'painted']).default('emissive'),
+  /** Lumière ambiante des intérieurs (null : celle de la rue). */
+  interiorAmbient: LightSchema.nullable().default(null),
+  /** Couleurs des impasses générées remplacées par le thème (sols, trottoirs, chaussée, vitres). */
+  quartierPalette: z
+    .object({ ground: hexColor, sidewalk: hexColor, road: hexColor, windows: hexColor })
+    .partial()
+    .default({}),
+  /** Brouillard de guerre de la mini-carte (absent : le ciel de la palette du thème). */
+  fogOfWar: hexColor.optional(),
   /** Applique les palettes par area (areas.json) : faux pour l'ancien thème, uniforme. */
   areaPalettes: z.boolean(),
 });
 
-export const THEME_IDS = ['cartel', 'legacy_night', 'neutral'] as const;
+export const THEME_IDS = ['day', 'cartel', 'legacy_night', 'neutral'] as const;
 export const ThemeIdSchema = z.enum(THEME_IDS);
 
 export const ThemesSchema = z.object({
   default: ThemeIdSchema,
+  day: ThemeSchema,
   cartel: ThemeSchema,
   legacy_night: ThemeSchema,
   neutral: ThemeSchema,
@@ -1057,6 +1074,15 @@ const RectilinearPolygonSchema = z
     'polygone rectiligne attendu (côtés parallèles aux axes, sans sommet en double)',
   );
 
+/** Couleurs de base remplaçables par area (bâtiments et sol). */
+const AreaPaletteSchema = PaletteSchema.pick({
+  ground: true,
+  street: true,
+  wall: true,
+  neon: true,
+  vegetation: true,
+}).partial();
+
 /**
  * Area de l'île : polygone rectiligne (contour), thème, et réglages de vente / danger.
  * La première déclarée contient le départ ; les quartiers en U ou en impasse sont générés via
@@ -1090,6 +1116,16 @@ export const AreaSchema = z.object({
     neon: true,
     vegetation: true,
   })
+    .partial()
+    .default({}),
+  /** Palette de l'area propre à un thème (jour : asphalte gris, trottoirs clairs) ; prioritaire. */
+  themePalettes: z
+    .object(
+      Object.fromEntries(THEME_IDS.map((t) => [t, AreaPaletteSchema])) as Record<
+        ThemeId,
+        typeof AreaPaletteSchema
+      >,
+    )
     .partial()
     .default({}),
 });

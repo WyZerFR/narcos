@@ -34,6 +34,13 @@
         "wall": "#5a3b33",
         "ground": "#262229",
         "neon": "#ffb347"
+      },
+      "themePalettes": {
+        "day": {
+          "wall": "#a86a54",
+          "ground": "#c2bcb2",
+          "street": "#6a6c70"
+        }
       }
     },
     {
@@ -65,7 +72,13 @@
       "demandRate": 1.25,
       "dangerLevel": 1,
       "controlledBy": "cartel",
-      "palette": {}
+      "palette": {},
+      "themePalettes": {
+        "day": {
+          "ground": "#c8c3b8",
+          "street": "#6d7076"
+        }
+      }
     },
     {
       "id": "centre_ville",
@@ -99,6 +112,13 @@
       "palette": {
         "wall": "#2f4a66",
         "neon": "#7ee8ff"
+      },
+      "themePalettes": {
+        "day": {
+          "wall": "#8fb0cc",
+          "ground": "#d3d0c8",
+          "street": "#707379"
+        }
       }
     },
     {
@@ -141,6 +161,13 @@
       "palette": {
         "wall": "#4f4a5c",
         "neon": "#ffc56b"
+      },
+      "themePalettes": {
+        "day": {
+          "wall": "#c4b49e",
+          "ground": "#cfc8bb",
+          "street": "#6d7076"
+        }
       }
     },
     {
@@ -176,6 +203,13 @@
         "wall": "#3a3438",
         "ground": "#211d22",
         "neon": "#ff0054"
+      },
+      "themePalettes": {
+        "day": {
+          "wall": "#8c8287",
+          "ground": "#bdb6ae",
+          "street": "#66686d"
+        }
       }
     },
     {
@@ -212,6 +246,13 @@
         "ground": "#3a3f45",
         "street": "#2a2e33",
         "neon": "#7ee8ff"
+      },
+      "themePalettes": {
+        "day": {
+          "wall": "#a7b0b8",
+          "ground": "#c9ccd0",
+          "street": "#5f6368"
+        }
       }
     }
   ]
