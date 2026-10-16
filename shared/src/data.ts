@@ -11,8 +11,11 @@ import areasJson from '../data/areas.json';
 import quartiersJson from '../data/quartiers.json';
 import charactersJson from '../data/characters.json';
 import palettesJson from '../data/palettes.json';
+import propsJson from '../data/props.json';
 import {
   PalettesFileSchema,
+  PropsFileSchema,
+  type Prop,
   type Swatch,
   ConfigSchema,
   EconomySchema,
@@ -146,6 +149,8 @@ export interface GameData {
   characters: ReadonlyMap<string, Character>;
   /** Zones personnalisables (`palettes.json`), dans l'ordre du fichier. */
   appearanceSlots: ReadonlyMap<string, AppearanceSlot>;
+  /** Décor 3D importé (`props.json`), indexé par id. */
+  props: ReadonlyMap<string, Prop>;
 }
 
 /** Zone personnalisable d'un personnage et ses teintes. */
@@ -170,6 +175,8 @@ export interface RawGameData {
   quartiers: unknown;
   characters: unknown;
   palettes: unknown;
+  /** Absent : `props.json`. */
+  props?: unknown;
 }
 
 function parse<T>(file: string, schema: z.ZodType<T>, raw: unknown): T {
@@ -444,6 +451,11 @@ export function parseGameData(raw: RawGameData): GameData {
     ),
   );
 
+  const props = indexById(
+    'props.json',
+    parse('props.json', PropsFileSchema, raw.props ?? propsJson).props,
+  );
+
   const items = indexById('items.json', itemsFile.items);
   const zones = indexById('locations.json (zones)', locFile.zones);
   const locations = indexById('locations.json', locFile.locations);
@@ -664,6 +676,14 @@ export function parseGameData(raw: RawGameData): GameData {
   const ring = config.characters.ring;
   if (ring.innerRadius >= ring.outerRadius)
     errors.push('config.json : characters.ring.innerRadius doit être < outerRadius');
+  for (const p of props.values()) {
+    if (!p.keepColors && !p.tint)
+      errors.push(`props.json : "${p.id}" sans keepColors doit avoir une teinte (tint)`);
+    if (!p.model.startsWith(`models/${p.category}/`))
+      errors.push(`props.json : "${p.id}" doit être dans models/${p.category}/`);
+    if (p.triangles > config.props.budget[p.category].maxTriangles)
+      errors.push(`props.json : "${p.id}" dépasse le budget de triangles de ${p.category}`);
+  }
   errors.push(...checkAreas(config, areas, locFile.locations, quartiers));
   errors.push(...checkCity(config, areas, blocks, locFile.locations));
   errors.push(...checkAirport(config, areas));
@@ -766,6 +786,7 @@ export function parseGameData(raw: RawGameData): GameData {
     island: islandLayout(areas.values(), config.island),
     characters,
     appearanceSlots,
+    props,
   };
 }
 
@@ -783,4 +804,5 @@ export const gameData: GameData = parseGameData({
   quartiers: quartiersJson,
   characters: charactersJson,
   palettes: palettesJson,
+  props: propsJson,
 });

@@ -12,3 +12,6 @@ server/.data/
 .env.*
 !.env.example
 .claude/settings.local.json
+
+# packs de modèles bruts (seuls les retenus vont dans client/public)
+/public/

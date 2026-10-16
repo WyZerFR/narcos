@@ -159,6 +159,37 @@ export const RenderSchema = z.object({
   }),
 });
 
+/** Catégories de décor 3D importé : dossier `client/public/models/<catégorie>/`. */
+export const PROP_CATEGORIES = ['batiments', 'vehicules', 'props', 'vegetation'] as const;
+export const PropCategorySchema = z.enum(PROP_CATEGORIES);
+
+const PropBudgetSchema = z.object({
+  maxTriangles: z.number().int().positive(),
+  maxTextures: z.number().int().min(0),
+  maxTextureSize: z.number().int().positive(),
+  maxFileMB: pos,
+});
+
+/** Décor 3D importé (`props.json`) : budgets par catégorie, import, rendu. */
+export const PropsConfigSchema = z.object({
+  /** Budget iPad par fichier et par catégorie (`npm run models -- --props`). */
+  budget: z.record(PropCategorySchema, PropBudgetSchema),
+  /** Poids total maximal des modèles retenus (Mo). */
+  maxTotalMB: pos,
+  /** Collision d'un arbre : cercle de rayon = ratio × demi-côté de la boîte au sol (le tronc). */
+  vegetationCollisionRatio: z.number().min(0.05).max(1),
+  /** Tolérance (fraction de la hauteur) pour dire qu'un modèle a son origine au pied. */
+  originTolerance: z.number().min(0).max(0.5),
+  /** Couleur du cube de repli (modèle en échec) : clé de la palette. */
+  fallbackColor: PaletteKeySchema,
+  /** Teinte d'un prop sans `keepColors` : part de la teinte de palette mêlée à l'original. */
+  tintStrength: z.number().min(0).max(1),
+  /** Objectif de draw calls par area (overlay debug) et plafond total. */
+  drawCallTarget: z.number().int().positive(),
+  drawCallBudget: z.number().int().positive(),
+});
+export type PropsConfig = z.infer<typeof PropsConfigSchema>;
+
 /** Couleurs émissives autorisées (néons, enseignes, gyrophares) : nom → couleur. */
 export const NeonsSchema = z.record(z.string().min(1), hexColor);
 
@@ -300,6 +331,7 @@ export const ConfigSchema = z.object({
     crates: z.array(Vec2Schema),
     cartons: z.array(Vec2Schema),
   }),
+  props: PropsConfigSchema,
   /** Cadrage retenu. `zoom` = distance caméra → cible (m) ; en ortho, cadrage équivalent. */
   camera: CameraSchema,
   /** Caméra dans les intérieurs (pièces plus petites, vue plus plongeante). */
@@ -1262,3 +1294,49 @@ export type Theme = z.infer<typeof ThemeSchema>;
 export type ThemeId = z.infer<typeof ThemeIdSchema>;
 export type Quality = z.infer<typeof QualitySchema>;
 export type RenderParams = GameConfig['render'];
+
+// ---------------------------------------------------------------- décor 3D importé (props.json)
+
+const vec3 = z.tuple([z.number(), z.number(), z.number()]);
+
+/** Emprise au sol (m, après mise à l'échelle) : rectangle centré ou cercle, jamais le maillage. */
+export const PropCollisionSchema = z.discriminatedUnion('shape', [
+  z.object({ shape: z.literal('rect'), w: pos, d: pos }),
+  z.object({ shape: z.literal('circle'), r: pos }),
+]);
+
+export const PropSchema = z.object({
+  id: slug,
+  category: PropCategorySchema,
+  /** Fichier relatif à `client/public` (dossier de la catégorie). */
+  model: z.string().regex(/^models\/[a-z]+\/[a-z0-9_-]+\.glb$/),
+  /** Provenance dans le pack brut (`public/maps/3D/`, hors dépôt). */
+  source: z.string().min(1),
+  /** Hauteur réelle voulue (m) : échelle uniforme = height / hauteur de la boîte. */
+  height: pos,
+  /** Rotation corrective (degrés, autour de Y) : façade ou avant du modèle vers +Z. */
+  rotationY: z.number().min(-180).max(180),
+  /** Décalage (unités du fichier) qui ramène le pied centré de la boîte à l'origine. */
+  offset: vec3,
+  /** Boîte englobante du fichier (unités du fichier), mesurée à l'import. */
+  bounds: z.object({ min: vec3, max: vec3 }),
+  /** Emprise de collision, null = décor traversable (petit prop). */
+  collision: PropCollisionSchema.nullable(),
+  /** Garde les couleurs du modèle ; sinon teinte de la palette (`tint`). */
+  keepColors: z.boolean(),
+  tint: PaletteKeySchema.optional(),
+  /** Percé par la découpe devant le joueur (bâtiments). */
+  cuttable: z.boolean(),
+  triangles: z.number().int().positive(),
+  tags: z.array(slug),
+});
+
+export const PropsFileSchema = z.object({
+  /** Origine et licence des modèles. */
+  license: z.string().min(1),
+  props: z.array(PropSchema),
+});
+
+export type Prop = z.infer<typeof PropSchema>;
+export type PropCategory = z.infer<typeof PropCategorySchema>;
+export type PropCollision = z.infer<typeof PropCollisionSchema>;

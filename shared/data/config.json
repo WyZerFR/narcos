@@ -637,6 +637,36 @@
     "near": 0.5,
     "far": 300
   },
+  "props": {
+    "budget": {
+      "batiments": {
+        "maxTriangles": 3000,
+        "maxTextures": 1,
+        "maxTextureSize": 1024,
+        "maxFileMB": 1
+      },
+      "vehicules": {
+        "maxTriangles": 1000,
+        "maxTextures": 1,
+        "maxTextureSize": 1024,
+        "maxFileMB": 1
+      },
+      "props": { "maxTriangles": 1000, "maxTextures": 1, "maxTextureSize": 1024, "maxFileMB": 1 },
+      "vegetation": {
+        "maxTriangles": 500,
+        "maxTextures": 1,
+        "maxTextureSize": 1024,
+        "maxFileMB": 1
+      }
+    },
+    "maxTotalMB": 30,
+    "vegetationCollisionRatio": 0.18,
+    "originTolerance": 0.02,
+    "fallbackColor": "wall",
+    "tintStrength": 0.7,
+    "drawCallTarget": 60,
+    "drawCallBudget": 200
+  },
   "characters": {
     "locked": false,
     "defaultId": "perso_1",

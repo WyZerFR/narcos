@@ -22,7 +22,8 @@
     "check": "node scripts/check.mjs",
     "collisions": "tsx scripts/collisions.ts",
     "models": "tsx scripts/check-models.ts",
-    "models:strip": "tsx scripts/strip-animations.ts"
+    "models:strip": "tsx scripts/strip-animations.ts",
+    "models:import": "tsx scripts/import-props.ts"
   },
   "engines": {
     "node": ">=20"
