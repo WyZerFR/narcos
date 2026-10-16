@@ -151,6 +151,53 @@ export const ThemeSchema = z.object({
       stripe: hexColor.optional(),
     })
     .default({ landShade: 0.7, roadShade: 1.6, sidewalkShade: 1.3, curbShade: 0.8 }),
+  /**
+   * Herbe vivante (jour) : sol en cases teintées par un bruit déterministe (4 verts, zones
+   * jaunies), bordure plus sombre près des trottoirs, chemins de terre vers des arbres, et couvert
+   * au sol (touffes au vent, fleurs, pierres) par area. null : terre unie.
+   */
+  grass: z
+    .object({
+      seed: z.string().min(1),
+      /** Côté (m) d'une case d'herbe, échelle (m) du bruit. */
+      cell: pos,
+      noiseScale: pos,
+      colors: z.array(hexColor).min(3).max(4),
+      /** Herbe jaunie : couleur et seuil du bruit (0-1) au-dessus duquel elle apparaît. */
+      dry: hexColor,
+      dryThreshold: z.number().min(0).max(1),
+      /** Bordure des trottoirs : largeur (m) et assombrissement. */
+      edgeWidth: pos,
+      edgeShade: z.number().min(0).max(1),
+      /** Chemins de terre : un arbre de parcelle sur `pathEvery`, largeur (m), couleur, longueur max. */
+      dirt: hexColor,
+      pathEvery: z.number().int().positive(),
+      pathWidth: pos,
+      pathMaxLength: pos,
+      /** Couvert au sol : grille d'essai (m), dégagements (m), couleurs des fleurs et des pierres. */
+      coverSpacing: pos,
+      clearance: nonNeg,
+      doorClearance: nonNeg,
+      flowerColors: z.array(hexColor).min(1),
+      stone: hexColor,
+      tuft: hexColor,
+      /** Chances par case d'essai, par area (id d'area → touffes, fleurs, pierres). */
+      density: z.record(
+        z.string(),
+        z.object({ tufts: z.number().min(0).max(1), flowers: z.number().min(0).max(1), stones: z.number().min(0).max(1) }),
+      ),
+      /** Vent des touffes (vertex shader) : amplitude (m), vitesse (rad/s) ; coupé en basse. */
+      wind: z.object({ amplitude: nonNeg, speed: nonNeg }),
+    })
+    .nullable()
+    .default(null),
+  /** Applique le gain par catégorie de props.json (`tint`) aux modèles importés. */
+  propTint: z.boolean().default(false),
+  /**
+   * Luminance minimale d'une face à l'ombre, en part de celle d'une face au soleil (calcul de
+   * `faceLuminance`, vérifié au chargement et par les tests) ; 0 = non vérifié.
+   */
+  shadeFloor: z.number().min(0).max(1).default(0),
   /** Panneaux peints lisibles sur les façades à enseigne (`panel` des lieux et blocs). */
   panels: z.boolean().default(false),
   ambient: LightSchema.nullable(),
@@ -1470,16 +1517,24 @@ export const PropSchema = z.object({
   /** Percé par la découpe devant le joueur (bâtiments). */
   cuttable: z.boolean(),
   triangles: z.number().int().positive(),
+  /** Luminance linéaire moyenne des faces (albédo : texture × couleur), mesurée à l'import. */
+  luminance: z.number().min(0).max(1),
   tags: z.array(slug),
 });
 
 export const PropsFileSchema = z.object({
   /** Origine et licence des modèles. */
   license: z.string().min(1),
+  /**
+   * Gain par catégorie appliqué aux couleurs des modèles quand le thème le demande
+   * (`theme.propTint`, jour) : luminosité (facteur) et saturation (1 = inchangée).
+   */
+  tint: z.record(PropCategorySchema, z.object({ brightness: pos, saturation: pos })),
   props: z.array(PropSchema),
 });
 
 export type Prop = z.infer<typeof PropSchema>;
+export type PropsFile = z.infer<typeof PropsFileSchema>;
 export type PropCategory = z.infer<typeof PropCategorySchema>;
 export type PropCollision = z.infer<typeof PropCollisionSchema>;
 

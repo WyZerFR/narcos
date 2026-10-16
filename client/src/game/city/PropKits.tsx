@@ -49,6 +49,8 @@ interface KitProps {
    * bâtiments. Partagé par clé (le fournisseur garde le cache).
    */
   materialFor: (texture: Texture | null, cut: boolean) => Material;
+  /** Gain de couleur par catégorie (props.json tint), demandé par le thème (jour). */
+  propTint?: boolean;
   /** Repli forcé (error boundary). */
   failed?: boolean;
 }
@@ -58,7 +60,7 @@ interface KitProps {
  * Le modèle n'est demandé qu'une fois une de ses areas chargée ; rien n'est dessiné pendant le
  * chargement, le cube neutre si le modèle échoue.
  */
-function Kit({ id, items, loaded, data, materialFor, failed }: KitProps) {
+function Kit({ id, items, loaded, data, materialFor, failed, propTint = false }: KitProps) {
   const ref = useRef<InstancedMesh>(null);
   const prop = gameData.props.get(id);
   const areas = useMemo(() => items.map((it) => areaIdNear(it)), [items]);
@@ -70,9 +72,15 @@ function Kit({ id, items, loaded, data, materialFor, failed }: KitProps) {
   const status = failed || !prop ? 'error' : entry?.status;
   const geometry = useMemo(() => {
     if (status === 'error') return fallbackGeometry(prop, data.config);
-    if (entry?.status === 'ready' && prop) return tintedGeometry(entry.geometry, prop, data.config);
+    if (entry?.status === 'ready' && prop)
+      return tintedGeometry(
+        entry.geometry,
+        prop,
+        data.config,
+        propTint ? data.propsTint[prop.category] : null,
+      );
     return null;
-  }, [status, entry, prop, data]);
+  }, [status, entry, prop, data, propTint]);
   // la géométrie du cache est partagée : seules les copies (repli, teinte) sont libérées ici
   useLayoutEffect(
     () => () => {

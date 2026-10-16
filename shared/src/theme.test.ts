@@ -4,6 +4,7 @@ import { ConfigSchema, THEME_IDS } from './schemas';
 import {
   checkTheme,
   dynamicLightCount,
+  faceLuminance,
   emissiveUses,
   realShadowsEnabled,
   resolveThemeId,
@@ -134,6 +135,51 @@ describe('thème jour (défaut)', () => {
     for (const a of gameData.areas.values()) {
       expect(a.themePalettes.day, a.id).toBeDefined();
       expect(a.themePalettes.day!.neon).toBeUndefined();
+    }
+  });
+});
+
+describe('thème jour : faces à l’ombre lisibles', () => {
+  const { theme } = gameData.config;
+  const day = theme.day;
+  const albedo = (id: string) => {
+    const p = gameData.props.get(id)!;
+    return p.luminance * (day.propTint ? gameData.propsTint[p.category].brightness : 1);
+  };
+  const tagged = (category: string, tag: string) =>
+    [...gameData.props.values()].filter((p) => p.category === category && p.tags.includes(tag));
+
+  it(`maisons, tours et voitures : face à l’ombre ≥ ${day.shadeFloor * 100} % de la face au soleil`, () => {
+    expect(day.shadeFloor).toBeGreaterThanOrEqual(0.55);
+    const groups = [
+      tagged('batiments', 'maison'),
+      tagged('batiments', 'tour'),
+      tagged('vehicules', 'voiture'),
+    ];
+    for (const group of groups) {
+      expect(group.length).toBeGreaterThan(0);
+      for (const p of group) {
+        const a = albedo(p.id);
+        const ratio = faceLuminance(day, a, false) / faceLuminance(day, a, true);
+        expect(ratio, p.id).toBeGreaterThanOrEqual(day.shadeFloor);
+        // et vraiment éclairée : au moins un gris moyen-sombre à l'ombre
+        expect(faceLuminance(day, a, false), p.id).toBeGreaterThan(0.12);
+      }
+    }
+  });
+
+  it('toon : premier palier relevé, contraste soleil / ombre gardé', () => {
+    const steps = day.shading.steps;
+    expect(steps[0]).toBeGreaterThanOrEqual(0.55);
+    const a = albedo('house_a');
+    expect(faceLuminance(day, a, true)).toBeGreaterThan(faceLuminance(day, a, false) * 1.2);
+  });
+
+  it('les thèmes de nuit gardent leur éclairage (pas de gain, Lambert, sans seuil)', () => {
+    for (const id of ['cartel', 'legacy_night'] as const) {
+      expect(theme[id].propTint).toBe(false);
+      expect(theme[id].shading.mode).toBe('lambert');
+      expect(theme[id].shadeFloor).toBe(0);
     }
   });
 });

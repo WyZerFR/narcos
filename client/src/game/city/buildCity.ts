@@ -13,6 +13,10 @@ import {
   type Rect,
   type Theme,
   intersectionCrosswalks,
+  dirtPaths,
+  groundCover,
+  rectContainsPoint,
+  valueNoise,
   themeOf,
   visibleLocations,
 } from '@narco/shared';
@@ -245,6 +249,7 @@ function buildGround(ctx: Ctx) {
   // Le sol (trottoirs compris) n'est jamais percé par la découpe.
   ctx.solid.cuttable = false;
   buildIsland(ctx);
+  if (ctx.theme.grass) buildGroundCover(ctx, ctx.theme.grass);
 
   const surface = ctx.theme.surface;
   const roads = map.roads.map((r) => rectFromCenter(r, r));
@@ -322,7 +327,9 @@ function buildIsland(ctx: Ctx) {
     router.use(area.id);
     const ground = ctx.data.config.palette.ground;
     const land = surface.land ? shade(surface.land, 1) : shade(ground, surface.landShade);
-    for (const r of areaRects(area)) ctx.solid.floor(r, 0, land);
+    for (const r of areaRects(area))
+      if (ctx.theme.grass) grassCells(ctx, r, ctx.theme.grass);
+      else ctx.solid.floor(r, 0, land);
   }
   // falaise : paroi du sol jusqu'à la mer, collée au bord côté terre
   const rock = shade(palette.ground, 0.5);
@@ -792,4 +799,80 @@ function buildFiller(ctx: Ctx, block: Block) {
 
 function opposite(side: DoorSide): DoorSide {
   return ({ north: 'south', south: 'north', east: 'west', west: 'east' } as const)[side];
+}
+
+// ---------------------------------------------------------------- herbe vivante (thème jour)
+
+/** Une herbe par jeu de données (le bruit et les bordures ne dépendent que de la carte). */
+const grassBorders = new WeakMap<object, Rect[]>();
+
+/**
+ * Herbe en cases de `grass.cell` m : teinte choisie par un bruit déterministe parmi les verts du
+ * thème, zones jaunies où un second bruit dépasse `dryThreshold`, cases assombries au bord des
+ * trottoirs. Tout dans la géométrie fusionnée du sol (0 draw call).
+ */
+function grassCells(ctx: Ctx, r: Rect, grass: NonNullable<Theme['grass']>) {
+  const tone = valueNoise(grass.seed, grass.noiseScale);
+  const dryness = valueNoise(`${grass.seed}-sec`, grass.noiseScale * 2.3);
+  let borders = grassBorders.get(ctx.data.config.map);
+  if (!borders) {
+    const { map } = ctx.data.config;
+    borders = map.roads.map((road) =>
+      expandRect(rectFromCenter(road, road), map.sidewalkWidth + grass.edgeWidth),
+    );
+    grassBorders.set(ctx.data.config.map, borders);
+  }
+  for (let x = r.minX; x < r.maxX - 1e-6; x += grass.cell)
+    for (let z = r.minZ; z < r.maxZ - 1e-6; z += grass.cell) {
+      const cell = {
+        minX: x,
+        maxX: Math.min(r.maxX, x + grass.cell),
+        minZ: z,
+        maxZ: Math.min(r.maxZ, z + grass.cell),
+      };
+      const cx = (cell.minX + cell.maxX) / 2;
+      const cz = (cell.minZ + cell.maxZ) / 2;
+      const n = tone(cx, cz);
+      const hex =
+        grass.colors[Math.min(grass.colors.length - 1, Math.floor(n * grass.colors.length))]!;
+      const color =
+        dryness(cx, cz) > grass.dryThreshold
+          ? mix(hex, grass.dry, 0.6)
+          : shade(hex, 0.92 + n * 0.16);
+      if (borders.some((b) => rectContainsPoint(b, { x: cx, z: cz })))
+        color.multiplyScalar(grass.edgeShade);
+      ctx.solid.floor(cell, 0, color);
+    }
+}
+
+/** Chemins de terre, fleurs et pierres du couvert au sol : posés sur l'herbe, sans collision. */
+function buildGroundCover(ctx: Ctx, grass: NonNullable<Theme['grass']>) {
+  const { router } = ctx;
+  const dirt = shade(grass.dirt, 1);
+  for (const p of dirtPaths(ctx.data, grass)) {
+    router.at({ x: (p.minX + p.maxX) / 2, z: (p.minZ + p.maxZ) / 2 });
+    ctx.solid.floor(p, 0.012, dirt);
+  }
+  const cover = groundCover(ctx.data, grass);
+  const stem = shade(grass.tuft, 0.9);
+  for (const f of cover.flowers) {
+    router.at(f);
+    ctx.solid.block(f.x, 0, f.z, 0.05, 0.22, 0.05, stem);
+    ctx.solid.block(f.x, 0.22, f.z, 0.26, 0.08, 0.26, shade(grass.flowerColors[f.color]!, 1));
+  }
+  const stone = shade(grass.stone, 1);
+  for (const s of cover.stones) {
+    router.at(s);
+    ctx.solid.box(
+      s.x,
+      0.08 * s.scale,
+      s.z,
+      0.5 * s.scale,
+      0.18 * s.scale,
+      0.36 * s.scale,
+      stone,
+      0,
+      s.rotY,
+    );
+  }
 }

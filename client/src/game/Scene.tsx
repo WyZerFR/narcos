@@ -139,12 +139,14 @@ function World({
   themeId,
   shadows,
   outlines,
+  wind,
 }: {
   room: GameRoom;
   glowBoost: number;
   themeId: ThemeId;
   shadows: boolean;
   outlines: boolean;
+  wind: boolean;
 }) {
   const players = useRoomPlayers(room);
   const myId = connection.playerId;
@@ -164,6 +166,7 @@ function World({
           themeId={themeId}
           shadows={shadows}
           outlines={outlines}
+          wind={wind}
         />
         <AreaBounds />
       </group>
@@ -215,6 +218,7 @@ export function Scene({ room }: { room: GameRoom }) {
         themeId={theme}
         shadows={shadows}
         outlines={outlines}
+        wind={quality !== 'low'}
       />
       {bloom > 0 && (
         <EffectComposer multisampling={0}>

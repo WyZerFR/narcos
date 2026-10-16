@@ -159,24 +159,40 @@ export function fallbackGeometry(prop: Prop | undefined, config: GameConfig): Bu
 
 /**
  * Couleurs d'un prop pour le thème : d'origine (`keepColors`), sinon mêlées à la teinte de
- * palette (`tint`) modulée par la luminance d'origine. Renvoie la géométrie telle quelle ou une copie.
+ * palette (`tint`) modulée par la luminance d'origine ; gain de catégorie (`gain`) en thème jour.
+ * Renvoie la géométrie telle quelle ou une copie.
  */
-export function tintedGeometry(g: BufferGeometry, prop: Prop, config: GameConfig): BufferGeometry {
-  if (prop.keepColors || !prop.tint) return g;
+export function tintedGeometry(
+  g: BufferGeometry,
+  prop: Prop,
+  config: GameConfig,
+  gain: { brightness: number; saturation: number } | null = null,
+): BufferGeometry {
+  const palette = !prop.keepColors && prop.tint ? shade(config.palette[prop.tint], 1) : null;
+  if (!palette && !gain) return g;
   const out = g.clone();
-  const tint = shade(config.palette[prop.tint], 1);
   const k = config.props.tintStrength;
   const color = out.attributes.color!;
   const c = new Color();
   for (let i = 0; i < color.count; i++) {
     c.setRGB(color.getX(i), color.getY(i), color.getZ(i));
-    const lum = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
-    color.setXYZ(
-      i,
-      c.r + (tint.r * lum * 2 - c.r) * k,
-      c.g + (tint.g * lum * 2 - c.g) * k,
-      c.b + (tint.b * lum * 2 - c.b) * k,
-    );
+    let lum = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+    if (palette)
+      c.setRGB(
+        c.r + (palette.r * lum * 2 - c.r) * k,
+        c.g + (palette.g * lum * 2 - c.g) * k,
+        c.b + (palette.b * lum * 2 - c.b) * k,
+      );
+    // thème jour : gain de luminosité et de saturation de la catégorie (props.json tint) ;
+    // un modèle texturé (couleur de sommet blanche) ne reçoit que la luminosité
+    if (gain) {
+      lum = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+      const s = gain.saturation;
+      c.setRGB(lum + (c.r - lum) * s, lum + (c.g - lum) * s, lum + (c.b - lum) * s).multiplyScalar(
+        gain.brightness,
+      );
+    }
+    color.setXYZ(i, c.r, c.g, c.b);
   }
   return out;
 }

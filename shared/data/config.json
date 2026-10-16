@@ -19,26 +19,26 @@
         "color": "#a9d2f2"
       },
       "ambient": {
-        "color": "#e8f1ff",
-        "intensity": 0.55,
+        "color": "#f2f6ff",
+        "intensity": 0.75,
         "scale": 1
       },
       "hemisphere": {
         "sky": {
-          "color": "#bfe3ff",
+          "color": "#cfe8ff",
           "intensity": 1,
           "scale": 1
         },
         "ground": {
-          "color": "#6f9a4a",
+          "color": "#f0d2a8",
           "intensity": 1,
           "scale": 1
         },
-        "intensity": 0.55
+        "intensity": 0.7
       },
       "sun": {
         "color": "#ffd49a",
-        "intensity": 2.6,
+        "intensity": 2.9,
         "scale": 1,
         "position": [-55, 30, 35]
       },
@@ -64,10 +64,10 @@
         "strength": 0.35
       },
       "toneMapping": "neutral",
-      "exposure": 1,
+      "exposure": 1.15,
       "shading": {
         "mode": "toon",
-        "steps": [0.5, 0.78, 1]
+        "steps": [0.6, 0.82, 1]
       },
       "outline": {
         "qualities": ["medium", "high"],
@@ -83,7 +83,60 @@
         "dash": "#f4f1e6",
         "stripe": "#f4f1e6"
       },
-      "panels": true
+      "panels": true,
+      "grass": {
+        "seed": "herbe-1",
+        "cell": 3,
+        "noiseScale": 14,
+        "colors": ["#4fae3c", "#5fbd46", "#6cc84f", "#57a83f"],
+        "dry": "#b9c25a",
+        "dryThreshold": 0.78,
+        "edgeWidth": 1.2,
+        "edgeShade": 0.78,
+        "dirt": "#a27b52",
+        "pathEvery": 4,
+        "pathWidth": 0.9,
+        "pathMaxLength": 14,
+        "coverSpacing": 2.2,
+        "clearance": 1,
+        "doorClearance": 3,
+        "flowerColors": ["#ffffff", "#ffd84a", "#ff8fc2"],
+        "stone": "#9a958c",
+        "tuft": "#4f9e36",
+        "density": {
+          "bas_fonds": {
+            "tufts": 0.12,
+            "flowers": 0.04,
+            "stones": 0.06
+          },
+          "chez_nous": {
+            "tufts": 0.3,
+            "flowers": 0.14,
+            "stones": 0.05
+          },
+          "centre_ville": {
+            "tufts": 0.14,
+            "flowers": 0.08,
+            "stones": 0.03
+          },
+          "commercial": {
+            "tufts": 0.18,
+            "flowers": 0.08,
+            "stones": 0.05
+          },
+          "cartel": {
+            "tufts": 0.1,
+            "flowers": 0.03,
+            "stones": 0.08
+          }
+        },
+        "wind": {
+          "amplitude": 0.08,
+          "speed": 1.8
+        }
+      },
+      "propTint": true,
+      "shadeFloor": 0.55
     },
     "cartel": {
       "label": "Néo-cartel",
@@ -694,11 +747,11 @@
     ],
     "greenery": {
       "seed": "verdure-1",
-      "avenueSpacing": 9,
+      "avenueSpacing": 7,
       "avenueOffset": 0.6,
-      "parcelSpacing": 7,
-      "parcelChance": 0.55,
-      "bushShare": 0.35,
+      "parcelSpacing": 6,
+      "parcelChance": 0.65,
+      "bushShare": 0.4,
       "clearance": 1.4,
       "doorClearance": 4,
       "scale": {

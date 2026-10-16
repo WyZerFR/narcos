@@ -10,12 +10,12 @@ export interface Greenery {
   bushes: Vec2[];
 }
 
-type GreeneryData = MapData & Pick<GameData, 'quartierLayouts'>;
+export type GreeneryData = MapData & Pick<GameData, 'quartierLayouts'>;
 
 const cache = new WeakMap<object, Greenery>();
 
 /** Routes, trottoirs, places et passages réservés (rien n'y pousse). */
-function reserved(data: GreeneryData): Rect[] {
+export function reservedGround(data: GreeneryData): Rect[] {
   const { map } = data.config;
   const layouts = [...data.quartierLayouts.values()];
   return [
@@ -45,7 +45,7 @@ export function greeneryLayout(data: GreeneryData): Greenery {
   const rng = seededRng(g.seed);
   const walkable = walkableAreas(data.areas.values());
   const obstacles = obstaclesFrom(data);
-  const blocked = reserved(data).map((r) => expandRect(r, g.clearance));
+  const blocked = reservedGround(data).map((r) => expandRect(r, g.clearance));
   const doors = [
     ...[...data.locations.values()].map(interactionPoint),
     ...[...data.quartierLayouts.values()].flatMap((l) => l.houses.map((h) => h.doorStep)),

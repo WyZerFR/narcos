@@ -18,6 +18,7 @@ import {
   PropsFileSchema,
   PlacementsFileSchema,
   type PlacementsFile,
+  type PropsFile,
   type Prop,
   type Swatch,
   ConfigSchema,
@@ -155,6 +156,8 @@ export interface GameData {
   appearanceSlots: ReadonlyMap<string, AppearanceSlot>;
   /** Décor 3D importé (`props.json`), indexé par id. */
   props: ReadonlyMap<string, Prop>;
+  /** Gain de couleur par catégorie de décor importé (`props.json` tint), selon le thème. */
+  propsTint: PropsFile['tint'];
   /** Décor généré remplacé par des modèles et props posés (`placements.json`). */
   placements: PlacementsFile;
 }
@@ -459,10 +462,8 @@ export function parseGameData(raw: RawGameData): GameData {
     ),
   );
 
-  const props = indexById(
-    'props.json',
-    parse('props.json', PropsFileSchema, raw.props ?? propsJson).props,
-  );
+  const propsFile = parse('props.json', PropsFileSchema, raw.props ?? propsJson);
+  const props = indexById('props.json', propsFile.props);
   const placements = parse(
     'placements.json',
     PlacementsFileSchema,
@@ -820,6 +821,7 @@ export function parseGameData(raw: RawGameData): GameData {
     island: islandLayout(areas.values(), config.island),
     characters,
     appearanceSlots,
+    propsTint: propsFile.tint,
     props,
     placements,
   };
