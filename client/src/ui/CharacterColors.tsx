@@ -46,7 +46,11 @@ export function CharacterColors({
       <h2>{character?.name ?? 'Personnage'} : couleurs</h2>
       <div className="character-colors">
         <div className="character-stage selected">
-          <PreviewCanvas asset={typeof asset === 'object' ? asset : null} appearance={draft} />
+          <PreviewCanvas
+            asset={typeof asset === 'object' ? asset : null}
+            appearance={draft}
+            failed={asset === 'error'}
+          />
           {asset === 'loading' && <span className="character-status">Chargement…</span>}
         </div>
         <div className="swatch-rows">

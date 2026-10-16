@@ -1440,3 +1440,17 @@ input {
   font-weight: 600;
   opacity: 0.85;
 }
+
+/* Canvas 3D en erreur (ui/CanvasBoundary.tsx) : message lisible à la place d'un canvas vide. */
+.canvas-error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  text-align: center;
+  background: var(--panel);
+}
