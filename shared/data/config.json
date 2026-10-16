@@ -112,6 +112,9 @@
     "violet_fonce": "#b13cff",
     "jaune_cartel": "#fff44f"
   },
+  "discovery": {
+    "radius": 18
+  },
   "room": {
     "maxPlayers": 3,
     "maxRooms": 5,

@@ -1,4 +1,4 @@
-import { ArraySchema, MapSchema, Schema, type } from '@colyseus/schema';
+import { ArraySchema, MapSchema, Schema, type, view } from '@colyseus/schema';
 import { gameData } from '@narco/shared';
 
 /** Slot d'inventaire synchronisé ; `itemId === ''` = slot vide. */
@@ -70,6 +70,11 @@ export class Player extends Schema {
   @type('string') characterId = gameData.config.characters.defaultId;
   /** Couleurs par slot (slot → id de teinte de palettes.json), validées par le serveur. */
   @type({ map: 'string' }) appearance = new MapSchema<string>();
+  /**
+   * Brouillard de guerre : areas et lieux découverts (`area:…`, `place:…`, shared/discovery.ts),
+   * calculés par le serveur ; `@view` : diffusés à ce joueur seul (StateView de son client).
+   */
+  @view() @type(['string']) discovered = new ArraySchema<string>();
 }
 
 /** Pot du labo (timestamps en temps de jeu, ms : float64 obligatoire). */

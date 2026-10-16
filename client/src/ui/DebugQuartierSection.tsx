@@ -78,6 +78,20 @@ export function DebugQuartierSection() {
         <button type="button" className="btn" onClick={() => send({ cmd: 'clearBag' })}>
           Vider le sac
         </button>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => send({ cmd: 'discovery', mode: 'all' })}
+        >
+          Carte : tout révéler
+        </button>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => send({ cmd: 'discovery', mode: 'none' })}
+        >
+          Carte : tout masquer
+        </button>
         <button type="button" className="btn" onClick={() => send({ cmd: 'teleportTrapdoor' })}>
           → Trappe
         </button>

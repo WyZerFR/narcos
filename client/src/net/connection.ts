@@ -44,6 +44,8 @@ export interface PlayerView {
   characterId?: string;
   /** Absent d'un serveur plus ancien : couleurs d'origine. */
   appearance?: { forEach(cb: (value: string, key: string) => void): void };
+  /** Brouillard de guerre (`@view` : seulement le sien ; absent d'un serveur plus ancien). */
+  discovered?: { forEach(cb: (value: string) => void): void };
   cleanBalance: number;
   hasAccount: boolean;
   pactAccepted: boolean;

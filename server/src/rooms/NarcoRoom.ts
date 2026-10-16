@@ -1,7 +1,10 @@
 import { EventEmitter } from 'node:events';
 import { matchMaker, Room, ServerError, type Client, type Delayed } from '@colyseus/core';
+import { StateView } from '@colyseus/schema';
 import {
+  allDiscoveryIds,
   ClientMsg,
+  initialDiscovery,
   ServerMsg,
   STATION_ACTIONS,
   STREET,
@@ -89,6 +92,7 @@ import {
   replaceBag,
   setLook,
   syncArea,
+  syncDiscovery,
   writeInventory,
 } from './stateSync';
 
@@ -308,6 +312,9 @@ export class NarcoRoom extends Room<GameState> {
       this.emptySince = null;
     }
     this.sessions.set(client.sessionId, playerId);
+    // brouillard de guerre : les champs `@view` du joueur ne partent qu'à son propre client
+    client.view = new StateView();
+    client.view.add(player);
     // Hors ligne, les jauges sont figées : on repart de maintenant.
     player.survivalAt = this.now();
     this.budgets.set(playerId, freshBudget(Date.now(), this.zoneRules(player.zone)));
@@ -399,7 +406,9 @@ export class NarcoRoom extends Room<GameState> {
     );
     player.x = pos.x;
     player.z = pos.z;
+    player.discovered.push(...initialDiscovery(gameData));
     syncArea(player);
+    syncDiscovery(player);
     return player;
   }
 
@@ -447,6 +456,7 @@ export class NarcoRoom extends Room<GameState> {
     player.x = at.x;
     player.z = at.z;
     syncArea(player);
+    syncDiscovery(player);
     this.budgets.set(playerId, freshBudget(Date.now(), this.zoneRules(zoneId)));
   }
 
@@ -492,6 +502,7 @@ export class NarcoRoom extends Room<GameState> {
     player.x = result.pos.x;
     player.z = result.pos.z;
     syncArea(player);
+    syncDiscovery(player);
     if (Number.isFinite(rotY)) player.rotY = rotY;
 
     if (result.corrected) {
@@ -986,6 +997,15 @@ export class NarcoRoom extends Room<GameState> {
         replaceBag(player.bag, inv);
         player.bagTier = tier;
         return this.notify(client, true, `[debug] palier ${tier} : ${player.bag.length} cases`);
+      }
+      case 'discovery': {
+        player.discovered.clear();
+        if (msg.mode === 'all') player.discovered.push(...allDiscoveryIds(gameData));
+        return this.notify(
+          client,
+          true,
+          msg.mode === 'all' ? '[debug] carte révélée' : '[debug] carte masquée',
+        );
       }
       case 'clearBag':
         replaceBag(player.bag, emptyInventory(bagCapacity(economy.bag, player.bagTier)));

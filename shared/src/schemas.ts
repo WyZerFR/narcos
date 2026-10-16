@@ -166,6 +166,8 @@ export const ConfigSchema = z.object({
   theme: ThemesSchema,
   render: RenderSchema,
   neons: NeonsSchema,
+  /** Brouillard de guerre de la mini-carte : rayon (m) de découverte des areas et des lieux. */
+  discovery: z.object({ radius: pos }),
   room: z.object({
     /** Parties simultanées au plus sur le serveur (les parties restaurées comptent). */
     maxRooms: z.number().int().positive(),

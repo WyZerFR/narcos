@@ -326,13 +326,16 @@ input {
   font-weight: 700;
   z-index: 30;
 }
-/* Entrée dans une area (ui/AreaBanner.tsx) : haut de l'écran, n'intercepte aucun toucher. */
+/*
+ * Entrée dans une area (ui/AreaBanner.tsx) : sous la rangée du haut (mini-carte 120 px, sac,
+ * options), loin du joystick et d'ACTION (bas de l'écran) ; n'intercepte aucun toucher.
+ */
 .area-banner {
   position: fixed;
-  top: calc(12px + var(--safe-t));
+  top: calc(146px + var(--safe-t));
   left: 50%;
   transform: translateX(-50%);
-  max-width: min(520px, 60vw);
+  max-width: min(420px, 44vw);
   padding: 8px 16px;
   border: 2px solid;
   border-radius: 10px;

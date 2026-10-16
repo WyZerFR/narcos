@@ -35,3 +35,4 @@ export * from './cityBlocks';
 export * from './airport';
 export * from './areaSpots';
 export * from './theme';
+export * from './discovery';
