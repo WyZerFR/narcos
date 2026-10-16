@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { Color, type DirectionalLight, type PointLight } from 'three';
+import {
+  ACESFilmicToneMapping,
+  AgXToneMapping,
+  Color,
+  LinearToneMapping,
+  NeutralToneMapping,
+  NoToneMapping,
+  type DirectionalLight,
+  type PointLight,
+} from 'three';
 import { gameData, themedPalette, themeOf, type Theme, type ThemeId } from '@narco/shared';
 import { localPlayer } from './localPlayer';
 import { FRAME_PRIORITY } from './framePriority';
@@ -92,7 +101,10 @@ export function Ambience({
   return (
     <>
       <color attach="background" args={[background]} />
-      {!interior && <fog attach="fog" args={[palette.sky, theme.fog.near, theme.fog.far]} />}
+      {!interior && (
+        <fog attach="fog" args={[theme.fog.color ?? palette.sky, theme.fog.near, theme.fog.far]} />
+      )}
+      <ToneMapping theme={theme} />
       {ambient && <ambientLight color={lightColor(ambient)} intensity={ambient.intensity} />}
       {theme.hemisphere && (
         <hemisphereLight
@@ -107,4 +119,25 @@ export function Ambience({
       {theme.playerLight && <PlayerLight light={theme.playerLight} />}
     </>
   );
+}
+
+const TONE_MAPPINGS = {
+  aces: ACESFilmicToneMapping,
+  agx: AgXToneMapping,
+  neutral: NeutralToneMapping,
+  linear: LinearToneMapping,
+  none: NoToneMapping,
+} as const;
+
+/**
+ * Tone mapping et exposition du thème, posés après la configuration de R3F (ACES par défaut,
+ * qui désature les tons clairs : cause du rendu « trop blanc » de jour).
+ */
+function ToneMapping({ theme }: { theme: Theme }) {
+  const gl = useThree((s) => s.gl);
+  useEffect(() => {
+    gl.toneMapping = TONE_MAPPINGS[theme.toneMapping];
+    gl.toneMappingExposure = theme.exposure;
+  }, [gl, theme]);
+  return null;
 }

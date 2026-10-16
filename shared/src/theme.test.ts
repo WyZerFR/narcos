@@ -109,7 +109,9 @@ describe('thème jour (défaut)', () => {
     expect(day.halos).toBe(false);
     expect(day.glow).toBe('painted');
     expect(day.fog.near).toBeGreaterThan(theme.cartel.fog.far);
-    expect(day.ambient?.intensity).toBeGreaterThan(theme.cartel.ambient!.intensity);
+    // ambiante réduite (cause du « trop blanc »), complétée par un hémisphère ciel / herbe
+    expect(day.ambient!.intensity).toBeLessThan(1);
+    expect(day.hemisphere).not.toBeNull();
     expect(day.interiorAmbient).not.toBeNull();
     // soleil chaud : plus de rouge que de bleu
     const sun = parseInt(day.sun.color.slice(1), 16);

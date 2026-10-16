@@ -6,12 +6,12 @@ import { themedData } from './themedData';
 import { localPlayer } from '../localPlayer';
 import { buildCity } from './buildCity';
 import { SEA_GROUP } from './areaBatches';
-import { useLoadedAreas } from '../areaStreaming';
+import { currentArea, useLoadedAreas } from '../areaStreaming';
 import { Decor } from './Decor';
 import { Halos } from './Halos';
 import { PropKits } from './PropKits';
 import { propKitItems } from './propPlacements';
-import { litMaterial } from '../materials';
+import { outlineMaterial, shadedMaterial } from '../materials';
 import { applyCutout, cutoutUniforms, getCutout } from './cutout';
 
 const { world } = gameData.config;
@@ -72,8 +72,11 @@ export function City({
   lockVersion,
   themeId,
   shadows,
+  outlines = false,
 }: {
   glowBoost: number;
+  /** Contour des bâtiments de l'area du joueur (qualité et thème le permettent). */
+  outlines?: boolean;
   lockVersion: number;
   themeId: ThemeId;
   /** Ombre temps réel (qualité haute, hors tactile) : les murs la portent et la reçoivent. */
@@ -84,7 +87,7 @@ export function City({
   const geometry = useMemo(() => buildCity(data), [data]);
   const propKits = useMemo(() => propKitItems(data), [data]);
   // thème doux (neutre) : halos des devantures et des lampadaires coupés
-  const { halos, glow } = themeOf(gameData.config, themeId);
+  const { halos, glow, shading, outline } = themeOf(gameData.config, themeId);
   // thème jour : fenêtres, enseignes, guirlandes et lueurs en matériau éclairé (panneaux peints)
   const painted = glow === 'painted';
   const loaded = useLoadedAreas();
@@ -96,26 +99,35 @@ export function City({
   // Bâtiments : découpe devant le joueur. Décor (bas) : matériaux sans découpe.
   const materials = useMemo(
     () => ({
-      solid: applyCutout(litMaterial({ vertexColors: true })),
+      solid: applyCutout(shadedMaterial({ vertexColors: true }, shading)),
       glow: applyCutout(
         painted
-          ? litMaterial({ vertexColors: true })
+          ? shadedMaterial({ vertexColors: true }, shading)
           : new MeshBasicMaterial({ vertexColors: true, toneMapped: false }),
       ),
-      decorSolid: litMaterial({ vertexColors: true }),
+      decorSolid: shadedMaterial({ vertexColors: true }, shading),
       decorGlow: painted
-        ? litMaterial({ vertexColors: true })
+        ? shadedMaterial({ vertexColors: true }, shading)
         : new MeshBasicMaterial({ vertexColors: true, toneMapped: false }),
       // bâtiments importés : percés par la découpe comme les façades générées
-      propCut: applyCutout(litMaterial({ vertexColors: true })),
+      propCut: applyCutout(shadedMaterial({ vertexColors: true }, shading)),
     }),
-    [painted],
+    [painted, shading],
   );
+
+  // contour (coque inversée) : bâtiments de l'area du joueur seulement (+1 draw call)
+  const outlineMat = useMemo(
+    () => (outline ? outlineMaterial(outline.width, outline.color) : null),
+    [outline],
+  );
+  useEffect(() => () => outlineMat?.dispose(), [outlineMat]);
+  const here = loaded.size > 0 ? currentArea() : '';
+  const outlined = outlines && outlineMat && warm ? geometry.get(here)?.solid : undefined;
 
   // En qualité moyen/haut, les émissifs passent au-dessus de 1 pour déclencher le bloom.
   useEffect(() => {
-    materials.glow.color.setScalar(glowBoost);
-    materials.decorGlow.color.setScalar(glowBoost);
+    (materials.glow as MeshBasicMaterial).color.setScalar(glowBoost);
+    (materials.decorGlow as MeshBasicMaterial).color.setScalar(glowBoost);
   }, [materials, glowBoost]);
 
   useEffect(
@@ -152,6 +164,7 @@ export function City({
           </group>
         );
       })}
+      {outlined && outlineMat && <mesh geometry={outlined} material={outlineMat} />}
       <Decor
         loaded={warm ? loaded : null}
         halos={halos}

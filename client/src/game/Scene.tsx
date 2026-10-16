@@ -131,11 +131,13 @@ function World({
   glowBoost,
   themeId,
   shadows,
+  outlines,
 }: {
   room: GameRoom;
   glowBoost: number;
   themeId: ThemeId;
   shadows: boolean;
+  outlines: boolean;
 }) {
   const players = useRoomPlayers(room);
   const myId = connection.playerId;
@@ -149,7 +151,13 @@ function World({
       <Ambience themeId={themeId} interior={!inStreet} shadows={shadows} />
       {/* La ville reste montée (pas de reconstruction) mais n'est pas dessinée à l'intérieur. */}
       <group visible={inStreet}>
-        <City glowBoost={glowBoost} lockVersion={lockVersion} themeId={themeId} shadows={shadows} />
+        <City
+          glowBoost={glowBoost}
+          lockVersion={lockVersion}
+          themeId={themeId}
+          shadows={shadows}
+          outlines={outlines}
+        />
         <AreaBounds />
       </group>
       {inStreet && <Npcs room={room} />}
@@ -183,6 +191,9 @@ export function Scene({ room }: { room: GameRoom }) {
   const shadows = realShadowsEnabled(gameData.config, quality, isTouchDevice());
   // thème doux (neutre) : pas de bloom, émissifs non poussés au-dessus de 1
   const bloom = themeOf(gameData.config, theme).bloom ? preset.bloom : 0;
+  // contour des bâtiments : qualités listées par le thème, jamais en basse
+  const outline = themeOf(gameData.config, theme).outline;
+  const outlines = quality !== 'low' && Boolean(outline?.qualities.includes(quality));
   return (
     <Canvas
       key={quality /* l'antialias et les ombres ne se changent qu'en recréant le contexte */}
@@ -196,6 +207,7 @@ export function Scene({ room }: { room: GameRoom }) {
         glowBoost={bloom > 0 ? preset.glowBoost : 1}
         themeId={theme}
         shadows={shadows}
+        outlines={outlines}
       />
       {bloom > 0 && (
         <EffectComposer multisampling={0}>

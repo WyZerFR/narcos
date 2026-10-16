@@ -4,30 +4,43 @@
     "day": {
       "label": "Jour",
       "palette": {
-        "sky": "#8ec5ea",
+        "sky": "#6fb6ea",
         "street": "#6d7076",
         "ground": "#c8c3b8",
-        "wall": "#b9ab9b",
-        "vegetation": "#5aa845",
-        "sea": "#2cc5c0",
-        "sand": "#eadcb4",
+        "wall": "#c9935f",
+        "vegetation": "#3fa83a",
+        "sea": "#1fc2c7",
+        "sand": "#f0d99a",
         "windows": "#9cc9e8"
       },
       "fog": {
         "near": 120,
-        "far": 320
+        "far": 300,
+        "color": "#a9d2f2"
       },
       "ambient": {
-        "color": "#ffffff",
-        "intensity": 1.6,
+        "color": "#e8f1ff",
+        "intensity": 0.55,
         "scale": 1
       },
-      "hemisphere": null,
+      "hemisphere": {
+        "sky": {
+          "color": "#bfe3ff",
+          "intensity": 1,
+          "scale": 1
+        },
+        "ground": {
+          "color": "#6f9a4a",
+          "intensity": 1,
+          "scale": 1
+        },
+        "intensity": 0.55
+      },
       "sun": {
-        "color": "#ffe2b8",
-        "intensity": 2.2,
+        "color": "#ffd49a",
+        "intensity": 2.6,
         "scale": 1,
-        "position": [-40, 60, 25]
+        "position": [-55, 30, 35]
       },
       "playerLight": null,
       "bloom": false,
@@ -49,6 +62,17 @@
       "rim": {
         "color": "#fff4e0",
         "strength": 0.35
+      },
+      "toneMapping": "neutral",
+      "exposure": 1,
+      "shading": {
+        "mode": "toon",
+        "steps": [0.5, 0.78, 1]
+      },
+      "outline": {
+        "qualities": ["medium", "high"],
+        "width": 0.07,
+        "color": "#2b2533"
       }
     },
     "cartel": {

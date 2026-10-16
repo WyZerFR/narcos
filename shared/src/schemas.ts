@@ -114,7 +114,45 @@ const LightSchema = z.object({
 export const ThemeSchema = z.object({
   label: z.string().min(1),
   palette: PaletteSchema.partial(),
-  fog: z.object({ near: pos, far: pos }),
+  /** Brume : distances (m) et teinte (absente : le ciel de la palette). */
+  fog: z.object({ near: pos, far: pos, color: hexColor.optional() }),
+  /** Tone mapping du rendu et exposition (`aces` : défaut de R3F, désature les tons clairs). */
+  toneMapping: z.enum(['aces', 'agx', 'neutral', 'linear', 'none']).default('aces'),
+  exposure: pos.default(1),
+  /**
+   * Ombrage des bâtiments, props et véhicules : `lambert` (continu) ou `toon` (paliers de
+   * lumière, texture de dégradé générée en code ; `steps` = luminosité de chaque palier).
+   */
+  shading: z
+    .object({
+      mode: z.enum(['lambert', 'toon']),
+      steps: z.array(z.number().min(0).max(1)).min(2).max(5),
+    })
+    .default({ mode: 'lambert', steps: [0.4, 0.7, 1] }),
+  /**
+   * Contour (coque inversée) des bâtiments de l'area du joueur : qualités où il est dessiné
+   * (jamais en basse), épaisseur (m), couleur. null : aucun.
+   */
+  outline: z
+    .object({ qualities: z.array(QualitySchema), width: pos, color: hexColor })
+    .nullable()
+    .default(null),
+  /** Couleurs du sol (facteurs sur la palette) ; absentes : valeurs historiques. */
+  surface: z
+    .object({
+      /** Terre des areas hors routes (jour : herbe) ; absente = ground × landShade. */
+      land: hexColor.optional(),
+      landShade: pos.default(0.7),
+      roadShade: pos.default(1.6),
+      sidewalkShade: pos.default(1.3),
+      curbShade: pos.default(0.8),
+      /** Marquages : pointillés centraux et passages piétons (absents : néon et trottoir). */
+      dash: hexColor.optional(),
+      stripe: hexColor.optional(),
+    })
+    .default({ landShade: 0.7, roadShade: 1.6, sidewalkShade: 1.3, curbShade: 0.8 }),
+  /** Panneaux peints lisibles sur les façades à enseigne (`panel` des lieux et blocs). */
+  panels: z.boolean().default(false),
   ambient: LightSchema.nullable(),
   hemisphere: z.object({ sky: LightSchema, ground: LightSchema, intensity: nonNeg }).nullable(),
   sun: LightSchema.extend({ position: z.tuple([z.number(), z.number(), z.number()]) }),
