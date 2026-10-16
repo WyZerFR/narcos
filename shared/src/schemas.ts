@@ -135,6 +135,11 @@ export const ThemeSchema = z.object({
     .object({ ground: hexColor, sidewalk: hexColor, road: hexColor, windows: hexColor })
     .partial()
     .default({}),
+  /** Contour lumineux des personnages (lisibles sur sol clair), dans leur matériau : 0 = aucun. */
+  rim: z.object({ color: hexColor, strength: z.number().min(0).max(1) }).default({
+    color: '#ffffff',
+    strength: 0,
+  }),
   /** Brouillard de guerre de la mini-carte (absent : le ciel de la palette du thème). */
   fogOfWar: hexColor.optional(),
   /** Applique les palettes par area (areas.json) : faux pour l'ancien thème, uniforme. */
@@ -443,7 +448,16 @@ export const ConfigSchema = z.object({
       bob: z.object({ height: z.number().nonnegative(), stridesPerMeter: pos }),
     }),
     /** Anneau au sol à la couleur du joueur (distingue 3 joueurs au même modèle). */
-    ring: z.object({ innerRadius: pos, outerRadius: pos }),
+    /**
+     * Anneau au sol à la couleur du joueur, bordé d'un liseré sombre (même géométrie, même draw
+     * call) : largeur (m) et assombrissement de la couleur du joueur.
+     */
+    ring: z.object({
+      innerRadius: pos,
+      outerRadius: pos,
+      outline: pos,
+      outlineShade: z.number().min(0).max(1),
+    }),
   }),
   /** Intérieurs : la pièce entière tient à l'écran, la caméra suit le joueur en partie. */
   interiorFraming: z.object({

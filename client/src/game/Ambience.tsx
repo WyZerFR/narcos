@@ -4,6 +4,7 @@ import { Color, type DirectionalLight, type PointLight } from 'three';
 import { gameData, themedPalette, themeOf, type Theme, type ThemeId } from '@narco/shared';
 import { localPlayer } from './localPlayer';
 import { FRAME_PRIORITY } from './framePriority';
+import { setCharacterRim } from './characters/characterAssets';
 
 const { config } = gameData;
 
@@ -81,6 +82,8 @@ export function Ambience({
   const palette = themedPalette(config, themeId);
   // intérieurs : lumière propre au thème (jour : chaude), sinon celle de la rue
   const ambient = (interior && theme.interiorAmbient) || theme.ambient;
+  // contour lumineux des personnages (jour : lisibles sur sol clair)
+  useEffect(() => setCharacterRim(theme.rim), [theme]);
   // Fond derrière les murs d'un intérieur : le ciel, très assombri.
   const background = useMemo(
     () => (interior ? new Color(palette.sky).multiplyScalar(0.4) : new Color(palette.sky)),

@@ -33,42 +33,46 @@ const settle = () => ReactThreeTestRenderer.act(() => new Promise((r) => setTime
 afterAll(() => resetPropCache());
 
 describe('budget de draw calls avec le décor importé', () => {
-  it(`chaque area sous ${drawCallTarget} draw calls (objectif), toujours sous ${drawCallBudget}`, async () => {
-    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    setPropReader(readPublic);
-    const spawn = gameData.config.players.spawn;
-    Object.assign(localPlayer, { initialized: true, x: spawn.x, z: spawn.z, zone: STREET });
-    const scene = await ReactThreeTestRenderer.create(
-      createElement(City, { glowBoost: 1, lockVersion: 0, themeId: 'cartel', shadows: false }),
-    );
-    await ReactThreeTestRenderer.act(async () => {
-      await scene.advanceFrames(4, 1 / 60);
-    });
-    const report: string[] = [];
-    const obstacles = obstaclesFrom(gameData);
-    for (const area of walkableAreas(gameData.areas.values())) {
-      const p = areaSpot(gameData, area.id, obstacles)!;
-      Object.assign(localPlayer, { x: p.x, z: p.z });
-      // l'aiguillage d'area interroge la position toutes les 250 ms, puis les modèles se chargent
-      for (let i = 0; i < 12; i++) await settle();
-      for (
-        let i = 0;
-        i < 40 && [...gameData.props.keys()].some((id) => propEntry(id)?.status === 'loading');
-        i++
-      )
-        await settle();
+  it.each(['day', 'cartel'] as const)(
+    `%s : chaque area sous ${drawCallTarget} draw calls (objectif), toujours sous ${drawCallBudget}`,
+    async (themeId) => {
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      setPropReader(readPublic);
+      const spawn = gameData.config.players.spawn;
+      Object.assign(localPlayer, { initialized: true, x: spawn.x, z: spawn.z, zone: STREET });
+      const scene = await ReactThreeTestRenderer.create(
+        createElement(City, { glowBoost: 1, lockVersion: 0, themeId, shadows: false }),
+      );
       await ReactThreeTestRenderer.act(async () => {
-        await scene.advanceFrames(2, 1 / 60);
+        await scene.advanceFrames(4, 1 / 60);
       });
-      const calls = drawObjects(scene.scene.instance as unknown as Object3D) + OUTSIDE_CITY;
-      const props = Object.entries(propDrawCalls())
-        .map(([c, n]) => `${c} ${n}`)
-        .join(', ');
-      report.push(`${area.id} : ${calls} (décor 3D : ${props})`);
-      expect(calls, report.join('\n')).toBeLessThanOrEqual(drawCallTarget);
-      expect(calls).toBeLessThan(drawCallBudget);
-    }
-    console.info(report.join('\n'));
-    await scene.unmount();
-  }, 120_000);
+      const report: string[] = [];
+      const obstacles = obstaclesFrom(gameData);
+      for (const area of walkableAreas(gameData.areas.values())) {
+        const p = areaSpot(gameData, area.id, obstacles)!;
+        Object.assign(localPlayer, { x: p.x, z: p.z });
+        // l'aiguillage d'area interroge la position toutes les 250 ms, puis les modèles se chargent
+        for (let i = 0; i < 12; i++) await settle();
+        for (
+          let i = 0;
+          i < 40 && [...gameData.props.keys()].some((id) => propEntry(id)?.status === 'loading');
+          i++
+        )
+          await settle();
+        await ReactThreeTestRenderer.act(async () => {
+          await scene.advanceFrames(2, 1 / 60);
+        });
+        const calls = drawObjects(scene.scene.instance as unknown as Object3D) + OUTSIDE_CITY;
+        const props = Object.entries(propDrawCalls())
+          .map(([c, n]) => `${c} ${n}`)
+          .join(', ');
+        report.push(`${themeId} ${area.id} : ${calls} (décor 3D : ${props})`);
+        expect(calls, report.join('\n')).toBeLessThanOrEqual(drawCallTarget);
+        expect(calls).toBeLessThan(drawCallBudget);
+      }
+      console.info(report.join('\n'));
+      await scene.unmount();
+    },
+    120_000,
+  );
 });

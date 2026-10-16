@@ -115,6 +115,15 @@ function colored(mesh: SkinnedMesh, [slot, shade]: [number, number]): BufferGeom
 
 const SLOT_COUNT = gameData.appearanceSlots.size + 1;
 
+/** Contour lumineux des personnages (rgb, intensité), partagé par tous : réglé par le thème. */
+export const characterRim = { value: new Vector4(1, 1, 1, 0) };
+
+/** Applique le contour lumineux du thème (`theme.rim`). */
+export function setCharacterRim(rim: { color: string; strength: number }): void {
+  const c = new Color(rim.color);
+  characterRim.value.set(c.r, c.g, c.b, rim.strength);
+}
+
 /**
  * Matériau du corps fusionné : couleurs de sommets, sauf pour les slots recolorés où la teinte
  * de la palette (uniform par slot, w = 1 si active) × la nuance d'origine les remplace. Un seul
@@ -126,6 +135,16 @@ export function characterMaterial(): MeshLambertMaterial {
   mat.userData.slotColors = slotColors;
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.slotColors = { value: slotColors };
+    shader.uniforms.uRim = characterRim;
+    // contour lumineux (thème jour) : bords tournés vers l'extérieur éclaircis, sans draw call
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform vec4 uRim;')
+      .replace(
+        '#include <opaque_fragment>',
+        `outgoingLight += uRim.rgb * uRim.a *
+    pow(1.0 - clamp(dot(normal, normalize(vViewPosition)), 0.0, 1.0), 2.0);
+  #include <opaque_fragment>`,
+      );
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',

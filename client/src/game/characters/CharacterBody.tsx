@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { AnimationMixer, RingGeometry, type AnimationAction, type Group } from 'three';
+import {
+  AnimationMixer,
+  Float32BufferAttribute,
+  RingGeometry,
+  type AnimationAction,
+  type BufferGeometry,
+  type Group,
+} from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { appearanceKey, gameData, Locomotion, type Appearance, type Gait } from '@narco/shared';
 import { FRAME_PRIORITY } from '../framePriority';
 import {
@@ -14,9 +22,27 @@ import {
 
 const { world, characters: rules, palette } = gameData.config;
 const SIZE = world.playerSize;
-const RING = new RingGeometry(rules.ring.innerRadius, rules.ring.outerRadius, 32).rotateX(
-  -Math.PI / 2,
-);
+const RING = ringWithOutline();
+
+/**
+ * Anneau au sol : bande à la couleur du joueur (couleur de sommet blanche) bordée d'un liseré
+ * sombre (couleur du joueur assombrie), fusionnés : 1 draw call, lisible sur asphalte et herbe.
+ */
+export function ringWithOutline(): BufferGeometry {
+  const { innerRadius, outerRadius, outline, outlineShade } = rules.ring;
+  const parts = [
+    { g: new RingGeometry(innerRadius, outerRadius, 32), k: 1 },
+    { g: new RingGeometry(outerRadius, outerRadius + outline, 32), k: outlineShade },
+    { g: new RingGeometry(Math.max(0, innerRadius - outline), innerRadius, 32), k: outlineShade },
+  ].map(({ g, k }) => {
+    const n = g.attributes.position!.count;
+    g.setAttribute('color', new Float32BufferAttribute(new Array(n * 3).fill(k), 3));
+    return g;
+  });
+  const merged = mergeGeometries(parts)!.rotateX(-Math.PI / 2);
+  for (const p of parts) p.dispose();
+  return merged;
+}
 
 /**
  * Corps d'un joueur : modèle 3D de son personnage (cloné, animé), ou cube de repli tant que le
@@ -57,7 +83,12 @@ export function CharacterBody({
   return (
     <>
       <mesh geometry={RING} position={[0, 0.02, 0]}>
-        <meshBasicMaterial color={color} transparent={ghost} opacity={ghost ? 0.35 : 1} />
+        <meshBasicMaterial
+          vertexColors
+          color={color}
+          transparent={ghost}
+          opacity={ghost ? 0.35 : 1}
+        />
       </mesh>
       <group ref={body}>
         {typeof asset === 'object' ? (

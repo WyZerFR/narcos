@@ -45,7 +45,11 @@
         "windows": "#9cc9e8"
       },
       "fogOfWar": "#6f8597",
-      "areaPalettes": false
+      "areaPalettes": false,
+      "rim": {
+        "color": "#fff4e0",
+        "strength": 0.35
+      }
     },
     "cartel": {
       "label": "Néo-cartel",
@@ -831,7 +835,9 @@
     },
     "ring": {
       "innerRadius": 0.42,
-      "outerRadius": 0.55
+      "outerRadius": 0.55,
+      "outline": 0.06,
+      "outlineShade": 0.2
     }
   },
   "interiorFraming": {
