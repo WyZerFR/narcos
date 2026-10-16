@@ -59,8 +59,7 @@ describe('centre-ville et quartier commercial', () => {
     const where = (style: string) =>
       LANDMARKS.filter((b) => b.style === style).map((b) => areaOf(b.position));
     expect(where('police')).toEqual(['centre_ville']);
-    expect(where('dealership')).toEqual(['centre_ville']);
-    for (const s of ['gunshop', 'laundry', 'barber', 'kebab', 'parking'])
+    for (const s of ['dealership', 'gunshop', 'laundry', 'barber', 'kebab', 'parking'])
       expect(where(s), s).toEqual(['commercial']);
     expect(where('store').length).toBeGreaterThan(0);
     expect(

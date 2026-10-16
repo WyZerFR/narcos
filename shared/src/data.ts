@@ -667,7 +667,9 @@ export function parseGameData(raw: RawGameData): GameData {
   errors.push(...checkAreas(config, areas, locFile.locations, quartiers));
   errors.push(...checkCity(config, areas, blocks, locFile.locations));
   errors.push(...checkAirport(config, areas));
-  errors.push(...checkTheme(config, locFile.locations, blocks, quartiersFile.quartiers));
+  errors.push(
+    ...checkTheme(config, locFile.locations, blocks, quartiersFile.quartiers, areas.values()),
+  );
   const marketReference = areas.get(areasFile.referenceAreaId);
   if (!marketReference || marketReference.locked)
     errors.push('areas.json : referenceAreaId inconnue ou verrouillée');

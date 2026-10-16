@@ -29,7 +29,12 @@
       "npcCount": 2,
       "demandRate": 1,
       "dangerLevel": 3,
-      "controlledBy": null
+      "controlledBy": null,
+      "palette": {
+        "wall": "#5a3b33",
+        "ground": "#262229",
+        "neon": "#ffb347"
+      }
     },
     {
       "id": "chez_nous",
@@ -59,7 +64,8 @@
       "npcCount": 3,
       "demandRate": 1.25,
       "dangerLevel": 1,
-      "controlledBy": "cartel"
+      "controlledBy": "cartel",
+      "palette": {}
     },
     {
       "id": "centre_ville",
@@ -89,7 +95,11 @@
       "npcCount": 3,
       "demandRate": 1,
       "dangerLevel": 5,
-      "controlledBy": null
+      "controlledBy": null,
+      "palette": {
+        "wall": "#2f4a66",
+        "neon": "#7ee8ff"
+      }
     },
     {
       "id": "commercial",
@@ -127,7 +137,11 @@
       "npcCount": 3,
       "demandRate": 1.1,
       "dangerLevel": 3,
-      "controlledBy": null
+      "controlledBy": null,
+      "palette": {
+        "wall": "#4f4a5c",
+        "neon": "#ffc56b"
+      }
     },
     {
       "id": "cartel",
@@ -152,12 +166,17 @@
         }
       ],
       "locked": false,
-      "themeColor": "#ffd23f",
+      "themeColor": "#e0245e",
       "priceMultiplier": 1.3,
       "npcCount": 3,
       "demandRate": 1.25,
       "dangerLevel": 1,
-      "controlledBy": "eljefe"
+      "controlledBy": "eljefe",
+      "palette": {
+        "wall": "#3a3438",
+        "ground": "#211d22",
+        "neon": "#ff0054"
+      }
     },
     {
       "id": "aeroport",
@@ -187,7 +206,13 @@
       "npcCount": 0,
       "demandRate": 0,
       "dangerLevel": 5,
-      "controlledBy": null
+      "controlledBy": null,
+      "palette": {
+        "wall": "#5c6670",
+        "ground": "#3a3f45",
+        "street": "#2a2e33",
+        "neon": "#7ee8ff"
+      }
     }
   ]
 }

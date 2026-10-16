@@ -1,4 +1,5 @@
 import type {
+  Area,
   Block,
   GameConfig,
   GameLocation,
@@ -50,6 +51,7 @@ export function emissiveUses(
   locations: readonly GameLocation[],
   blocks: readonly Block[],
   quartiers: Iterable<QuartierParams>,
+  areas: Iterable<Area> = [],
 ): EmissiveUse[] {
   const out: EmissiveUse[] = [];
   for (const l of locations) out.push({ where: `locations.json ${l.id}`, color: l.neonColor });
@@ -63,6 +65,9 @@ export function emissiveUses(
     out.push({ where: `quartiers.json ${q.id} palette.neon`, color: q.palette.neon });
     out.push({ where: `quartiers.json ${q.id} palette.lamp`, color: q.palette.lamp });
   }
+  for (const a of areas)
+    if (a.palette.neon)
+      out.push({ where: `areas.json ${a.id} palette.neon`, color: a.palette.neon });
   return out;
 }
 
@@ -72,6 +77,7 @@ export function checkTheme(
   locations: readonly GameLocation[],
   blocks: readonly Block[],
   quartiers: Iterable<QuartierParams>,
+  areas: Iterable<Area> = [],
 ): string[] {
   const errors: string[] = [];
   for (const id of THEME_IDS) {
@@ -81,7 +87,7 @@ export function checkTheme(
     if (t.fog.near >= t.fog.far) errors.push(`config.json : theme.${id}.fog, near doit être < far`);
   }
   const allowed = new Set(Object.values(config.neons).map((c) => c.toLowerCase()));
-  for (const u of emissiveUses(config, locations, blocks, quartiers))
+  for (const u of emissiveUses(config, locations, blocks, quartiers, areas))
     if (!allowed.has(u.color.toLowerCase()))
       errors.push(`${u.where} : émissif ${u.color} absent de config.neons`);
   return errors;

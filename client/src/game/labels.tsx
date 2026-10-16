@@ -85,7 +85,7 @@ const CITY_SIGNS = [
       ? [
           {
             id: `sign:${b.id}`,
-            text: b.sign,
+            text: b.icon && !b.sign.includes(b.icon) ? `${b.icon} ${b.sign}` : b.sign,
             color: b.neonColor ?? gameData.config.palette.neon,
             className: 'place-label city-sign',
             at: { x: b.position.x, y: b.height + 1.6, z: b.position.z },
@@ -254,7 +254,7 @@ export function LabelLayer({
             className="place-label"
             style={{ borderColor: loc.neonColor, color: loc.neonColor }}
           >
-            {loc.name}
+            {loc.icon ? `${loc.icon} ${loc.name}` : loc.name}
           </div>
         ))}
       {zone === STREET &&

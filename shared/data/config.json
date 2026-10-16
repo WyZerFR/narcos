@@ -31,7 +31,8 @@
         "distance": 12,
         "decay": 1.2,
         "height": 3.5
-      }
+      },
+      "areaPalettes": true
     },
     "legacy_night": {
       "label": "Nuit (ancien)",
@@ -60,7 +61,8 @@
         "scale": 9,
         "position": [-12, 25, 10]
       },
-      "playerLight": null
+      "playerLight": null,
+      "areaPalettes": false
     }
   },
   "render": {
@@ -484,6 +486,20 @@
         "z": -36,
         "rotation": 90,
         "color": "wall"
+      },
+      {
+        "x": 2.9,
+        "z": 31,
+        "rotation": 90,
+        "color": "wall",
+        "police": true
+      },
+      {
+        "x": 2.9,
+        "z": 38,
+        "rotation": 90,
+        "color": "wall",
+        "police": true
       }
     ],
     "trees": [

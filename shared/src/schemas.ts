@@ -117,6 +117,8 @@ export const ThemeSchema = z.object({
   hemisphere: z.object({ sky: LightSchema, ground: LightSchema, intensity: nonNeg }).nullable(),
   sun: LightSchema.extend({ position: z.tuple([z.number(), z.number(), z.number()]) }),
   playerLight: LightSchema.extend({ distance: pos, decay: nonNeg, height: pos }).nullable(),
+  /** Applique les palettes par area (areas.json) : faux pour l'ancien thème, uniforme. */
+  areaPalettes: z.boolean(),
 });
 
 export const THEME_IDS = ['cartel', 'legacy_night'] as const;
@@ -287,6 +289,8 @@ export const ConfigSchema = z.object({
       Vec2Schema.extend({
         rotation: z.union([z.literal(0), z.literal(90)]),
         color: PaletteKeySchema,
+        /** Voiture de police garée (caisse blanche, rampe rouge/bleu), même collision. */
+        police: z.boolean().default(false),
       }),
     ),
     trees: z.array(Vec2Schema.extend({ scale: pos })),
@@ -886,6 +890,8 @@ export const LocationSchema = z.object({
   dialogue: z.string().min(1).optional(),
   /** Libellé du bouton ACTION devant ce lieu (défaut « Entrer : nom »). */
   actionLabel: z.string().min(1).optional(),
+  /** Pictogramme du lieu (mini-carte, enseigne) ; aucun pour un lieu caché. */
+  icon: z.string().min(1).max(4).optional(),
   /** Lieu caché : ni étiquette flottante, ni marqueur de mini-carte, ni bâtiment rendu. */
   hidden: z.boolean().default(false),
   catalog: z.array(CatalogEntrySchema),
@@ -908,6 +914,9 @@ export const BlockStyleSchema = z.enum([
   'kebab',
   'store',
   'parking',
+  /** Zone industrielle du cartel : parc de conteneurs empilés, usine abandonnée. */
+  'containers',
+  'factory',
 ]);
 
 /** Immeuble sans fonction : ferme les îlots, crée les ruelles, donne son visage au quartier. */
@@ -921,6 +930,8 @@ export const BlockSchema = z.object({
   /** Enseigne néon (étiquette lisible depuis la caméra de jeu), sans interaction. */
   sign: z.string().min(1).optional(),
   neonColor: hexColor.optional(),
+  /** Pictogramme du repère (mini-carte, enseigne), seulement pour un lieu notable. */
+  icon: z.string().min(1).max(4).optional(),
   /** Façade de l'enseigne et de la vitrine (défaut : la plus proche d'une route). */
   door: DoorSideSchema.optional(),
 });
@@ -1011,6 +1022,19 @@ export const AreaSchema = z.object({
   /** 0 (calme) à 5 (très dangereux) : lu par la police plus tard. */
   dangerLevel: z.number().int().min(0).max(5),
   controlledBy: AreaControlSchema,
+  /**
+   * Ambiance de l'area : couleurs de base remplacées pour ses bâtiments et son sol (briques des
+   * bas-fonds, verre du centre, métal du cartel, gris de l'aéroport). Thème néo-cartel seulement.
+   */
+  palette: PaletteSchema.pick({
+    ground: true,
+    street: true,
+    wall: true,
+    neon: true,
+    vegetation: true,
+  })
+    .partial()
+    .default({}),
 });
 
 /** Boîte englobante du polygone, calculée au chargement (`bounds`). */
@@ -1037,6 +1061,19 @@ const chance = z.number().min(0).max(1);
 export const RoofSchema = z.enum(['flat', 'gable', 'sawtooth']);
 
 /** Paramètres du générateur d'une impasse (logique pure, déterministe par `seed`). */
+/** Couleurs d'un quartier généré (façades, toits, portes, néon, fenêtres, lampadaires, sols). */
+const QuartierPaletteSchema = z.object({
+  facades: z.array(hexColor).min(1),
+  roofs: z.array(hexColor).min(1),
+  doors: z.array(hexColor).min(1),
+  neon: hexColor,
+  windows: hexColor,
+  lamp: hexColor,
+  ground: hexColor,
+  sidewalk: hexColor,
+  road: hexColor,
+});
+
 export const QuartierSchema = z.object({
   id: z.string().min(1),
   /** Area (areas.json) que le quartier remplit ; son entrée donne sur une area voisine. */
@@ -1087,17 +1124,9 @@ export const QuartierSchema = z.object({
     storeyHeight: pos,
     windowLitChance: chance,
   }),
-  palette: z.object({
-    facades: z.array(hexColor).min(1),
-    roofs: z.array(hexColor).min(1),
-    doors: z.array(hexColor).min(1),
-    neon: hexColor,
-    windows: hexColor,
-    lamp: hexColor,
-    ground: hexColor,
-    sidewalk: hexColor,
-    road: hexColor,
-  }),
+  palette: QuartierPaletteSchema,
+  /** Palettes mises de côté (non utilisées), gardées pour y revenir : nom → palette. */
+  archivedPalettes: z.record(z.string().min(1), QuartierPaletteSchema).default({}),
   decor: z.object({
     /** Distance minimale entre deux lampadaires (m). */
     streetlightSpacing: pos,

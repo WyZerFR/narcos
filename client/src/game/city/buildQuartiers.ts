@@ -217,8 +217,7 @@ function decor(b: Batches, l: QuartierLayout, q: QuartierParams, data: GameData)
   }
   for (const r of l.gardenBackfill) b.solid.floor(r, 0.03, shade(palette.ground, 0.4));
   // lueur des jardins : couleur de la trappe (lieu caché), la même pour les leurres
-  const trapLoc = q.cellarLocationId ? data.locations.get(q.cellarLocationId) : undefined;
-  for (const g of l.gardens) hiddenGarden(b, g, trapLoc?.neonColor ?? p.lamp, q, data);
+  for (const g of l.gardens) hiddenGarden(b, g, gardenGlowColor(q, data), q, data);
   // arche d'entrée : deux piliers, poutre, enseigne néon (texte en étiquette DOM)
   const { arch } = l;
   const archColor = shade(p.roofs[0]!, 0.8);
@@ -262,6 +261,36 @@ function bulbs(glow: Batch, a: Vec2, bEnd: Vec2, y: number, q: QuartierParams) {
   }
 }
 
+/** Une source émissive d'un jardin caché, relative à son emplacement central. */
+export interface GardenLight {
+  dx: number;
+  dz: number;
+  y: number;
+  w: number;
+  h: number;
+  d: number;
+  color: string;
+  k: number;
+}
+
+/**
+ * Lueur au ras du sol et ampoule nue d'un jardin caché : mêmes paramètres pour le vrai jardin
+ * et les leurres (rien ne les distingue depuis la rue), seule la couleur vient des données.
+ */
+export function gardenLights(glowColor: string): GardenLight[] {
+  return [
+    { dx: 0, dz: -0.64, y: 0.005, w: 1.2, h: 0.03, d: 0.08, color: glowColor, k: 0.7 },
+    { dx: -0.64, dz: 0, y: 0.005, w: 0.08, h: 0.03, d: 1.2, color: glowColor, k: 0.5 },
+    { dx: 0.6, dz: 0, y: 2.2, w: 0.16, h: 0.2, d: 0.16, color: glowColor, k: 1.2 },
+  ];
+}
+
+/** Couleur de la lueur des jardins d'un quartier : celle de la trappe, la même pour les leurres. */
+export function gardenGlowColor(q: QuartierParams, data: GameData): string {
+  const trapLoc = q.cellarLocationId ? data.locations.get(q.cellarLocationId) : undefined;
+  return trapLoc?.neonColor ?? q.palette.lamp;
+}
+
 /**
  * Jardin caché (le vrai ou un leurre, rendus à l'identique) : passage dans l'ombre, jardin
  * d'herbe sèche, lueur discrète qui filtre du sol, ampoule nue, vieux fauteuil. Au centre :
@@ -297,14 +326,12 @@ function hiddenGarden(
     b.solid.box(t.x + 0.15, 0.7, t.z - 0.1, 0.95, 0.06, 0.6, shade(palette.neon, 0.3), 0, 0.4, 0.5);
     b.solid.block(t.x - 0.7, 0, t.z + 0.3, 0.9, 0.04, 0.12, shade(palette.neon, 0.3));
   }
-  // même lueur au ras du sol, vrai jardin comme leurre (rien ne les distingue depuis la rue)
-  b.glow.block(t.x, 0.005, t.z - 0.64, 1.2, 0.03, 0.08, shade(glowColor, 0.7));
-  b.glow.block(t.x - 0.64, 0.005, t.z, 0.08, 0.03, 1.2, shade(glowColor, 0.5));
+  for (const l of gardenLights(glowColor))
+    b.glow.block(t.x + l.dx, l.y, t.z + l.dz, l.w, l.h, l.d, shade(l.color, l.k));
   // ampoule nue sur un poteau, fil compris
   const pole = { x: t.x + 1.4, z: t.z };
   b.solid.block(pole.x, 0, pole.z, 0.1, 2.6, 0.1, shade(palette.sky, 1.4));
   b.solid.block((pole.x + t.x + 0.6) / 2, 2.55, t.z, 0.8, 0.03, 0.03, shade(palette.sky, 0.8));
-  b.glow.block(t.x + 0.6, 2.2, t.z, 0.16, 0.2, 0.16, shade(glowColor, 1.2));
   // vieux fauteuil défoncé
   const a = g.armchair;
   const seat = shade(q.palette.doors[0]!, 0.55);
