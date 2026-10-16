@@ -33,6 +33,7 @@ interface Selected {
 }
 
 interface Selection {
+  tint: Record<PropCategory, { brightness: number; saturation: number }>;
   sourceDir: string;
   license: string;
   minKeepRatio: number;
@@ -286,7 +287,10 @@ function bake(parts: Part[]): {
   positions: Float32Array;
   colors: Uint8Array;
   uvs: Float32Array | null;
+  luminance: number;
 } {
+  let lumSum = 0;
+  let faces = 0;
   const keepUv = parts.every((p) => p.texturePath && p.geometry.attributes.uv);
   const pos: number[] = [];
   const col: number[] = [];
@@ -297,7 +301,7 @@ function bake(parts: Part[]): {
     const uv = g.attributes.uv;
     for (let v = 0; v < p.count; v += 3) {
       let rgb = [...factor];
-      if (!keepUv && texture && uv) {
+      if (texture && uv) {
         const u = (uv.getX(v) + uv.getX(v + 1) + uv.getX(v + 2)) / 3;
         const w = (uv.getY(v) + uv.getY(v + 1) + uv.getY(v + 2)) / 3;
         const fract = (x: number) => x - Math.floor(x);
@@ -306,6 +310,10 @@ function bake(parts: Part[]): {
         const o = (y * texture.w + x) * 4;
         rgb = rgb.map((c, k) => c * toLinear(texture.rgba[o + k]! / 255));
       }
+      lumSum += 0.2126 * rgb[0]! + 0.7152 * rgb[1]! + 0.0722 * rgb[2]!;
+      faces++;
+      // texture gardée : la couleur de sommet reste le facteur du matériau
+      if (keepUv) rgb = [...factor];
       for (let k = 0; k < 3; k++) {
         pos.push(p.getX(v + k), p.getY(v + k), p.getZ(v + k));
         col.push(...rgb.map((c) => Math.round(Math.min(1, Math.max(0, c)) * 255)), 255);
@@ -317,6 +325,7 @@ function bake(parts: Part[]): {
     positions: new Float32Array(pos),
     colors: new Uint8Array(col),
     uvs: keepUv ? new Float32Array(uvs) : null,
+    luminance: faces ? lumSum / faces : 0,
   };
 }
 
@@ -446,7 +455,7 @@ for (const s of selection.models) {
     }
     kept = [{ ...parts[0]!, geometry: simple }];
   }
-  const { positions, colors, uvs } = bake(kept);
+  const { positions, colors, uvs, luminance } = bake(kept);
   const model = `models/${s.category}/${s.id}.glb`;
   const b = writeGlb(join(ROOT, 'client/public', model), s.id, positions, colors, uvs);
   const texture = uvs
@@ -489,6 +498,7 @@ for (const s of selection.models) {
     cuttable: s.cuttable ?? false,
     ...(texture ? { texture } : {}),
     triangles: positions.length / 9,
+    luminance: round(luminance),
     tags: s.tags,
   });
   console.log(
@@ -498,7 +508,7 @@ for (const s of selection.models) {
 for (const r of rejected) console.log(`✗ écarté ${r}`);
 writeFileSync(
   join(ROOT, 'shared/data/props.json'),
-  JSON.stringify({ license: selection.license, props }, null, 2) + '\n',
+  JSON.stringify({ license: selection.license, tint: selection.tint, props }, null, 2) + '\n',
 );
 console.log(
   `${props.length} modèle(s) retenu(s), ${rejected.length} écarté(s) → shared/data/props.json`,

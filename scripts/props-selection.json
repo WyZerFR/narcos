@@ -1,6 +1,24 @@
 {
   "sourceDir": "public/maps/3D",
   "license": "Kenney (kenney.nl) : Car Kit, City Kit Commercial, City Kit Industrial, City Kit Suburban, Coaster Kit, Nature Kit. Licence CC0 1.0 (domaine public), déduite des noms des packs : à confirmer.",
+  "tint": {
+    "batiments": {
+      "brightness": 1.2,
+      "saturation": 1.1
+    },
+    "vehicules": {
+      "brightness": 1.45,
+      "saturation": 1.15
+    },
+    "props": {
+      "brightness": 1.15,
+      "saturation": 1.1
+    },
+    "vegetation": {
+      "brightness": 1,
+      "saturation": 1.05
+    }
+  },
   "minKeepRatio": 0.4,
   "models": [
     {
@@ -9,7 +27,10 @@
       "category": "vehicules",
       "height": 1.5,
       "rotationY": 0,
-      "tags": ["voiture", "civile"]
+      "tags": [
+        "voiture",
+        "civile"
+      ]
     },
     {
       "id": "sedan_sports",
@@ -17,7 +38,10 @@
       "category": "vehicules",
       "height": 1.35,
       "rotationY": 0,
-      "tags": ["voiture", "civile"]
+      "tags": [
+        "voiture",
+        "civile"
+      ]
     },
     {
       "id": "suv",
@@ -25,7 +49,10 @@
       "category": "vehicules",
       "height": 1.7,
       "rotationY": 0,
-      "tags": ["voiture", "civile"]
+      "tags": [
+        "voiture",
+        "civile"
+      ]
     },
     {
       "id": "suv_luxury",
@@ -33,7 +60,11 @@
       "category": "vehicules",
       "height": 1.65,
       "rotationY": 0,
-      "tags": ["voiture", "civile", "luxe"]
+      "tags": [
+        "voiture",
+        "civile",
+        "luxe"
+      ]
     },
     {
       "id": "hatchback_sports",
@@ -41,7 +72,10 @@
       "category": "vehicules",
       "height": 1.4,
       "rotationY": 0,
-      "tags": ["voiture", "civile"]
+      "tags": [
+        "voiture",
+        "civile"
+      ]
     },
     {
       "id": "taxi",
@@ -49,7 +83,10 @@
       "category": "vehicules",
       "height": 1.7,
       "rotationY": 0,
-      "tags": ["voiture", "civile"]
+      "tags": [
+        "voiture",
+        "civile"
+      ]
     },
     {
       "id": "van",
@@ -57,7 +94,9 @@
       "category": "vehicules",
       "height": 1.9,
       "rotationY": 0,
-      "tags": ["utilitaire"]
+      "tags": [
+        "utilitaire"
+      ]
     },
     {
       "id": "delivery",
@@ -65,7 +104,9 @@
       "category": "vehicules",
       "height": 2.3,
       "rotationY": 0,
-      "tags": ["utilitaire"]
+      "tags": [
+        "utilitaire"
+      ]
     },
     {
       "id": "police",
@@ -73,9 +114,11 @@
       "category": "vehicules",
       "height": 1.6,
       "rotationY": 0,
-      "tags": ["voiture", "police"]
+      "tags": [
+        "voiture",
+        "police"
+      ]
     },
-
     {
       "id": "skyscraper_a",
       "source": "GLB format commercial/building-skyscraper-a.glb",
@@ -83,7 +126,9 @@
       "height": 30,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["tour"]
+      "tags": [
+        "tour"
+      ]
     },
     {
       "id": "skyscraper_b",
@@ -92,7 +137,9 @@
       "height": 40,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["tour"]
+      "tags": [
+        "tour"
+      ]
     },
     {
       "id": "skyscraper_c",
@@ -101,7 +148,9 @@
       "height": 36,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["tour"]
+      "tags": [
+        "tour"
+      ]
     },
     {
       "id": "skyscraper_d",
@@ -110,7 +159,9 @@
       "height": 46,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["tour"]
+      "tags": [
+        "tour"
+      ]
     },
     {
       "id": "skyscraper_e",
@@ -119,7 +170,9 @@
       "height": 34,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["tour"]
+      "tags": [
+        "tour"
+      ]
     },
     {
       "id": "shop_a",
@@ -128,7 +181,10 @@
       "height": 12,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["immeuble", "commerce"]
+      "tags": [
+        "immeuble",
+        "commerce"
+      ]
     },
     {
       "id": "shop_c",
@@ -137,7 +193,10 @@
       "height": 9,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["immeuble", "commerce"]
+      "tags": [
+        "immeuble",
+        "commerce"
+      ]
     },
     {
       "id": "shop_e",
@@ -146,7 +205,10 @@
       "height": 9,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["immeuble", "commerce"]
+      "tags": [
+        "immeuble",
+        "commerce"
+      ]
     },
     {
       "id": "shop_h",
@@ -155,7 +217,10 @@
       "height": 12,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["immeuble", "commerce"]
+      "tags": [
+        "immeuble",
+        "commerce"
+      ]
     },
     {
       "id": "block_a",
@@ -164,7 +229,10 @@
       "height": 16,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["immeuble", "remplissage"]
+      "tags": [
+        "immeuble",
+        "remplissage"
+      ]
     },
     {
       "id": "block_d",
@@ -173,7 +241,10 @@
       "height": 14,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["immeuble", "remplissage"]
+      "tags": [
+        "immeuble",
+        "remplissage"
+      ]
     },
     {
       "id": "block_g",
@@ -182,7 +253,10 @@
       "height": 16,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["immeuble", "remplissage"]
+      "tags": [
+        "immeuble",
+        "remplissage"
+      ]
     },
     {
       "id": "block_j",
@@ -191,7 +265,10 @@
       "height": 14,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["immeuble", "remplissage"]
+      "tags": [
+        "immeuble",
+        "remplissage"
+      ]
     },
     {
       "id": "block_wide_a",
@@ -200,7 +277,10 @@
       "height": 10,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["immeuble", "remplissage"]
+      "tags": [
+        "immeuble",
+        "remplissage"
+      ]
     },
     {
       "id": "house_a",
@@ -209,7 +289,9 @@
       "height": 6,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["maison"]
+      "tags": [
+        "maison"
+      ]
     },
     {
       "id": "house_c",
@@ -218,7 +300,9 @@
       "height": 7,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["maison"]
+      "tags": [
+        "maison"
+      ]
     },
     {
       "id": "house_h",
@@ -227,7 +311,9 @@
       "height": 5.5,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["maison"]
+      "tags": [
+        "maison"
+      ]
     },
     {
       "id": "house_k",
@@ -236,7 +322,9 @@
       "height": 8,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["maison"]
+      "tags": [
+        "maison"
+      ]
     },
     {
       "id": "house_p",
@@ -245,7 +333,9 @@
       "height": 6.5,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["maison"]
+      "tags": [
+        "maison"
+      ]
     },
     {
       "id": "house_r",
@@ -254,7 +344,9 @@
       "height": 8,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["maison"]
+      "tags": [
+        "maison"
+      ]
     },
     {
       "id": "warehouse_a",
@@ -263,7 +355,9 @@
       "height": 9,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["entrepot"]
+      "tags": [
+        "entrepot"
+      ]
     },
     {
       "id": "warehouse_g",
@@ -272,7 +366,9 @@
       "height": 8,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["entrepot"]
+      "tags": [
+        "entrepot"
+      ]
     },
     {
       "id": "water_tower",
@@ -281,16 +377,19 @@
       "height": 14,
       "rotationY": 0,
       "cuttable": true,
-      "tags": ["industrie"]
+      "tags": [
+        "industrie"
+      ]
     },
-
     {
       "id": "tree_default",
       "source": "GLTF format nature/tree_default.glb",
       "category": "vegetation",
       "height": 5,
       "rotationY": 0,
-      "tags": ["arbre"]
+      "tags": [
+        "arbre"
+      ]
     },
     {
       "id": "tree_oak",
@@ -298,7 +397,9 @@
       "category": "vegetation",
       "height": 4.6,
       "rotationY": 0,
-      "tags": ["arbre"]
+      "tags": [
+        "arbre"
+      ]
     },
     {
       "id": "tree_fat",
@@ -306,7 +407,9 @@
       "category": "vegetation",
       "height": 4.2,
       "rotationY": 0,
-      "tags": ["arbre"]
+      "tags": [
+        "arbre"
+      ]
     },
     {
       "id": "palm_tall",
@@ -314,7 +417,9 @@
       "category": "vegetation",
       "height": 6,
       "rotationY": 0,
-      "tags": ["palmier"]
+      "tags": [
+        "palmier"
+      ]
     },
     {
       "id": "palm_bend",
@@ -322,7 +427,9 @@
       "category": "vegetation",
       "height": 5.5,
       "rotationY": 0,
-      "tags": ["palmier"]
+      "tags": [
+        "palmier"
+      ]
     },
     {
       "id": "palm_short",
@@ -330,7 +437,9 @@
       "category": "vegetation",
       "height": 4.5,
       "rotationY": 0,
-      "tags": ["palmier"]
+      "tags": [
+        "palmier"
+      ]
     },
     {
       "id": "bush",
@@ -339,9 +448,10 @@
       "height": 1,
       "rotationY": 0,
       "collision": "none",
-      "tags": ["buisson"]
+      "tags": [
+        "buisson"
+      ]
     },
-
     {
       "id": "cone",
       "source": "GLB format car/cone.glb",
@@ -349,7 +459,9 @@
       "height": 0.7,
       "rotationY": 0,
       "collision": "none",
-      "tags": ["chantier"]
+      "tags": [
+        "chantier"
+      ]
     },
     {
       "id": "box",
@@ -357,7 +469,9 @@
       "category": "props",
       "height": 0.9,
       "rotationY": 0,
-      "tags": ["caisse"]
+      "tags": [
+        "caisse"
+      ]
     },
     {
       "id": "bench",
@@ -365,7 +479,9 @@
       "category": "props",
       "height": 0.9,
       "rotationY": 0,
-      "tags": ["mobilier"]
+      "tags": [
+        "mobilier"
+      ]
     },
     {
       "id": "trash",
@@ -373,7 +489,9 @@
       "category": "props",
       "height": 1,
       "rotationY": 0,
-      "tags": ["mobilier"]
+      "tags": [
+        "mobilier"
+      ]
     },
     {
       "id": "container_a",
@@ -381,7 +499,9 @@
       "category": "props",
       "height": 2.6,
       "rotationY": 0,
-      "tags": ["conteneur"]
+      "tags": [
+        "conteneur"
+      ]
     },
     {
       "id": "container_b",
@@ -389,7 +509,9 @@
       "category": "props",
       "height": 2.6,
       "rotationY": 0,
-      "tags": ["conteneur"]
+      "tags": [
+        "conteneur"
+      ]
     },
     {
       "id": "tank",
@@ -397,7 +519,9 @@
       "category": "props",
       "height": 3,
       "rotationY": 0,
-      "tags": ["industrie"]
+      "tags": [
+        "industrie"
+      ]
     },
     {
       "id": "rock_a",
@@ -405,7 +529,10 @@
       "category": "props",
       "height": 0.9,
       "rotationY": 0,
-      "tags": ["rocher", "plage"]
+      "tags": [
+        "rocher",
+        "plage"
+      ]
     },
     {
       "id": "rock_c",
@@ -413,7 +540,10 @@
       "category": "props",
       "height": 1.1,
       "rotationY": 0,
-      "tags": ["rocher", "plage"]
+      "tags": [
+        "rocher",
+        "plage"
+      ]
     }
   ]
 }

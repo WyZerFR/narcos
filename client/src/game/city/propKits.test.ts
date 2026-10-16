@@ -147,3 +147,18 @@ describe('décor 3D importé : chargement et rendu', () => {
     await scene.unmount();
   });
 });
+
+describe('gain de couleur du thème jour', () => {
+  it('luminosité et saturation de la catégorie appliquées, couleurs d’origine sinon', async () => {
+    const { tintedGeometry } = await import('./propAssets');
+    const { BufferGeometry, Float32BufferAttribute } = await import('three');
+    const p = props.find((x) => !x.texture)!;
+    const g = new BufferGeometry();
+    g.setAttribute('color', new Float32BufferAttribute([0.2, 0.4, 0.1], 3));
+    expect(tintedGeometry(g, p, data.config, null)).toBe(g);
+    const gain = gameData.propsTint[p.category];
+    const out = tintedGeometry(g, p, data.config, gain).attributes.color!;
+    const lum = 0.2126 * 0.2 + 0.7152 * 0.4 + 0.0722 * 0.1;
+    expect(out.getY(0)).toBeCloseTo((lum + (0.4 - lum) * gain.saturation) * gain.brightness, 5);
+  });
+});

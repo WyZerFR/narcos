@@ -19,26 +19,26 @@
         "color": "#a9d2f2"
       },
       "ambient": {
-        "color": "#e8f1ff",
-        "intensity": 0.55,
+        "color": "#f2f6ff",
+        "intensity": 0.75,
         "scale": 1
       },
       "hemisphere": {
         "sky": {
-          "color": "#bfe3ff",
+          "color": "#cfe8ff",
           "intensity": 1,
           "scale": 1
         },
         "ground": {
-          "color": "#6f9a4a",
+          "color": "#f0d2a8",
           "intensity": 1,
           "scale": 1
         },
-        "intensity": 0.55
+        "intensity": 0.7
       },
       "sun": {
         "color": "#ffd49a",
-        "intensity": 2.6,
+        "intensity": 2.9,
         "scale": 1,
         "position": [-55, 30, 35]
       },
@@ -64,10 +64,10 @@
         "strength": 0.35
       },
       "toneMapping": "neutral",
-      "exposure": 1,
+      "exposure": 1.15,
       "shading": {
         "mode": "toon",
-        "steps": [0.5, 0.78, 1]
+        "steps": [0.6, 0.82, 1]
       },
       "outline": {
         "qualities": ["medium", "high"],
@@ -83,7 +83,9 @@
         "dash": "#f4f1e6",
         "stripe": "#f4f1e6"
       },
-      "panels": true
+      "panels": true,
+      "propTint": true,
+      "shadeFloor": 0.55
     },
     "cartel": {
       "label": "Néo-cartel",

@@ -99,7 +99,7 @@ export function City({
   );
   const propKits = useMemo(() => propKitItems(data), [data]);
   // thème doux (neutre) : halos des devantures et des lampadaires coupés
-  const { halos, glow, shading, outline, panels } = themeOf(gameData.config, themeId);
+  const { halos, glow, shading, outline, panels, propTint } = themeOf(gameData.config, themeId);
   // thème jour : fenêtres, enseignes, guirlandes et lueurs en matériau éclairé (panneaux peints)
   const painted = glow === 'painted';
   const loaded = useLoadedAreas();
@@ -210,6 +210,7 @@ export function City({
         loaded={warm ? loaded : null}
         data={data}
         materialFor={propMaterials.make}
+        propTint={propTint}
       />
       {panels && <Panels data={data} loaded={warm ? loaded : null} />}
       {halos && <Halos data={data} loaded={warm ? loaded : null} glowBoost={glowBoost} />}

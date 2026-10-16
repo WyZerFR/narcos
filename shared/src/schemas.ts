@@ -151,6 +151,13 @@ export const ThemeSchema = z.object({
       stripe: hexColor.optional(),
     })
     .default({ landShade: 0.7, roadShade: 1.6, sidewalkShade: 1.3, curbShade: 0.8 }),
+  /** Applique le gain par catégorie de props.json (`tint`) aux modèles importés. */
+  propTint: z.boolean().default(false),
+  /**
+   * Luminance minimale d'une face à l'ombre, en part de celle d'une face au soleil (calcul de
+   * `faceLuminance`, vérifié au chargement et par les tests) ; 0 = non vérifié.
+   */
+  shadeFloor: z.number().min(0).max(1).default(0),
   /** Panneaux peints lisibles sur les façades à enseigne (`panel` des lieux et blocs). */
   panels: z.boolean().default(false),
   ambient: LightSchema.nullable(),
@@ -1470,16 +1477,24 @@ export const PropSchema = z.object({
   /** Percé par la découpe devant le joueur (bâtiments). */
   cuttable: z.boolean(),
   triangles: z.number().int().positive(),
+  /** Luminance linéaire moyenne des faces (albédo : texture × couleur), mesurée à l'import. */
+  luminance: z.number().min(0).max(1),
   tags: z.array(slug),
 });
 
 export const PropsFileSchema = z.object({
   /** Origine et licence des modèles. */
   license: z.string().min(1),
+  /**
+   * Gain par catégorie appliqué aux couleurs des modèles quand le thème le demande
+   * (`theme.propTint`, jour) : luminosité (facteur) et saturation (1 = inchangée).
+   */
+  tint: z.record(PropCategorySchema, z.object({ brightness: pos, saturation: pos })),
   props: z.array(PropSchema),
 });
 
 export type Prop = z.infer<typeof PropSchema>;
+export type PropsFile = z.infer<typeof PropsFileSchema>;
 export type PropCategory = z.infer<typeof PropCategorySchema>;
 export type PropCollision = z.infer<typeof PropCollisionSchema>;
 

@@ -1,5 +1,23 @@
 {
   "license": "Kenney (kenney.nl) : Car Kit, City Kit Commercial, City Kit Industrial, City Kit Suburban, Coaster Kit, Nature Kit. Licence CC0 1.0 (domaine public), déduite des noms des packs : à confirmer.",
+  "tint": {
+    "batiments": {
+      "brightness": 1.2,
+      "saturation": 1.1
+    },
+    "vehicules": {
+      "brightness": 1.45,
+      "saturation": 1.15
+    },
+    "props": {
+      "brightness": 1.15,
+      "saturation": 1.1
+    },
+    "vegetation": {
+      "brightness": 1,
+      "saturation": 1.05
+    }
+  },
   "props": [
     {
       "id": "sedan",
@@ -34,6 +52,7 @@
       "cuttable": false,
       "texture": "models/textures/car.png",
       "triangles": 979,
+      "luminance": 0.164,
       "tags": [
         "voiture",
         "civile"
@@ -72,6 +91,7 @@
       "cuttable": false,
       "texture": "models/textures/car.png",
       "triangles": 980,
+      "luminance": 0.173,
       "tags": [
         "voiture",
         "civile"
@@ -110,6 +130,7 @@
       "cuttable": false,
       "texture": "models/textures/car.png",
       "triangles": 979,
+      "luminance": 0.223,
       "tags": [
         "voiture",
         "civile",
@@ -149,6 +170,7 @@
       "cuttable": false,
       "texture": "models/textures/car.png",
       "triangles": 979,
+      "luminance": 0.176,
       "tags": [
         "voiture",
         "civile"
@@ -187,6 +209,7 @@
       "cuttable": false,
       "texture": "models/textures/car.png",
       "triangles": 980,
+      "luminance": 0.189,
       "tags": [
         "voiture",
         "civile"
@@ -225,6 +248,7 @@
       "cuttable": false,
       "texture": "models/textures/car.png",
       "triangles": 979,
+      "luminance": 0.166,
       "tags": [
         "utilitaire"
       ]
@@ -262,6 +286,7 @@
       "cuttable": false,
       "texture": "models/textures/car.png",
       "triangles": 979,
+      "luminance": 0.239,
       "tags": [
         "voiture",
         "police"
@@ -300,6 +325,7 @@
       "cuttable": true,
       "texture": "models/textures/commercial.png",
       "triangles": 1292,
+      "luminance": 0.276,
       "tags": [
         "tour"
       ]
@@ -337,6 +363,7 @@
       "cuttable": true,
       "texture": "models/textures/commercial.png",
       "triangles": 1592,
+      "luminance": 0.291,
       "tags": [
         "tour"
       ]
@@ -374,6 +401,7 @@
       "cuttable": true,
       "texture": "models/textures/commercial.png",
       "triangles": 1704,
+      "luminance": 0.259,
       "tags": [
         "tour"
       ]
@@ -411,6 +439,7 @@
       "cuttable": true,
       "texture": "models/textures/commercial.png",
       "triangles": 1892,
+      "luminance": 0.287,
       "tags": [
         "tour"
       ]
@@ -448,6 +477,7 @@
       "cuttable": true,
       "texture": "models/textures/commercial.png",
       "triangles": 1156,
+      "luminance": 0.262,
       "tags": [
         "tour"
       ]
@@ -485,6 +515,7 @@
       "cuttable": true,
       "texture": "models/textures/commercial.png",
       "triangles": 1252,
+      "luminance": 0.213,
       "tags": [
         "immeuble",
         "commerce"
@@ -523,6 +554,7 @@
       "cuttable": true,
       "texture": "models/textures/commercial.png",
       "triangles": 1195,
+      "luminance": 0.247,
       "tags": [
         "immeuble",
         "commerce"
@@ -561,6 +593,7 @@
       "cuttable": true,
       "texture": "models/textures/commercial.png",
       "triangles": 1509,
+      "luminance": 0.226,
       "tags": [
         "immeuble",
         "commerce"
@@ -599,6 +632,7 @@
       "cuttable": true,
       "texture": "models/textures/commercial.png",
       "triangles": 1512,
+      "luminance": 0.175,
       "tags": [
         "immeuble",
         "commerce"
@@ -637,6 +671,7 @@
       "cuttable": true,
       "texture": "models/textures/commercial.png",
       "triangles": 188,
+      "luminance": 0.703,
       "tags": [
         "immeuble",
         "remplissage"
@@ -675,6 +710,7 @@
       "cuttable": true,
       "texture": "models/textures/commercial.png",
       "triangles": 106,
+      "luminance": 0.689,
       "tags": [
         "immeuble",
         "remplissage"
@@ -713,6 +749,7 @@
       "cuttable": true,
       "texture": "models/textures/commercial.png",
       "triangles": 200,
+      "luminance": 0.66,
       "tags": [
         "immeuble",
         "remplissage"
@@ -751,6 +788,7 @@
       "cuttable": true,
       "texture": "models/textures/commercial.png",
       "triangles": 188,
+      "luminance": 0.699,
       "tags": [
         "immeuble",
         "remplissage"
@@ -789,6 +827,7 @@
       "cuttable": true,
       "texture": "models/textures/commercial.png",
       "triangles": 156,
+      "luminance": 0.701,
       "tags": [
         "immeuble",
         "remplissage"
@@ -827,6 +866,7 @@
       "cuttable": true,
       "texture": "models/textures/suburban.png",
       "triangles": 1174,
+      "luminance": 0.293,
       "tags": [
         "maison"
       ]
@@ -864,6 +904,7 @@
       "cuttable": true,
       "texture": "models/textures/suburban.png",
       "triangles": 1196,
+      "luminance": 0.306,
       "tags": [
         "maison"
       ]
@@ -901,6 +942,7 @@
       "cuttable": true,
       "texture": "models/textures/suburban.png",
       "triangles": 770,
+      "luminance": 0.251,
       "tags": [
         "maison"
       ]
@@ -938,6 +980,7 @@
       "cuttable": true,
       "texture": "models/textures/suburban.png",
       "triangles": 1024,
+      "luminance": 0.252,
       "tags": [
         "maison"
       ]
@@ -975,6 +1018,7 @@
       "cuttable": true,
       "texture": "models/textures/suburban.png",
       "triangles": 1282,
+      "luminance": 0.205,
       "tags": [
         "maison"
       ]
@@ -1012,6 +1056,7 @@
       "cuttable": true,
       "texture": "models/textures/suburban.png",
       "triangles": 1030,
+      "luminance": 0.272,
       "tags": [
         "maison"
       ]
@@ -1049,6 +1094,7 @@
       "cuttable": true,
       "texture": "models/textures/industrie.png",
       "triangles": 2046,
+      "luminance": 0.186,
       "tags": [
         "entrepot"
       ]
@@ -1086,6 +1132,7 @@
       "cuttable": true,
       "texture": "models/textures/industrie.png",
       "triangles": 1242,
+      "luminance": 0.192,
       "tags": [
         "entrepot"
       ]
@@ -1123,6 +1170,7 @@
       "cuttable": true,
       "texture": "models/textures/industrie.png",
       "triangles": 968,
+      "luminance": 0.21,
       "tags": [
         "industrie"
       ]
@@ -1158,6 +1206,7 @@
       "keepColors": true,
       "cuttable": false,
       "triangles": 114,
+      "luminance": 0.604,
       "tags": [
         "arbre"
       ]
@@ -1193,6 +1242,7 @@
       "keepColors": true,
       "cuttable": false,
       "triangles": 196,
+      "luminance": 0.602,
       "tags": [
         "arbre"
       ]
@@ -1228,6 +1278,7 @@
       "keepColors": true,
       "cuttable": false,
       "triangles": 50,
+      "luminance": 0.633,
       "tags": [
         "arbre"
       ]
@@ -1263,6 +1314,7 @@
       "keepColors": true,
       "cuttable": false,
       "triangles": 190,
+      "luminance": 0.635,
       "tags": [
         "palmier"
       ]
@@ -1298,6 +1350,7 @@
       "keepColors": true,
       "cuttable": false,
       "triangles": 200,
+      "luminance": 0.635,
       "tags": [
         "palmier"
       ]
@@ -1333,6 +1386,7 @@
       "keepColors": true,
       "cuttable": false,
       "triangles": 190,
+      "luminance": 0.635,
       "tags": [
         "palmier"
       ]
@@ -1365,6 +1419,7 @@
       "keepColors": true,
       "cuttable": false,
       "triangles": 104,
+      "luminance": 0.695,
       "tags": [
         "buisson"
       ]
@@ -1398,6 +1453,7 @@
       "cuttable": false,
       "texture": "models/textures/car.png",
       "triangles": 172,
+      "luminance": 0.49,
       "tags": [
         "chantier"
       ]
@@ -1435,6 +1491,7 @@
       "cuttable": false,
       "texture": "models/textures/car.png",
       "triangles": 124,
+      "luminance": 0.311,
       "tags": [
         "caisse"
       ]
@@ -1472,6 +1529,7 @@
       "cuttable": false,
       "texture": "models/textures/coaster.png",
       "triangles": 112,
+      "luminance": 0.336,
       "tags": [
         "mobilier"
       ]
@@ -1509,6 +1567,7 @@
       "cuttable": false,
       "texture": "models/textures/coaster.png",
       "triangles": 72,
+      "luminance": 0.389,
       "tags": [
         "mobilier"
       ]
@@ -1546,6 +1605,7 @@
       "cuttable": false,
       "texture": "models/textures/industrie.png",
       "triangles": 402,
+      "luminance": 0.354,
       "tags": [
         "conteneur"
       ]
@@ -1583,6 +1643,7 @@
       "cuttable": false,
       "texture": "models/textures/industrie.png",
       "triangles": 402,
+      "luminance": 0.323,
       "tags": [
         "conteneur"
       ]
@@ -1620,6 +1681,7 @@
       "cuttable": false,
       "texture": "models/textures/industrie.png",
       "triangles": 566,
+      "luminance": 0.433,
       "tags": [
         "industrie"
       ]
@@ -1656,6 +1718,7 @@
       "keepColors": true,
       "cuttable": false,
       "triangles": 80,
+      "luminance": 0.593,
       "tags": [
         "rocher",
         "plage"
@@ -1693,6 +1756,7 @@
       "keepColors": true,
       "cuttable": false,
       "triangles": 72,
+      "luminance": 0.593,
       "tags": [
         "rocher",
         "plage"
