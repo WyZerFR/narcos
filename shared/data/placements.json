@@ -1,0 +1,203 @@
+{
+  "kits": {
+    "trees": {
+      "props": ["tree_default", "tree_oak"],
+      "fit": "height"
+    },
+    "palms": {
+      "props": ["palm_tall", "palm_bend"],
+      "fit": "height"
+    },
+    "cars": {
+      "props": ["sedan", "suv_luxury", "taxi", "van"],
+      "fit": "length",
+      "rotationY": 90
+    },
+    "policeCars": {
+      "props": ["police"],
+      "fit": "length",
+      "rotationY": 90
+    },
+    "houses": {
+      "props": ["house_a", "house_c", "house_k", "house_r"],
+      "fit": "box",
+      "heightScale": 1.4
+    },
+    "towers": {
+      "props": ["skyscraper_a", "skyscraper_b", "skyscraper_d", "skyscraper_e"],
+      "fit": "box"
+    },
+    "fillers": {
+      "props": ["block_a", "block_g", "block_wide_a", "shop_a", "shop_e"],
+      "fit": "box"
+    }
+  },
+  "areas": {
+    "bas_fonds": [
+      {
+        "prop": "trash",
+        "x": -142,
+        "z": -24,
+        "rotation": 0
+      },
+      {
+        "prop": "box",
+        "x": -51,
+        "z": 33,
+        "rotation": 90
+      },
+      {
+        "prop": "cone",
+        "x": -75,
+        "z": -31,
+        "rotation": 0
+      },
+      {
+        "prop": "bench",
+        "x": -108,
+        "z": 29,
+        "rotation": 0
+      },
+      {
+        "prop": "trash",
+        "x": -47,
+        "z": -6,
+        "rotation": 0
+      },
+      {
+        "prop": "box",
+        "x": -110,
+        "z": -31,
+        "rotation": 0
+      }
+    ],
+    "chez_nous": [
+      {
+        "prop": "bench",
+        "x": -130,
+        "z": 105,
+        "rotation": 90
+      },
+      {
+        "prop": "bush",
+        "x": -60,
+        "z": 126,
+        "rotation": 0
+      },
+      {
+        "prop": "bush",
+        "x": -107,
+        "z": 126,
+        "rotation": 0
+      },
+      {
+        "prop": "trash",
+        "x": -83,
+        "z": 120,
+        "rotation": 0
+      },
+      {
+        "prop": "bench",
+        "x": -64,
+        "z": 105,
+        "rotation": 0
+      }
+    ],
+    "centre_ville": [
+      {
+        "prop": "bench",
+        "x": 43,
+        "z": 40,
+        "rotation": 0
+      },
+      {
+        "prop": "trash",
+        "x": 38,
+        "z": -43,
+        "rotation": 0
+      },
+      {
+        "prop": "bench",
+        "x": -27,
+        "z": 41,
+        "rotation": 180
+      },
+      {
+        "prop": "bush",
+        "x": 6,
+        "z": -6,
+        "rotation": 0
+      },
+      {
+        "prop": "trash",
+        "x": 41,
+        "z": -6,
+        "rotation": 0
+      }
+    ],
+    "commercial": [
+      {
+        "prop": "bench",
+        "x": 46,
+        "z": -41,
+        "rotation": 0
+      },
+      {
+        "prop": "trash",
+        "x": 111,
+        "z": 32,
+        "rotation": 0
+      },
+      {
+        "prop": "cone",
+        "x": 146,
+        "z": -41,
+        "rotation": 0
+      },
+      {
+        "prop": "bench",
+        "x": 46,
+        "z": 27,
+        "rotation": 180
+      },
+      {
+        "prop": "trash",
+        "x": 96,
+        "z": -27,
+        "rotation": 0
+      },
+      {
+        "prop": "cone",
+        "x": 211,
+        "z": 9,
+        "rotation": 0
+      }
+    ],
+    "cartel": [
+      {
+        "prop": "container_a",
+        "x": 163,
+        "z": 107,
+        "rotation": 90
+      },
+      {
+        "prop": "tank",
+        "x": 211,
+        "z": 82,
+        "rotation": 0
+      },
+      {
+        "prop": "box",
+        "x": 137,
+        "z": 97,
+        "rotation": 0
+      },
+      {
+        "prop": "water_tower",
+        "x": 211,
+        "z": 106,
+        "rotation": 0
+      }
+    ]
+  }
+}

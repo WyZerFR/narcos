@@ -180,6 +180,8 @@ export const PropsConfigSchema = z.object({
   vegetationCollisionRatio: z.number().min(0.05).max(1),
   /** Tolérance (fraction de la hauteur) pour dire qu'un modèle a son origine au pied. */
   originTolerance: z.number().min(0).max(0.5),
+  /** Distance minimale (m) entre un prop posé et une porte ou un point d'interaction. */
+  doorClearance: pos,
   /** Couleur du cube de repli (modèle en échec) : clé de la palette. */
   fallbackColor: PaletteKeySchema,
   /** Teinte d'un prop sans `keepColors` : part de la teinte de palette mêlée à l'original. */
@@ -1340,3 +1342,55 @@ export const PropsFileSchema = z.object({
 export type Prop = z.infer<typeof PropSchema>;
 export type PropCategory = z.infer<typeof PropCategorySchema>;
 export type PropCollision = z.infer<typeof PropCollisionSchema>;
+
+// ---------------------------------------------------------------- placements du décor (placements.json)
+
+/** Décor généré remplacé par des modèles : liste de props (tirés en alternance) et ajustement. */
+export const PropKitSchema = z.object({
+  /** Vide : le générateur actuel reste. */
+  props: z.array(slug),
+  /**
+   * `height` : hauteur réelle du prop ; `length` : longueur (Z du prop) = longueur de la voiture
+   * générée ; `box` : emprise générée (largeur, profondeur) et hauteur × `heightScale`.
+   */
+  fit: z.enum(['height', 'length', 'box']),
+  /** Rotation ajoutée (degrés) : avant du prop (+Z) vers l'axe du décor généré. */
+  rotationY: z.number().min(-180).max(180).default(0),
+  heightScale: pos.default(1),
+});
+
+export const PROP_KIT_IDS = [
+  'trees',
+  'palms',
+  'cars',
+  'policeCars',
+  'houses',
+  'towers',
+  'fillers',
+] as const;
+export type PropKitId = (typeof PROP_KIT_IDS)[number];
+
+/** Un prop posé à la main dans une area. */
+export const PropPlacementSchema = z.object({
+  prop: slug,
+  x: z.number(),
+  z: z.number(),
+  /** Quart de tour seulement : l'emprise reste un rectangle aligné sur les axes. */
+  rotation: z.union([z.literal(0), z.literal(90), z.literal(180), z.literal(270)]).default(0),
+  scale: pos.default(1),
+});
+
+export const PlacementsFileSchema = z.object({
+  kits: z.object(
+    Object.fromEntries(PROP_KIT_IDS.map((k) => [k, PropKitSchema])) as Record<
+      PropKitId,
+      typeof PropKitSchema
+    >,
+  ),
+  /** Props posés, par id d'area. */
+  areas: z.record(slug, z.array(PropPlacementSchema)),
+});
+
+export type PropKit = z.infer<typeof PropKitSchema>;
+export type PropPlacement = z.infer<typeof PropPlacementSchema>;
+export type PlacementsFile = z.infer<typeof PlacementsFileSchema>;

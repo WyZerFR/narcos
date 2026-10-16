@@ -1,6 +1,7 @@
 import type { Color } from 'three';
 import {
   areaRects,
+  kitModelled,
   type GameData,
   type House,
   type QuartierLayout,
@@ -53,7 +54,8 @@ export function buildQuartiers(
     enterArea?.(layout.areaId);
     const q = data.quartiers.get(layout.id)!;
     ground(b, layout, q, data);
-    for (const h of layout.houses) house(b, h, q, palette.sky);
+    // maisons importées (placements.json kits.houses) : rendues par le décor instancié
+    if (!kitModelled(data, 'houses')) for (const h of layout.houses) house(b, h, q, palette.sky);
     furniture(b, () => decor(b, layout, q, data));
   }
 }

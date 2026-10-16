@@ -38,10 +38,12 @@ import { BlobShadows } from './BlobShadows';
 import { Ambience } from './Ambience';
 import { localPlayer } from './localPlayer';
 import { getStaticBlobs } from './blobRegistry';
+import { readPublic } from './testScene';
+import { setPropReader } from './city/propAssets';
 
 /**
  * Non-régression de la boucle de rendu (#185 « Maximum update depth exceeded ») : la scène de la
- * rue (ville, décor, halos, ombres blob, ambiance du thème) montée avec les vraies données pendant
+ * rue (ville, décor généré et importé, halos, ombres blob, ambiance) montée avec les vraies données pendant
  * 120 ticks simulés, nombre de rendus par composant borné.
  */
 const TICKS = 120;
@@ -82,6 +84,8 @@ describe('boucle de rendu de la scène', () => {
     vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
       errors.push(args.map(String).join(' '));
     });
+    // décor importé : les vrais GLB de client/public
+    setPropReader(readPublic);
     Object.assign(localPlayer, { initialized: true, x: spawn.x, z: spawn.z, zone: STREET });
 
     let scene: Awaited<ReturnType<typeof ReactThreeTestRenderer.create>> | null = null;

@@ -11,16 +11,17 @@ import {
   type Vec2,
 } from './geometry';
 import { footprint } from './locations';
+import { placementObstacles } from './props';
 import type { Bounds } from './schemas';
 
 /** Données dont dépend la carte de la rue (obstacles, navigation). */
 export type MapData = Pick<
   GameData,
-  'config' | 'locations' | 'blocks' | 'areas' | 'quartierLayouts'
+  'config' | 'locations' | 'blocks' | 'areas' | 'quartierLayouts' | 'props' | 'placements'
 >;
 
 /**
- * Obstacles solides de la carte : bâtiments (lieux `building`), immeubles de remplissage,
+ * Obstacles solides de la carte : bâtiments (lieux `building`), immeubles de remplissage, props posés,
  * voitures garées, maisons et décor solide des quartiers, et tout ce qui n'est dans aucune area
  * marchable (mer, area verrouillée).
  * Les ruelles (`area`) et le petit décor de la rue centrale restent traversables.
@@ -46,6 +47,8 @@ export function obstaclesFrom(data: MapData): Rect[] {
   for (const layout of data.quartierLayouts.values()) rects.push(...layout.colliders);
   // aéroport : portail fermé tant que l'area est verrouillée, clôture et volumes une fois ouverte
   rects.push(...airportObstacles(data.config.airport, data.areas));
+  // décor 3D posé (placements.json) : boîtes simples de props.json
+  rects.push(...placementObstacles(data));
   return rects;
 }
 

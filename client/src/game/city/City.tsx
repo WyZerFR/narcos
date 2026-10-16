@@ -9,6 +9,8 @@ import { SEA_GROUP } from './areaBatches';
 import { useLoadedAreas } from '../areaStreaming';
 import { Decor } from './Decor';
 import { Halos } from './Halos';
+import { PropKits } from './PropKits';
+import { propKitItems } from './propPlacements';
 import { litMaterial } from '../materials';
 import { applyCutout, cutoutUniforms, getCutout } from './cutout';
 
@@ -80,6 +82,7 @@ export function City({
   // eslint-disable-next-line react-hooks/exhaustive-deps -- lockVersion : gameData muté en place
   const data = useMemo(() => themedData(gameData, themeId), [themeId, lockVersion]);
   const geometry = useMemo(() => buildCity(data), [data]);
+  const propKits = useMemo(() => propKitItems(data), [data]);
   const loaded = useLoadedAreas();
   const [warm, setWarm] = useState(false);
   const frames = useRef(0);
@@ -93,6 +96,8 @@ export function City({
       glow: applyCutout(new MeshBasicMaterial({ vertexColors: true, toneMapped: false })),
       decorSolid: litMaterial({ vertexColors: true }),
       decorGlow: new MeshBasicMaterial({ vertexColors: true, toneMapped: false }),
+      // bâtiments importés : percés par la découpe comme les façades générées
+      propCut: applyCutout(litMaterial({ vertexColors: true })),
     }),
     [],
   );
@@ -142,6 +147,13 @@ export function City({
         data={data}
         solidMaterial={materials.decorSolid}
         glowMaterial={materials.decorGlow}
+      />
+      <PropKits
+        kits={propKits}
+        loaded={warm ? loaded : null}
+        data={data}
+        material={materials.decorSolid}
+        cutMaterial={materials.propCut}
       />
       <Halos data={data} loaded={warm ? loaded : null} glowBoost={glowBoost} />
       <CutoutDriver />

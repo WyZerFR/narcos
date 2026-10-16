@@ -2,6 +2,7 @@ import type { Color } from 'three';
 import {
   areaRects,
   expandRect,
+  kitModelled,
   footprint,
   rectFromCenter,
   rectsOverlap,
@@ -735,6 +736,9 @@ function buildFiller(ctx: Ctx, block: Block) {
   const r = footprint(block);
   if (block.style !== 'filler' && block.style !== 'tower')
     return buildLandmark(ctx, facadeKit(ctx, rng), block, block.door ?? sideTowardRoad(ctx, r));
+  // façade importée (placements.json kits.towers / fillers) : seules les enseignes restent ici
+  if (kitModelled(ctx.data, block.style === 'tower' ? 'towers' : 'fillers'))
+    return towerTrim(ctx, block, sideTowardRoad(ctx, r));
   const wall = block.color ? shade(block.color, 1) : shade(palette.wall, 0.75 + rng() * 0.5);
   const dark = mix(palette.sky, palette.wall, 0.4).multiplyScalar(0.6);
   ctx.solid.block(

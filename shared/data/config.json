@@ -661,6 +661,7 @@
     },
     "maxTotalMB": 30,
     "vegetationCollisionRatio": 0.18,
+    "doorClearance": 2.5,
     "originTolerance": 0.02,
     "fallbackColor": "wall",
     "tintStrength": 0.7,
