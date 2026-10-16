@@ -14,7 +14,8 @@ describe('ambiance par zone', () => {
     expect(gameData.areas.get('cartel')!.palette.neon).toBe(gameData.config.neons.magenta);
     const legacy = themedData(gameData, 'legacy_night');
     for (const a of legacy.areas.values()) expect(a.palette).toEqual({});
-    expect(themedData(gameData, 'cartel').areas).toBe(gameData.areas);
+    const cartel = themedData(gameData, 'cartel');
+    for (const [id, a] of cartel.areas) expect(a.palette).toEqual(gameData.areas.get(id)!.palette);
   });
 
   it('cartel : palette jaune archivée sous cartel_yellow, non utilisée', () => {
@@ -66,5 +67,30 @@ describe('jardins cachés indiscernables', () => {
     const zones: Rect[] = layouts.flatMap((l) => l.gardens.flatMap((g) => [g.garden, g.passage]));
     for (const z of zones) for (const h of halos) expect(rectContainsPoint(z, h)).toBe(false);
     for (const loc of gameData.locations.values()) if (loc.hidden) expect(loc.icon).toBeUndefined();
+  });
+});
+
+describe('thème jour', () => {
+  const day = themedData(gameData, 'day');
+  const theme = gameData.config.theme.day;
+
+  it('palettes de jour : areas, impasses (herbe, trottoirs, chaussée, vitres), base', () => {
+    for (const [id, a] of day.areas)
+      expect(a.palette).toEqual(gameData.areas.get(id)!.themePalettes.day);
+    for (const q of day.quartiers.values()) expect(q.palette).toMatchObject(theme.quartierPalette);
+    expect(day.config.palette.sea).toBe(theme.palette.sea);
+    expect(day.config.palette.windows).toBe(theme.palette.windows);
+  });
+
+  it('cachette et leurres : la même lueur discrète pour les 3 jardins', () => {
+    for (const layout of day.quartierLayouts.values()) {
+      if (layout.gardens.length === 0) continue;
+      expect(layout.gardens.length).toBe(3);
+      const q = day.quartiers.get(layout.id)!;
+      const lights = layout.gardens.map(() => gardenLights(gardenGlowColor(q, day)));
+      for (const l of lights) expect(l).toEqual(lights[0]);
+      // rien dans la lueur ne dépend du jardin : ni trappe, ni coffre
+      expect(lights[0]!.every((l) => l.color === lights[0]![0]!.color)).toBe(true);
+    }
   });
 });

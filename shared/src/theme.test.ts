@@ -15,8 +15,8 @@ const quartiers = [...gameData.quartiers.values()];
 const locations = [...gameData.locations.values()];
 
 describe('thème visuel', () => {
-  it('le thème néo-cartel est celui par défaut et lit ses couleurs dans la config', () => {
-    expect(config.theme.default).toBe('cartel');
+  it('le thème néo-cartel lit ses couleurs dans la config', () => {
+    expect(THEME_IDS).toContain('cartel');
     const t = config.theme.cartel;
     expect(t.palette).toMatchObject({ sky: '#12131a', street: '#1e1e24', ground: '#2b2d42' });
     expect(t.ambient).toMatchObject({ color: '#7c7fff', intensity: 0.6 });
@@ -35,8 +35,8 @@ describe('thème visuel', () => {
 
   it('thème inconnu ou absent : celui par défaut', () => {
     expect(resolveThemeId(config, 'legacy_night')).toBe('legacy_night');
-    expect(resolveThemeId(config, 'rose_bonbon')).toBe('cartel');
-    expect(resolveThemeId(config, undefined)).toBe('cartel');
+    expect(resolveThemeId(config, 'rose_bonbon')).toBe('day');
+    expect(resolveThemeId(config, undefined)).toBe('day');
   });
 
   it('budget : au plus 2 lumières dynamiques (soleil + lumière du joueur)', () => {
@@ -81,7 +81,7 @@ describe('thème neutre', () => {
   const { theme } = gameData.config;
 
   it('éclairage doux : sans bloom, halos coupés, brouillard plus léger, thèmes existants gardés', () => {
-    expect(THEME_IDS).toEqual(['cartel', 'legacy_night', 'neutral']);
+    expect(THEME_IDS).toEqual(['day', 'cartel', 'legacy_night', 'neutral']);
     expect(theme.neutral.bloom).toBe(false);
     expect(theme.neutral.halos).toBe(false);
     expect(theme.neutral.playerLight).toBeNull();
@@ -90,5 +90,48 @@ describe('thème neutre', () => {
     // les thèmes existants gardent bloom et halos (défaut du schéma)
     expect(theme.cartel.bloom && theme.cartel.halos).toBe(true);
     expect(theme.legacy_night.bloom && theme.legacy_night.halos).toBe(true);
+  });
+});
+
+describe('thème jour (défaut)', () => {
+  const { theme } = gameData.config;
+  const day = theme.day;
+
+  it('charge et valide (zod), thème par défaut, autres thèmes gardés', () => {
+    expect(ConfigSchema.shape.theme.safeParse(theme).success).toBe(true);
+    expect(theme.default).toBe('day');
+    for (const id of ['cartel', 'neutral', 'legacy_night'] as const)
+      expect(theme[id]).toBeDefined();
+  });
+
+  it('jour doux : sans bloom ni halos, néons peints, brume lointaine, soleil chaud', () => {
+    expect(day.bloom).toBe(false);
+    expect(day.halos).toBe(false);
+    expect(day.glow).toBe('painted');
+    expect(day.fog.near).toBeGreaterThan(theme.cartel.fog.far);
+    expect(day.ambient?.intensity).toBeGreaterThan(theme.cartel.ambient!.intensity);
+    expect(day.interiorAmbient).not.toBeNull();
+    // soleil chaud : plus de rouge que de bleu
+    const sun = parseInt(day.sun.color.slice(1), 16);
+    expect(sun >> 16).toBeGreaterThan(sun & 0xff);
+    expect(day.palette.windows).toBeDefined();
+  });
+
+  it('budget de lumières respecté, aucune ombre temps réel en qualité basse et moyenne', () => {
+    for (const id of THEME_IDS)
+      expect(dynamicLightCount(theme[id])).toBeLessThanOrEqual(
+        gameData.config.render.maxDynamicLights,
+      );
+    for (const touch of [false, true]) {
+      expect(realShadowsEnabled(gameData.config, 'low', touch)).toBe(false);
+      expect(realShadowsEnabled(gameData.config, 'medium', touch)).toBe(false);
+    }
+  });
+
+  it('chaque area a sa palette de jour, sans néon (couleurs non émissives)', () => {
+    for (const a of gameData.areas.values()) {
+      expect(a.themePalettes.day, a.id).toBeDefined();
+      expect(a.themePalettes.day!.neon).toBeUndefined();
+    }
   });
 });

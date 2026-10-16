@@ -104,7 +104,8 @@ function furniture(ctx: Ctx, build: () => void): void {
 }
 
 function litColor(ctx: Ctx, rng: () => number): Color {
-  return shade(ctx.data.config.palette.neon, 0.65 + rng() * 0.45);
+  const { windows, neon } = ctx.data.config.palette;
+  return shade(windows ?? neon, 0.65 + rng() * 0.45);
 }
 
 /** Grille de fenêtres sur une façade ; `skipU` laisse la place à la porte au rez-de-chaussée. */

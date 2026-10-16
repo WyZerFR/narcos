@@ -65,9 +65,12 @@ export function emissiveUses(
     out.push({ where: `quartiers.json ${q.id} palette.neon`, color: q.palette.neon });
     out.push({ where: `quartiers.json ${q.id} palette.lamp`, color: q.palette.lamp });
   }
-  for (const a of areas)
+  for (const a of areas) {
     if (a.palette.neon)
       out.push({ where: `areas.json ${a.id} palette.neon`, color: a.palette.neon });
+    for (const [t, p] of Object.entries(a.themePalettes))
+      if (p?.neon) out.push({ where: `areas.json ${a.id} themePalettes.${t}.neon`, color: p.neon });
+  }
   return out;
 }
 

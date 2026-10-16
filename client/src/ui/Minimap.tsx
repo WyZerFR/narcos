@@ -11,6 +11,8 @@ import {
   obstaclesFrom,
   rectFromCenter,
   STREET,
+  themedPalette,
+  themeOf,
   visibleLocations,
   type Rect,
 } from '@narco/shared';
@@ -18,6 +20,7 @@ import type { GameRoom, PlayerView } from '../net/connection';
 import { connection } from '../net/connection';
 import { getCamera } from '../game/cameraState';
 import { localPlayer } from '../game/localPlayer';
+import { useSettings } from './settings';
 
 /**
  * Taille affichée (px CSS) et cadence de rafraîchissement : décor de HUD, pas besoin de 60 Hz.
@@ -39,8 +42,6 @@ const ROADS = [
   ...LAYOUTS.flatMap((l) => [...l.roads, ...l.parking, l.plaza]),
 ];
 const AREAS = [...gameData.areas.values()];
-/** Teinte du brouillard : le ciel de la palette (comme la mer), presque opaque. */
-const FOG = gameData.config.palette.sky;
 // obstacles sur la terre marchable seulement (la mer et l'aéroport fermé ne sont pas des murs)
 const SOLIDS = obstaclesFrom(gameData).filter((r) =>
   walkableAreas(AREAS).some((a) => areaRects(a).some((t) => rectsOverlap(t, r))),
@@ -63,6 +64,7 @@ function myDiscoveries(room: GameRoom): Set<string> {
  */
 export function Minimap({ room }: { room: GameRoom }) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const { theme } = useSettings();
 
   useEffect(() => {
     const canvas = ref.current;
@@ -71,7 +73,9 @@ export function Minimap({ room }: { room: GameRoom }) {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = WIDTH * dpr;
     canvas.height = HEIGHT * dpr;
-    const { palette } = config;
+    // teintes du thème (jour : ciel clair, asphalte gris) ; brouillard de guerre propre au thème
+    const palette = themedPalette(config, theme);
+    const FOG = themeOf(config, theme).fogOfWar ?? palette.sky;
 
     const rect = (r: Rect, color: string) => {
       ctx.fillStyle = color;
@@ -150,7 +154,7 @@ export function Minimap({ room }: { room: GameRoom }) {
     draw();
     const id = setInterval(draw, REFRESH_MS);
     return () => clearInterval(id);
-  }, [room]);
+  }, [room, theme]);
 
   return <canvas ref={ref} className="minimap" style={{ width: WIDTH, height: HEIGHT }} />;
 }

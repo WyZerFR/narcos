@@ -131,3 +131,26 @@ describe('écran de sélection : test de fumée', () => {
     expect(failures).toEqual([]);
   }, 120_000);
 });
+
+describe('lisibilité de jour des personnages', () => {
+  it('contour lumineux dans le matériau (aucun draw call), réglé par le thème', async () => {
+    const { characterMaterial, characterRim, setCharacterRim } = await import('./characterAssets');
+    const shader = patchedShader(characterMaterial());
+    expect(shader.fragmentShader).toContain('uniform vec4 uRim;');
+    expect(shader.fragmentShader).toMatch(/outgoingLight \+= uRim\.rgb/);
+    setCharacterRim(gameData.config.theme.day.rim);
+    expect(characterRim.value.w).toBe(gameData.config.theme.day.rim.strength);
+    expect(characterRim.value.w).toBeGreaterThan(0);
+    setCharacterRim(gameData.config.theme.cartel.rim);
+    expect(characterRim.value.w).toBe(0);
+  });
+
+  it('anneau du joueur : bande à sa couleur et liseré sombre dans une seule géométrie', async () => {
+    const { ringWithOutline } = await import('./CharacterBody');
+    const ring = ringWithOutline();
+    const shades = new Set(Array.from(ring.attributes.color!.array).map((v) => v.toFixed(3)));
+    expect(shades).toEqual(new Set(['1.000', cfg.ring.outlineShade.toFixed(3)]));
+    ring.computeBoundingSphere();
+    expect(ring.boundingSphere!.radius).toBeCloseTo(cfg.ring.outerRadius + cfg.ring.outline, 3);
+  });
+});
