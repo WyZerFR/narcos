@@ -647,7 +647,8 @@ input {
   padding: 3px 10px;
   border: 2px solid;
   border-radius: 8px;
-  background: rgba(10, 8, 20, 0.7);
+  /* fond plus opaque : lisible devant les halos de néons du thème néo-cartel */
+  background: rgba(10, 8, 20, 0.84);
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.5px;

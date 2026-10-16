@@ -51,6 +51,7 @@ docs/notes/      notes détaillées (voir plus bas)
 
 - `docs/notes/historique.md` — lire seulement si tu as besoin de l'état des étapes ou des décisions passées.
 - `docs/notes/rendu.md` — lire seulement si tu touches au rendu, à la DA, à la découpe ou aux perfs.
+- Thème néo-cartel, néons, ombres blob, brouillard de guerre de la mini-carte : `docs/notes/rendu.md` (thèmes, néons, ombres, découverte).
 - `docs/notes/labo.md` — lire seulement si tu touches au labo, à la production, à l'inventaire ou à la sauvegarde v2.
 - `docs/notes/economie.md` — lire seulement si tu touches à l'argent, aux magasins, à la survie ou à la vente de rue.
 - `docs/notes/reseau.md` — lire seulement si tu touches au réseau, aux zones, au mouvement ou à la sauvegarde.

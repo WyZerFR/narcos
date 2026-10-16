@@ -69,6 +69,11 @@ export function updateSettings(patch: Partial<Settings>): void {
   for (const fn of listeners) fn();
 }
 
+/** Réglages courants, hors React (overlay debug). */
+export function getSettings(): Settings {
+  return current;
+}
+
 export function useSettings(): Settings {
   return useSyncExternalStore(
     (fn) => {
