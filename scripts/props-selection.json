@@ -585,6 +585,74 @@
       "height": 1.12,
       "rotationY": 0,
       "tags": ["tour", "mobilier"]
+    },
+    {
+      "id": "banque_batiment",
+      "source": "banque_batiment.glb",
+      "sourceDir": "public/models/banque",
+      "folder": "shops",
+      "category": "batiments",
+      "family": "facade",
+      "footprint": { "w": 8, "d": 10 },
+      "height": 8.94,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["lieu", "banque"]
+    },
+    {
+      "id": "banque_distributeur",
+      "source": "banque_props.glb",
+      "node": "Banque_Distributeur",
+      "sourceDir": "public/models/banque",
+      "folder": "shops",
+      "category": "props",
+      "height": 1.9,
+      "rotationY": 0,
+      "tags": ["banque", "mobilier"]
+    },
+    {
+      "id": "banque_bac_arbuste",
+      "source": "banque_props.glb",
+      "node": "Banque_Bac_Arbuste",
+      "sourceDir": "public/models/banque",
+      "folder": "shops",
+      "category": "props",
+      "height": 1.85,
+      "rotationY": 0,
+      "tags": ["banque", "vegetal"]
+    },
+    {
+      "id": "banque_boite_lettres",
+      "source": "banque_props.glb",
+      "node": "Banque_Boite_Lettres",
+      "sourceDir": "public/models/banque",
+      "folder": "shops",
+      "category": "props",
+      "height": 1.38,
+      "rotationY": 0,
+      "tags": ["banque", "mobilier"]
+    },
+    {
+      "id": "banque_panneau",
+      "source": "banque_props.glb",
+      "node": "Banque_Panneau",
+      "sourceDir": "public/models/banque",
+      "folder": "shops",
+      "category": "props",
+      "height": 2.15,
+      "rotationY": 0,
+      "tags": ["banque", "mobilier"]
+    },
+    {
+      "id": "banque_haie",
+      "source": "banque_props.glb",
+      "node": "Banque_Haie",
+      "sourceDir": "public/models/banque",
+      "folder": "shops",
+      "category": "props",
+      "height": 0.7,
+      "rotationY": 0,
+      "tags": ["banque", "vegetal"]
     }
   ]
 }
