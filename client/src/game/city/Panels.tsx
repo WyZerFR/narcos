@@ -12,13 +12,7 @@ import {
   Vector3,
   type InstancedMesh,
 } from 'three';
-import {
-  footprint,
-  hasFacade,
-  visibleLocations,
-  type GameData,
-  type Rect,
-} from '@narco/shared';
+import { footprint, hasFacade, visibleLocations, type GameData, type Rect } from '@narco/shared';
 import { faceOf } from './batch';
 import { sideTowardRoad } from './buildCity';
 import { blockModelHeights } from './propPlacements';

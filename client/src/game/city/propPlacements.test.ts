@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { footprint, gameData, allPlacements, type Rect } from '@narco/shared';
+import {
+  footprint,
+  gameData,
+  allPlacements,
+  streetlightPlacements,
+  type Rect,
+} from '@narco/shared';
 import { BoxGeometry } from 'three';
 import { blockModelHeights, mergedFacadeIds, mergedPropIds, propKitItems } from './propPlacements';
 import { propSize } from './propAssets';
@@ -125,12 +131,22 @@ describe("façade importée d'un lieu et props posés fusionnés", () => {
       expect(merged.has(id), id).toBe(true);
   });
 
-  it('façades importées (épicerie, banque, commissariat) fusionnées entre elles, pas avec les props', () => {
+  it('façades importées et bâtiments posés une fois fusionnés entre eux, pas avec les props', () => {
     const facades = mergedFacadeIds(gameData);
     expect([...facades].sort()).toEqual([
+      'armurerie_batiment',
       'banque_batiment',
+      'barbier_batiment',
+      'concession_batiment',
       'epicerie_batiment',
+      'hangar_cargo',
+      'hangar_regional',
+      'labo_batiment',
+      'laverie_batiment',
       'police_batiment',
+      'quartier_coin',
+      'quartier_normal',
+      'superette_batiment',
     ]);
     const merged = mergedPropIds(gameData);
     for (const id of facades) expect(merged.has(id), id).toBe(false);
@@ -169,5 +185,73 @@ describe('tours modélisées (bulding)', () => {
     const merged = mergedPropIds(gameData);
     for (const id of ['tour_bac_arbuste', 'tour_borne_incendie', 'tour_boites_lettres'])
       expect(merged.has(id), id).toBe(true);
+  });
+});
+
+describe('assemblage : voitures, avions, hangars', () => {
+  it('voitures civiles teintées par instance, police à livrée, mêmes emplacements', () => {
+    for (const id of kits.cars.props) expect(gameData.props.get(id)?.paint, id).toBe(true);
+    for (const id of kits.policeCars.props)
+      expect(gameData.props.get(id)?.paint, id).toBeUndefined();
+    const police = instancesOf(kits.policeCars.props);
+    expect(police).toHaveLength(gameData.config.decor.cars.filter((c) => c.police).length);
+    expect(gameData.config.props.paints.length).toBeGreaterThan(3);
+  });
+
+  it('avions : un par emplacement, au plus à taille réelle, tenus dans la longueur générée', () => {
+    const planes = instancesOf(kits.planes.props);
+    expect(planes).toHaveLength(gameData.config.airport.planes.length);
+    expect(new Set(planes.map(([id]) => id)).size).toBe(kits.planes.props.length);
+    const { length } = gameData.config.airport.planeSize;
+    for (const [id, it] of planes) {
+      expect(it.sx, id).toBeLessThanOrEqual(1);
+      const s = propSize(gameData.props.get(id)!);
+      expect(s.d * (it.sx ?? 1), id).toBeLessThanOrEqual(length + 1e-6);
+    }
+  });
+
+  it('hangars : un modèle par hangar généré, dans son emprise, porte vers la piste', () => {
+    const hangars = instancesOf(kits.hangars.props);
+    expect(hangars.map(([id]) => id).sort()).toEqual(['hangar_cargo', 'hangar_regional']);
+    const rects = gameData.config.airport.hangars;
+    for (const [id, it] of hangars) {
+      const h = rects.find((r) => r.x === it.x && r.z === it.z)!;
+      within(worldRect(id, it), {
+        minX: h.x - h.w / 2,
+        maxX: h.x + h.w / 2,
+        minZ: h.z - h.d / 2,
+        maxZ: h.z + h.d / 2,
+      });
+      // grande porte (+Z du modèle) tournée vers la piste (même face que le hangar généré)
+      const rw = gameData.config.airport.runway;
+      const door = { x: Math.sin(it.rotY ?? 0), z: Math.cos(it.rotY ?? 0) };
+      expect(door.x * (rw.x - it.x) + door.z * (rw.z - it.z), id).toBeGreaterThan(0);
+    }
+    // fusionnés : aucun InstancedMesh propre
+    const facades = mergedFacadeIds(gameData);
+    const merged = mergedPropIds(gameData);
+    for (const id of kits.hangars.props) expect(facades.has(id), id).toBe(true);
+    for (const id of kits.planes.props) expect(merged.has(id), id).toBe(true);
+  });
+});
+
+describe('assemblage : lampadaires, poubelles, arbres', () => {
+  it('un modèle par décor généré remplacé, aux mêmes positions', () => {
+    const layouts = [...gameData.quartierLayouts.values()];
+    const street = streetlightPlacements(gameData);
+    expect(instancesOf(kits.lamps.props)).toHaveLength(street.length);
+    for (const [, it] of instancesOf(kits.lamps.props))
+      expect(street.some((l) => l.x === it.x && l.z === it.z)).toBe(true);
+    expect(instancesOf(kits.quartierLamps.props)).toHaveLength(
+      layouts.reduce((n, l) => n + l.lamps.length, 0),
+    );
+    const bins =
+      gameData.config.decor.bins.length +
+      layouts.reduce(
+        (n, l) => n + l.bins.length + l.gardens.reduce((m, g) => m + g.bins.length, 0),
+        0,
+      );
+    expect(instancesOf(kits.bins.props)).toHaveLength(bins);
+    for (const id of kits.trees.props) expect(id).toMatch(/^objet_arbre_/);
   });
 });

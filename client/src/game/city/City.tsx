@@ -20,7 +20,7 @@ import { Panels } from './Panels';
 import { GrassTufts } from './GrassTufts';
 import { PropKits } from './PropKits';
 import { mergedFacadeIds, mergedPropIds, propKitItems } from './propPlacements';
-import { applyEmission, outlineMaterial, shadedMaterial } from '../materials';
+import { applyEmission, applyPaint, outlineMaterial, shadedMaterial } from '../materials';
 import { applyCutout, cutoutUniforms, getCutout } from './cutout';
 
 const { world } = gameData.config;
@@ -138,14 +138,21 @@ export function City({
   // (bâtiments percés devant le joueur comme les façades générées)
   const propMaterials = useMemo(() => {
     const cache = new Map<string, Material>();
-    const make = (texture: Texture | null, cut: boolean, emit: boolean): Material => {
-      const key = `${texture?.uuid ?? 'sommets'}|${cut}|${emit}`;
+    const make = (
+      texture: Texture | null,
+      cut: boolean,
+      emit: boolean,
+      paint = false,
+    ): Material => {
+      const key = `${texture?.uuid ?? 'sommets'}|${cut}|${emit}|${paint}`;
       let m = cache.get(key);
       if (!m) {
         const base = shadedMaterial({ vertexColors: true, map: texture }, shading);
         m = cut ? applyCutout(base) : base;
         // néons des modèles (props.json emissive) dans le même draw call
         if (emit) m = applyEmission(m, gameData.propsEmissive.strength);
+        // carrosserie teinte par instance (props.json paint)
+        if (paint) m = applyPaint(m);
         cache.set(key, m);
       }
       return m;

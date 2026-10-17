@@ -1,20 +1,21 @@
 {
   "kits": {
     "trees": {
-      "props": ["tree_default", "tree_oak", "tree_fat"],
-      "fit": "height"
+      "props": ["objet_arbre_rond", "objet_arbre_boules", "objet_arbre_cypres"],
+      "fit": "height",
+      "heightScale": 1.5
     },
     "palms": {
       "props": ["palm_tall", "palm_bend"],
       "fit": "height"
     },
     "cars": {
-      "props": ["sedan", "suv_luxury", "taxi", "van"],
+      "props": ["voiture_berline", "voiture_citadine", "voiture_coupe", "voiture_pickup"],
       "fit": "length",
       "rotationY": 90
     },
     "policeCars": {
-      "props": ["police"],
+      "props": ["voiture_police"],
       "fit": "length",
       "rotationY": 90
     },
@@ -34,6 +35,33 @@
     "bushes": {
       "props": ["bush"],
       "fit": "height"
+    },
+    "planes": {
+      "props": ["avion_cargo", "avion_cessna", "avion_cessna_jaune", "avion_piper"],
+      "fit": "contain",
+      "rotationY": 90,
+      "merge": true
+    },
+    "hangars": {
+      "props": ["hangar_cargo", "hangar_regional"],
+      "fit": "box",
+      "alternate": true,
+      "merge": true
+    },
+    "lamps": {
+      "props": ["objet_lampadaire_crosse"],
+      "fit": "height",
+      "heightScale": 0.9
+    },
+    "quartierLamps": {
+      "props": ["objet_lampadaire_lanterne"],
+      "fit": "height",
+      "heightScale": 0.9
+    },
+    "bins": {
+      "props": ["objet_poubelle_noire"],
+      "fit": "height",
+      "heightScale": 1.1
     }
   },
   "areas": {
@@ -301,6 +329,61 @@
         "x": 211,
         "z": 9,
         "rotation": 0
+      },
+      {
+        "prop": "laverie_props",
+        "x": 58,
+        "z": -15,
+        "rotation": 0,
+        "scale": 0.95
+      },
+      {
+        "prop": "armurerie_props_a",
+        "x": 95,
+        "z": -16,
+        "rotation": 0
+      },
+      {
+        "prop": "armurerie_props_b",
+        "x": 95,
+        "z": -16,
+        "rotation": 0
+      },
+      {
+        "prop": "barbier_props_a",
+        "x": 120,
+        "z": -15,
+        "rotation": 0
+      },
+      {
+        "prop": "barbier_props_b",
+        "x": 120,
+        "z": -15,
+        "rotation": 0
+      },
+      {
+        "prop": "concession_props_a",
+        "x": 177,
+        "z": -22,
+        "rotation": 0
+      },
+      {
+        "prop": "concession_props_b",
+        "x": 177,
+        "z": -22,
+        "rotation": 0
+      },
+      {
+        "prop": "superette_batiment",
+        "x": 87.5,
+        "z": 13,
+        "rotation": 270
+      },
+      {
+        "prop": "superette_props",
+        "x": 87.5,
+        "z": 13,
+        "rotation": 270
       }
     ],
     "cartel": [
@@ -328,11 +411,72 @@
         "z": 106,
         "rotation": 0
       }
+    ],
+    "aeroport": [
+      {
+        "prop": "hangar_chariot_elevateur",
+        "x": -31.5,
+        "z": -66,
+        "rotation": 90
+      },
+      {
+        "prop": "hangar_palette_cartons",
+        "x": -31.5,
+        "z": -70,
+        "rotation": 0
+      },
+      {
+        "prop": "hangar_palette_cartons",
+        "x": -31.5,
+        "z": -72.5,
+        "rotation": 0
+      },
+      {
+        "prop": "hangar_baril",
+        "x": -32,
+        "z": -75,
+        "rotation": 0
+      },
+      {
+        "prop": "hangar_camion_piste",
+        "x": -14,
+        "z": -88,
+        "rotation": 90
+      },
+      {
+        "prop": "hangar_balise_piste",
+        "x": -62,
+        "z": -104,
+        "rotation": 0
+      },
+      {
+        "prop": "hangar_balise_piste",
+        "x": 62,
+        "z": -104,
+        "rotation": 0
+      },
+      {
+        "prop": "hangar_balise_piste",
+        "x": -62,
+        "z": -120,
+        "rotation": 0
+      },
+      {
+        "prop": "hangar_balise_piste",
+        "x": 62,
+        "z": -120,
+        "rotation": 0
+      }
     ]
   },
   "facades": {
     "epicerie": "epicerie_batiment",
     "banque": "banque_batiment",
-    "se_fond": "police_batiment"
+    "se_fond": "police_batiment",
+    "co_ouest": "laverie_batiment",
+    "co_milieu": "armurerie_batiment",
+    "co_est": "barbier_batiment",
+    "co_bras_milieu": "concession_batiment",
+    "local": "labo_batiment"
   }
 }

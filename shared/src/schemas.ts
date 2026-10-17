@@ -276,7 +276,7 @@ export const RenderSchema = z.object({
 });
 
 /** Catégories de décor 3D importé : dossier `client/public/models/<catégorie>/`. */
-export const PROP_CATEGORIES = ['batiments', 'vehicules', 'props', 'vegetation'] as const;
+export const PROP_CATEGORIES = ['batiments', 'vehicules', 'avions', 'props', 'vegetation'] as const;
 export const PropCategorySchema = z.enum(PROP_CATEGORIES);
 
 const PropBudgetSchema = z.object({
@@ -285,6 +285,9 @@ const PropBudgetSchema = z.object({
   maxTextureSize: z.number().int().positive(),
   maxFileMB: pos,
 });
+
+/** Identifiant de prop ou d'area (même forme que `slug`, déclaré plus bas). */
+const propId = z.string().regex(/^[a-z0-9_]+$/);
 
 /** Décor 3D importé (`props.json`) : budgets par catégorie, import, rendu. */
 export const PropsConfigSchema = z.object({
@@ -307,6 +310,23 @@ export const PropsConfigSchema = z.object({
   /** Objectif de draw calls par area (overlay debug) et plafond total. */
   drawCallTarget: z.number().int().positive(),
   drawCallBudget: z.number().int().positive(),
+  /**
+   * Objets de la ville semés sur les trottoirs (`scatterPlacements`) : retrait depuis le bord
+   * de la route (m), décalage du premier objet, et par area : pas entre deux objets (m, densité),
+   * props en alternance, prop d'angle après chaque croisement (feu tricolore).
+   */
+  scatter: z.object({
+    curbInset: z.number().min(0),
+    phase: z.number().min(0),
+    areas: z.record(
+      propId,
+      z.object({ spacing: pos, props: z.array(propId).min(1), corner: propId.optional() }),
+    ),
+  }),
+  /** Teintes de carrosserie (props `paint`), une par instance en alternance : palette × facteur. */
+  paints: z
+    .array(z.object({ color: PaletteSchema.keyof().exclude(['windows']), shade: pos }))
+    .min(1),
 });
 export type PropsConfig = z.infer<typeof PropsConfigSchema>;
 
@@ -1531,6 +1551,10 @@ export const PropSchema = z.object({
   footprint: z.object({ w: pos, d: pos }).optional(),
   /** Faces émissives (néons) portées par l'attribut `_EMISSIVE` du GLB. */
   emissive: z.boolean().optional(),
+  /** Carrosserie (attribut `_PAINT` du GLB, blanche) teinte par instance (`config.props.paints`). */
+  paint: z.boolean().optional(),
+  /** Origine du fichier gardée (boîte non recentrée) : groupe de props calé sur son bâtiment. */
+  keepOrigin: z.boolean().optional(),
   triangles: z.number().int().positive(),
   /** Luminance linéaire moyenne des faces (albédo : texture × couleur), mesurée à l'import. */
   luminance: z.number().min(0).max(1),
@@ -1566,12 +1590,20 @@ export const PropKitSchema = z.object({
   props: z.array(slug),
   /**
    * `height` : hauteur réelle du prop ; `length` : longueur (Z du prop) = longueur de la voiture
-   * générée ; `box` : emprise générée (largeur, profondeur) et hauteur × `heightScale`.
+   * générée ; `box` : emprise générée (largeur, profondeur) et hauteur × `heightScale` ;
+   * `contain` : taille réelle, réduite uniformément si elle dépasse l'emprise générée (avions).
    */
-  fit: z.enum(['height', 'length', 'box']),
+  fit: z.enum(['height', 'length', 'box', 'contain']),
   /** Rotation ajoutée (degrés) : avant du prop (+Z) vers l'axe du décor généré. */
   rotationY: z.number().min(-180).max(180).default(0),
   heightScale: pos.default(1),
+  /** `box` : props tirés en alternance stricte (hangars) plutôt que par proportions. */
+  alternate: z.boolean().default(false),
+  /**
+   * Instances peu nombreuses (avions, hangars) fusionnées avec les props posés (ou les façades
+   * pour un bâtiment à découpe) au lieu d'un InstancedMesh par prop : 1 draw call pour tous.
+   */
+  merge: z.boolean().default(false),
 });
 
 export const PROP_KIT_IDS = [
@@ -1583,6 +1615,11 @@ export const PROP_KIT_IDS = [
   'towers',
   'fillers',
   'bushes',
+  'planes',
+  'hangars',
+  'lamps',
+  'quartierLamps',
+  'bins',
 ] as const;
 export type PropKitId = (typeof PROP_KIT_IDS)[number];
 

@@ -9,8 +9,9 @@ describe('enseignes et icônes', () => {
 
   it('panneaux lisibles des lieux de la référence, hors des façades, à taille de façade', () => {
     const texts = spots.map((s) => s.text);
-    for (const t of ['AMMU-NATION', 'LAUNDROMAT', 'BARBERSHOP', 'COMMERCES'])
-      expect(texts, t).toContain(t);
+    for (const t of ['PARKING', 'COMMERCES']) expect(texts, t).toContain(t);
+    // armurerie, laverie, barbier : enseignes des modèles importés à la place du panneau peint
+    for (const t of ['AMMU-NATION', 'LAUNDROMAT', 'BARBERSHOP']) expect(texts, t).not.toContain(t);
     const solids = [...gameData.locations.values(), ...gameData.blocks].map(footprint);
     for (const s of spots) {
       expect(

@@ -1,9 +1,12 @@
 import {
+  airportLayout,
   allPlacements,
   facadePlacements,
   footprint,
   greeneryLayout,
+  hasFacade,
   lotCars,
+  streetlightPlacements,
   type GameData,
   type PropKitId,
   type Rect,
@@ -48,7 +51,9 @@ function spots(data: GameData, kit: PropKitId): Spot[] {
           .map((c) => ({ x: c.x, z: c.z, rotY: c.rotation === 90 ? Math.PI / 2 : 0 })),
         ...layouts.flatMap((l) => l.cars.map((c) => ({ x: c.x, z: c.z, rotY: c.rotY }))),
         ...data.blocks
-          .filter((b) => b.style === 'dealership' || b.style === 'parking')
+          .filter(
+            (b) => (b.style === 'dealership' || b.style === 'parking') && !hasFacade(data, b.id),
+          )
           .flatMap((b) => lotCars(b, decor.carSize, data.config.city.lotCars)),
       ];
     case 'policeCars':
@@ -65,6 +70,48 @@ function spots(data: GameData, kit: PropKitId): Spot[] {
           box: boxOf(h.rect, h.height),
         })),
       );
+    case 'lamps':
+      return streetlightPlacements(data);
+    case 'quartierLamps':
+      return layouts.flatMap((l) => l.lamps).map((p) => ({ x: p.x, z: p.z, rotY: 0 }));
+    case 'bins':
+      // mêmes poubelles que Decor (rue, impasses, jardins), même rotation
+      return [
+        ...decor.bins,
+        ...layouts.flatMap((l) => [...l.bins, ...l.gardens.flatMap((g) => g.bins)]),
+      ].map((p, i) => ({ x: p.x, z: p.z, rotY: i * 0.7 }));
+    case 'planes':
+    case 'hangars': {
+      const { airport } = data.config;
+      const area = data.areas.get(airport.areaId);
+      if (!area) return [];
+      const l = airportLayout(airport, area);
+      const { length, span, height } = airport.planeSize;
+      if (kit === 'planes')
+        // fuselage le long de X au cap 0 (comme l'avion généré), emprise = longueur × envergure
+        return l.planes.map((p) => {
+          const along = Math.abs(Math.cos(p.rotY)) >= Math.SQRT1_2;
+          return {
+            ...p,
+            box: along ? { w: length, h: height, d: span } : { w: span, h: height, d: length },
+          };
+        });
+      // grande porte côté piste (même règle que buildAirport)
+      const rw = { x: (l.runway.minX + l.runway.maxX) / 2, z: (l.runway.minZ + l.runway.maxZ) / 2 };
+      return l.hangars.map((h) => {
+        const x = (h.minX + h.maxX) / 2;
+        const z = (h.minZ + h.maxZ) / 2;
+        const rotY =
+          Math.abs(z - rw.z) > Math.abs(x - rw.x)
+            ? z > rw.z
+              ? Math.PI
+              : 0
+            : x > rw.x
+              ? -Math.PI / 2
+              : Math.PI / 2;
+        return { x, z, rotY, box: boxOf(h, h.height) };
+      });
+    }
     case 'towers':
     case 'fillers':
       return data.blocks
@@ -99,7 +146,8 @@ export function propKitItems(data: GameData): Map<string, PropItem[]> {
     spots(data, kit).forEach((s, i) => {
       const rotY = s.rotY + rad(cfg.rotationY);
       if (cfg.fit === 'box' && s.box) {
-        const fit = fitBox(data, cfg.props, s.box, rotY, cfg.heightScale, i);
+        const ids = cfg.alternate ? [cfg.props[i % cfg.props.length]!] : cfg.props;
+        const fit = fitBox(data, ids, s.box, rotY, cfg.heightScale, i);
         if (fit) push(fit.id, { x: s.x, z: s.z, rotY, sx: fit.sx, sy: fit.sy, sz: fit.sz });
         return;
       }
@@ -108,7 +156,11 @@ export function propKitItems(data: GameData): Map<string, PropItem[]> {
       if (!prop) return;
       const size = propSize(prop);
       if (cfg.fit === 'length') push(id, { x: s.x, z: s.z, rotY, sx: carSize.length / size.d });
-      else push(id, { x: s.x, z: s.z, rotY, sx: (s.scale ?? 1) * cfg.heightScale });
+      else if (cfg.fit === 'contain' && s.box) {
+        const t = turned(rotY);
+        const k = Math.min(1, (t ? s.box.d : s.box.w) / size.w, (t ? s.box.w : s.box.d) / size.d);
+        push(id, { x: s.x, z: s.z, rotY, sx: k });
+      } else push(id, { x: s.x, z: s.z, rotY, sx: (s.scale ?? 1) * cfg.heightScale });
     });
   }
   for (const p of allPlacements(data.placements))
@@ -119,35 +171,50 @@ export function propKitItems(data: GameData): Map<string, PropItem[]> {
 
 /**
  * Props fusionnés en un seul draw call (`MergedProps`) : posés seulement à la main
- * (`placements.areas`, ni kit ni façade), sans atlas, ni découpe, ni néon (même matériau).
+ * (`placements.areas`, ni kit ni façade), sans atlas ni découpe (même matériau, néons compris).
  */
 export function mergedPropIds(data: GameData): Set<string> {
-  const elsewhere = new Set([
-    ...Object.values(data.placements.kits).flatMap((k) => k.props),
-    ...Object.values(data.placements.facades),
-  ]);
+  const elsewhere = new Set([...instancedKitIds(data), ...Object.values(data.placements.facades)]);
   const out = new Set<string>();
-  for (const p of allPlacements(data.placements)) {
-    const prop = data.props.get(p.prop);
-    if (prop && !elsewhere.has(p.prop) && !prop.texture && !prop.cuttable && !prop.emissive)
-      out.add(p.prop);
+  for (const id of [...allPlacements(data.placements).map((p) => p.prop), ...mergedKitIds(data)]) {
+    const prop = data.props.get(id);
+    if (prop && !elsewhere.has(id) && !prop.texture && !prop.cuttable) out.add(id);
   }
   return out;
 }
 
+/** Props des kits dessinés en InstancedMesh (kits sans `merge`). */
+function instancedKitIds(data: GameData): Set<string> {
+  return new Set(Object.values(data.placements.kits).flatMap((k) => (k.merge ? [] : k.props)));
+}
+
+/** Props des kits `merge` (avions, hangars) : fusionnés avec les props posés ou les façades. */
+function mergedKitIds(data: GameData): string[] {
+  return Object.values(data.placements.kits).flatMap((k) => (k.merge ? k.props : []));
+}
+
 /**
  * Façades importées fusionnées en un seul draw call (découpe et néons gardés) : chacune n'est
- * posée qu'une fois, sans atlas, ni kit, ni pose à la main.
+ * posée qu'une fois (façade, ou bâtiment décoratif posé à la main comme la supérette), sans
+ * atlas ni kit.
  */
 export function mergedFacadeIds(data: GameData): Set<string> {
-  const elsewhere = new Set([
-    ...Object.values(data.placements.kits).flatMap((k) => k.props),
+  const kits = instancedKitIds(data);
+  const merged = new Set(mergedKitIds(data));
+  const uses = new Map<string, number>();
+  for (const id of [
+    ...Object.values(data.placements.facades),
     ...allPlacements(data.placements).map((p) => p.prop),
-  ]);
+  ])
+    uses.set(id, (uses.get(id) ?? 0) + 1);
   const out = new Set<string>();
-  for (const id of Object.values(data.placements.facades)) {
+  for (const [id, n] of uses) {
     const prop = data.props.get(id);
-    if (prop && !elsewhere.has(id) && !prop.texture && prop.cuttable) out.add(id);
+    if (prop && n === 1 && !kits.has(id) && !prop.texture && prop.cuttable) out.add(id);
+  }
+  for (const id of merged) {
+    const prop = data.props.get(id);
+    if (prop && !kits.has(id) && !prop.texture && prop.cuttable) out.add(id);
   }
   return out;
 }

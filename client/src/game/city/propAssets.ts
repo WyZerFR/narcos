@@ -95,8 +95,16 @@ export function normalizeProp(root: Object3D, prop: Prop): BufferGeometry {
     for (let i = 0; i < count; i++) emit[i] = emissive.getX(i);
     g.setAttribute('aEmit', new BufferAttribute(emit, 1));
   }
+  // carrosserie : attribut `_PAINT` du GLB (1 = teinte d'instance), seulement si le prop en porte
+  const paint = g.attributes._paint;
+  if (prop.paint && paint) {
+    const values = new Float32Array(count);
+    for (let i = 0; i < count; i++) values[i] = paint.getX(i);
+    g.setAttribute('aPaint', new BufferAttribute(values, 1));
+  }
   for (const name of Object.keys(g.attributes))
-    if (!['position', 'color', 'aCut', 'aEmit', 'uv'].includes(name)) g.deleteAttribute(name);
+    if (!['position', 'color', 'aCut', 'aEmit', 'aPaint', 'uv'].includes(name))
+      g.deleteAttribute(name);
   g.computeVertexNormals();
   g.computeBoundingBox();
   return g;

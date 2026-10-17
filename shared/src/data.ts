@@ -46,6 +46,7 @@ import {
   type GameConfig,
   type GameLocation,
   type ItemDef,
+  type PropPlacement,
   type Zone,
 } from './schemas';
 import {
@@ -62,6 +63,7 @@ import { interiorBounds, interiorObstacles, scaleInterior } from './zones';
 
 import { findSlits, obstaclesFrom } from './collision';
 import { checkFacades, checkPlacements } from './props';
+import { scatterPlacements } from './streetFurniture';
 import { dialogueVars, textVars } from './dialogue';
 import { areaAt, areaContainsRect, areaRects, areasEnvelope } from './areas';
 import { checkQuartier, generateQuartier, quartierFrame, type QuartierLayout } from './quartiers';
@@ -466,11 +468,7 @@ export function parseGameData(raw: RawGameData): GameData {
 
   const propsFile = parse('props.json', PropsFileSchema, raw.props ?? propsJson);
   const props = indexById('props.json', propsFile.props);
-  const placements = parse(
-    'placements.json',
-    PlacementsFileSchema,
-    raw.placements ?? placementsJson,
-  );
+  let placements = parse('placements.json', PlacementsFileSchema, raw.placements ?? placementsJson);
 
   const items = indexById('items.json', itemsFile.items);
   const zones = indexById('locations.json (zones)', locFile.zones);
@@ -586,6 +584,32 @@ export function parseGameData(raw: RawGameData): GameData {
         errors.push(`npcs.json : "${profile.id}" veut la variété inconnue "${id}"`);
   if (!npcs.profiles.some((p) => p.interestChance > 0))
     errors.push("npcs.json : aucun profil n'achète jamais rien");
+  // objets de la ville semés sur les trottoirs (config.props.scatter) : ajoutés aux props posés,
+  // donc mêmes collisions (obstaclesFrom), même rendu fusionné et mêmes vérifications
+  for (const [areaId, cfg] of Object.entries(config.props.scatter.areas)) {
+    if (!areas.has(areaId)) errors.push(`config.json : props.scatter, area inconnue "${areaId}"`);
+    for (const id of [...cfg.props, ...(cfg.corner ? [cfg.corner] : [])])
+      if (!props.has(id))
+        errors.push(`config.json : props.scatter.${areaId}, prop inconnu "${id}"`);
+  }
+  const scattered = scatterPlacements(
+    config,
+    props,
+    areas,
+    locations.values(),
+    quartierLayouts.values(),
+    [
+      ...obstaclesFrom({ config, locations, blocks, areas, quartierLayouts, props, placements }),
+      // points de passage des PNJ : jamais sous un objet
+      ...npcs.waypoints.map((wp) =>
+        rectFromCenter(wp, { w: 2 * config.npc.radius, d: 2 * config.npc.radius }),
+      ),
+    ],
+  );
+  const withScatter: Record<string, PropPlacement[]> = { ...placements.areas };
+  for (const { areaId, ...p } of scattered)
+    withScatter[areaId] = [...(withScatter[areaId] ?? []), p];
+  placements = { ...placements, areas: withScatter };
   const streetObstacles = obstaclesFrom({
     config,
     locations,

@@ -81,8 +81,10 @@ describe('décor 3D importé : chargement et rendu', () => {
       const b = new Box3().setFromBufferAttribute(g.attributes.position as never);
       expect(b.min.y, p.id).toBeCloseTo(0, 3);
       expect(b.max.y, p.id).toBeCloseTo(p.height, 2);
-      expect(b.min.x + b.max.x, p.id).toBeCloseTo(0, 2);
-      expect(b.min.z + b.max.z, p.id).toBeCloseTo(0, 2);
+      if (!p.keepOrigin) {
+        expect(b.min.x + b.max.x, p.id).toBeCloseTo(0, 2);
+        expect(b.min.z + b.max.z, p.id).toBeCloseTo(0, 2);
+      }
       expect(g.attributes.color!.itemSize).toBe(3);
       expect(g.attributes.aCut!.getX(0)).toBe(p.cuttable ? 1 : 0);
       expect(g.index).toBeNull();
@@ -97,7 +99,8 @@ describe('décor 3D importé : chargement et rendu', () => {
       const emit = normalizeProp(gltf.scene, p).attributes.aEmit!;
       const on = Array.from(emit.array as Float32Array).filter((v) => v === 1).length;
       expect(on, p.id).toBeGreaterThan(0);
-      expect(on, p.id).toBeLessThan(emit.count / 4);
+      // pas tout le modèle (lampes très découpées d'un hangar : plus de la moitié des sommets)
+      expect(on, p.id).toBeLessThan(emit.count);
       const saved = gameData.propsEmissive;
       gameData.propsEmissive = { ...saved, enabled: false };
       try {

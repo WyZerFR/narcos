@@ -9,6 +9,10 @@
       "brightness": 1.45,
       "saturation": 1.15
     },
+    "avions": {
+      "brightness": 1.2,
+      "saturation": 1.05
+    },
     "props": {
       "brightness": 1.15,
       "saturation": 1.1
@@ -1712,6 +1716,1438 @@
       "triangles": 24,
       "luminance": 0.387,
       "tags": ["police", "vegetal"]
+    },
+    {
+      "id": "armurerie_batiment",
+      "category": "batiments",
+      "model": "models/shops/armurerie_batiment.glb",
+      "source": "armurie_batiment.glb",
+      "height": 9.05,
+      "rotationY": 0,
+      "offset": [0, 0, -0.215],
+      "bounds": {
+        "min": [-5.25, 0, -4.25],
+        "max": [5.25, 9.05, 4.68]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 10.5,
+        "d": 8.93
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "folder": "shops",
+      "family": "facade",
+      "footprint": {
+        "w": 14,
+        "d": 14
+      },
+      "emissive": true,
+      "triangles": 1904,
+      "luminance": 0.398,
+      "tags": ["lieu", "armurerie"]
+    },
+    {
+      "id": "concession_batiment",
+      "category": "batiments",
+      "model": "models/shops/concession_batiment.glb",
+      "source": "concession_batiment.glb",
+      "height": 13.89,
+      "rotationY": 0,
+      "offset": [0, 0, -1.275],
+      "bounds": {
+        "min": [-7.8, 0, -5.4],
+        "max": [7.8, 13.89, 7.95]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 15.6,
+        "d": 13.35
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "folder": "shops",
+      "family": "facade",
+      "footprint": {
+        "w": 20,
+        "d": 20
+      },
+      "emissive": true,
+      "triangles": 2852,
+      "luminance": 0.468,
+      "tags": ["lieu", "concession"]
+    },
+    {
+      "id": "laverie_batiment",
+      "category": "batiments",
+      "model": "models/shops/laverie_batiment.glb",
+      "source": "laverie_batiment.glb",
+      "height": 5.415,
+      "rotationY": 0,
+      "offset": [0, 0, -0.078],
+      "bounds": {
+        "min": [-5.25, 0, -4.25],
+        "max": [5.25, 5.7, 4.405]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 9.975,
+        "d": 8.222
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "folder": "shops",
+      "family": "facade",
+      "footprint": {
+        "w": 10,
+        "d": 12
+      },
+      "emissive": true,
+      "triangles": 1032,
+      "luminance": 0.486,
+      "tags": ["lieu", "laverie"]
+    },
+    {
+      "id": "barbier_batiment",
+      "category": "batiments",
+      "model": "models/shops/barbier_batiment.glb",
+      "source": "barbier_batiment.glb",
+      "height": 7.65,
+      "rotationY": 0,
+      "offset": [0, 0, 0.325],
+      "bounds": {
+        "min": [-3.2, 0, -4.4],
+        "max": [3.2, 7.65, 3.75]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 6.4,
+        "d": 8.15
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "folder": "shops",
+      "family": "facade",
+      "footprint": {
+        "w": 16,
+        "d": 12
+      },
+      "emissive": true,
+      "triangles": 1142,
+      "luminance": 0.212,
+      "tags": ["lieu", "barbier"]
+    },
+    {
+      "id": "labo_batiment",
+      "category": "batiments",
+      "model": "models/shops/labo_batiment.glb",
+      "source": "labo_batiment.glb",
+      "height": 9,
+      "rotationY": 0,
+      "offset": [-0.145, 0, -0.07],
+      "bounds": {
+        "min": [-3.709, 0, -3.72],
+        "max": [4, 9, 3.86]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 7.709,
+        "d": 7.58
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "folder": "shops",
+      "family": "facade",
+      "footprint": {
+        "w": 15,
+        "d": 10
+      },
+      "emissive": true,
+      "triangles": 2933,
+      "luminance": 0.356,
+      "tags": ["lieu", "labo"]
+    },
+    {
+      "id": "superette_batiment",
+      "category": "batiments",
+      "model": "models/shops/superette_batiment.glb",
+      "source": "superette_batiment.glb",
+      "height": 5.05,
+      "rotationY": 0,
+      "offset": [-0.088, 0, 0.088],
+      "bounds": {
+        "min": [-6.125, 0, -5.3],
+        "max": [6.3, 5.05, 5.125]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 12.425,
+        "d": 10.425
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "folder": "shops",
+      "emissive": true,
+      "triangles": 970,
+      "luminance": 0.49,
+      "tags": ["decor", "superette"]
+    },
+    {
+      "id": "armurerie_props_a",
+      "category": "props",
+      "model": "models/shops/armurerie_props_a.glb",
+      "source": "armurie_props.glb",
+      "height": 2.1,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-5.914, 0, -3.93],
+        "max": [5.914, 2.1, 5.695]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "shops",
+      "keepOrigin": true,
+      "triangles": 740,
+      "luminance": 0.238,
+      "tags": ["groupe", "armurerie"]
+    },
+    {
+      "id": "armurerie_props_b",
+      "category": "props",
+      "model": "models/shops/armurerie_props_b.glb",
+      "source": "armurie_props.glb",
+      "height": 1.44,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-4.406, 0, -5.154],
+        "max": [4.604, 1.44, 5.249]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "shops",
+      "emissive": true,
+      "keepOrigin": true,
+      "triangles": 612,
+      "luminance": 0.291,
+      "tags": ["groupe", "armurerie"]
+    },
+    {
+      "id": "concession_props_a",
+      "category": "props",
+      "model": "models/shops/concession_props_a.glb",
+      "source": "concession_props.glb",
+      "height": 0.93,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-8.72, 0, 0.88],
+        "max": [8.72, 0.93, 8.815]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "shops",
+      "emissive": true,
+      "keepOrigin": true,
+      "triangles": 840,
+      "luminance": 0.371,
+      "tags": ["groupe", "concession"]
+    },
+    {
+      "id": "concession_props_b",
+      "category": "props",
+      "model": "models/shops/concession_props_b.glb",
+      "source": "concession_props.glb",
+      "height": 7.13,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-8.8, 0, -3.8],
+        "max": [10.25, 7.13, 8.82]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "shops",
+      "emissive": true,
+      "keepOrigin": true,
+      "triangles": 608,
+      "luminance": 0.331,
+      "tags": ["groupe", "concession"]
+    },
+    {
+      "id": "barbier_props_a",
+      "category": "props",
+      "model": "models/shops/barbier_props_a.glb",
+      "source": "barbier_props.glb",
+      "height": 2.14,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-2.833, 0, 3.475],
+        "max": [-0.525, 2.14, 5.275]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "shops",
+      "keepOrigin": true,
+      "triangles": 728,
+      "luminance": 0.459,
+      "tags": ["groupe", "barbier"]
+    },
+    {
+      "id": "barbier_props_b",
+      "category": "props",
+      "model": "models/shops/barbier_props_b.glb",
+      "source": "barbier_props.glb",
+      "height": 4.03,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-4.27, 0, -5.2],
+        "max": [4.05, 4.03, 4.67]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "shops",
+      "emissive": true,
+      "keepOrigin": true,
+      "triangles": 416,
+      "luminance": 0.153,
+      "tags": ["groupe", "barbier"]
+    },
+    {
+      "id": "laverie_props",
+      "category": "props",
+      "model": "models/shops/laverie_props.glb",
+      "source": "laverie_props.glb",
+      "height": 0.97,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-4.61, 0, 4.429],
+        "max": [4.61, 0.97, 6.42]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "shops",
+      "emissive": true,
+      "keepOrigin": true,
+      "triangles": 536,
+      "luminance": 0.596,
+      "tags": ["groupe", "laverie"]
+    },
+    {
+      "id": "superette_props",
+      "category": "props",
+      "model": "models/shops/superette_props.glb",
+      "source": "superette_props.glb",
+      "height": 4.23,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-8.35, 0, -6.6],
+        "max": [7.6, 4.23, 1.76]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "shops",
+      "emissive": true,
+      "keepOrigin": true,
+      "triangles": 400,
+      "luminance": 0.148,
+      "tags": ["groupe", "superette"]
+    },
+    {
+      "id": "hangar_cargo",
+      "category": "batiments",
+      "model": "models/aeroport/hangar_cargo.glb",
+      "source": "hangar_batiment.glb",
+      "height": 15.86,
+      "rotationY": 0,
+      "offset": [-1.075, 0.31, -0.25],
+      "bounds": {
+        "min": [-15.45, -0.31, -10.55],
+        "max": [17.6, 15.55, 11.05]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 33.049,
+        "d": 21.599
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "folder": "aeroport",
+      "emissive": true,
+      "triangles": 2392,
+      "luminance": 0.438,
+      "tags": ["aeroport", "hangar"]
+    },
+    {
+      "id": "hangar_regional",
+      "category": "batiments",
+      "model": "models/aeroport/hangar_regional.glb",
+      "source": "hangar_regional_batiment.glb",
+      "height": 13.29,
+      "rotationY": 0,
+      "offset": [0, 0, -0.2],
+      "bounds": {
+        "min": [-12.644, 0, -9.5],
+        "max": [12.644, 13.29, 9.9]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 25.288,
+        "d": 19.4
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "folder": "aeroport",
+      "emissive": true,
+      "triangles": 1244,
+      "luminance": 0.613,
+      "tags": ["aeroport", "hangar"]
+    },
+    {
+      "id": "hangar_chariot_elevateur",
+      "category": "props",
+      "model": "models/aeroport/hangar_chariot_elevateur.glb",
+      "source": "hangar_props.glb",
+      "height": 2.45,
+      "rotationY": 0,
+      "offset": [18.575, 0, -17],
+      "bounds": {
+        "min": [-20.25, 0, 16.39],
+        "max": [-16.9, 2.45, 17.61]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "aeroport",
+      "emissive": true,
+      "triangles": 340,
+      "luminance": 0.227,
+      "tags": ["aeroport"]
+    },
+    {
+      "id": "hangar_palette_cartons",
+      "category": "props",
+      "model": "models/aeroport/hangar_palette_cartons.glb",
+      "source": "hangar_props.glb",
+      "height": 1.036,
+      "rotationY": 0,
+      "offset": [15, 0, -12],
+      "bounds": {
+        "min": [-15.6, 0, 11.6],
+        "max": [-14.4, 1.036, 12.4]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "aeroport",
+      "triangles": 120,
+      "luminance": 0.375,
+      "tags": ["aeroport"]
+    },
+    {
+      "id": "hangar_baril",
+      "category": "props",
+      "model": "models/aeroport/hangar_baril.glb",
+      "source": "hangar_props.glb",
+      "height": 0.915,
+      "rotationY": 0,
+      "offset": [17, 0, -14],
+      "bounds": {
+        "min": [-17.3, 0, 13.7],
+        "max": [-16.7, 0.915, 14.3]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "aeroport",
+      "triangles": 152,
+      "luminance": 0.299,
+      "tags": ["aeroport"]
+    },
+    {
+      "id": "hangar_balise_piste",
+      "category": "props",
+      "model": "models/aeroport/hangar_balise_piste.glb",
+      "source": "hangar_props.glb",
+      "height": 0.575,
+      "rotationY": 0,
+      "offset": [13, 0, -18],
+      "bounds": {
+        "min": [-13.15, 0, 17.85],
+        "max": [-12.85, 0.575, 18.15]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "aeroport",
+      "emissive": true,
+      "triangles": 76,
+      "luminance": 0.456,
+      "tags": ["aeroport"]
+    },
+    {
+      "id": "hangar_camion_piste",
+      "category": "props",
+      "model": "models/aeroport/hangar_camion_piste.glb",
+      "source": "hangar_props.glb",
+      "height": 2.95,
+      "rotationY": 0,
+      "offset": [5.975, 0, -22],
+      "bounds": {
+        "min": [-9.5, 0, 20.82],
+        "max": [-2.45, 2.95, 23.18]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "aeroport",
+      "emissive": true,
+      "triangles": 396,
+      "luminance": 0.243,
+      "tags": ["aeroport"]
+    },
+    {
+      "id": "avion_cargo",
+      "category": "avions",
+      "model": "models/avions/avion_cargo.glb",
+      "source": "avion_cargo.glb",
+      "height": 10.3,
+      "rotationY": 0,
+      "offset": [0, 0, 0.05],
+      "bounds": {
+        "min": [-17.5, 0, -13],
+        "max": [17.5, 10.3, 12.9]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 35,
+        "d": 25.9
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "avions",
+      "triangles": 1028,
+      "luminance": 0.114,
+      "tags": ["aeroport", "avion"]
+    },
+    {
+      "id": "avion_cessna",
+      "category": "avions",
+      "model": "models/avions/avion_cessna.glb",
+      "source": "avion_cessna.glb",
+      "height": 2.75,
+      "rotationY": 0,
+      "offset": [0, 0, -0.03],
+      "bounds": {
+        "min": [-5.5, 0, -4.15],
+        "max": [5.5, 2.75, 4.21]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 11,
+        "d": 8.36
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "avions",
+      "triangles": 422,
+      "luminance": 0.327,
+      "tags": ["aeroport", "avion"]
+    },
+    {
+      "id": "avion_cessna_jaune",
+      "category": "avions",
+      "model": "models/avions/avion_cessna_jaune.glb",
+      "source": "avion_cessna_jaune.glb",
+      "height": 2.75,
+      "rotationY": 0,
+      "offset": [0, 0, -0.03],
+      "bounds": {
+        "min": [-5.5, 0, -4.15],
+        "max": [5.5, 2.75, 4.21]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 11,
+        "d": 8.36
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "avions",
+      "triangles": 422,
+      "luminance": 0.488,
+      "tags": ["aeroport", "avion"]
+    },
+    {
+      "id": "avion_piper",
+      "category": "avions",
+      "model": "models/avions/avion_piper.glb",
+      "source": "avion_piper.glb",
+      "height": 2.4,
+      "rotationY": 0,
+      "offset": [0, 0, 0.02],
+      "bounds": {
+        "min": [-5.35, 0, -3.8],
+        "max": [5.35, 2.4, 3.76]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 10.7,
+        "d": 7.56
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "avions",
+      "triangles": 398,
+      "luminance": 0.467,
+      "tags": ["aeroport", "avion"]
+    },
+    {
+      "id": "voiture_berline",
+      "category": "vehicules",
+      "model": "models/voitures/voiture_berline.glb",
+      "source": "voiture_berline.glb",
+      "height": 1.42,
+      "rotationY": 0,
+      "offset": [0, 0, -0.02],
+      "bounds": {
+        "min": [-0.925, 0, -2.32],
+        "max": [0.925, 1.42, 2.36]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 1.85,
+        "d": 4.68
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "voitures",
+      "emissive": true,
+      "paint": true,
+      "triangles": 428,
+      "luminance": 0.227,
+      "tags": ["voiture"]
+    },
+    {
+      "id": "voiture_camion",
+      "category": "vehicules",
+      "model": "models/voitures/voiture_camion.glb",
+      "source": "voiture_camion.glb",
+      "height": 3.26,
+      "rotationY": 0,
+      "offset": [0, 0, -0.03],
+      "bounds": {
+        "min": [-1.15, 0, -3.55],
+        "max": [1.15, 3.26, 3.61]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 2.3,
+        "d": 7.16
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "voitures",
+      "emissive": true,
+      "paint": true,
+      "triangles": 416,
+      "luminance": 0.233,
+      "tags": ["voiture"]
+    },
+    {
+      "id": "voiture_camionnette",
+      "category": "vehicules",
+      "model": "models/voitures/voiture_camionnette.glb",
+      "source": "voiture_camionnette.glb",
+      "height": 2.2,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-1.025, 0, -2.75],
+        "max": [1.025, 2.2, 2.75]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 2.05,
+        "d": 5.5
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "voitures",
+      "emissive": true,
+      "paint": true,
+      "triangles": 424,
+      "luminance": 0.344,
+      "tags": ["voiture"]
+    },
+    {
+      "id": "voiture_citadine",
+      "category": "vehicules",
+      "model": "models/voitures/voiture_citadine.glb",
+      "source": "voiture_citadine.glb",
+      "height": 1.55,
+      "rotationY": 0,
+      "offset": [0, 0, -0.02],
+      "bounds": {
+        "min": [-0.85, 0, -1.82],
+        "max": [0.85, 1.55, 1.86]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 1.7,
+        "d": 3.68
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "voitures",
+      "emissive": true,
+      "paint": true,
+      "triangles": 428,
+      "luminance": 0.344,
+      "tags": ["voiture"]
+    },
+    {
+      "id": "voiture_coupe",
+      "category": "vehicules",
+      "model": "models/voitures/voiture_coupe.glb",
+      "source": "voiture_coupe.glb",
+      "height": 1.38,
+      "rotationY": 0,
+      "offset": [0, 0, -0.02],
+      "bounds": {
+        "min": [-1, 0, -2.445],
+        "max": [1, 1.38, 2.485]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 2,
+        "d": 4.93
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "voitures",
+      "emissive": true,
+      "paint": true,
+      "triangles": 412,
+      "luminance": 0.326,
+      "tags": ["voiture"]
+    },
+    {
+      "id": "voiture_fourgon",
+      "category": "vehicules",
+      "model": "models/voitures/voiture_fourgon.glb",
+      "source": "voiture_fourgon.glb",
+      "height": 3,
+      "rotationY": 0,
+      "offset": [0, 0, -0.045],
+      "bounds": {
+        "min": [-1.23, 0, -3.34],
+        "max": [1.23, 3, 3.43]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 2.46,
+        "d": 6.77
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "voitures",
+      "emissive": true,
+      "paint": true,
+      "triangles": 524,
+      "luminance": 0.256,
+      "tags": ["voiture"]
+    },
+    {
+      "id": "voiture_muscle",
+      "category": "vehicules",
+      "model": "models/voitures/voiture_muscle.glb",
+      "source": "voiture_muscle.glb",
+      "height": 1.33,
+      "rotationY": 0,
+      "offset": [0, 0, -0.02],
+      "bounds": {
+        "min": [-0.985, 0, -2.47],
+        "max": [0.985, 1.33, 2.51]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 1.97,
+        "d": 4.98
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "voitures",
+      "emissive": true,
+      "paint": true,
+      "triangles": 440,
+      "luminance": 0.231,
+      "tags": ["voiture"]
+    },
+    {
+      "id": "voiture_pickup",
+      "category": "vehicules",
+      "model": "models/voitures/voiture_pickup.glb",
+      "source": "voiture_pickup.glb",
+      "height": 1.87,
+      "rotationY": 0,
+      "offset": [0, 0, -0.02],
+      "bounds": {
+        "min": [-1.025, 0, -2.82],
+        "max": [1.025, 1.87, 2.86]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 2.05,
+        "d": 5.68
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "voitures",
+      "emissive": true,
+      "paint": true,
+      "triangles": 440,
+      "luminance": 0.235,
+      "tags": ["voiture"]
+    },
+    {
+      "id": "voiture_police",
+      "category": "vehicules",
+      "model": "models/voitures/voiture_police.glb",
+      "source": "voiture_police.glb",
+      "height": 1.63,
+      "rotationY": 0,
+      "offset": [0, 0, -0.068],
+      "bounds": {
+        "min": [-0.975, 0, -2.57],
+        "max": [0.975, 1.63, 2.705]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 1.95,
+        "d": 5.275
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "voitures",
+      "emissive": true,
+      "triangles": 524,
+      "luminance": 0.207,
+      "tags": ["voiture", "police"]
+    },
+    {
+      "id": "voiture_police_suv",
+      "category": "vehicules",
+      "model": "models/voitures/voiture_police_suv.glb",
+      "source": "voiture_police_suv.glb",
+      "height": 1.9,
+      "rotationY": 0,
+      "offset": [0, 0, -0.067],
+      "bounds": {
+        "min": [-1, 0, -2.545],
+        "max": [1, 1.9, 2.68]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 2,
+        "d": 5.225
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "voitures",
+      "emissive": true,
+      "triangles": 524,
+      "luminance": 0.181,
+      "tags": ["voiture", "police"]
+    },
+    {
+      "id": "objet_arbre_boules",
+      "category": "vegetation",
+      "model": "models/objets/objet_arbre_boules.glb",
+      "source": "objet_arbre_boules.glb",
+      "height": 2.19,
+      "rotationY": 0,
+      "offset": [-0.01, 0, 0],
+      "bounds": {
+        "min": [-0.63, 0, -0.35],
+        "max": [0.65, 2.19, 0.35]
+      },
+      "collision": {
+        "shape": "circle",
+        "r": 0.063
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 136,
+      "luminance": 0.3,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_arbre_cypres",
+      "category": "vegetation",
+      "model": "models/objets/objet_arbre_cypres.glb",
+      "source": "objet_arbre_cypres.glb",
+      "height": 3,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.322, 0, -0.306],
+        "max": [0.322, 3, 0.306]
+      },
+      "collision": {
+        "shape": "circle",
+        "r": 0.055
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 64,
+      "luminance": 0.311,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_arbre_rond",
+      "category": "vegetation",
+      "model": "models/objets/objet_arbre_rond.glb",
+      "source": "objet_arbre_rond.glb",
+      "height": 2.8,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.447, 0, -0.425],
+        "max": [0.447, 2.8, 0.425]
+      },
+      "collision": {
+        "shape": "circle",
+        "r": 0.077
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 96,
+      "luminance": 0.329,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_arceau_velo",
+      "category": "props",
+      "model": "models/objets/objet_arceau_velo.glb",
+      "source": "objet_arceau_velo.glb",
+      "height": 0.875,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.424, 0, -0.325],
+        "max": [0.424, 0.875, 0.325]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 300,
+      "luminance": 0.619,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_armoire_grande",
+      "category": "props",
+      "model": "models/objets/objet_armoire_grande.glb",
+      "source": "objet_armoire_grande.glb",
+      "height": 1.6,
+      "rotationY": 0,
+      "offset": [-0.017, 0, -0.01],
+      "bounds": {
+        "min": [-0.475, 0, -0.3],
+        "max": [0.51, 1.6, 0.32]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 0.985,
+        "d": 0.62
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 108,
+      "luminance": 0.146,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_armoire_petite",
+      "category": "props",
+      "model": "models/objets/objet_armoire_petite.glb",
+      "source": "objet_armoire_petite.glb",
+      "height": 1.2,
+      "rotationY": 0,
+      "offset": [0, 0, -0.005],
+      "bounds": {
+        "min": [-0.37, 0, -0.25],
+        "max": [0.37, 1.2, 0.26]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 0.74,
+        "d": 0.51
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 72,
+      "luminance": 0.199,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_banc",
+      "category": "props",
+      "model": "models/objets/objet_banc.glb",
+      "source": "objet_banc.glb",
+      "height": 0.897,
+      "rotationY": 0,
+      "offset": [0, 0, 0.004],
+      "bounds": {
+        "min": [-0.8, 0, -0.319],
+        "max": [0.8, 0.897, 0.31]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 1.6,
+        "d": 0.629
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 216,
+      "luminance": 0.107,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_barriere",
+      "category": "props",
+      "model": "models/objets/objet_barriere.glb",
+      "source": "objet_barriere.glb",
+      "height": 1.122,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-1.022, 0, -0.3],
+        "max": [1.022, 1.122, 0.3]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 260,
+      "luminance": 0.619,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_boite_lettres_bleue",
+      "category": "props",
+      "model": "models/objets/objet_boite_lettres_bleue.glb",
+      "source": "objet_boite_lettres_bleue.glb",
+      "height": 1.142,
+      "rotationY": 0,
+      "offset": [0, 0, -0.008],
+      "bounds": {
+        "min": [-0.275, 0, -0.24],
+        "max": [0.275, 1.142, 0.255]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 128,
+      "luminance": 0.168,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_boite_lettres_grise",
+      "category": "props",
+      "model": "models/objets/objet_boite_lettres_grise.glb",
+      "source": "objet_boite_lettres_grise.glb",
+      "height": 1.142,
+      "rotationY": 0,
+      "offset": [0, 0, -0.008],
+      "bounds": {
+        "min": [-0.275, 0, -0.24],
+        "max": [0.275, 1.142, 0.255]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 128,
+      "luminance": 0.348,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_borne_jaune",
+      "category": "props",
+      "model": "models/objets/objet_borne_jaune.glb",
+      "source": "objet_borne_jaune.glb",
+      "height": 0.8,
+      "rotationY": 0,
+      "offset": [0, 0, -0.01],
+      "bounds": {
+        "min": [-0.2, 0, -0.17],
+        "max": [0.2, 0.8, 0.19]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 248,
+      "luminance": 0.578,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_borne_orange",
+      "category": "props",
+      "model": "models/objets/objet_borne_orange.glb",
+      "source": "objet_borne_orange.glb",
+      "height": 0.8,
+      "rotationY": 0,
+      "offset": [0, 0, -0.01],
+      "bounds": {
+        "min": [-0.2, 0, -0.17],
+        "max": [0.2, 0.8, 0.19]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 248,
+      "luminance": 0.339,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_borne_rouge",
+      "category": "props",
+      "model": "models/objets/objet_borne_rouge.glb",
+      "source": "objet_borne_rouge.glb",
+      "height": 0.8,
+      "rotationY": 0,
+      "offset": [0, 0, -0.01],
+      "bounds": {
+        "min": [-0.2, 0, -0.17],
+        "max": [0.2, 0.8, 0.19]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 248,
+      "luminance": 0.163,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_cabine_telephone",
+      "category": "props",
+      "model": "models/objets/objet_cabine_telephone.glb",
+      "source": "objet_cabine_telephone.glb",
+      "height": 2.13,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.38, 0, -0.25],
+        "max": [0.38, 2.13, 0.25]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 0.76,
+        "d": 0.5
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 96,
+      "luminance": 0.423,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_feu_tricolore",
+      "category": "props",
+      "model": "models/objets/objet_feu_tricolore.glb",
+      "source": "objet_feu_tricolore.glb",
+      "height": 3.48,
+      "rotationY": 0,
+      "offset": [0, 0, -0.045],
+      "bounds": {
+        "min": [-0.16, 0, -0.15],
+        "max": [0.16, 3.48, 0.24]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "emissive": true,
+      "triangles": 188,
+      "luminance": 0.267,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_kiosque",
+      "category": "props",
+      "model": "models/objets/objet_kiosque.glb",
+      "source": "objet_kiosque.glb",
+      "height": 2.74,
+      "rotationY": 0,
+      "offset": [0, 0, -0.248],
+      "bounds": {
+        "min": [-1.175, 0, -0.875],
+        "max": [1.175, 2.74, 1.372]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 2.35,
+        "d": 2.247
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 240,
+      "luminance": 0.468,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_lampadaire_crosse",
+      "category": "props",
+      "model": "models/objets/objet_lampadaire_crosse.glb",
+      "source": "objet_lampadaire_crosse.glb",
+      "height": 5.2,
+      "rotationY": -90,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.18, 0, -0.22],
+        "max": [0.991, 5.2, 0.22]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "emissive": true,
+      "keepOrigin": true,
+      "triangles": 234,
+      "luminance": 0.133,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_lampadaire_lanterne",
+      "category": "props",
+      "model": "models/objets/objet_lampadaire_lanterne.glb",
+      "source": "objet_lampadaire_lanterne.glb",
+      "height": 5.11,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.225, 0, -0.26],
+        "max": [0.225, 5.11, 0.26]
+      },
+      "collision": {
+        "shape": "circle",
+        "r": 0.041
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "emissive": true,
+      "triangles": 182,
+      "luminance": 0.15,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_panneau_direction",
+      "category": "props",
+      "model": "models/objets/objet_panneau_direction.glb",
+      "source": "objet_panneau_direction.glb",
+      "height": 2.73,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.375, 0, -0.1],
+        "max": [0.375, 2.73, 0.1]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 136,
+      "luminance": 0.391,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_panneau_rue",
+      "category": "props",
+      "model": "models/objets/objet_panneau_rue.glb",
+      "source": "objet_panneau_rue.glb",
+      "height": 3.34,
+      "rotationY": 0,
+      "offset": [-0.36, 0, 0],
+      "bounds": {
+        "min": [-0.08, 0, -0.08],
+        "max": [0.8, 3.34, 0.08]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 82,
+      "luminance": 0.523,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_panneau_sens_interdit",
+      "category": "props",
+      "model": "models/objets/objet_panneau_sens_interdit.glb",
+      "source": "objet_panneau_sens_interdit.glb",
+      "height": 2.33,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.3, 0, -0.08],
+        "max": [0.3, 2.33, 0.08]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 104,
+      "luminance": 0.41,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_panneau_stop",
+      "category": "props",
+      "model": "models/objets/objet_panneau_stop.glb",
+      "source": "objet_panneau_stop.glb",
+      "height": 2.48,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.37, 0, -0.1],
+        "max": [0.37, 2.48, 0.1]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 152,
+      "luminance": 0.621,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_plot",
+      "category": "props",
+      "model": "models/objets/objet_plot.glb",
+      "source": "objet_plot.glb",
+      "height": 0.74,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.22, 0, -0.22],
+        "max": [0.22, 0.74, 0.22]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 144,
+      "luminance": 0.686,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_poubelle_capot",
+      "category": "props",
+      "model": "models/objets/objet_poubelle_capot.glb",
+      "source": "objet_poubelle_capot.glb",
+      "height": 0.999,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.33, 0, -0.33],
+        "max": [0.33, 0.999, 0.33]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 104,
+      "luminance": 0.325,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_poubelle_metal",
+      "category": "props",
+      "model": "models/objets/objet_poubelle_metal.glb",
+      "source": "objet_poubelle_metal.glb",
+      "height": 1.201,
+      "rotationY": 0,
+      "offset": [0, 0, 0.088],
+      "bounds": {
+        "min": [-0.32, 0, -0.496],
+        "max": [0.32, 1.201, 0.32]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 292,
+      "luminance": 0.356,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_poubelle_noire",
+      "category": "props",
+      "model": "models/objets/objet_poubelle_noire.glb",
+      "source": "objet_poubelle_noire.glb",
+      "height": 1,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.33, 0, -0.33],
+        "max": [0.33, 1, 0.33]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 240,
+      "luminance": 0.054,
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_velo",
+      "category": "props",
+      "model": "models/objets/objet_velo.glb",
+      "source": "objet_velo.glb",
+      "height": 1.01,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-0.905, 0, -0.25],
+        "max": [0.905, 1.01, 0.25]
+      },
+      "collision": null,
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "objets",
+      "triangles": 368,
+      "luminance": 0.17,
+      "tags": ["objet"]
     }
   ]
 }

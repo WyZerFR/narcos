@@ -16,7 +16,7 @@ import palettesJson from '../data/palettes.json';
 import propsJson from '../data/props.json';
 import placementsJson from '../data/placements.json';
 import { gameData, parseGameData, type RawGameData } from './data';
-import { facadePlacements, hasFacade } from './props';
+import { allPlacements, facadePlacements, hasFacade } from './props';
 import {
   inspectGltf,
   modelOrigin,
@@ -82,6 +82,8 @@ describe('décor 3D importé (props.json)', () => {
         max: b.max.map((v, k) => v + p.offset[k]!) as [number, number, number],
       };
       expect(modelOrigin(moved), p.id).toBe('pied');
+      // origine gardée (groupe calé sur son bâtiment, lampadaire sur son mât) : pas de recentrage
+      if (p.keepOrigin) continue;
       expect(moved.min[0] + moved.max[0], p.id).toBeCloseTo(0, 2);
       expect(moved.min[2] + moved.max[2], p.id).toBeCloseTo(0, 2);
     }
@@ -140,7 +142,42 @@ describe('façades de lieux importées (famille facade)', () => {
       rotation: 0,
     });
     expect(hasFacade(gameData, 'epicerie')).toBe(true);
-    expect(hasFacade(gameData, 'local')).toBe(false);
+    // Bricoshop non modélisé : rendu généré
+    expect(hasFacade(gameData, 'shop')).toBe(false);
+  });
+
+  it('assemblage : labo sur le Local (porte au nord), commerces décoratifs, groupes de props calés', () => {
+    const want: Record<string, [string, 0 | 90 | 180 | 270]> = {
+      local: ['labo_batiment', 180],
+      co_ouest: ['laverie_batiment', 0],
+      co_milieu: ['armurerie_batiment', 0],
+      co_est: ['barbier_batiment', 0],
+      co_bras_milieu: ['concession_batiment', 0],
+    };
+    const placed = facadePlacements(gameData);
+    for (const [host, [prop, rotation]] of Object.entries(want)) {
+      const f = placed.find((x) => x.locationId === host);
+      expect(f, host).toMatchObject({ prop, rotation });
+      const p = gameData.props.get(prop)!;
+      expect(p.triangles, prop).toBeLessThan(gameData.config.props.budget.batiments.maxTriangles);
+      expect(p.emissive, prop).toBe(true);
+    }
+    // le Local garde son id, sa porte et son intérieur
+    const local = gameData.locations.get('local')!;
+    expect(local.door).toBe('north');
+    // groupes de props : sans collision, posés au centre de leur bâtiment, même rotation
+    const groups = allPlacements(gameData.placements).filter(
+      (q) => gameData.props.get(q.prop)?.keepOrigin,
+    );
+    expect(groups.length).toBeGreaterThanOrEqual(8);
+    for (const g of groups) {
+      const host = [...placed, { x: 87.5, z: 13 }].find((h) => h.x === g.x && h.z === g.z);
+      expect(host, g.prop).toBeDefined();
+    }
+    // supérette : décor du commercial, angle coupé (−X / +Z du modèle) tourné vers la rue (nord)
+    const sup = allPlacements(gameData.placements).find((q) => q.prop === 'superette_batiment')!;
+    expect(sup.areaId).toBe('commercial');
+    expect(sup.rotation).toBe(270);
   });
 
   it('la banque : façade importée, enseigne émissive, tenue dans le lieu, porte au sud', () => {
@@ -246,6 +283,23 @@ describe('bâtiments de quartier (familles corner et row)', () => {
       };
       expect(glb.meshes[0]!.primitives[0]!.attributes._EMISSIVE, p.id).toBeDefined();
     }
+  });
+
+  it('carrosserie : attribut _PAINT sur les voitures teintées seulement, groupes sans collision', () => {
+    const props = [...gameData.props.values()];
+    const painted = props.filter((p) => p.paint);
+    expect(painted.length).toBeGreaterThan(0);
+    for (const p of props) {
+      const glb = glbJson(join(PUBLIC, p.model)) as unknown as {
+        meshes: { primitives: { attributes: Record<string, number> }[] }[];
+      };
+      const attr = glb.meshes[0]!.primitives[0]!.attributes._PAINT;
+      if (p.paint) expect(attr, p.id).toBeDefined();
+      else expect(attr, p.id).toBeUndefined();
+      if (p.keepOrigin) expect(p.collision, p.id).toBeNull();
+    }
+    // police : livrée gardée
+    expect(props.find((p) => p.id === 'voiture_police')?.paint).toBeUndefined();
   });
 
   it('refusé sans emprise ou avec une collision qui en déborde', () => {
