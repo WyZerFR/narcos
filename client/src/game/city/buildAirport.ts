@@ -1,4 +1,4 @@
-import { airportLayout, type GameData, type Rect } from '@narco/shared';
+import { airportLayout, kitModelled, type GameData, type Rect } from '@narco/shared';
 import { faceOf, shade, type Batch } from './batch';
 import type { FacadeKit } from './buildLandmarks';
 
@@ -67,9 +67,10 @@ export function buildAirport(ctx: Ctx, kit: FacadeKit) {
       }
   });
 
-  // hangars : caisson, toit bombé en gradins, grande porte sur la face côté piste
+  // hangars : caisson, toit bombé en gradins, grande porte sur la face côté piste (sautés si
+  // modélisés : `placements.kits.hangars`, PropKits)
   const metal = shade(palette.wall, 0.9);
-  for (const h of l.hangars) {
+  for (const h of kitModelled(ctx.data, 'hangars') ? [] : l.hangars) {
     const c = center(h);
     solid.block(c.x, 0, c.z, c.w, h.height - 2, c.d, metal);
     solid.block(c.x, h.height - 2, c.z, c.w, 1.2, c.d * 0.8, shade(palette.wall, 0.8));

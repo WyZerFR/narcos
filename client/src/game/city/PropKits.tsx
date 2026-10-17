@@ -29,6 +29,7 @@ import {
   usePropCacheVersion,
   usePropEntry,
 } from './propAssets';
+import { shade } from './batch';
 
 /** Une instance de prop : position au sol, rotation Y, échelle par axe (repère du prop). */
 export interface PropItem {
@@ -73,7 +74,7 @@ interface KitProps {
    * bâtiments, néons (`emit` : géométrie avec `aEmit`). Partagé par clé (le fournisseur garde
    * le cache).
    */
-  materialFor: (texture: Texture | null, cut: boolean, emit: boolean) => Material;
+  materialFor: (texture: Texture | null, cut: boolean, emit: boolean, paint?: boolean) => Material;
   /** Gain de couleur par catégorie (props.json tint), demandé par le thème (jour). */
   propTint?: boolean;
   /** Repli forcé (error boundary). */
@@ -89,10 +90,12 @@ function Kit({ id, items, loaded, data, materialFor, failed, propTint = false }:
   const ref = useRef<InstancedMesh>(null);
   const prop = gameData.props.get(id);
   const areas = useMemo(() => items.map((it) => areaIdNear(it)), [items]);
-  const visible = useMemo(
-    () => (loaded ? items.filter((_, i) => loaded.has(areas[i]!)) : []),
+  // index des instances visibles dans `items` (teinte de carrosserie stable par instance)
+  const shown = useMemo(
+    () => (loaded ? items.flatMap((_, i) => (loaded.has(areas[i]!) ? [i] : [])) : []),
     [items, areas, loaded],
   );
+  const visible = useMemo(() => shown.map((i) => items[i]!), [shown, items]);
   const entry = usePropEntry(id, visible.length > 0);
   const status = failed || !prop ? 'error' : entry?.status;
   const geometry = useMemo(() => {
@@ -124,8 +127,17 @@ function Kit({ id, items, loaded, data, materialFor, failed, propTint = false }:
       mesh.setMatrixAt(i, tmpM.compose(tmpP.set(it.x, it.y ?? 0, it.z), tmpQ, tmpS));
     });
     mesh.instanceMatrix.needsUpdate = true;
+    // carrosserie : une teinte de `config.props.paints` par instance, en alternance
+    if (geometry?.attributes.aPaint) {
+      const { paints } = data.config.props;
+      shown.forEach((index, i) => {
+        const p = paints[index % paints.length]!;
+        mesh.setColorAt(i, shade(data.config.palette[p.color], p.shade));
+      });
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    }
     mesh.computeBoundingSphere();
-  }, [visible, geometry]);
+  }, [visible, shown, geometry, data]);
   useLayoutEffect(() => {
     if (geometry && visible.length > 0 && prop) active.set(id, prop.category);
     else active.delete(id);
@@ -136,6 +148,7 @@ function Kit({ id, items, loaded, data, materialFor, failed, propTint = false }:
     texture,
     Boolean(prop?.cuttable),
     Boolean(geometry?.attributes.aEmit),
+    Boolean(geometry?.attributes.aPaint),
   );
   if (!geometry || items.length === 0) return null;
   return (

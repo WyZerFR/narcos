@@ -103,6 +103,27 @@ export function applyEmission<M extends Material>(material: M, strength: number)
 }
 
 /**
+ * Carrosserie teinte par instance dans le même draw call : les sommets dont l'attribut `aPaint`
+ * vaut 1 (blancs à l'import) prennent la couleur d'instance (`InstancedMesh.setColorAt`), les
+ * autres (vitres, pneus, phares) gardent leur couleur. S'enchaîne avec un `onBeforeCompile`.
+ */
+export function applyPaint<M extends Material>(material: M): M {
+  const previous = material.onBeforeCompile.bind(material);
+  const previousKey = material.customProgramCacheKey.bind(material);
+  material.onBeforeCompile = (shader, renderer) => {
+    previous(shader, renderer);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nattribute float aPaint;')
+      .replace(
+        '#include <color_vertex>',
+        '#include <color_vertex>\n#if defined( USE_COLOR ) && defined( USE_INSTANCING_COLOR )\nvColor.xyz = color.xyz * mix( vec3( 1.0 ), instanceColor.xyz, aPaint );\n#endif',
+      );
+  };
+  material.customProgramCacheKey = () => `${previousKey()}|narco-paint`;
+  return material;
+}
+
+/**
  * Contour « coque inversée » : faces arrière seules, sommets poussés le long de leur normale
  * (`width`, m), couleur unie. Un draw call de plus par géométrie contournée.
  */

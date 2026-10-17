@@ -201,8 +201,20 @@ function airportKits(data: GameData, solidMaterial: Material, glowMaterial: Mate
     })),
   );
   return [
-    { key: 'planes', geometry: plane.build(), material: solidMaterial, items: planes },
-    { key: 'planeWindows', geometry: windows.build(), material: glowMaterial, items: planes },
+    {
+      key: 'planes',
+      hidden: kitModelled(data, 'planes'),
+      geometry: plane.build(),
+      material: solidMaterial,
+      items: planes,
+    },
+    {
+      key: 'planeWindows',
+      hidden: kitModelled(data, 'planes'),
+      geometry: windows.build(),
+      material: glowMaterial,
+      items: planes,
+    },
     { key: 'containers', geometry: box.build(), material: solidMaterial, items: containers },
   ];
 }

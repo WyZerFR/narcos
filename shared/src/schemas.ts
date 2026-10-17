@@ -1574,12 +1574,20 @@ export const PropKitSchema = z.object({
   props: z.array(slug),
   /**
    * `height` : hauteur réelle du prop ; `length` : longueur (Z du prop) = longueur de la voiture
-   * générée ; `box` : emprise générée (largeur, profondeur) et hauteur × `heightScale`.
+   * générée ; `box` : emprise générée (largeur, profondeur) et hauteur × `heightScale` ;
+   * `contain` : taille réelle, réduite uniformément si elle dépasse l'emprise générée (avions).
    */
-  fit: z.enum(['height', 'length', 'box']),
+  fit: z.enum(['height', 'length', 'box', 'contain']),
   /** Rotation ajoutée (degrés) : avant du prop (+Z) vers l'axe du décor généré. */
   rotationY: z.number().min(-180).max(180).default(0),
   heightScale: pos.default(1),
+  /** `box` : props tirés en alternance stricte (hangars) plutôt que par proportions. */
+  alternate: z.boolean().default(false),
+  /**
+   * Instances peu nombreuses (avions, hangars) fusionnées avec les props posés (ou les façades
+   * pour un bâtiment à découpe) au lieu d'un InstancedMesh par prop : 1 draw call pour tous.
+   */
+  merge: z.boolean().default(false),
 });
 
 export const PROP_KIT_IDS = [
@@ -1591,6 +1599,8 @@ export const PROP_KIT_IDS = [
   'towers',
   'fillers',
   'bushes',
+  'planes',
+  'hangars',
 ] as const;
 export type PropKitId = (typeof PROP_KIT_IDS)[number];
 

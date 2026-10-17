@@ -3402,11 +3402,7 @@
           17.61
         ]
       },
-      "collision": {
-        "shape": "rect",
-        "w": 3.35,
-        "d": 1.22
-      },
+      "collision": null,
       "keepColors": true,
       "cuttable": false,
       "folder": "aeroport",
@@ -3441,11 +3437,7 @@
           12.4
         ]
       },
-      "collision": {
-        "shape": "rect",
-        "w": 1.201,
-        "d": 0.8
-      },
+      "collision": null,
       "keepColors": true,
       "cuttable": false,
       "folder": "aeroport",
@@ -3548,11 +3540,7 @@
           23.18
         ]
       },
-      "collision": {
-        "shape": "rect",
-        "w": 7.05,
-        "d": 2.36
-      },
+      "collision": null,
       "keepColors": true,
       "cuttable": false,
       "folder": "aeroport",
