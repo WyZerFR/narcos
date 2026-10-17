@@ -29,8 +29,15 @@ interface Selected {
   id: string;
   source: string;
   category: PropCategory;
-  height: number;
+  /** Hauteur réelle (m) ; absente : hauteur de la boîte × `scale` (1 par défaut). */
+  height?: number;
+  scale?: number;
   rotationY: number;
+  /**
+   * Origine du fichier gardée (pas de recentrage de la boîte) : groupe de props calé sur son
+   * bâtiment, lampadaire à crosse posé sur son mât. Collision `none` obligatoire.
+   */
+  keepOrigin?: boolean;
   cuttable?: boolean;
   keepColors?: boolean;
   tint?: Prop['tint'];
@@ -44,6 +51,12 @@ interface Selected {
   footprint?: Prop['footprint'];
   /** Nœud racine à importer seul (fichier à plusieurs props), sinon toute la scène. */
   node?: string;
+  /** Nœuds racines écartés (dalles de sol d'un fichier de props) quand toute la scène est prise. */
+  exclude?: string[];
+  /** Nœuds racines retenus (nom exact ou préfixe suivi de `.` ou `_`) : part d'un groupe de props. */
+  nodes?: string[];
+  /** Carrosserie (nom de matériau contenant ce texte) : blanche, attribut `_PAINT`, teinte d'instance. */
+  paint?: string;
 }
 
 interface Selection {
@@ -52,6 +65,8 @@ interface Selection {
   sourceDir: string;
   license: string;
   minKeepRatio: number;
+  /** Vitres semi-transparentes (`alphaMode` BLEND) rendues opaques de cette couleur (sRGB). */
+  glass: string;
   models: Selected[];
 }
 
@@ -87,6 +102,8 @@ interface Gltf {
       baseColorTexture?: { index: number };
     };
     emissiveFactor?: number[];
+    name?: string;
+    alphaMode?: string;
   }[];
   textures?: { source?: number }[];
   images?: { uri?: string; bufferView?: number }[];
@@ -204,10 +221,21 @@ interface Part {
   texturePath: string | null;
   /** Matériau émissif (néon) : couleur émise, null sinon. */
   emissive: [number, number, number] | null;
+  /** Carrosserie teinte par instance (`_PAINT`). */
+  paint: boolean;
+  /** Vitre semi-transparente, rendue opaque (`selection.glass`). */
+  glass: boolean;
 }
 
 /** Primitives triangulées de la scène, positions dans le repère de la scène. */
-function partsOf(file: string, node?: string): Part[] {
+function partsOf(file: string, s: Selected): Part[] {
+  const { node, exclude = [], nodes, paint } = s;
+  const wanted = (name: string) =>
+    node !== undefined
+      ? name === node
+      : nodes
+        ? nodes.some((n) => name === n || name.startsWith(`${n}.`) || name.startsWith(`${n}_`))
+        : !exclude.includes(name);
   const { json, bin } = parseGlb(file);
   const images = new Map<number, Part['texture']>();
   const imagePath = (index: number): string | null => {
@@ -264,14 +292,22 @@ function partsOf(file: string, node?: string): Part[] {
       const e = mat?.emissiveFactor;
       const emissive: Part['emissive'] =
         e && e.some((c) => c > 0) ? [e[0] ?? 0, e[1] ?? 0, e[2] ?? 0] : null;
-      parts.push({ geometry: g, factor: [f[0]!, f[1]!, f[2]!], texture, texturePath, emissive });
+      parts.push({
+        geometry: g,
+        factor: [f[0]!, f[1]!, f[2]!],
+        texture,
+        texturePath,
+        emissive,
+        paint: paint !== undefined && (mat?.name ?? '').includes(paint),
+        glass: mat?.alphaMode === 'BLEND',
+      });
     }
     for (const c of node.children ?? []) visit(c, world);
   };
-  const roots = (json.scenes?.[json.scene ?? 0]?.nodes ?? [0]).filter(
-    (r) => node === undefined || json.nodes![r]!.name === node,
+  const roots = (json.scenes?.[json.scene ?? 0]?.nodes ?? [0]).filter((r) =>
+    wanted(json.nodes![r]!.name ?? ''),
   );
-  if (roots.length === 0) throw new Error(`${file} : nœud "${node}" introuvable`);
+  if (roots.length === 0) throw new Error(`${file} : nœud "${node ?? nodes}" introuvable`);
   for (const r of roots) visit(r, new Matrix4());
   return parts;
 }
@@ -308,22 +344,28 @@ async function simplify(
  * par un atlas en fichier : UV gardées, couleur = facteur du matériau (texture d'origine au
  * rendu). Sinon : une couleur par face (texture échantillonnée au centre de ses UV, ou facteur).
  */
-function bake(parts: Part[]): {
+function bake(
+  parts: Part[],
+  glass: [number, number, number],
+): {
   positions: Float32Array;
   colors: Uint8Array;
   uvs: Float32Array | null;
   emit: Float32Array | null;
+  paint: Float32Array | null;
   luminance: number;
 } {
   let lumSum = 0;
   let faces = 0;
   const keepUv = parts.every((p) => p.texturePath && p.geometry.attributes.uv);
   const anyEmissive = parts.some((p) => p.emissive);
+  const anyPaint = parts.some((p) => p.paint);
   const pos: number[] = [];
   const col: number[] = [];
   const uvs: number[] = [];
   const emit: number[] = [];
-  for (const { geometry, factor, texture, emissive } of parts) {
+  const paints: number[] = [];
+  for (const { geometry, factor, texture, emissive, paint, glass: isGlass } of parts) {
     const g = geometry.index ? geometry.toNonIndexed() : geometry;
     const p = g.attributes.position!;
     const uv = g.attributes.uv;
@@ -344,11 +386,15 @@ function bake(parts: Part[]): {
       if (keepUv) rgb = [...factor];
       // néon : la couleur de sommet est la couleur émise
       if (emissive) rgb = [...emissive];
+      // vitrine semi-transparente : opaque sombre bleutée ; carrosserie : blanche (teinte d'instance)
+      if (isGlass) rgb = [...glass];
+      if (paint) rgb = [1, 1, 1];
       for (let k = 0; k < 3; k++) {
         pos.push(p.getX(v + k), p.getY(v + k), p.getZ(v + k));
         col.push(...rgb.map((c) => Math.round(Math.min(1, Math.max(0, c)) * 255)), 255);
         if (keepUv && uv) uvs.push(uv.getX(v + k), uv.getY(v + k));
         if (anyEmissive) emit.push(emissive ? 1 : 0);
+        if (anyPaint) paints.push(paint ? 1 : 0);
       }
     }
   }
@@ -357,13 +403,15 @@ function bake(parts: Part[]): {
     colors: new Uint8Array(col),
     uvs: keepUv ? new Float32Array(uvs) : null,
     emit: anyEmissive ? new Float32Array(emit) : null,
+    paint: anyPaint ? new Float32Array(paints) : null,
     luminance: faces ? lumSum / faces : 0,
   };
 }
 
 /**
  * GLB minimal : un nœud, un maillage, une primitive (POSITION, COLOR_0, TEXCOORD_0 si texturé,
- * `_EMISSIVE` si néons : 1 = face émissive), un matériau. La texture n'est pas intégrée :
+ * `_EMISSIVE` si néons : 1 = face émissive, `_PAINT` si carrosserie : 1 = teinte d'instance),
+ * un matériau. La texture n'est pas intégrée :
  * l'atlas du pack est un fichier partagé.
  */
 function writeGlb(
@@ -372,7 +420,7 @@ function writeGlb(
   positions: Float32Array,
   colors: Uint8Array,
   uvs: Float32Array | null,
-  emit: Float32Array | null,
+  extras: Record<string, Float32Array | null>,
 ) {
   const n = positions.length / 3;
   const min = [Infinity, Infinity, Infinity];
@@ -398,9 +446,10 @@ function writeGlb(
     bufferViews.push({ buffer: 0, byteOffset: n * 16, byteLength: n * 8, target: 34962 });
     chunks.push(Buffer.from(uvs.buffer));
   }
-  if (emit) {
-    const offset = n * (uvs ? 24 : 16);
-    attributes._EMISSIVE = accessors.length;
+  let offset = n * (uvs ? 24 : 16);
+  for (const [attr, values] of Object.entries(extras)) {
+    if (!values) continue;
+    attributes[attr] = accessors.length;
     accessors.push({
       bufferView: bufferViews.length,
       componentType: 5126,
@@ -408,7 +457,8 @@ function writeGlb(
       type: 'SCALAR',
     });
     bufferViews.push({ buffer: 0, byteOffset: offset, byteLength: n * 4, target: 34962 });
-    chunks.push(Buffer.from(emit.buffer));
+    chunks.push(Buffer.from(values.buffer));
+    offset += n * 4;
   }
   const json = {
     asset: { version: '2.0', generator: 'narco import-props' },
@@ -419,7 +469,7 @@ function writeGlb(
     materials: [{ pbrMetallicRoughness: { metallicFactor: 0, roughnessFactor: 1 } }],
     accessors,
     bufferViews,
-    buffers: [{ byteLength: n * ((uvs ? 24 : 16) + (emit ? 4 : 0)) }],
+    buffers: [{ byteLength: offset }],
   };
   const pad = (b: Buffer, fill: number) =>
     Buffer.concat([b, Buffer.alloc((4 - (b.length % 4)) % 4, fill)]);
@@ -463,11 +513,17 @@ const selection = JSON.parse(
 ) as Selection;
 const { budget, vegetationCollisionRatio } = gameData.config.props;
 const round = (x: number) => Math.round(x * 1000) / 1000;
+const glassHex = selection.glass.replace('#', '');
+const glassColor = [0, 2, 4].map((i) => toLinear(parseInt(glassHex.slice(i, i + 2), 16) / 255)) as [
+  number,
+  number,
+  number,
+];
 const props: Prop[] = [];
 const rejected: string[] = [];
 
 for (const s of selection.models) {
-  const parts = partsOf(join(ROOT, s.sourceDir ?? selection.sourceDir, s.source), s.node);
+  const parts = partsOf(join(ROOT, s.sourceDir ?? selection.sourceDir, s.source), s);
   const before = parts.reduce((t, p) => t + triangles(p.geometry), 0);
   const max = budget[s.category].maxTriangles;
   let kept = parts;
@@ -501,9 +557,12 @@ for (const s of selection.models) {
     }
     kept = [{ ...parts[0]!, geometry: simple }];
   }
-  const { positions, colors, uvs, emit, luminance } = bake(kept);
+  const { positions, colors, uvs, emit, paint, luminance } = bake(kept, glassColor);
   const model = `models/${s.folder ?? s.category}/${s.id}.glb`;
-  const b = writeGlb(join(ROOT, 'client/public', model), s.id, positions, colors, uvs, emit);
+  const b = writeGlb(join(ROOT, 'client/public', model), s.id, positions, colors, uvs, {
+    _EMISSIVE: emit,
+    _PAINT: paint,
+  });
   const texture = uvs
     ? copyTexture(
         kept[0]!.texturePath!,
@@ -511,7 +570,12 @@ for (const s of selection.models) {
         budget[s.category].maxTextureSize,
       )
     : null;
-  const scale = s.height / (b.max[1]! - b.min[1]!);
+  if (s.keepOrigin && s.collision !== 'none') {
+    rejected.push(`${s.id} : keepOrigin sans collision "none"`);
+    continue;
+  }
+  const height = round(s.height ?? (b.max[1]! - b.min[1]!) * (s.scale ?? 1));
+  const scale = height / (b.max[1]! - b.min[1]!);
   const turned = Math.abs(Math.round(s.rotationY / 90)) % 2 === 1;
   const w = (turned ? b.max[2]! - b.min[2]! : b.max[0]! - b.min[0]!) * scale;
   const d = (turned ? b.max[0]! - b.min[0]! : b.max[2]! - b.min[2]!) * scale;
@@ -527,13 +591,15 @@ for (const s of selection.models) {
     category: s.category,
     model,
     source: s.source,
-    height: s.height,
+    height,
     rotationY: s.rotationY,
-    offset: [
-      round(-(b.min[0]! + b.max[0]!) / 2),
-      round(-b.min[1]!),
-      round(-(b.min[2]! + b.max[2]!) / 2),
-    ],
+    offset: s.keepOrigin
+      ? [0, round(-b.min[1]!), 0]
+      : [
+          round(-(b.min[0]! + b.max[0]!) / 2),
+          round(-b.min[1]!),
+          round(-(b.min[2]! + b.max[2]!) / 2),
+        ],
     bounds: {
       min: b.min.map(round) as [number, number, number],
       max: b.max.map(round) as [number, number, number],
@@ -547,6 +613,8 @@ for (const s of selection.models) {
     ...(s.family ? { family: s.family } : {}),
     ...(s.footprint ? { footprint: s.footprint } : {}),
     ...(emit ? { emissive: true } : {}),
+    ...(paint ? { paint: true } : {}),
+    ...(s.keepOrigin ? { keepOrigin: true } : {}),
     triangles: positions.length / 9,
     luminance: round(luminance),
     tags: s.tags,

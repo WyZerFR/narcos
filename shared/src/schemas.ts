@@ -276,7 +276,7 @@ export const RenderSchema = z.object({
 });
 
 /** Catégories de décor 3D importé : dossier `client/public/models/<catégorie>/`. */
-export const PROP_CATEGORIES = ['batiments', 'vehicules', 'props', 'vegetation'] as const;
+export const PROP_CATEGORIES = ['batiments', 'vehicules', 'avions', 'props', 'vegetation'] as const;
 export const PropCategorySchema = z.enum(PROP_CATEGORIES);
 
 const PropBudgetSchema = z.object({
@@ -307,6 +307,10 @@ export const PropsConfigSchema = z.object({
   /** Objectif de draw calls par area (overlay debug) et plafond total. */
   drawCallTarget: z.number().int().positive(),
   drawCallBudget: z.number().int().positive(),
+  /** Teintes de carrosserie (props `paint`), une par instance en alternance : palette × facteur. */
+  paints: z
+    .array(z.object({ color: PaletteSchema.keyof().exclude(['windows']), shade: pos }))
+    .min(1),
 });
 export type PropsConfig = z.infer<typeof PropsConfigSchema>;
 
@@ -1531,6 +1535,10 @@ export const PropSchema = z.object({
   footprint: z.object({ w: pos, d: pos }).optional(),
   /** Faces émissives (néons) portées par l'attribut `_EMISSIVE` du GLB. */
   emissive: z.boolean().optional(),
+  /** Carrosserie (attribut `_PAINT` du GLB, blanche) teinte par instance (`config.props.paints`). */
+  paint: z.boolean().optional(),
+  /** Origine du fichier gardée (boîte non recentrée) : groupe de props calé sur son bâtiment. */
+  keepOrigin: z.boolean().optional(),
   triangles: z.number().int().positive(),
   /** Luminance linéaire moyenne des faces (albédo : texture × couleur), mesurée à l'import. */
   luminance: z.number().min(0).max(1),

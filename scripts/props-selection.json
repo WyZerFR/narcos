@@ -10,6 +10,10 @@
       "brightness": 1.45,
       "saturation": 1.15
     },
+    "avions": {
+      "brightness": 1.2,
+      "saturation": 1.05
+    },
     "props": {
       "brightness": 1.15,
       "saturation": 1.1
@@ -24,6 +28,7 @@
     "strength": 1.5
   },
   "minKeepRatio": 0.4,
+  "glass": "#1c2a44",
   "models": [
     {
       "id": "sedan",
@@ -441,7 +446,10 @@
       "folder": "quartier",
       "category": "batiments",
       "family": "corner",
-      "footprint": { "w": 10, "d": 10 },
+      "footprint": {
+        "w": 10,
+        "d": 10
+      },
       "height": 8.2,
       "rotationY": 0,
       "cuttable": true,
@@ -454,7 +462,10 @@
       "folder": "quartier",
       "category": "batiments",
       "family": "row",
-      "footprint": { "w": 8, "d": 8 },
+      "footprint": {
+        "w": 8,
+        "d": 8
+      },
       "height": 6.9,
       "rotationY": 0,
       "cuttable": true,
@@ -467,7 +478,10 @@
       "folder": "shops",
       "category": "batiments",
       "family": "facade",
-      "footprint": { "w": 10, "d": 8 },
+      "footprint": {
+        "w": 10,
+        "d": 8
+      },
       "height": 8.4,
       "rotationY": 0,
       "cuttable": true,
@@ -593,7 +607,10 @@
       "folder": "shops",
       "category": "batiments",
       "family": "facade",
-      "footprint": { "w": 8, "d": 10 },
+      "footprint": {
+        "w": 8,
+        "d": 10
+      },
       "height": 8.94,
       "rotationY": 0,
       "cuttable": true,
@@ -661,7 +678,10 @@
       "folder": "shops",
       "category": "batiments",
       "family": "facade",
-      "footprint": { "w": 30, "d": 12 },
+      "footprint": {
+        "w": 30,
+        "d": 12
+      },
       "height": 10.6,
       "rotationY": 0,
       "cuttable": true,
@@ -710,6 +730,675 @@
       "rotationY": 0,
       "height": 1.25,
       "tags": ["police", "vegetal"]
+    },
+    {
+      "id": "armurerie_batiment",
+      "source": "armurie_batiment.glb",
+      "sourceDir": "public/models/armurie",
+      "folder": "shops",
+      "category": "batiments",
+      "family": "facade",
+      "footprint": {
+        "w": 14,
+        "d": 14
+      },
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["lieu", "armurerie"]
+    },
+    {
+      "id": "concession_batiment",
+      "source": "concession_batiment.glb",
+      "sourceDir": "public/models/conssesionaire",
+      "folder": "shops",
+      "category": "batiments",
+      "family": "facade",
+      "footprint": {
+        "w": 20,
+        "d": 20
+      },
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["lieu", "concession"]
+    },
+    {
+      "id": "laverie_batiment",
+      "source": "laverie_batiment.glb",
+      "sourceDir": "public/models/shops/shop",
+      "folder": "shops",
+      "category": "batiments",
+      "family": "facade",
+      "footprint": {
+        "w": 10,
+        "d": 12
+      },
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["lieu", "laverie"],
+      "scale": 0.95
+    },
+    {
+      "id": "barbier_batiment",
+      "source": "barbier_batiment.glb",
+      "sourceDir": "public/models/shops/shop",
+      "folder": "shops",
+      "category": "batiments",
+      "family": "facade",
+      "footprint": {
+        "w": 16,
+        "d": 12
+      },
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["lieu", "barbier"]
+    },
+    {
+      "id": "labo_batiment",
+      "source": "labo_batiment.glb",
+      "sourceDir": "public/models/labo",
+      "folder": "shops",
+      "category": "batiments",
+      "family": "facade",
+      "footprint": {
+        "w": 15,
+        "d": 10
+      },
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["lieu", "labo"]
+    },
+    {
+      "id": "superette_batiment",
+      "source": "superette_batiment.glb",
+      "sourceDir": "public/models/shops/shop",
+      "folder": "shops",
+      "category": "batiments",
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["decor", "superette"]
+    },
+    {
+      "id": "armurerie_props_a",
+      "source": "armurie_props.glb",
+      "sourceDir": "public/models/armurie",
+      "nodes": ["Borne", "Poubelle", "Boitier_Electrique", "Panneau_Danger"],
+      "folder": "shops",
+      "category": "props",
+      "rotationY": 0,
+      "keepOrigin": true,
+      "collision": "none",
+      "tags": ["groupe", "armurerie"]
+    },
+    {
+      "id": "armurerie_props_b",
+      "source": "armurie_props.glb",
+      "sourceDir": "public/models/armurie",
+      "nodes": ["Caisse_Bois", "Caisse_Munitions", "Chevalet_Cible", "Sacs_Sable"],
+      "folder": "shops",
+      "category": "props",
+      "rotationY": 0,
+      "keepOrigin": true,
+      "collision": "none",
+      "tags": ["groupe", "armurerie"]
+    },
+    {
+      "id": "concession_props_a",
+      "source": "concession_props.glb",
+      "sourceDir": "public/models/conssesionaire",
+      "nodes": ["Borne_Lumineuse", "Plot"],
+      "folder": "shops",
+      "category": "props",
+      "rotationY": 0,
+      "keepOrigin": true,
+      "collision": "none",
+      "tags": ["groupe", "concession"]
+    },
+    {
+      "id": "concession_props_b",
+      "source": "concession_props.glb",
+      "sourceDir": "public/models/conssesionaire",
+      "nodes": [
+        "Drapeau",
+        "Jardiniere_Bonsai",
+        "Panneau_Parking",
+        "Podium_Expo",
+        "Poubelle",
+        "Totem_Enseigne"
+      ],
+      "folder": "shops",
+      "category": "props",
+      "rotationY": 0,
+      "keepOrigin": true,
+      "collision": "none",
+      "tags": ["groupe", "concession"]
+    },
+    {
+      "id": "barbier_props_a",
+      "source": "barbier_props.glb",
+      "sourceDir": "public/models/shops/shop",
+      "nodes": ["Poteau_Barbier", "Borne"],
+      "folder": "shops",
+      "category": "props",
+      "rotationY": 0,
+      "keepOrigin": true,
+      "collision": "none",
+      "tags": ["groupe", "barbier"]
+    },
+    {
+      "id": "barbier_props_b",
+      "source": "barbier_props.glb",
+      "sourceDir": "public/models/shops/shop",
+      "nodes": ["Jardiniere_Haie", "Lampadaire", "Plante", "Poubelle"],
+      "folder": "shops",
+      "category": "props",
+      "rotationY": 0,
+      "keepOrigin": true,
+      "collision": "none",
+      "tags": ["groupe", "barbier"]
+    },
+    {
+      "id": "laverie_props",
+      "source": "laverie_props.glb",
+      "sourceDir": "public/models/shops/shop",
+      "nodes": ["Bac_Linge", "Bac_Panier", "Borne", "Panneau_Ouvert"],
+      "folder": "shops",
+      "category": "props",
+      "rotationY": 0,
+      "keepOrigin": true,
+      "collision": "none",
+      "tags": ["groupe", "laverie"]
+    },
+    {
+      "id": "superette_props",
+      "source": "superette_props.glb",
+      "sourceDir": "public/models/shops/shop",
+      "nodes": ["Bac_Recyclage", "Benne", "Canettes", "Presentoir", "Lampadaire"],
+      "folder": "shops",
+      "category": "props",
+      "rotationY": 0,
+      "keepOrigin": true,
+      "collision": "none",
+      "tags": ["groupe", "superette"]
+    },
+    {
+      "id": "hangar_cargo",
+      "source": "hangar_batiment.glb",
+      "sourceDir": "public/models/aeroport/hangar",
+      "folder": "aeroport",
+      "category": "batiments",
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["aeroport", "hangar"]
+    },
+    {
+      "id": "hangar_regional",
+      "source": "hangar_regional_batiment.glb",
+      "sourceDir": "public/models/aeroport/hangar",
+      "folder": "aeroport",
+      "category": "batiments",
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["aeroport", "hangar"]
+    },
+    {
+      "id": "hangar_chariot_elevateur",
+      "source": "hangar_props.glb",
+      "node": "Chariot_Elevateur",
+      "sourceDir": "public/models/aeroport/hangar",
+      "folder": "aeroport",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "rect",
+      "tags": ["aeroport"]
+    },
+    {
+      "id": "hangar_palette_cartons",
+      "source": "hangar_props.glb",
+      "node": "Palette_Cartons",
+      "sourceDir": "public/models/aeroport/hangar",
+      "folder": "aeroport",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "rect",
+      "tags": ["aeroport"]
+    },
+    {
+      "id": "hangar_baril",
+      "source": "hangar_props.glb",
+      "node": "Baril",
+      "sourceDir": "public/models/aeroport/hangar",
+      "folder": "aeroport",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["aeroport"]
+    },
+    {
+      "id": "hangar_balise_piste",
+      "source": "hangar_props.glb",
+      "node": "Balise_Piste",
+      "sourceDir": "public/models/aeroport/hangar",
+      "folder": "aeroport",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["aeroport"]
+    },
+    {
+      "id": "hangar_camion_piste",
+      "source": "hangar_props.glb",
+      "node": "Camion_Piste",
+      "sourceDir": "public/models/aeroport/hangar",
+      "folder": "aeroport",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "rect",
+      "tags": ["aeroport"]
+    },
+    {
+      "id": "avion_cargo",
+      "source": "avion_cargo.glb",
+      "sourceDir": "public/models/aeroport/avions",
+      "folder": "avions",
+      "category": "avions",
+      "rotationY": 0,
+      "tags": ["aeroport", "avion"]
+    },
+    {
+      "id": "avion_cessna",
+      "source": "avion_cessna.glb",
+      "sourceDir": "public/models/aeroport/avions",
+      "folder": "avions",
+      "category": "avions",
+      "rotationY": 0,
+      "tags": ["aeroport", "avion"]
+    },
+    {
+      "id": "avion_cessna_jaune",
+      "source": "avion_cessna_jaune.glb",
+      "sourceDir": "public/models/aeroport/avions",
+      "folder": "avions",
+      "category": "avions",
+      "rotationY": 0,
+      "tags": ["aeroport", "avion"]
+    },
+    {
+      "id": "avion_piper",
+      "source": "avion_piper.glb",
+      "sourceDir": "public/models/aeroport/avions",
+      "folder": "avions",
+      "category": "avions",
+      "rotationY": 0,
+      "tags": ["aeroport", "avion"]
+    },
+    {
+      "id": "voiture_berline",
+      "source": "voiture_berline.glb",
+      "sourceDir": "public/models/voiture",
+      "folder": "voitures",
+      "category": "vehicules",
+      "rotationY": 0,
+      "paint": "carrosserie",
+      "tags": ["voiture"]
+    },
+    {
+      "id": "voiture_camion",
+      "source": "voiture_camion.glb",
+      "sourceDir": "public/models/voiture",
+      "folder": "voitures",
+      "category": "vehicules",
+      "rotationY": 0,
+      "paint": "carrosserie",
+      "tags": ["voiture"]
+    },
+    {
+      "id": "voiture_camionnette",
+      "source": "voiture_camionnette.glb",
+      "sourceDir": "public/models/voiture",
+      "folder": "voitures",
+      "category": "vehicules",
+      "rotationY": 0,
+      "paint": "carrosserie",
+      "tags": ["voiture"]
+    },
+    {
+      "id": "voiture_citadine",
+      "source": "voiture_citadine.glb",
+      "sourceDir": "public/models/voiture",
+      "folder": "voitures",
+      "category": "vehicules",
+      "rotationY": 0,
+      "paint": "carrosserie",
+      "tags": ["voiture"]
+    },
+    {
+      "id": "voiture_coupe",
+      "source": "voiture_coupe.glb",
+      "sourceDir": "public/models/voiture",
+      "folder": "voitures",
+      "category": "vehicules",
+      "rotationY": 0,
+      "paint": "carrosserie",
+      "tags": ["voiture"]
+    },
+    {
+      "id": "voiture_fourgon",
+      "source": "voiture_fourgon.glb",
+      "sourceDir": "public/models/voiture",
+      "folder": "voitures",
+      "category": "vehicules",
+      "rotationY": 0,
+      "paint": "carrosserie",
+      "tags": ["voiture"]
+    },
+    {
+      "id": "voiture_muscle",
+      "source": "voiture_muscle.glb",
+      "sourceDir": "public/models/voiture",
+      "folder": "voitures",
+      "category": "vehicules",
+      "rotationY": 0,
+      "paint": "carrosserie",
+      "tags": ["voiture"]
+    },
+    {
+      "id": "voiture_pickup",
+      "source": "voiture_pickup.glb",
+      "sourceDir": "public/models/voiture",
+      "folder": "voitures",
+      "category": "vehicules",
+      "rotationY": 0,
+      "paint": "carrosserie",
+      "tags": ["voiture"]
+    },
+    {
+      "id": "voiture_police",
+      "source": "voiture_police.glb",
+      "sourceDir": "public/models/voiture",
+      "folder": "voitures",
+      "category": "vehicules",
+      "rotationY": 0,
+      "tags": ["voiture", "police"]
+    },
+    {
+      "id": "voiture_police_suv",
+      "source": "voiture_police_suv.glb",
+      "sourceDir": "public/models/voiture",
+      "folder": "voitures",
+      "category": "vehicules",
+      "rotationY": 0,
+      "tags": ["voiture", "police"]
+    },
+    {
+      "id": "objet_arbre_boules",
+      "source": "objet_arbre_boules.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "vegetation",
+      "rotationY": 0,
+      "collision": "circle",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_arbre_cypres",
+      "source": "objet_arbre_cypres.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "vegetation",
+      "rotationY": 0,
+      "collision": "circle",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_arbre_rond",
+      "source": "objet_arbre_rond.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "vegetation",
+      "rotationY": 0,
+      "collision": "circle",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_arceau_velo",
+      "source": "objet_arceau_velo.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_armoire_grande",
+      "source": "objet_armoire_grande.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "rect",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_armoire_petite",
+      "source": "objet_armoire_petite.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "rect",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_banc",
+      "source": "objet_banc.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "rect",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_barriere",
+      "source": "objet_barriere.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_boite_lettres_bleue",
+      "source": "objet_boite_lettres_bleue.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_boite_lettres_grise",
+      "source": "objet_boite_lettres_grise.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_borne_jaune",
+      "source": "objet_borne_jaune.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_borne_orange",
+      "source": "objet_borne_orange.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_borne_rouge",
+      "source": "objet_borne_rouge.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_cabine_telephone",
+      "source": "objet_cabine_telephone.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "rect",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_feu_tricolore",
+      "source": "objet_feu_tricolore.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_kiosque",
+      "source": "objet_kiosque.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "rect",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_lampadaire_crosse",
+      "source": "objet_lampadaire_crosse.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": -90,
+      "collision": "none",
+      "tags": ["objet"],
+      "keepOrigin": true
+    },
+    {
+      "id": "objet_lampadaire_lanterne",
+      "source": "objet_lampadaire_lanterne.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "circle",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_panneau_direction",
+      "source": "objet_panneau_direction.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_panneau_rue",
+      "source": "objet_panneau_rue.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_panneau_sens_interdit",
+      "source": "objet_panneau_sens_interdit.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_panneau_stop",
+      "source": "objet_panneau_stop.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_plot",
+      "source": "objet_plot.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_poubelle_capot",
+      "source": "objet_poubelle_capot.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_poubelle_metal",
+      "source": "objet_poubelle_metal.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_poubelle_noire",
+      "source": "objet_poubelle_noire.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["objet"]
+    },
+    {
+      "id": "objet_velo",
+      "source": "objet_velo.glb",
+      "sourceDir": "public/models/OBJECT",
+      "folder": "objets",
+      "category": "props",
+      "rotationY": 0,
+      "collision": "none",
+      "tags": ["objet"]
     }
   ]
 }

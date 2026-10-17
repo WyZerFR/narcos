@@ -45,7 +45,13 @@ export interface PropItem {
 const active = new Map<string, PropCategory>();
 
 export function propDrawCalls(): Record<PropCategory, number> {
-  const out: Record<PropCategory, number> = { batiments: 0, vehicules: 0, props: 0, vegetation: 0 };
+  const out: Record<PropCategory, number> = {
+    batiments: 0,
+    vehicules: 0,
+    avions: 0,
+    props: 0,
+    vegetation: 0,
+  };
   for (const c of active.values()) out[c]++;
   return out;
 }

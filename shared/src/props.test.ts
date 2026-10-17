@@ -82,6 +82,8 @@ describe('décor 3D importé (props.json)', () => {
         max: b.max.map((v, k) => v + p.offset[k]!) as [number, number, number],
       };
       expect(modelOrigin(moved), p.id).toBe('pied');
+      // origine gardée (groupe calé sur son bâtiment, lampadaire sur son mât) : pas de recentrage
+      if (p.keepOrigin) continue;
       expect(moved.min[0] + moved.max[0], p.id).toBeCloseTo(0, 2);
       expect(moved.min[2] + moved.max[2], p.id).toBeCloseTo(0, 2);
     }
@@ -246,6 +248,23 @@ describe('bâtiments de quartier (familles corner et row)', () => {
       };
       expect(glb.meshes[0]!.primitives[0]!.attributes._EMISSIVE, p.id).toBeDefined();
     }
+  });
+
+  it('carrosserie : attribut _PAINT sur les voitures teintées seulement, groupes sans collision', () => {
+    const props = [...gameData.props.values()];
+    const painted = props.filter((p) => p.paint);
+    expect(painted.length).toBeGreaterThan(0);
+    for (const p of props) {
+      const glb = glbJson(join(PUBLIC, p.model)) as unknown as {
+        meshes: { primitives: { attributes: Record<string, number> }[] }[];
+      };
+      const attr = glb.meshes[0]!.primitives[0]!.attributes._PAINT;
+      if (p.paint) expect(attr, p.id).toBeDefined();
+      else expect(attr, p.id).toBeUndefined();
+      if (p.keepOrigin) expect(p.collision, p.id).toBeNull();
+    }
+    // police : livrée gardée
+    expect(props.find((p) => p.id === 'voiture_police')?.paint).toBeUndefined();
   });
 
   it('refusé sans emprise ou avec une collision qui en déborde', () => {
