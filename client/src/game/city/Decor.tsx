@@ -17,18 +17,14 @@ import {
 } from 'three';
 import {
   airportLayout,
-  expandRect,
-  interactionPoint,
   greeneryLayout,
   hasFacade,
   kitModelled,
   lotCars,
-  rectFromCenter,
-  rectContainsPoint,
+  streetlightPlacements,
   type GameData,
   type QuartierLayout,
   type QuartierParams,
-  type Rect,
   type Vec2,
 } from '@narco/shared';
 import { Batch, shade } from './batch';
@@ -47,46 +43,6 @@ interface Placement {
 
 const LAMP_H = 4.6;
 const ARM = 1.3;
-
-/** Lampadaires générés le long des routes, côté extérieur du trottoir, hors croisements. */
-function streetlightPlacements(data: GameData): Placement[] {
-  const { map, decor } = data.config;
-  const doors = [...data.locations.values()].map(interactionPoint);
-  const roads = map.roads.map((r) => rectFromCenter(r, r));
-  const out: Placement[] = [];
-  roads.forEach((road, i) => {
-    const crossings = roads
-      .filter((_, j) => j !== i)
-      .map((o) => expandRect(o, map.sidewalkWidth + 1));
-    const alongX = road.maxX - road.minX >= road.maxZ - road.minZ;
-    const edge = map.sidewalkWidth - decor.streetlights.inset;
-    const sides = alongX
-      ? [
-          { off: road.minZ - edge, rotY: 0 },
-          { off: road.maxZ + edge, rotY: Math.PI },
-        ]
-      : [
-          { off: road.minX - edge, rotY: Math.PI / 2 },
-          { off: road.maxX + edge, rotY: -Math.PI / 2 },
-        ];
-    const from = alongX ? road.minX : road.minZ;
-    const to = alongX ? road.maxX : road.maxZ;
-    sides.forEach((side, k) => {
-      // décalage d'un demi-pas sur un côté sur deux : quinconce
-      for (
-        let t = from + decor.streetlights.spacing * (k ? 0.5 : 1);
-        t < to - 1;
-        t += decor.streetlights.spacing
-      ) {
-        const p = alongX ? { x: t, z: side.off } : { x: side.off, z: t };
-        if (crossings.some((c: Rect) => rectContainsPoint(c, p))) continue;
-        if (doors.some((dp) => Math.hypot(dp.x - p.x, dp.z - p.z) < 3)) continue;
-        out.push({ ...p, rotY: side.rotY });
-      }
-    });
-  });
-  return out;
-}
 
 /** Points de décor des quartiers générés, avec leur quartier et l'axe de la rue la plus proche. */
 function quartierPlacements(
@@ -295,13 +251,20 @@ export function Decor({
       toneMapped: false,
     });
     const streetLamp = shade(palette.neon, 1.2);
-    const lamps: Placement[] = [
-      ...streetlightPlacements(data).map((l) => ({ ...l, color: streetLamp })),
-      ...quartierPlacements(data, (l) => l.lamps).map((p) => ({
-        ...p,
-        rotY: p.x < p.axisX ? Math.PI / 2 : -Math.PI / 2, // bras vers l'axe de l'impasse
-        color: shade(p.q.palette.lamp, 1.2),
-      })),
+    const streetLamps: Placement[] = streetlightPlacements(data).map((l) => ({
+      ...l,
+      color: streetLamp,
+    }));
+    const quartierLamps: Placement[] = quartierPlacements(data, (l) => l.lamps).map((p) => ({
+      ...p,
+      rotY: p.x < p.axisX ? Math.PI / 2 : -Math.PI / 2, // bras vers l'axe de l'impasse
+      color: shade(p.q.palette.lamp, 1.2),
+    }));
+    const lamps = [...streetLamps, ...quartierLamps];
+    // mâts et têtes générés seulement là où les lampadaires ne sont pas modélisés ; halos partout
+    const generatedLamps = [
+      ...(kitModelled(data, 'lamps') ? [] : streetLamps),
+      ...(kitModelled(data, 'quartierLamps') ? [] : quartierLamps),
     ];
 
     // arbre low-poly : tronc + houppier à facettes
@@ -476,9 +439,9 @@ export function Decor({
         key: 'poles',
         geometry: pole.build(),
         material: solidMaterial,
-        items: lamps.map(({ color: _c, ...p }) => p),
+        items: generatedLamps.map(({ color: _c, ...p }) => p),
       },
-      { key: 'heads', geometry: head.build(), material: glowMaterial, items: lamps },
+      { key: 'heads', geometry: head.build(), material: glowMaterial, items: generatedLamps },
       { key: 'pools', hidden: !halos, geometry: pool, material: poolMaterial, items: lamps },
       {
         key: 'trees',
@@ -528,6 +491,7 @@ export function Decor({
       },
       {
         key: 'bins',
+        hidden: kitModelled(data, 'bins'),
         geometry: bin.build(),
         material: solidMaterial,
         items: at([

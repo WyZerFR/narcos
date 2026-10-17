@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { footprint, gameData, allPlacements, type Rect } from '@narco/shared';
+import {
+  footprint,
+  gameData,
+  allPlacements,
+  streetlightPlacements,
+  type Rect,
+} from '@narco/shared';
 import { BoxGeometry } from 'three';
 import { blockModelHeights, mergedFacadeIds, mergedPropIds, propKitItems } from './propPlacements';
 import { propSize } from './propAssets';
@@ -226,5 +232,26 @@ describe('assemblage : voitures, avions, hangars', () => {
     const merged = mergedPropIds(gameData);
     for (const id of kits.hangars.props) expect(facades.has(id), id).toBe(true);
     for (const id of kits.planes.props) expect(merged.has(id), id).toBe(true);
+  });
+});
+
+describe('assemblage : lampadaires, poubelles, arbres', () => {
+  it('un modèle par décor généré remplacé, aux mêmes positions', () => {
+    const layouts = [...gameData.quartierLayouts.values()];
+    const street = streetlightPlacements(gameData);
+    expect(instancesOf(kits.lamps.props)).toHaveLength(street.length);
+    for (const [, it] of instancesOf(kits.lamps.props))
+      expect(street.some((l) => l.x === it.x && l.z === it.z)).toBe(true);
+    expect(instancesOf(kits.quartierLamps.props)).toHaveLength(
+      layouts.reduce((n, l) => n + l.lamps.length, 0),
+    );
+    const bins =
+      gameData.config.decor.bins.length +
+      layouts.reduce(
+        (n, l) => n + l.bins.length + l.gardens.reduce((m, g) => m + g.bins.length, 0),
+        0,
+      );
+    expect(instancesOf(kits.bins.props)).toHaveLength(bins);
+    for (const id of kits.trees.props) expect(id).toMatch(/^objet_arbre_/);
   });
 });

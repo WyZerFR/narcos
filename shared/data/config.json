@@ -876,6 +876,68 @@
     "drawCallTarget": 62,
     "drawCallBudget": 200,
     "maxStretch": 1.15,
+    "scatter": {
+      "curbInset": 0.3,
+      "phase": 4,
+      "areas": {
+        "centre_ville": {
+          "spacing": 9,
+          "corner": "objet_feu_tricolore",
+          "props": [
+            "objet_banc",
+            "objet_boite_lettres_bleue",
+            "objet_borne_rouge",
+            "objet_cabine_telephone",
+            "objet_arceau_velo",
+            "objet_armoire_grande",
+            "objet_kiosque",
+            "objet_velo",
+            "objet_panneau_rue",
+            "objet_poubelle_metal"
+          ]
+        },
+        "commercial": {
+          "spacing": 10,
+          "corner": "objet_panneau_stop",
+          "props": [
+            "objet_borne_jaune",
+            "objet_plot",
+            "objet_arceau_velo",
+            "objet_poubelle_metal",
+            "objet_panneau_direction",
+            "objet_cabine_telephone",
+            "objet_banc"
+          ]
+        },
+        "chez_nous": {
+          "spacing": 12,
+          "corner": "objet_panneau_rue",
+          "props": [
+            "objet_boite_lettres_grise",
+            "objet_banc",
+            "objet_velo",
+            "objet_poubelle_capot",
+            "objet_armoire_petite"
+          ]
+        },
+        "bas_fonds": {
+          "spacing": 11,
+          "corner": "objet_panneau_sens_interdit",
+          "props": [
+            "objet_poubelle_metal",
+            "objet_barriere",
+            "objet_armoire_petite",
+            "objet_plot",
+            "objet_borne_orange"
+          ]
+        },
+        "cartel": {
+          "spacing": 12,
+          "corner": "objet_panneau_stop",
+          "props": ["objet_barriere", "objet_plot", "objet_borne_orange", "objet_armoire_grande"]
+        }
+      }
+    },
     "paints": [
       { "color": "danger", "shade": 0.85 },
       { "color": "neon", "shade": 1 },

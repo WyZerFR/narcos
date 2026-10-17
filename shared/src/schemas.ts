@@ -286,6 +286,9 @@ const PropBudgetSchema = z.object({
   maxFileMB: pos,
 });
 
+/** Identifiant de prop ou d'area (même forme que `slug`, déclaré plus bas). */
+const propId = z.string().regex(/^[a-z0-9_]+$/);
+
 /** Décor 3D importé (`props.json`) : budgets par catégorie, import, rendu. */
 export const PropsConfigSchema = z.object({
   /** Budget iPad par fichier et par catégorie (`npm run models -- --props`). */
@@ -307,6 +310,19 @@ export const PropsConfigSchema = z.object({
   /** Objectif de draw calls par area (overlay debug) et plafond total. */
   drawCallTarget: z.number().int().positive(),
   drawCallBudget: z.number().int().positive(),
+  /**
+   * Objets de la ville semés sur les trottoirs (`scatterPlacements`) : retrait depuis le bord
+   * de la route (m), décalage du premier objet, et par area : pas entre deux objets (m, densité),
+   * props en alternance, prop d'angle après chaque croisement (feu tricolore).
+   */
+  scatter: z.object({
+    curbInset: z.number().min(0),
+    phase: z.number().min(0),
+    areas: z.record(
+      propId,
+      z.object({ spacing: pos, props: z.array(propId).min(1), corner: propId.optional() }),
+    ),
+  }),
   /** Teintes de carrosserie (props `paint`), une par instance en alternance : palette × facteur. */
   paints: z
     .array(z.object({ color: PaletteSchema.keyof().exclude(['windows']), shade: pos }))
@@ -1601,6 +1617,9 @@ export const PROP_KIT_IDS = [
   'bushes',
   'planes',
   'hangars',
+  'lamps',
+  'quartierLamps',
+  'bins',
 ] as const;
 export type PropKitId = (typeof PROP_KIT_IDS)[number];
 

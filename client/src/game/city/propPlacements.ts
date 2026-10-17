@@ -6,6 +6,7 @@ import {
   greeneryLayout,
   hasFacade,
   lotCars,
+  streetlightPlacements,
   type GameData,
   type PropKitId,
   type Rect,
@@ -69,6 +70,16 @@ function spots(data: GameData, kit: PropKitId): Spot[] {
           box: boxOf(h.rect, h.height),
         })),
       );
+    case 'lamps':
+      return streetlightPlacements(data);
+    case 'quartierLamps':
+      return layouts.flatMap((l) => l.lamps).map((p) => ({ x: p.x, z: p.z, rotY: 0 }));
+    case 'bins':
+      // mêmes poubelles que Decor (rue, impasses, jardins), même rotation
+      return [
+        ...decor.bins,
+        ...layouts.flatMap((l) => [...l.bins, ...l.gardens.flatMap((g) => g.bins)]),
+      ].map((p, i) => ({ x: p.x, z: p.z, rotY: i * 0.7 }));
     case 'planes':
     case 'hangars': {
       const { airport } = data.config;

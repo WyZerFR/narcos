@@ -41,3 +41,4 @@ export * from './crosswalks';
 export * from './greenery';
 export * from './shot';
 export * from './groundCover';
+export * from './streetFurniture';

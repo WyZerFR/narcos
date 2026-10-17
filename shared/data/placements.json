@@ -1,8 +1,9 @@
 {
   "kits": {
     "trees": {
-      "props": ["tree_default", "tree_oak", "tree_fat"],
-      "fit": "height"
+      "props": ["objet_arbre_rond", "objet_arbre_boules", "objet_arbre_cypres"],
+      "fit": "height",
+      "heightScale": 1.5
     },
     "palms": {
       "props": ["palm_tall", "palm_bend"],
@@ -46,6 +47,21 @@
       "fit": "box",
       "alternate": true,
       "merge": true
+    },
+    "lamps": {
+      "props": ["objet_lampadaire_crosse"],
+      "fit": "height",
+      "heightScale": 0.9
+    },
+    "quartierLamps": {
+      "props": ["objet_lampadaire_lanterne"],
+      "fit": "height",
+      "heightScale": 0.9
+    },
+    "bins": {
+      "props": ["objet_poubelle_noire"],
+      "fit": "height",
+      "heightScale": 1.1
     }
   },
   "areas": {

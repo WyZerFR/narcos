@@ -58,6 +58,9 @@ const KIT_CATEGORY: Record<PropKitId, PropCategory> = {
   bushes: 'vegetation',
   planes: 'avions',
   hangars: 'batiments',
+  lamps: 'props',
+  quartierLamps: 'props',
+  bins: 'props',
 };
 
 /** Le décor généré `kit` est-il remplacé par des modèles ? */

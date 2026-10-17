@@ -34,22 +34,10 @@
       "source": "GLB format car/sedan.glb",
       "height": 1.5,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0.025
-      ],
+      "offset": [0, 0, 0.025],
       "bounds": {
-        "min": [
-          -0.75,
-          0,
-          -1.3
-        ],
-        "max": [
-          0.75,
-          1.3,
-          1.25
-        ]
+        "min": [-0.75, 0, -1.3],
+        "max": [0.75, 1.3, 1.25]
       },
       "collision": {
         "shape": "rect",
@@ -61,10 +49,7 @@
       "texture": "models/textures/car.png",
       "triangles": 979,
       "luminance": 0.164,
-      "tags": [
-        "voiture",
-        "civile"
-      ]
+      "tags": ["voiture", "civile"]
     },
     {
       "id": "sedan_sports",
@@ -73,22 +58,10 @@
       "source": "GLB format car/sedan-sports.glb",
       "height": 1.35,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0.025
-      ],
+      "offset": [0, 0, 0.025],
       "bounds": {
-        "min": [
-          -0.65,
-          0,
-          -1.3
-        ],
-        "max": [
-          0.65,
-          1.1,
-          1.25
-        ]
+        "min": [-0.65, 0, -1.3],
+        "max": [0.65, 1.1, 1.25]
       },
       "collision": {
         "shape": "rect",
@@ -100,10 +73,7 @@
       "texture": "models/textures/car.png",
       "triangles": 980,
       "luminance": 0.173,
-      "tags": [
-        "voiture",
-        "civile"
-      ]
+      "tags": ["voiture", "civile"]
     },
     {
       "id": "suv_luxury",
@@ -112,22 +82,10 @@
       "source": "GLB format car/suv-luxury.glb",
       "height": 1.65,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.025
-      ],
+      "offset": [0, 0, -0.025],
       "bounds": {
-        "min": [
-          -0.75,
-          0,
-          -1.4
-        ],
-        "max": [
-          0.75,
-          1.3,
-          1.45
-        ]
+        "min": [-0.75, 0, -1.4],
+        "max": [0.75, 1.3, 1.45]
       },
       "collision": {
         "shape": "rect",
@@ -139,11 +97,7 @@
       "texture": "models/textures/car.png",
       "triangles": 979,
       "luminance": 0.223,
-      "tags": [
-        "voiture",
-        "civile",
-        "luxe"
-      ]
+      "tags": ["voiture", "civile", "luxe"]
     },
     {
       "id": "hatchback_sports",
@@ -152,22 +106,10 @@
       "source": "GLB format car/hatchback-sports.glb",
       "height": 1.4,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0.025
-      ],
+      "offset": [0, 0, 0.025],
       "bounds": {
-        "min": [
-          -0.65,
-          0,
-          -1.45
-        ],
-        "max": [
-          0.65,
-          1.1,
-          1.4
-        ]
+        "min": [-0.65, 0, -1.45],
+        "max": [0.65, 1.1, 1.4]
       },
       "collision": {
         "shape": "rect",
@@ -179,10 +121,7 @@
       "texture": "models/textures/car.png",
       "triangles": 979,
       "luminance": 0.176,
-      "tags": [
-        "voiture",
-        "civile"
-      ]
+      "tags": ["voiture", "civile"]
     },
     {
       "id": "taxi",
@@ -191,22 +130,10 @@
       "source": "GLB format car/taxi.glb",
       "height": 1.7,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0.025
-      ],
+      "offset": [0, 0, 0.025],
       "bounds": {
-        "min": [
-          -0.75,
-          0,
-          -1.4
-        ],
-        "max": [
-          0.75,
-          1.5,
-          1.35
-        ]
+        "min": [-0.75, 0, -1.4],
+        "max": [0.75, 1.5, 1.35]
       },
       "collision": {
         "shape": "rect",
@@ -218,10 +145,7 @@
       "texture": "models/textures/car.png",
       "triangles": 980,
       "luminance": 0.189,
-      "tags": [
-        "voiture",
-        "civile"
-      ]
+      "tags": ["voiture", "civile"]
     },
     {
       "id": "van",
@@ -230,22 +154,10 @@
       "source": "GLB format car/van.glb",
       "height": 1.9,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0.025
-      ],
+      "offset": [0, 0, 0.025],
       "bounds": {
-        "min": [
-          -0.75,
-          0,
-          -1.4
-        ],
-        "max": [
-          0.75,
-          1.35,
-          1.35
-        ]
+        "min": [-0.75, 0, -1.4],
+        "max": [0.75, 1.35, 1.35]
       },
       "collision": {
         "shape": "rect",
@@ -257,9 +169,7 @@
       "texture": "models/textures/car.png",
       "triangles": 979,
       "luminance": 0.166,
-      "tags": [
-        "utilitaire"
-      ]
+      "tags": ["utilitaire"]
     },
     {
       "id": "police",
@@ -268,22 +178,10 @@
       "source": "GLB format car/police.glb",
       "height": 1.6,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.75,
-          0,
-          -1.55
-        ],
-        "max": [
-          0.75,
-          1.3,
-          1.55
-        ]
+        "min": [-0.75, 0, -1.55],
+        "max": [0.75, 1.3, 1.55]
       },
       "collision": {
         "shape": "rect",
@@ -295,10 +193,7 @@
       "texture": "models/textures/car.png",
       "triangles": 979,
       "luminance": 0.239,
-      "tags": [
-        "voiture",
-        "police"
-      ]
+      "tags": ["voiture", "police"]
     },
     {
       "id": "skyscraper_a",
@@ -307,22 +202,10 @@
       "source": "GLB format commercial/building-skyscraper-a.glb",
       "height": 30,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.68,
-          0,
-          -0.68
-        ],
-        "max": [
-          0.68,
-          2.88,
-          0.68
-        ]
+        "min": [-0.68, 0, -0.68],
+        "max": [0.68, 2.88, 0.68]
       },
       "collision": {
         "shape": "rect",
@@ -334,9 +217,7 @@
       "texture": "models/textures/commercial.png",
       "triangles": 1292,
       "luminance": 0.276,
-      "tags": [
-        "tour"
-      ]
+      "tags": ["tour"]
     },
     {
       "id": "skyscraper_b",
@@ -345,22 +226,10 @@
       "source": "GLB format commercial/building-skyscraper-b.glb",
       "height": 40,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.68,
-          0,
-          -0.68
-        ],
-        "max": [
-          0.68,
-          4.48,
-          0.68
-        ]
+        "min": [-0.68, 0, -0.68],
+        "max": [0.68, 4.48, 0.68]
       },
       "collision": {
         "shape": "rect",
@@ -372,9 +241,7 @@
       "texture": "models/textures/commercial.png",
       "triangles": 1592,
       "luminance": 0.291,
-      "tags": [
-        "tour"
-      ]
+      "tags": ["tour"]
     },
     {
       "id": "skyscraper_c",
@@ -383,22 +250,10 @@
       "source": "GLB format commercial/building-skyscraper-c.glb",
       "height": 36,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.64,
-          0,
-          -0.694
-        ],
-        "max": [
-          0.64,
-          4.08,
-          0.694
-        ]
+        "min": [-0.64, 0, -0.694],
+        "max": [0.64, 4.08, 0.694]
       },
       "collision": {
         "shape": "rect",
@@ -410,9 +265,7 @@
       "texture": "models/textures/commercial.png",
       "triangles": 1704,
       "luminance": 0.259,
-      "tags": [
-        "tour"
-      ]
+      "tags": ["tour"]
     },
     {
       "id": "skyscraper_d",
@@ -421,22 +274,10 @@
       "source": "GLB format commercial/building-skyscraper-d.glb",
       "height": 46,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.64,
-          0,
-          -0.694
-        ],
-        "max": [
-          0.64,
-          5.47,
-          0.694
-        ]
+        "min": [-0.64, 0, -0.694],
+        "max": [0.64, 5.47, 0.694]
       },
       "collision": {
         "shape": "rect",
@@ -448,9 +289,7 @@
       "texture": "models/textures/commercial.png",
       "triangles": 1892,
       "luminance": 0.287,
-      "tags": [
-        "tour"
-      ]
+      "tags": ["tour"]
     },
     {
       "id": "skyscraper_e",
@@ -459,22 +298,10 @@
       "source": "GLB format commercial/building-skyscraper-e.glb",
       "height": 34,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.647,
-          0,
-          -0.621
-        ],
-        "max": [
-          0.648,
-          4.08,
-          0.621
-        ]
+        "min": [-0.647, 0, -0.621],
+        "max": [0.648, 4.08, 0.621]
       },
       "collision": {
         "shape": "rect",
@@ -486,9 +313,7 @@
       "texture": "models/textures/commercial.png",
       "triangles": 1156,
       "luminance": 0.262,
-      "tags": [
-        "tour"
-      ]
+      "tags": ["tour"]
     },
     {
       "id": "shop_a",
@@ -497,22 +322,10 @@
       "source": "GLB format commercial/building-a.glb",
       "height": 12,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.442,
-          0,
-          -0.47
-        ],
-        "max": [
-          0.442,
-          1.293,
-          0.47
-        ]
+        "min": [-0.442, 0, -0.47],
+        "max": [0.442, 1.293, 0.47]
       },
       "collision": {
         "shape": "rect",
@@ -524,10 +337,7 @@
       "texture": "models/textures/commercial.png",
       "triangles": 1252,
       "luminance": 0.213,
-      "tags": [
-        "immeuble",
-        "commerce"
-      ]
+      "tags": ["immeuble", "commerce"]
     },
     {
       "id": "shop_c",
@@ -536,22 +346,10 @@
       "source": "GLB format commercial/building-c.glb",
       "height": 9,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.442,
-          0,
-          -0.545
-        ],
-        "max": [
-          0.442,
-          0.893,
-          0.545
-        ]
+        "min": [-0.442, 0, -0.545],
+        "max": [0.442, 0.893, 0.545]
       },
       "collision": {
         "shape": "rect",
@@ -563,10 +361,7 @@
       "texture": "models/textures/commercial.png",
       "triangles": 1195,
       "luminance": 0.247,
-      "tags": [
-        "immeuble",
-        "commerce"
-      ]
+      "tags": ["immeuble", "commerce"]
     },
     {
       "id": "shop_e",
@@ -575,22 +370,10 @@
       "source": "GLB format commercial/building-e.glb",
       "height": 9,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.82,
-          0,
-          -0.504
-        ],
-        "max": [
-          0.82,
-          0.893,
-          0.504
-        ]
+        "min": [-0.82, 0, -0.504],
+        "max": [0.82, 0.893, 0.504]
       },
       "collision": {
         "shape": "rect",
@@ -602,10 +385,7 @@
       "texture": "models/textures/commercial.png",
       "triangles": 1509,
       "luminance": 0.226,
-      "tags": [
-        "immeuble",
-        "commerce"
-      ]
+      "tags": ["immeuble", "commerce"]
     },
     {
       "id": "shop_h",
@@ -614,22 +394,10 @@
       "source": "GLB format commercial/building-h.glb",
       "height": 12,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.442,
-          0,
-          -0.504
-        ],
-        "max": [
-          0.442,
-          1.293,
-          0.504
-        ]
+        "min": [-0.442, 0, -0.504],
+        "max": [0.442, 1.293, 0.504]
       },
       "collision": {
         "shape": "rect",
@@ -641,10 +409,7 @@
       "texture": "models/textures/commercial.png",
       "triangles": 1512,
       "luminance": 0.175,
-      "tags": [
-        "immeuble",
-        "commerce"
-      ]
+      "tags": ["immeuble", "commerce"]
     },
     {
       "id": "block_a",
@@ -653,22 +418,10 @@
       "source": "GLB format commercial/low-detail-building-a.glb",
       "height": 16,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.25,
-          0,
-          -0.25
-        ],
-        "max": [
-          0.25,
-          2,
-          0.25
-        ]
+        "min": [-0.25, 0, -0.25],
+        "max": [0.25, 2, 0.25]
       },
       "collision": {
         "shape": "rect",
@@ -680,10 +433,7 @@
       "texture": "models/textures/commercial.png",
       "triangles": 188,
       "luminance": 0.703,
-      "tags": [
-        "immeuble",
-        "remplissage"
-      ]
+      "tags": ["immeuble", "remplissage"]
     },
     {
       "id": "block_d",
@@ -692,22 +442,10 @@
       "source": "GLB format commercial/low-detail-building-d.glb",
       "height": 14,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.25,
-          0,
-          -0.25
-        ],
-        "max": [
-          0.25,
-          1.75,
-          0.25
-        ]
+        "min": [-0.25, 0, -0.25],
+        "max": [0.25, 1.75, 0.25]
       },
       "collision": {
         "shape": "rect",
@@ -719,10 +457,7 @@
       "texture": "models/textures/commercial.png",
       "triangles": 106,
       "luminance": 0.689,
-      "tags": [
-        "immeuble",
-        "remplissage"
-      ]
+      "tags": ["immeuble", "remplissage"]
     },
     {
       "id": "block_g",
@@ -731,22 +466,10 @@
       "source": "GLB format commercial/low-detail-building-g.glb",
       "height": 16,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.25,
-          0,
-          -0.25
-        ],
-        "max": [
-          0.25,
-          2,
-          0.25
-        ]
+        "min": [-0.25, 0, -0.25],
+        "max": [0.25, 2, 0.25]
       },
       "collision": {
         "shape": "rect",
@@ -758,10 +481,7 @@
       "texture": "models/textures/commercial.png",
       "triangles": 200,
       "luminance": 0.66,
-      "tags": [
-        "immeuble",
-        "remplissage"
-      ]
+      "tags": ["immeuble", "remplissage"]
     },
     {
       "id": "block_j",
@@ -770,22 +490,10 @@
       "source": "GLB format commercial/low-detail-building-j.glb",
       "height": 14,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.25,
-          0,
-          -0.25
-        ],
-        "max": [
-          0.25,
-          1.75,
-          0.25
-        ]
+        "min": [-0.25, 0, -0.25],
+        "max": [0.25, 1.75, 0.25]
       },
       "collision": {
         "shape": "rect",
@@ -797,10 +505,7 @@
       "texture": "models/textures/commercial.png",
       "triangles": 188,
       "luminance": 0.699,
-      "tags": [
-        "immeuble",
-        "remplissage"
-      ]
+      "tags": ["immeuble", "remplissage"]
     },
     {
       "id": "block_wide_a",
@@ -809,22 +514,10 @@
       "source": "GLB format commercial/low-detail-building-wide-a.glb",
       "height": 10,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.5,
-          0,
-          -0.25
-        ],
-        "max": [
-          0.5,
-          1.1,
-          0.25
-        ]
+        "min": [-0.5, 0, -0.25],
+        "max": [0.5, 1.1, 0.25]
       },
       "collision": {
         "shape": "rect",
@@ -836,10 +529,7 @@
       "texture": "models/textures/commercial.png",
       "triangles": 156,
       "luminance": 0.701,
-      "tags": [
-        "immeuble",
-        "remplissage"
-      ]
+      "tags": ["immeuble", "remplissage"]
     },
     {
       "id": "house_a",
@@ -848,22 +538,10 @@
       "source": "GLB format suburban/building-type-a.glb",
       "height": 6,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.65,
-          0,
-          -0.514
-        ],
-        "max": [
-          0.65,
-          0.834,
-          0.514
-        ]
+        "min": [-0.65, 0, -0.514],
+        "max": [0.65, 0.834, 0.514]
       },
       "collision": {
         "shape": "rect",
@@ -875,9 +553,7 @@
       "texture": "models/textures/suburban.png",
       "triangles": 1174,
       "luminance": 0.293,
-      "tags": [
-        "maison"
-      ]
+      "tags": ["maison"]
     },
     {
       "id": "house_c",
@@ -886,22 +562,10 @@
       "source": "GLB format suburban/building-type-c.glb",
       "height": 7,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.643,
-          0,
-          -0.514
-        ],
-        "max": [
-          0.643,
-          1.034,
-          0.514
-        ]
+        "min": [-0.643, 0, -0.514],
+        "max": [0.643, 1.034, 0.514]
       },
       "collision": {
         "shape": "rect",
@@ -913,9 +577,7 @@
       "texture": "models/textures/suburban.png",
       "triangles": 1196,
       "luminance": 0.306,
-      "tags": [
-        "maison"
-      ]
+      "tags": ["maison"]
     },
     {
       "id": "house_h",
@@ -924,22 +586,10 @@
       "source": "GLB format suburban/building-type-h.glb",
       "height": 5.5,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.65,
-          0,
-          -0.458
-        ],
-        "max": [
-          0.65,
-          0.737,
-          0.458
-        ]
+        "min": [-0.65, 0, -0.458],
+        "max": [0.65, 0.737, 0.458]
       },
       "collision": {
         "shape": "rect",
@@ -951,9 +601,7 @@
       "texture": "models/textures/suburban.png",
       "triangles": 770,
       "luminance": 0.251,
-      "tags": [
-        "maison"
-      ]
+      "tags": ["maison"]
     },
     {
       "id": "house_k",
@@ -962,22 +610,10 @@
       "source": "GLB format suburban/building-type-k.glb",
       "height": 8,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.46,
-          0,
-          -0.51
-        ],
-        "max": [
-          0.46,
-          1.15,
-          0.51
-        ]
+        "min": [-0.46, 0, -0.51],
+        "max": [0.46, 1.15, 0.51]
       },
       "collision": {
         "shape": "rect",
@@ -989,9 +625,7 @@
       "texture": "models/textures/suburban.png",
       "triangles": 1024,
       "luminance": 0.252,
-      "tags": [
-        "maison"
-      ]
+      "tags": ["maison"]
     },
     {
       "id": "house_p",
@@ -1000,22 +634,10 @@
       "source": "GLB format suburban/building-type-p.glb",
       "height": 6.5,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.62,
-          0,
-          -0.495
-        ],
-        "max": [
-          0.62,
-          0.918,
-          0.495
-        ]
+        "min": [-0.62, 0, -0.495],
+        "max": [0.62, 0.918, 0.495]
       },
       "collision": {
         "shape": "rect",
@@ -1027,9 +649,7 @@
       "texture": "models/textures/suburban.png",
       "triangles": 1282,
       "luminance": 0.205,
-      "tags": [
-        "maison"
-      ]
+      "tags": ["maison"]
     },
     {
       "id": "house_r",
@@ -1038,22 +658,10 @@
       "source": "GLB format suburban/building-type-r.glb",
       "height": 8,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.514,
-          0,
-          -0.51
-        ],
-        "max": [
-          0.514,
-          1.141,
-          0.51
-        ]
+        "min": [-0.514, 0, -0.51],
+        "max": [0.514, 1.141, 0.51]
       },
       "collision": {
         "shape": "rect",
@@ -1065,9 +673,7 @@
       "texture": "models/textures/suburban.png",
       "triangles": 1030,
       "luminance": 0.272,
-      "tags": [
-        "maison"
-      ]
+      "tags": ["maison"]
     },
     {
       "id": "warehouse_a",
@@ -1076,22 +682,10 @@
       "source": "GLB format industrie/building-a.glb",
       "height": 9,
       "rotationY": 0,
-      "offset": [
-        -0.001,
-        0,
-        0
-      ],
+      "offset": [-0.001, 0, 0],
       "bounds": {
-        "min": [
-          -1.041,
-          0,
-          -0.621
-        ],
-        "max": [
-          1.043,
-          1.47,
-          0.621
-        ]
+        "min": [-1.041, 0, -0.621],
+        "max": [1.043, 1.47, 0.621]
       },
       "collision": {
         "shape": "rect",
@@ -1103,9 +697,7 @@
       "texture": "models/textures/industrie.png",
       "triangles": 2046,
       "luminance": 0.186,
-      "tags": [
-        "entrepot"
-      ]
+      "tags": ["entrepot"]
     },
     {
       "id": "warehouse_g",
@@ -1114,22 +706,10 @@
       "source": "GLB format industrie/building-g.glb",
       "height": 8,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.839,
-          0,
-          -0.642
-        ],
-        "max": [
-          0.839,
-          1.28,
-          0.642
-        ]
+        "min": [-0.839, 0, -0.642],
+        "max": [0.839, 1.28, 0.642]
       },
       "collision": {
         "shape": "rect",
@@ -1141,9 +721,7 @@
       "texture": "models/textures/industrie.png",
       "triangles": 1242,
       "luminance": 0.192,
-      "tags": [
-        "entrepot"
-      ]
+      "tags": ["entrepot"]
     },
     {
       "id": "water_tower",
@@ -1152,22 +730,10 @@
       "source": "GLB format industrie/water-tower.glb",
       "height": 14,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.426,
-          0,
-          -0.416
-        ],
-        "max": [
-          0.426,
-          2.142,
-          0.416
-        ]
+        "min": [-0.426, 0, -0.416],
+        "max": [0.426, 2.142, 0.416]
       },
       "collision": {
         "shape": "rect",
@@ -1179,9 +745,7 @@
       "texture": "models/textures/industrie.png",
       "triangles": 968,
       "luminance": 0.21,
-      "tags": [
-        "industrie"
-      ]
+      "tags": ["industrie"]
     },
     {
       "id": "tree_default",
@@ -1190,22 +754,10 @@
       "source": "GLTF format nature/tree_default.glb",
       "height": 5,
       "rotationY": 0,
-      "offset": [
-        0,
-        0.05,
-        0
-      ],
+      "offset": [0, 0.05, 0],
       "bounds": {
-        "min": [
-          -0.378,
-          -0.05,
-          -0.327
-        ],
-        "max": [
-          0.378,
-          1.658,
-          0.327
-        ]
+        "min": [-0.378, -0.05, -0.327],
+        "max": [0.378, 1.658, 0.327]
       },
       "collision": {
         "shape": "circle",
@@ -1215,9 +767,7 @@
       "cuttable": false,
       "triangles": 114,
       "luminance": 0.604,
-      "tags": [
-        "arbre"
-      ]
+      "tags": ["arbre"]
     },
     {
       "id": "tree_oak",
@@ -1226,22 +776,10 @@
       "source": "GLTF format nature/tree_oak.glb",
       "height": 4.6,
       "rotationY": 0,
-      "offset": [
-        0,
-        0.05,
-        0
-      ],
+      "offset": [0, 0.05, 0],
       "bounds": {
-        "min": [
-          -0.32,
-          -0.05,
-          -0.37
-        ],
-        "max": [
-          0.32,
-          1.176,
-          0.37
-        ]
+        "min": [-0.32, -0.05, -0.37],
+        "max": [0.32, 1.176, 0.37]
       },
       "collision": {
         "shape": "circle",
@@ -1251,9 +789,7 @@
       "cuttable": false,
       "triangles": 196,
       "luminance": 0.602,
-      "tags": [
-        "arbre"
-      ]
+      "tags": ["arbre"]
     },
     {
       "id": "tree_fat",
@@ -1262,22 +798,10 @@
       "source": "GLTF format nature/tree_fat.glb",
       "height": 4.2,
       "rotationY": 0,
-      "offset": [
-        0,
-        0.05,
-        0
-      ],
+      "offset": [0, 0.05, 0],
       "bounds": {
-        "min": [
-          -0.378,
-          -0.05,
-          -0.327
-        ],
-        "max": [
-          0.378,
-          1.1,
-          0.327
-        ]
+        "min": [-0.378, -0.05, -0.327],
+        "max": [0.378, 1.1, 0.327]
       },
       "collision": {
         "shape": "circle",
@@ -1287,9 +811,7 @@
       "cuttable": false,
       "triangles": 50,
       "luminance": 0.633,
-      "tags": [
-        "arbre"
-      ]
+      "tags": ["arbre"]
     },
     {
       "id": "palm_tall",
@@ -1298,22 +820,10 @@
       "source": "GLTF format nature/tree_palmTall.glb",
       "height": 6,
       "rotationY": 0,
-      "offset": [
-        0,
-        0.05,
-        -0.003
-      ],
+      "offset": [0, 0.05, -0.003],
       "bounds": {
-        "min": [
-          -0.517,
-          -0.05,
-          -0.515
-        ],
-        "max": [
-          0.517,
-          1.306,
-          0.52
-        ]
+        "min": [-0.517, -0.05, -0.515],
+        "max": [0.517, 1.306, 0.52]
       },
       "collision": {
         "shape": "circle",
@@ -1323,9 +833,7 @@
       "cuttable": false,
       "triangles": 190,
       "luminance": 0.635,
-      "tags": [
-        "palmier"
-      ]
+      "tags": ["palmier"]
     },
     {
       "id": "palm_bend",
@@ -1334,22 +842,10 @@
       "source": "GLTF format nature/tree_palmBend.glb",
       "height": 5.5,
       "rotationY": 0,
-      "offset": [
-        0,
-        0.05,
-        0
-      ],
+      "offset": [0, 0.05, 0],
       "bounds": {
-        "min": [
-          -0.468,
-          -0.05,
-          -0.506
-        ],
-        "max": [
-          0.468,
-          1.33,
-          0.506
-        ]
+        "min": [-0.468, -0.05, -0.506],
+        "max": [0.468, 1.33, 0.506]
       },
       "collision": {
         "shape": "circle",
@@ -1359,9 +855,7 @@
       "cuttable": false,
       "triangles": 200,
       "luminance": 0.635,
-      "tags": [
-        "palmier"
-      ]
+      "tags": ["palmier"]
     },
     {
       "id": "palm_short",
@@ -1370,22 +864,10 @@
       "source": "GLTF format nature/tree_palmShort.glb",
       "height": 4.5,
       "rotationY": 0,
-      "offset": [
-        0,
-        0.05,
-        -0.003
-      ],
+      "offset": [0, 0.05, -0.003],
       "bounds": {
-        "min": [
-          -0.517,
-          -0.05,
-          -0.515
-        ],
-        "max": [
-          0.517,
-          1.006,
-          0.52
-        ]
+        "min": [-0.517, -0.05, -0.515],
+        "max": [0.517, 1.006, 0.52]
       },
       "collision": {
         "shape": "circle",
@@ -1395,9 +877,7 @@
       "cuttable": false,
       "triangles": 190,
       "luminance": 0.635,
-      "tags": [
-        "palmier"
-      ]
+      "tags": ["palmier"]
     },
     {
       "id": "bush",
@@ -1406,31 +886,17 @@
       "source": "GLTF format nature/plant_bushDetailed.glb",
       "height": 1,
       "rotationY": 0,
-      "offset": [
-        0,
-        0.05,
-        0
-      ],
+      "offset": [0, 0.05, 0],
       "bounds": {
-        "min": [
-          -0.301,
-          -0.05,
-          -0.301
-        ],
-        "max": [
-          0.301,
-          0.31,
-          0.301
-        ]
+        "min": [-0.301, -0.05, -0.301],
+        "max": [0.301, 0.31, 0.301]
       },
       "collision": null,
       "keepColors": true,
       "cuttable": false,
       "triangles": 104,
       "luminance": 0.695,
-      "tags": [
-        "buisson"
-      ]
+      "tags": ["buisson"]
     },
     {
       "id": "cone",
@@ -1439,22 +905,10 @@
       "source": "GLB format car/cone.glb",
       "height": 0.7,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.238,
-          0,
-          -0.238
-        ],
-        "max": [
-          0.238,
-          0.595,
-          0.238
-        ]
+        "min": [-0.238, 0, -0.238],
+        "max": [0.238, 0.595, 0.238]
       },
       "collision": null,
       "keepColors": true,
@@ -1462,9 +916,7 @@
       "texture": "models/textures/car.png",
       "triangles": 172,
       "luminance": 0.49,
-      "tags": [
-        "chantier"
-      ]
+      "tags": ["chantier"]
     },
     {
       "id": "box",
@@ -1473,22 +925,10 @@
       "source": "GLB format car/box.glb",
       "height": 0.9,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.357,
-          0,
-          -0.357
-        ],
-        "max": [
-          0.357,
-          0.715,
-          0.357
-        ]
+        "min": [-0.357, 0, -0.357],
+        "max": [0.357, 0.715, 0.357]
       },
       "collision": {
         "shape": "rect",
@@ -1500,9 +940,7 @@
       "texture": "models/textures/car.png",
       "triangles": 124,
       "luminance": 0.311,
-      "tags": [
-        "caisse"
-      ]
+      "tags": ["caisse"]
     },
     {
       "id": "bench",
@@ -1511,22 +949,10 @@
       "source": "GLB format coaster/bench.glb",
       "height": 0.9,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.018
-      ],
+      "offset": [0, 0, -0.018],
       "bounds": {
-        "min": [
-          -0.4,
-          0,
-          -0.225
-        ],
-        "max": [
-          0.4,
-          0.491,
-          0.261
-        ]
+        "min": [-0.4, 0, -0.225],
+        "max": [0.4, 0.491, 0.261]
       },
       "collision": {
         "shape": "rect",
@@ -1538,9 +964,7 @@
       "texture": "models/textures/coaster.png",
       "triangles": 112,
       "luminance": 0.336,
-      "tags": [
-        "mobilier"
-      ]
+      "tags": ["mobilier"]
     },
     {
       "id": "trash",
@@ -1549,22 +973,10 @@
       "source": "GLB format coaster/trash.glb",
       "height": 1,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.212,
-          0,
-          -0.212
-        ],
-        "max": [
-          0.212,
-          0.437,
-          0.212
-        ]
+        "min": [-0.212, 0, -0.212],
+        "max": [0.212, 0.437, 0.212]
       },
       "collision": {
         "shape": "rect",
@@ -1576,9 +988,7 @@
       "texture": "models/textures/coaster.png",
       "triangles": 72,
       "luminance": 0.389,
-      "tags": [
-        "mobilier"
-      ]
+      "tags": ["mobilier"]
     },
     {
       "id": "container_a",
@@ -1587,22 +997,10 @@
       "source": "GLB format industrie/shipping-container-a.glb",
       "height": 2.6,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.186,
-          0,
-          -0.411
-        ],
-        "max": [
-          0.186,
-          0.348,
-          0.411
-        ]
+        "min": [-0.186, 0, -0.411],
+        "max": [0.186, 0.348, 0.411]
       },
       "collision": {
         "shape": "rect",
@@ -1614,9 +1012,7 @@
       "texture": "models/textures/industrie.png",
       "triangles": 402,
       "luminance": 0.354,
-      "tags": [
-        "conteneur"
-      ]
+      "tags": ["conteneur"]
     },
     {
       "id": "container_b",
@@ -1625,22 +1021,10 @@
       "source": "GLB format industrie/shipping-container-b.glb",
       "height": 2.6,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.186,
-          0,
-          -0.411
-        ],
-        "max": [
-          0.186,
-          0.348,
-          0.411
-        ]
+        "min": [-0.186, 0, -0.411],
+        "max": [0.186, 0.348, 0.411]
       },
       "collision": {
         "shape": "rect",
@@ -1652,9 +1036,7 @@
       "texture": "models/textures/industrie.png",
       "triangles": 402,
       "luminance": 0.323,
-      "tags": [
-        "conteneur"
-      ]
+      "tags": ["conteneur"]
     },
     {
       "id": "tank",
@@ -1663,22 +1045,10 @@
       "source": "GLB format industrie/detail-tank-large.glb",
       "height": 3,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0.07
-      ],
+      "offset": [0, 0, 0.07],
       "bounds": {
-        "min": [
-          -0.754,
-          0,
-          -0.894
-        ],
-        "max": [
-          0.754,
-          0.962,
-          0.754
-        ]
+        "min": [-0.754, 0, -0.894],
+        "max": [0.754, 0.962, 0.754]
       },
       "collision": {
         "shape": "rect",
@@ -1690,9 +1060,7 @@
       "texture": "models/textures/industrie.png",
       "triangles": 566,
       "luminance": 0.433,
-      "tags": [
-        "industrie"
-      ]
+      "tags": ["industrie"]
     },
     {
       "id": "rock_a",
@@ -1701,22 +1069,10 @@
       "source": "GLTF format nature/rock_largeA.glb",
       "height": 0.9,
       "rotationY": 0,
-      "offset": [
-        0,
-        0.05,
-        0
-      ],
+      "offset": [0, 0.05, 0],
       "bounds": {
-        "min": [
-          -0.392,
-          -0.05,
-          -0.508
-        ],
-        "max": [
-          0.392,
-          0.21,
-          0.508
-        ]
+        "min": [-0.392, -0.05, -0.508],
+        "max": [0.392, 0.21, 0.508]
       },
       "collision": {
         "shape": "rect",
@@ -1727,10 +1083,7 @@
       "cuttable": false,
       "triangles": 80,
       "luminance": 0.593,
-      "tags": [
-        "rocher",
-        "plage"
-      ]
+      "tags": ["rocher", "plage"]
     },
     {
       "id": "rock_c",
@@ -1739,22 +1092,10 @@
       "source": "GLTF format nature/rock_largeC.glb",
       "height": 1.1,
       "rotationY": 0,
-      "offset": [
-        0,
-        0.05,
-        0
-      ],
+      "offset": [0, 0.05, 0],
       "bounds": {
-        "min": [
-          -0.532,
-          -0.05,
-          -0.508
-        ],
-        "max": [
-          0.532,
-          0.271,
-          0.508
-        ]
+        "min": [-0.532, -0.05, -0.508],
+        "max": [0.532, 0.271, 0.508]
       },
       "collision": {
         "shape": "rect",
@@ -1765,10 +1106,7 @@
       "cuttable": false,
       "triangles": 72,
       "luminance": 0.593,
-      "tags": [
-        "rocher",
-        "plage"
-      ]
+      "tags": ["rocher", "plage"]
     },
     {
       "id": "quartier_coin",
@@ -1777,22 +1115,10 @@
       "source": "quartier_coin.glb",
       "height": 8.2,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -4.9,
-          0,
-          -5
-        ],
-        "max": [
-          4.9,
-          8.2,
-          5
-        ]
+        "min": [-4.9, 0, -5],
+        "max": [4.9, 8.2, 5]
       },
       "collision": {
         "shape": "rect",
@@ -1810,10 +1136,7 @@
       "emissive": true,
       "triangles": 1333,
       "luminance": 0.223,
-      "tags": [
-        "quartier",
-        "angle"
-      ]
+      "tags": ["quartier", "angle"]
     },
     {
       "id": "quartier_normal",
@@ -1822,22 +1145,10 @@
       "source": "quartier_normal.glb",
       "height": 6.9,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -4,
-          0,
-          -3.963
-        ],
-        "max": [
-          4,
-          6.9,
-          3.963
-        ]
+        "min": [-4, 0, -3.963],
+        "max": [4, 6.9, 3.963]
       },
       "collision": {
         "shape": "rect",
@@ -1855,10 +1166,7 @@
       "emissive": true,
       "triangles": 934,
       "luminance": 0.252,
-      "tags": [
-        "quartier",
-        "rangee"
-      ]
+      "tags": ["quartier", "rangee"]
     },
     {
       "id": "epicerie_batiment",
@@ -1867,22 +1175,10 @@
       "source": "epicerie_batiment.glb",
       "height": 8.4,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0.02
-      ],
+      "offset": [0, 0, 0.02],
       "bounds": {
-        "min": [
-          -4.98,
-          0,
-          -3.99
-        ],
-        "max": [
-          4.98,
-          8.4,
-          3.95
-        ]
+        "min": [-4.98, 0, -3.99],
+        "max": [4.98, 8.4, 3.95]
       },
       "collision": {
         "shape": "rect",
@@ -1900,10 +1196,7 @@
       "emissive": true,
       "triangles": 1845,
       "luminance": 0.213,
-      "tags": [
-        "lieu",
-        "epicerie"
-      ]
+      "tags": ["lieu", "epicerie"]
     },
     {
       "id": "epicerie_etal",
@@ -1912,22 +1205,10 @@
       "source": "epicerie_props.glb",
       "height": 0.84,
       "rotationY": 0,
-      "offset": [
-        2.4,
-        0,
-        -5.333
-      ],
+      "offset": [2.4, 0, -5.333],
       "bounds": {
-        "min": [
-          -3.25,
-          0,
-          4.84
-        ],
-        "max": [
-          -1.55,
-          0.837,
-          5.827
-        ]
+        "min": [-3.25, 0, 4.84],
+        "max": [-1.55, 0.837, 5.827]
       },
       "collision": {
         "shape": "rect",
@@ -1939,10 +1220,7 @@
       "folder": "shops",
       "triangles": 698,
       "luminance": 0.28,
-      "tags": [
-        "epicerie",
-        "caisse"
-      ]
+      "tags": ["epicerie", "caisse"]
     },
     {
       "id": "epicerie_bouteilles",
@@ -1951,22 +1229,10 @@
       "source": "epicerie_props.glb",
       "height": 0.66,
       "rotationY": 0,
-      "offset": [
-        -3.6,
-        0,
-        -5.401
-      ],
+      "offset": [-3.6, 0, -5.401],
       "bounds": {
-        "min": [
-          3.25,
-          0,
-          5.15
-        ],
-        "max": [
-          3.95,
-          0.66,
-          5.652
-        ]
+        "min": [3.25, 0, 5.15],
+        "max": [3.95, 0.66, 5.652]
       },
       "collision": {
         "shape": "rect",
@@ -1978,10 +1244,7 @@
       "folder": "shops",
       "triangles": 268,
       "luminance": 0.114,
-      "tags": [
-        "epicerie",
-        "caisse"
-      ]
+      "tags": ["epicerie", "caisse"]
     },
     {
       "id": "epicerie_poubelle",
@@ -1990,22 +1253,10 @@
       "source": "epicerie_props.glb",
       "height": 1,
       "rotationY": 0,
-      "offset": [
-        -4.4,
-        0,
-        -4.6
-      ],
+      "offset": [-4.4, 0, -4.6],
       "bounds": {
-        "min": [
-          4.04,
-          0,
-          4.258
-        ],
-        "max": [
-          4.76,
-          1,
-          4.942
-        ]
+        "min": [4.04, 0, 4.258],
+        "max": [4.76, 1, 4.942]
       },
       "collision": {
         "shape": "rect",
@@ -2017,10 +1268,7 @@
       "folder": "shops",
       "triangles": 154,
       "luminance": 0.136,
-      "tags": [
-        "epicerie",
-        "mobilier"
-      ]
+      "tags": ["epicerie", "mobilier"]
     },
     {
       "id": "epicerie_cartons",
@@ -2029,22 +1277,10 @@
       "source": "epicerie_props.glb",
       "height": 0.86,
       "rotationY": 0,
-      "offset": [
-        4.35,
-        0,
-        -4.6
-      ],
+      "offset": [4.35, 0, -4.6],
       "bounds": {
-        "min": [
-          -4.8,
-          0,
-          4.35
-        ],
-        "max": [
-          -3.9,
-          0.86,
-          4.85
-        ]
+        "min": [-4.8, 0, 4.35],
+        "max": [-3.9, 0.86, 4.85]
       },
       "collision": {
         "shape": "rect",
@@ -2056,10 +1292,7 @@
       "folder": "shops",
       "triangles": 32,
       "luminance": 0.281,
-      "tags": [
-        "epicerie",
-        "caisse"
-      ]
+      "tags": ["epicerie", "caisse"]
     },
     {
       "id": "tour_beige",
@@ -2068,22 +1301,10 @@
       "source": "bulding_batiment.glb",
       "height": 26.23,
       "rotationY": 0,
-      "offset": [
-        16,
-        0,
-        -0.275
-      ],
+      "offset": [16, 0, -0.275],
       "bounds": {
-        "min": [
-          -21.25,
-          0,
-          -5.25
-        ],
-        "max": [
-          -10.75,
-          26.23,
-          5.8
-        ]
+        "min": [-21.25, 0, -5.25],
+        "max": [-10.75, 26.23, 5.8]
       },
       "collision": {
         "shape": "rect",
@@ -2096,10 +1317,7 @@
       "emissive": true,
       "triangles": 1198,
       "luminance": 0.359,
-      "tags": [
-        "tour",
-        "bureaux"
-      ]
+      "tags": ["tour", "bureaux"]
     },
     {
       "id": "tour_brique",
@@ -2108,22 +1326,10 @@
       "source": "bulding_batiment.glb",
       "height": 27.3,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.4
-      ],
+      "offset": [0, 0, -0.4],
       "bounds": {
-        "min": [
-          -5.1,
-          0,
-          -3.7
-        ],
-        "max": [
-          5.1,
-          27.3,
-          4.5
-        ]
+        "min": [-5.1, 0, -3.7],
+        "max": [5.1, 27.3, 4.5]
       },
       "collision": {
         "shape": "rect",
@@ -2136,10 +1342,7 @@
       "emissive": true,
       "triangles": 782,
       "luminance": 0.172,
-      "tags": [
-        "tour",
-        "immeuble"
-      ]
+      "tags": ["tour", "immeuble"]
     },
     {
       "id": "tour_verre",
@@ -2148,22 +1351,10 @@
       "source": "bulding_batiment.glb",
       "height": 26.08,
       "rotationY": 0,
-      "offset": [
-        -16.06,
-        0,
-        0
-      ],
+      "offset": [-16.06, 0, 0],
       "bounds": {
-        "min": [
-          11.15,
-          0,
-          -5.65
-        ],
-        "max": [
-          20.97,
-          26.076,
-          5.65
-        ]
+        "min": [11.15, 0, -5.65],
+        "max": [20.97, 26.076, 5.65]
       },
       "collision": {
         "shape": "rect",
@@ -2176,10 +1367,7 @@
       "emissive": true,
       "triangles": 820,
       "luminance": 0.232,
-      "tags": [
-        "tour",
-        "bureaux"
-      ]
+      "tags": ["tour", "bureaux"]
     },
     {
       "id": "tour_bac_arbuste",
@@ -2188,22 +1376,10 @@
       "source": "bulding_props.glb",
       "height": 2.28,
       "rotationY": 0,
-      "offset": [
-        6,
-        0,
-        -12
-      ],
+      "offset": [6, 0, -12],
       "bounds": {
-        "min": [
-          -6.45,
-          0,
-          11.55
-        ],
-        "max": [
-          -5.55,
-          2.275,
-          12.45
-        ]
+        "min": [-6.45, 0, 11.55],
+        "max": [-5.55, 2.275, 12.45]
       },
       "collision": {
         "shape": "rect",
@@ -2215,10 +1391,7 @@
       "folder": "tours",
       "triangles": 56,
       "luminance": 0.161,
-      "tags": [
-        "tour",
-        "vegetation"
-      ]
+      "tags": ["tour", "vegetation"]
     },
     {
       "id": "tour_borne_incendie",
@@ -2227,22 +1400,10 @@
       "source": "bulding_props.glb",
       "height": 0.78,
       "rotationY": 0,
-      "offset": [
-        3,
-        0,
-        -12.02
-      ],
+      "offset": [3, 0, -12.02],
       "bounds": {
-        "min": [
-          -3.2,
-          0,
-          11.84
-        ],
-        "max": [
-          -2.8,
-          0.78,
-          12.2
-        ]
+        "min": [-3.2, 0, 11.84],
+        "max": [-2.8, 0.78, 12.2]
       },
       "collision": {
         "shape": "rect",
@@ -2254,10 +1415,7 @@
       "folder": "tours",
       "triangles": 124,
       "luminance": 0.147,
-      "tags": [
-        "tour",
-        "mobilier"
-      ]
+      "tags": ["tour", "mobilier"]
     },
     {
       "id": "tour_boites_lettres",
@@ -2266,22 +1424,10 @@
       "source": "bulding_props.glb",
       "height": 1.12,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -12.003
-      ],
+      "offset": [0, 0, -12.003],
       "bounds": {
-        "min": [
-          -0.52,
-          0,
-          11.8
-        ],
-        "max": [
-          0.52,
-          1.12,
-          12.205
-        ]
+        "min": [-0.52, 0, 11.8],
+        "max": [0.52, 1.12, 12.205]
       },
       "collision": {
         "shape": "rect",
@@ -2293,10 +1439,7 @@
       "folder": "tours",
       "triangles": 120,
       "luminance": 0.071,
-      "tags": [
-        "tour",
-        "mobilier"
-      ]
+      "tags": ["tour", "mobilier"]
     },
     {
       "id": "banque_batiment",
@@ -2305,22 +1448,10 @@
       "source": "banque_batiment.glb",
       "height": 8.94,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.025
-      ],
+      "offset": [0, 0, -0.025],
       "bounds": {
-        "min": [
-          -4,
-          0,
-          -4.95
-        ],
-        "max": [
-          4,
-          8.94,
-          5
-        ]
+        "min": [-4, 0, -4.95],
+        "max": [4, 8.94, 5]
       },
       "collision": {
         "shape": "rect",
@@ -2338,10 +1469,7 @@
       "emissive": true,
       "triangles": 2070,
       "luminance": 0.484,
-      "tags": [
-        "lieu",
-        "banque"
-      ]
+      "tags": ["lieu", "banque"]
     },
     {
       "id": "banque_distributeur",
@@ -2350,22 +1478,10 @@
       "source": "banque_props.glb",
       "height": 1.9,
       "rotationY": 0,
-      "offset": [
-        3,
-        0,
-        -7.56
-      ],
+      "offset": [3, 0, -7.56],
       "bounds": {
-        "min": [
-          -3.47,
-          0,
-          7.17
-        ],
-        "max": [
-          -2.53,
-          1.9,
-          7.95
-        ]
+        "min": [-3.47, 0, 7.17],
+        "max": [-2.53, 1.9, 7.95]
       },
       "collision": {
         "shape": "rect",
@@ -2377,10 +1493,7 @@
       "folder": "shops",
       "triangles": 60,
       "luminance": 0.214,
-      "tags": [
-        "banque",
-        "mobilier"
-      ]
+      "tags": ["banque", "mobilier"]
     },
     {
       "id": "banque_bac_arbuste",
@@ -2389,22 +1502,10 @@
       "source": "banque_props.glb",
       "height": 1.85,
       "rotationY": 0,
-      "offset": [
-        1.5,
-        0,
-        -7.5
-      ],
+      "offset": [1.5, 0, -7.5],
       "bounds": {
-        "min": [
-          -1.89,
-          0,
-          7.11
-        ],
-        "max": [
-          -1.11,
-          1.85,
-          7.89
-        ]
+        "min": [-1.89, 0, 7.11],
+        "max": [-1.11, 1.85, 7.89]
       },
       "collision": {
         "shape": "rect",
@@ -2416,10 +1517,7 @@
       "folder": "shops",
       "triangles": 74,
       "luminance": 0.248,
-      "tags": [
-        "banque",
-        "vegetal"
-      ]
+      "tags": ["banque", "vegetal"]
     },
     {
       "id": "banque_boite_lettres",
@@ -2428,22 +1526,10 @@
       "source": "banque_props.glb",
       "height": 1.38,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -7.51
-      ],
+      "offset": [0, 0, -7.51],
       "bounds": {
-        "min": [
-          -0.24,
-          0,
-          7.3
-        ],
-        "max": [
-          0.24,
-          1.38,
-          7.72
-        ]
+        "min": [-0.24, 0, 7.3],
+        "max": [0.24, 1.38, 7.72]
       },
       "collision": {
         "shape": "rect",
@@ -2455,10 +1541,7 @@
       "folder": "shops",
       "triangles": 56,
       "luminance": 0.092,
-      "tags": [
-        "banque",
-        "mobilier"
-      ]
+      "tags": ["banque", "mobilier"]
     },
     {
       "id": "banque_panneau",
@@ -2467,22 +1550,10 @@
       "source": "banque_props.glb",
       "height": 2.15,
       "rotationY": 0,
-      "offset": [
-        -1.5,
-        0,
-        -7.513
-      ],
+      "offset": [-1.5, 0, -7.513],
       "bounds": {
-        "min": [
-          1.15,
-          0,
-          7.465
-        ],
-        "max": [
-          1.85,
-          2.15,
-          7.56
-        ]
+        "min": [1.15, 0, 7.465],
+        "max": [1.85, 2.15, 7.56]
       },
       "collision": {
         "shape": "rect",
@@ -2494,10 +1565,7 @@
       "folder": "shops",
       "triangles": 56,
       "luminance": 0.454,
-      "tags": [
-        "banque",
-        "mobilier"
-      ]
+      "tags": ["banque", "mobilier"]
     },
     {
       "id": "banque_haie",
@@ -2506,22 +1574,10 @@
       "source": "banque_props.glb",
       "height": 0.7,
       "rotationY": 0,
-      "offset": [
-        -3,
-        0,
-        -7.5
-      ],
+      "offset": [-3, 0, -7.5],
       "bounds": {
-        "min": [
-          2.4,
-          0,
-          7.25
-        ],
-        "max": [
-          3.6,
-          0.7,
-          7.75
-        ]
+        "min": [2.4, 0, 7.25],
+        "max": [3.6, 0.7, 7.75]
       },
       "collision": {
         "shape": "rect",
@@ -2533,10 +1589,7 @@
       "folder": "shops",
       "triangles": 30,
       "luminance": 0.117,
-      "tags": [
-        "banque",
-        "vegetal"
-      ]
+      "tags": ["banque", "vegetal"]
     },
     {
       "id": "police_batiment",
@@ -2545,22 +1598,10 @@
       "source": "police_batiment.glb",
       "height": 10.6,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -15,
-          0,
-          -6
-        ],
-        "max": [
-          15,
-          10.6,
-          6
-        ]
+        "min": [-15, 0, -6],
+        "max": [15, 10.6, 6]
       },
       "collision": {
         "shape": "rect",
@@ -2578,10 +1619,7 @@
       "emissive": true,
       "triangles": 2022,
       "luminance": 0.555,
-      "tags": [
-        "repere",
-        "police"
-      ]
+      "tags": ["repere", "police"]
     },
     {
       "id": "police_barriere",
@@ -2590,22 +1628,10 @@
       "source": "police_props.glb",
       "height": 1,
       "rotationY": 0,
-      "offset": [
-        -20,
-        0,
-        0
-      ],
+      "offset": [-20, 0, 0],
       "bounds": {
-        "min": [
-          19,
-          0,
-          -0.3
-        ],
-        "max": [
-          21,
-          1,
-          0.3
-        ]
+        "min": [19, 0, -0.3],
+        "max": [21, 1, 0.3]
       },
       "collision": {
         "shape": "rect",
@@ -2617,10 +1643,7 @@
       "folder": "shops",
       "triangles": 60,
       "luminance": 0.34,
-      "tags": [
-        "police",
-        "mobilier"
-      ]
+      "tags": ["police", "mobilier"]
     },
     {
       "id": "police_panneau",
@@ -2629,22 +1652,10 @@
       "source": "police_props.glb",
       "height": 2.3,
       "rotationY": 0,
-      "offset": [
-        -24,
-        0,
-        -0.015
-      ],
+      "offset": [-24, 0, -0.015],
       "bounds": {
-        "min": [
-          23.5,
-          0,
-          -0.05
-        ],
-        "max": [
-          24.5,
-          2.3,
-          0.08
-        ]
+        "min": [23.5, 0, -0.05],
+        "max": [24.5, 2.3, 0.08]
       },
       "collision": {
         "shape": "rect",
@@ -2656,10 +1667,7 @@
       "folder": "shops",
       "triangles": 24,
       "luminance": 0.197,
-      "tags": [
-        "police",
-        "mobilier"
-      ]
+      "tags": ["police", "mobilier"]
     },
     {
       "id": "police_drapeau",
@@ -2668,22 +1676,10 @@
       "source": "police_props.glb",
       "height": 6,
       "rotationY": 0,
-      "offset": [
-        -28.575,
-        0,
-        0
-      ],
+      "offset": [-28.575, 0, 0],
       "bounds": {
-        "min": [
-          27.7,
-          0,
-          -0.3
-        ],
-        "max": [
-          29.45,
-          6,
-          0.3
-        ]
+        "min": [27.7, 0, -0.3],
+        "max": [29.45, 6, 0.3]
       },
       "collision": {
         "shape": "rect",
@@ -2695,10 +1691,7 @@
       "folder": "shops",
       "triangles": 36,
       "luminance": 0.402,
-      "tags": [
-        "police",
-        "mobilier"
-      ]
+      "tags": ["police", "mobilier"]
     },
     {
       "id": "police_bac",
@@ -2707,22 +1700,10 @@
       "source": "police_props.glb",
       "height": 1.25,
       "rotationY": 0,
-      "offset": [
-        -32,
-        0,
-        0
-      ],
+      "offset": [-32, 0, 0],
       "bounds": {
-        "min": [
-          31.55,
-          0,
-          -0.45
-        ],
-        "max": [
-          32.45,
-          1.25,
-          0.45
-        ]
+        "min": [31.55, 0, -0.45],
+        "max": [32.45, 1.25, 0.45]
       },
       "collision": {
         "shape": "rect",
@@ -2734,10 +1715,7 @@
       "folder": "shops",
       "triangles": 24,
       "luminance": 0.387,
-      "tags": [
-        "police",
-        "vegetal"
-      ]
+      "tags": ["police", "vegetal"]
     },
     {
       "id": "armurerie_batiment",
@@ -2746,22 +1724,10 @@
       "source": "armurie_batiment.glb",
       "height": 9.05,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.215
-      ],
+      "offset": [0, 0, -0.215],
       "bounds": {
-        "min": [
-          -5.25,
-          0,
-          -4.25
-        ],
-        "max": [
-          5.25,
-          9.05,
-          4.68
-        ]
+        "min": [-5.25, 0, -4.25],
+        "max": [5.25, 9.05, 4.68]
       },
       "collision": {
         "shape": "rect",
@@ -2779,10 +1745,7 @@
       "emissive": true,
       "triangles": 1904,
       "luminance": 0.398,
-      "tags": [
-        "lieu",
-        "armurerie"
-      ]
+      "tags": ["lieu", "armurerie"]
     },
     {
       "id": "concession_batiment",
@@ -2791,22 +1754,10 @@
       "source": "concession_batiment.glb",
       "height": 13.89,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -1.275
-      ],
+      "offset": [0, 0, -1.275],
       "bounds": {
-        "min": [
-          -7.8,
-          0,
-          -5.4
-        ],
-        "max": [
-          7.8,
-          13.89,
-          7.95
-        ]
+        "min": [-7.8, 0, -5.4],
+        "max": [7.8, 13.89, 7.95]
       },
       "collision": {
         "shape": "rect",
@@ -2824,10 +1775,7 @@
       "emissive": true,
       "triangles": 2852,
       "luminance": 0.468,
-      "tags": [
-        "lieu",
-        "concession"
-      ]
+      "tags": ["lieu", "concession"]
     },
     {
       "id": "laverie_batiment",
@@ -2836,22 +1784,10 @@
       "source": "laverie_batiment.glb",
       "height": 5.415,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.078
-      ],
+      "offset": [0, 0, -0.078],
       "bounds": {
-        "min": [
-          -5.25,
-          0,
-          -4.25
-        ],
-        "max": [
-          5.25,
-          5.7,
-          4.405
-        ]
+        "min": [-5.25, 0, -4.25],
+        "max": [5.25, 5.7, 4.405]
       },
       "collision": {
         "shape": "rect",
@@ -2869,10 +1805,7 @@
       "emissive": true,
       "triangles": 1032,
       "luminance": 0.486,
-      "tags": [
-        "lieu",
-        "laverie"
-      ]
+      "tags": ["lieu", "laverie"]
     },
     {
       "id": "barbier_batiment",
@@ -2881,22 +1814,10 @@
       "source": "barbier_batiment.glb",
       "height": 7.65,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0.325
-      ],
+      "offset": [0, 0, 0.325],
       "bounds": {
-        "min": [
-          -3.2,
-          0,
-          -4.4
-        ],
-        "max": [
-          3.2,
-          7.65,
-          3.75
-        ]
+        "min": [-3.2, 0, -4.4],
+        "max": [3.2, 7.65, 3.75]
       },
       "collision": {
         "shape": "rect",
@@ -2914,10 +1835,7 @@
       "emissive": true,
       "triangles": 1142,
       "luminance": 0.212,
-      "tags": [
-        "lieu",
-        "barbier"
-      ]
+      "tags": ["lieu", "barbier"]
     },
     {
       "id": "labo_batiment",
@@ -2926,22 +1844,10 @@
       "source": "labo_batiment.glb",
       "height": 9,
       "rotationY": 0,
-      "offset": [
-        -0.145,
-        0,
-        -0.07
-      ],
+      "offset": [-0.145, 0, -0.07],
       "bounds": {
-        "min": [
-          -3.709,
-          0,
-          -3.72
-        ],
-        "max": [
-          4,
-          9,
-          3.86
-        ]
+        "min": [-3.709, 0, -3.72],
+        "max": [4, 9, 3.86]
       },
       "collision": {
         "shape": "rect",
@@ -2959,10 +1865,7 @@
       "emissive": true,
       "triangles": 2933,
       "luminance": 0.356,
-      "tags": [
-        "lieu",
-        "labo"
-      ]
+      "tags": ["lieu", "labo"]
     },
     {
       "id": "superette_batiment",
@@ -2971,22 +1874,10 @@
       "source": "superette_batiment.glb",
       "height": 5.05,
       "rotationY": 0,
-      "offset": [
-        -0.088,
-        0,
-        0.088
-      ],
+      "offset": [-0.088, 0, 0.088],
       "bounds": {
-        "min": [
-          -6.125,
-          0,
-          -5.3
-        ],
-        "max": [
-          6.3,
-          5.05,
-          5.125
-        ]
+        "min": [-6.125, 0, -5.3],
+        "max": [6.3, 5.05, 5.125]
       },
       "collision": {
         "shape": "rect",
@@ -2999,10 +1890,7 @@
       "emissive": true,
       "triangles": 970,
       "luminance": 0.49,
-      "tags": [
-        "decor",
-        "superette"
-      ]
+      "tags": ["decor", "superette"]
     },
     {
       "id": "armurerie_props_a",
@@ -3011,22 +1899,10 @@
       "source": "armurie_props.glb",
       "height": 2.1,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -5.914,
-          0,
-          -3.93
-        ],
-        "max": [
-          5.914,
-          2.1,
-          5.695
-        ]
+        "min": [-5.914, 0, -3.93],
+        "max": [5.914, 2.1, 5.695]
       },
       "collision": null,
       "keepColors": true,
@@ -3035,10 +1911,7 @@
       "keepOrigin": true,
       "triangles": 740,
       "luminance": 0.238,
-      "tags": [
-        "groupe",
-        "armurerie"
-      ]
+      "tags": ["groupe", "armurerie"]
     },
     {
       "id": "armurerie_props_b",
@@ -3047,22 +1920,10 @@
       "source": "armurie_props.glb",
       "height": 1.44,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -4.406,
-          0,
-          -5.154
-        ],
-        "max": [
-          4.604,
-          1.44,
-          5.249
-        ]
+        "min": [-4.406, 0, -5.154],
+        "max": [4.604, 1.44, 5.249]
       },
       "collision": null,
       "keepColors": true,
@@ -3072,10 +1933,7 @@
       "keepOrigin": true,
       "triangles": 612,
       "luminance": 0.291,
-      "tags": [
-        "groupe",
-        "armurerie"
-      ]
+      "tags": ["groupe", "armurerie"]
     },
     {
       "id": "concession_props_a",
@@ -3084,22 +1942,10 @@
       "source": "concession_props.glb",
       "height": 0.93,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -8.72,
-          0,
-          0.88
-        ],
-        "max": [
-          8.72,
-          0.93,
-          8.815
-        ]
+        "min": [-8.72, 0, 0.88],
+        "max": [8.72, 0.93, 8.815]
       },
       "collision": null,
       "keepColors": true,
@@ -3109,10 +1955,7 @@
       "keepOrigin": true,
       "triangles": 840,
       "luminance": 0.371,
-      "tags": [
-        "groupe",
-        "concession"
-      ]
+      "tags": ["groupe", "concession"]
     },
     {
       "id": "concession_props_b",
@@ -3121,22 +1964,10 @@
       "source": "concession_props.glb",
       "height": 7.13,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -8.8,
-          0,
-          -3.8
-        ],
-        "max": [
-          10.25,
-          7.13,
-          8.82
-        ]
+        "min": [-8.8, 0, -3.8],
+        "max": [10.25, 7.13, 8.82]
       },
       "collision": null,
       "keepColors": true,
@@ -3146,10 +1977,7 @@
       "keepOrigin": true,
       "triangles": 608,
       "luminance": 0.331,
-      "tags": [
-        "groupe",
-        "concession"
-      ]
+      "tags": ["groupe", "concession"]
     },
     {
       "id": "barbier_props_a",
@@ -3158,22 +1986,10 @@
       "source": "barbier_props.glb",
       "height": 2.14,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -2.833,
-          0,
-          3.475
-        ],
-        "max": [
-          -0.525,
-          2.14,
-          5.275
-        ]
+        "min": [-2.833, 0, 3.475],
+        "max": [-0.525, 2.14, 5.275]
       },
       "collision": null,
       "keepColors": true,
@@ -3182,10 +1998,7 @@
       "keepOrigin": true,
       "triangles": 728,
       "luminance": 0.459,
-      "tags": [
-        "groupe",
-        "barbier"
-      ]
+      "tags": ["groupe", "barbier"]
     },
     {
       "id": "barbier_props_b",
@@ -3194,22 +2007,10 @@
       "source": "barbier_props.glb",
       "height": 4.03,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -4.27,
-          0,
-          -5.2
-        ],
-        "max": [
-          4.05,
-          4.03,
-          4.67
-        ]
+        "min": [-4.27, 0, -5.2],
+        "max": [4.05, 4.03, 4.67]
       },
       "collision": null,
       "keepColors": true,
@@ -3219,10 +2020,7 @@
       "keepOrigin": true,
       "triangles": 416,
       "luminance": 0.153,
-      "tags": [
-        "groupe",
-        "barbier"
-      ]
+      "tags": ["groupe", "barbier"]
     },
     {
       "id": "laverie_props",
@@ -3231,22 +2029,10 @@
       "source": "laverie_props.glb",
       "height": 0.97,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -4.61,
-          0,
-          4.429
-        ],
-        "max": [
-          4.61,
-          0.97,
-          6.42
-        ]
+        "min": [-4.61, 0, 4.429],
+        "max": [4.61, 0.97, 6.42]
       },
       "collision": null,
       "keepColors": true,
@@ -3256,10 +2042,7 @@
       "keepOrigin": true,
       "triangles": 536,
       "luminance": 0.596,
-      "tags": [
-        "groupe",
-        "laverie"
-      ]
+      "tags": ["groupe", "laverie"]
     },
     {
       "id": "superette_props",
@@ -3268,22 +2051,10 @@
       "source": "superette_props.glb",
       "height": 4.23,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -8.35,
-          0,
-          -6.6
-        ],
-        "max": [
-          7.6,
-          4.23,
-          1.76
-        ]
+        "min": [-8.35, 0, -6.6],
+        "max": [7.6, 4.23, 1.76]
       },
       "collision": null,
       "keepColors": true,
@@ -3293,10 +2064,7 @@
       "keepOrigin": true,
       "triangles": 400,
       "luminance": 0.148,
-      "tags": [
-        "groupe",
-        "superette"
-      ]
+      "tags": ["groupe", "superette"]
     },
     {
       "id": "hangar_cargo",
@@ -3305,22 +2073,10 @@
       "source": "hangar_batiment.glb",
       "height": 15.86,
       "rotationY": 0,
-      "offset": [
-        -1.075,
-        0.31,
-        -0.25
-      ],
+      "offset": [-1.075, 0.31, -0.25],
       "bounds": {
-        "min": [
-          -15.45,
-          -0.31,
-          -10.55
-        ],
-        "max": [
-          17.6,
-          15.55,
-          11.05
-        ]
+        "min": [-15.45, -0.31, -10.55],
+        "max": [17.6, 15.55, 11.05]
       },
       "collision": {
         "shape": "rect",
@@ -3333,10 +2089,7 @@
       "emissive": true,
       "triangles": 2392,
       "luminance": 0.438,
-      "tags": [
-        "aeroport",
-        "hangar"
-      ]
+      "tags": ["aeroport", "hangar"]
     },
     {
       "id": "hangar_regional",
@@ -3345,22 +2098,10 @@
       "source": "hangar_regional_batiment.glb",
       "height": 13.29,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.2
-      ],
+      "offset": [0, 0, -0.2],
       "bounds": {
-        "min": [
-          -12.644,
-          0,
-          -9.5
-        ],
-        "max": [
-          12.644,
-          13.29,
-          9.9
-        ]
+        "min": [-12.644, 0, -9.5],
+        "max": [12.644, 13.29, 9.9]
       },
       "collision": {
         "shape": "rect",
@@ -3373,10 +2114,7 @@
       "emissive": true,
       "triangles": 1244,
       "luminance": 0.613,
-      "tags": [
-        "aeroport",
-        "hangar"
-      ]
+      "tags": ["aeroport", "hangar"]
     },
     {
       "id": "hangar_chariot_elevateur",
@@ -3385,22 +2123,10 @@
       "source": "hangar_props.glb",
       "height": 2.45,
       "rotationY": 0,
-      "offset": [
-        18.575,
-        0,
-        -17
-      ],
+      "offset": [18.575, 0, -17],
       "bounds": {
-        "min": [
-          -20.25,
-          0,
-          16.39
-        ],
-        "max": [
-          -16.9,
-          2.45,
-          17.61
-        ]
+        "min": [-20.25, 0, 16.39],
+        "max": [-16.9, 2.45, 17.61]
       },
       "collision": null,
       "keepColors": true,
@@ -3409,9 +2135,7 @@
       "emissive": true,
       "triangles": 340,
       "luminance": 0.227,
-      "tags": [
-        "aeroport"
-      ]
+      "tags": ["aeroport"]
     },
     {
       "id": "hangar_palette_cartons",
@@ -3420,22 +2144,10 @@
       "source": "hangar_props.glb",
       "height": 1.036,
       "rotationY": 0,
-      "offset": [
-        15,
-        0,
-        -12
-      ],
+      "offset": [15, 0, -12],
       "bounds": {
-        "min": [
-          -15.6,
-          0,
-          11.6
-        ],
-        "max": [
-          -14.4,
-          1.036,
-          12.4
-        ]
+        "min": [-15.6, 0, 11.6],
+        "max": [-14.4, 1.036, 12.4]
       },
       "collision": null,
       "keepColors": true,
@@ -3443,9 +2155,7 @@
       "folder": "aeroport",
       "triangles": 120,
       "luminance": 0.375,
-      "tags": [
-        "aeroport"
-      ]
+      "tags": ["aeroport"]
     },
     {
       "id": "hangar_baril",
@@ -3454,22 +2164,10 @@
       "source": "hangar_props.glb",
       "height": 0.915,
       "rotationY": 0,
-      "offset": [
-        17,
-        0,
-        -14
-      ],
+      "offset": [17, 0, -14],
       "bounds": {
-        "min": [
-          -17.3,
-          0,
-          13.7
-        ],
-        "max": [
-          -16.7,
-          0.915,
-          14.3
-        ]
+        "min": [-17.3, 0, 13.7],
+        "max": [-16.7, 0.915, 14.3]
       },
       "collision": null,
       "keepColors": true,
@@ -3477,9 +2175,7 @@
       "folder": "aeroport",
       "triangles": 152,
       "luminance": 0.299,
-      "tags": [
-        "aeroport"
-      ]
+      "tags": ["aeroport"]
     },
     {
       "id": "hangar_balise_piste",
@@ -3488,22 +2184,10 @@
       "source": "hangar_props.glb",
       "height": 0.575,
       "rotationY": 0,
-      "offset": [
-        13,
-        0,
-        -18
-      ],
+      "offset": [13, 0, -18],
       "bounds": {
-        "min": [
-          -13.15,
-          0,
-          17.85
-        ],
-        "max": [
-          -12.85,
-          0.575,
-          18.15
-        ]
+        "min": [-13.15, 0, 17.85],
+        "max": [-12.85, 0.575, 18.15]
       },
       "collision": null,
       "keepColors": true,
@@ -3512,9 +2196,7 @@
       "emissive": true,
       "triangles": 76,
       "luminance": 0.456,
-      "tags": [
-        "aeroport"
-      ]
+      "tags": ["aeroport"]
     },
     {
       "id": "hangar_camion_piste",
@@ -3523,22 +2205,10 @@
       "source": "hangar_props.glb",
       "height": 2.95,
       "rotationY": 0,
-      "offset": [
-        5.975,
-        0,
-        -22
-      ],
+      "offset": [5.975, 0, -22],
       "bounds": {
-        "min": [
-          -9.5,
-          0,
-          20.82
-        ],
-        "max": [
-          -2.45,
-          2.95,
-          23.18
-        ]
+        "min": [-9.5, 0, 20.82],
+        "max": [-2.45, 2.95, 23.18]
       },
       "collision": null,
       "keepColors": true,
@@ -3547,9 +2217,7 @@
       "emissive": true,
       "triangles": 396,
       "luminance": 0.243,
-      "tags": [
-        "aeroport"
-      ]
+      "tags": ["aeroport"]
     },
     {
       "id": "avion_cargo",
@@ -3558,22 +2226,10 @@
       "source": "avion_cargo.glb",
       "height": 10.3,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0.05
-      ],
+      "offset": [0, 0, 0.05],
       "bounds": {
-        "min": [
-          -17.5,
-          0,
-          -13
-        ],
-        "max": [
-          17.5,
-          10.3,
-          12.9
-        ]
+        "min": [-17.5, 0, -13],
+        "max": [17.5, 10.3, 12.9]
       },
       "collision": {
         "shape": "rect",
@@ -3585,10 +2241,7 @@
       "folder": "avions",
       "triangles": 1028,
       "luminance": 0.114,
-      "tags": [
-        "aeroport",
-        "avion"
-      ]
+      "tags": ["aeroport", "avion"]
     },
     {
       "id": "avion_cessna",
@@ -3597,22 +2250,10 @@
       "source": "avion_cessna.glb",
       "height": 2.75,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.03
-      ],
+      "offset": [0, 0, -0.03],
       "bounds": {
-        "min": [
-          -5.5,
-          0,
-          -4.15
-        ],
-        "max": [
-          5.5,
-          2.75,
-          4.21
-        ]
+        "min": [-5.5, 0, -4.15],
+        "max": [5.5, 2.75, 4.21]
       },
       "collision": {
         "shape": "rect",
@@ -3624,10 +2265,7 @@
       "folder": "avions",
       "triangles": 422,
       "luminance": 0.327,
-      "tags": [
-        "aeroport",
-        "avion"
-      ]
+      "tags": ["aeroport", "avion"]
     },
     {
       "id": "avion_cessna_jaune",
@@ -3636,22 +2274,10 @@
       "source": "avion_cessna_jaune.glb",
       "height": 2.75,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.03
-      ],
+      "offset": [0, 0, -0.03],
       "bounds": {
-        "min": [
-          -5.5,
-          0,
-          -4.15
-        ],
-        "max": [
-          5.5,
-          2.75,
-          4.21
-        ]
+        "min": [-5.5, 0, -4.15],
+        "max": [5.5, 2.75, 4.21]
       },
       "collision": {
         "shape": "rect",
@@ -3663,10 +2289,7 @@
       "folder": "avions",
       "triangles": 422,
       "luminance": 0.488,
-      "tags": [
-        "aeroport",
-        "avion"
-      ]
+      "tags": ["aeroport", "avion"]
     },
     {
       "id": "avion_piper",
@@ -3675,22 +2298,10 @@
       "source": "avion_piper.glb",
       "height": 2.4,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0.02
-      ],
+      "offset": [0, 0, 0.02],
       "bounds": {
-        "min": [
-          -5.35,
-          0,
-          -3.8
-        ],
-        "max": [
-          5.35,
-          2.4,
-          3.76
-        ]
+        "min": [-5.35, 0, -3.8],
+        "max": [5.35, 2.4, 3.76]
       },
       "collision": {
         "shape": "rect",
@@ -3702,10 +2313,7 @@
       "folder": "avions",
       "triangles": 398,
       "luminance": 0.467,
-      "tags": [
-        "aeroport",
-        "avion"
-      ]
+      "tags": ["aeroport", "avion"]
     },
     {
       "id": "voiture_berline",
@@ -3714,22 +2322,10 @@
       "source": "voiture_berline.glb",
       "height": 1.42,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.02
-      ],
+      "offset": [0, 0, -0.02],
       "bounds": {
-        "min": [
-          -0.925,
-          0,
-          -2.32
-        ],
-        "max": [
-          0.925,
-          1.42,
-          2.36
-        ]
+        "min": [-0.925, 0, -2.32],
+        "max": [0.925, 1.42, 2.36]
       },
       "collision": {
         "shape": "rect",
@@ -3743,9 +2339,7 @@
       "paint": true,
       "triangles": 428,
       "luminance": 0.227,
-      "tags": [
-        "voiture"
-      ]
+      "tags": ["voiture"]
     },
     {
       "id": "voiture_camion",
@@ -3754,22 +2348,10 @@
       "source": "voiture_camion.glb",
       "height": 3.26,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.03
-      ],
+      "offset": [0, 0, -0.03],
       "bounds": {
-        "min": [
-          -1.15,
-          0,
-          -3.55
-        ],
-        "max": [
-          1.15,
-          3.26,
-          3.61
-        ]
+        "min": [-1.15, 0, -3.55],
+        "max": [1.15, 3.26, 3.61]
       },
       "collision": {
         "shape": "rect",
@@ -3783,9 +2365,7 @@
       "paint": true,
       "triangles": 416,
       "luminance": 0.233,
-      "tags": [
-        "voiture"
-      ]
+      "tags": ["voiture"]
     },
     {
       "id": "voiture_camionnette",
@@ -3794,22 +2374,10 @@
       "source": "voiture_camionnette.glb",
       "height": 2.2,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -1.025,
-          0,
-          -2.75
-        ],
-        "max": [
-          1.025,
-          2.2,
-          2.75
-        ]
+        "min": [-1.025, 0, -2.75],
+        "max": [1.025, 2.2, 2.75]
       },
       "collision": {
         "shape": "rect",
@@ -3823,9 +2391,7 @@
       "paint": true,
       "triangles": 424,
       "luminance": 0.344,
-      "tags": [
-        "voiture"
-      ]
+      "tags": ["voiture"]
     },
     {
       "id": "voiture_citadine",
@@ -3834,22 +2400,10 @@
       "source": "voiture_citadine.glb",
       "height": 1.55,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.02
-      ],
+      "offset": [0, 0, -0.02],
       "bounds": {
-        "min": [
-          -0.85,
-          0,
-          -1.82
-        ],
-        "max": [
-          0.85,
-          1.55,
-          1.86
-        ]
+        "min": [-0.85, 0, -1.82],
+        "max": [0.85, 1.55, 1.86]
       },
       "collision": {
         "shape": "rect",
@@ -3863,9 +2417,7 @@
       "paint": true,
       "triangles": 428,
       "luminance": 0.344,
-      "tags": [
-        "voiture"
-      ]
+      "tags": ["voiture"]
     },
     {
       "id": "voiture_coupe",
@@ -3874,22 +2426,10 @@
       "source": "voiture_coupe.glb",
       "height": 1.38,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.02
-      ],
+      "offset": [0, 0, -0.02],
       "bounds": {
-        "min": [
-          -1,
-          0,
-          -2.445
-        ],
-        "max": [
-          1,
-          1.38,
-          2.485
-        ]
+        "min": [-1, 0, -2.445],
+        "max": [1, 1.38, 2.485]
       },
       "collision": {
         "shape": "rect",
@@ -3903,9 +2443,7 @@
       "paint": true,
       "triangles": 412,
       "luminance": 0.326,
-      "tags": [
-        "voiture"
-      ]
+      "tags": ["voiture"]
     },
     {
       "id": "voiture_fourgon",
@@ -3914,22 +2452,10 @@
       "source": "voiture_fourgon.glb",
       "height": 3,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.045
-      ],
+      "offset": [0, 0, -0.045],
       "bounds": {
-        "min": [
-          -1.23,
-          0,
-          -3.34
-        ],
-        "max": [
-          1.23,
-          3,
-          3.43
-        ]
+        "min": [-1.23, 0, -3.34],
+        "max": [1.23, 3, 3.43]
       },
       "collision": {
         "shape": "rect",
@@ -3943,9 +2469,7 @@
       "paint": true,
       "triangles": 524,
       "luminance": 0.256,
-      "tags": [
-        "voiture"
-      ]
+      "tags": ["voiture"]
     },
     {
       "id": "voiture_muscle",
@@ -3954,22 +2478,10 @@
       "source": "voiture_muscle.glb",
       "height": 1.33,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.02
-      ],
+      "offset": [0, 0, -0.02],
       "bounds": {
-        "min": [
-          -0.985,
-          0,
-          -2.47
-        ],
-        "max": [
-          0.985,
-          1.33,
-          2.51
-        ]
+        "min": [-0.985, 0, -2.47],
+        "max": [0.985, 1.33, 2.51]
       },
       "collision": {
         "shape": "rect",
@@ -3983,9 +2495,7 @@
       "paint": true,
       "triangles": 440,
       "luminance": 0.231,
-      "tags": [
-        "voiture"
-      ]
+      "tags": ["voiture"]
     },
     {
       "id": "voiture_pickup",
@@ -3994,22 +2504,10 @@
       "source": "voiture_pickup.glb",
       "height": 1.87,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.02
-      ],
+      "offset": [0, 0, -0.02],
       "bounds": {
-        "min": [
-          -1.025,
-          0,
-          -2.82
-        ],
-        "max": [
-          1.025,
-          1.87,
-          2.86
-        ]
+        "min": [-1.025, 0, -2.82],
+        "max": [1.025, 1.87, 2.86]
       },
       "collision": {
         "shape": "rect",
@@ -4023,9 +2521,7 @@
       "paint": true,
       "triangles": 440,
       "luminance": 0.235,
-      "tags": [
-        "voiture"
-      ]
+      "tags": ["voiture"]
     },
     {
       "id": "voiture_police",
@@ -4034,22 +2530,10 @@
       "source": "voiture_police.glb",
       "height": 1.63,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.068
-      ],
+      "offset": [0, 0, -0.068],
       "bounds": {
-        "min": [
-          -0.975,
-          0,
-          -2.57
-        ],
-        "max": [
-          0.975,
-          1.63,
-          2.705
-        ]
+        "min": [-0.975, 0, -2.57],
+        "max": [0.975, 1.63, 2.705]
       },
       "collision": {
         "shape": "rect",
@@ -4062,10 +2546,7 @@
       "emissive": true,
       "triangles": 524,
       "luminance": 0.207,
-      "tags": [
-        "voiture",
-        "police"
-      ]
+      "tags": ["voiture", "police"]
     },
     {
       "id": "voiture_police_suv",
@@ -4074,22 +2555,10 @@
       "source": "voiture_police_suv.glb",
       "height": 1.9,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.067
-      ],
+      "offset": [0, 0, -0.067],
       "bounds": {
-        "min": [
-          -1,
-          0,
-          -2.545
-        ],
-        "max": [
-          1,
-          1.9,
-          2.68
-        ]
+        "min": [-1, 0, -2.545],
+        "max": [1, 1.9, 2.68]
       },
       "collision": {
         "shape": "rect",
@@ -4102,10 +2571,7 @@
       "emissive": true,
       "triangles": 524,
       "luminance": 0.181,
-      "tags": [
-        "voiture",
-        "police"
-      ]
+      "tags": ["voiture", "police"]
     },
     {
       "id": "objet_arbre_boules",
@@ -4114,22 +2580,10 @@
       "source": "objet_arbre_boules.glb",
       "height": 2.19,
       "rotationY": 0,
-      "offset": [
-        -0.01,
-        0,
-        0
-      ],
+      "offset": [-0.01, 0, 0],
       "bounds": {
-        "min": [
-          -0.63,
-          0,
-          -0.35
-        ],
-        "max": [
-          0.65,
-          2.19,
-          0.35
-        ]
+        "min": [-0.63, 0, -0.35],
+        "max": [0.65, 2.19, 0.35]
       },
       "collision": {
         "shape": "circle",
@@ -4140,9 +2594,7 @@
       "folder": "objets",
       "triangles": 136,
       "luminance": 0.3,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_arbre_cypres",
@@ -4151,22 +2603,10 @@
       "source": "objet_arbre_cypres.glb",
       "height": 3,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.322,
-          0,
-          -0.306
-        ],
-        "max": [
-          0.322,
-          3,
-          0.306
-        ]
+        "min": [-0.322, 0, -0.306],
+        "max": [0.322, 3, 0.306]
       },
       "collision": {
         "shape": "circle",
@@ -4177,9 +2617,7 @@
       "folder": "objets",
       "triangles": 64,
       "luminance": 0.311,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_arbre_rond",
@@ -4188,22 +2626,10 @@
       "source": "objet_arbre_rond.glb",
       "height": 2.8,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.447,
-          0,
-          -0.425
-        ],
-        "max": [
-          0.447,
-          2.8,
-          0.425
-        ]
+        "min": [-0.447, 0, -0.425],
+        "max": [0.447, 2.8, 0.425]
       },
       "collision": {
         "shape": "circle",
@@ -4214,9 +2640,7 @@
       "folder": "objets",
       "triangles": 96,
       "luminance": 0.329,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_arceau_velo",
@@ -4225,22 +2649,10 @@
       "source": "objet_arceau_velo.glb",
       "height": 0.875,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.424,
-          0,
-          -0.325
-        ],
-        "max": [
-          0.424,
-          0.875,
-          0.325
-        ]
+        "min": [-0.424, 0, -0.325],
+        "max": [0.424, 0.875, 0.325]
       },
       "collision": null,
       "keepColors": true,
@@ -4248,9 +2660,7 @@
       "folder": "objets",
       "triangles": 300,
       "luminance": 0.619,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_armoire_grande",
@@ -4259,22 +2669,10 @@
       "source": "objet_armoire_grande.glb",
       "height": 1.6,
       "rotationY": 0,
-      "offset": [
-        -0.017,
-        0,
-        -0.01
-      ],
+      "offset": [-0.017, 0, -0.01],
       "bounds": {
-        "min": [
-          -0.475,
-          0,
-          -0.3
-        ],
-        "max": [
-          0.51,
-          1.6,
-          0.32
-        ]
+        "min": [-0.475, 0, -0.3],
+        "max": [0.51, 1.6, 0.32]
       },
       "collision": {
         "shape": "rect",
@@ -4286,9 +2684,7 @@
       "folder": "objets",
       "triangles": 108,
       "luminance": 0.146,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_armoire_petite",
@@ -4297,22 +2693,10 @@
       "source": "objet_armoire_petite.glb",
       "height": 1.2,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.005
-      ],
+      "offset": [0, 0, -0.005],
       "bounds": {
-        "min": [
-          -0.37,
-          0,
-          -0.25
-        ],
-        "max": [
-          0.37,
-          1.2,
-          0.26
-        ]
+        "min": [-0.37, 0, -0.25],
+        "max": [0.37, 1.2, 0.26]
       },
       "collision": {
         "shape": "rect",
@@ -4324,9 +2708,7 @@
       "folder": "objets",
       "triangles": 72,
       "luminance": 0.199,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_banc",
@@ -4335,22 +2717,10 @@
       "source": "objet_banc.glb",
       "height": 0.897,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0.004
-      ],
+      "offset": [0, 0, 0.004],
       "bounds": {
-        "min": [
-          -0.8,
-          0,
-          -0.319
-        ],
-        "max": [
-          0.8,
-          0.897,
-          0.31
-        ]
+        "min": [-0.8, 0, -0.319],
+        "max": [0.8, 0.897, 0.31]
       },
       "collision": {
         "shape": "rect",
@@ -4362,9 +2732,7 @@
       "folder": "objets",
       "triangles": 216,
       "luminance": 0.107,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_barriere",
@@ -4373,22 +2741,10 @@
       "source": "objet_barriere.glb",
       "height": 1.122,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -1.022,
-          0,
-          -0.3
-        ],
-        "max": [
-          1.022,
-          1.122,
-          0.3
-        ]
+        "min": [-1.022, 0, -0.3],
+        "max": [1.022, 1.122, 0.3]
       },
       "collision": null,
       "keepColors": true,
@@ -4396,9 +2752,7 @@
       "folder": "objets",
       "triangles": 260,
       "luminance": 0.619,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_boite_lettres_bleue",
@@ -4407,22 +2761,10 @@
       "source": "objet_boite_lettres_bleue.glb",
       "height": 1.142,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.008
-      ],
+      "offset": [0, 0, -0.008],
       "bounds": {
-        "min": [
-          -0.275,
-          0,
-          -0.24
-        ],
-        "max": [
-          0.275,
-          1.142,
-          0.255
-        ]
+        "min": [-0.275, 0, -0.24],
+        "max": [0.275, 1.142, 0.255]
       },
       "collision": null,
       "keepColors": true,
@@ -4430,9 +2772,7 @@
       "folder": "objets",
       "triangles": 128,
       "luminance": 0.168,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_boite_lettres_grise",
@@ -4441,22 +2781,10 @@
       "source": "objet_boite_lettres_grise.glb",
       "height": 1.142,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.008
-      ],
+      "offset": [0, 0, -0.008],
       "bounds": {
-        "min": [
-          -0.275,
-          0,
-          -0.24
-        ],
-        "max": [
-          0.275,
-          1.142,
-          0.255
-        ]
+        "min": [-0.275, 0, -0.24],
+        "max": [0.275, 1.142, 0.255]
       },
       "collision": null,
       "keepColors": true,
@@ -4464,9 +2792,7 @@
       "folder": "objets",
       "triangles": 128,
       "luminance": 0.348,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_borne_jaune",
@@ -4475,22 +2801,10 @@
       "source": "objet_borne_jaune.glb",
       "height": 0.8,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.01
-      ],
+      "offset": [0, 0, -0.01],
       "bounds": {
-        "min": [
-          -0.2,
-          0,
-          -0.17
-        ],
-        "max": [
-          0.2,
-          0.8,
-          0.19
-        ]
+        "min": [-0.2, 0, -0.17],
+        "max": [0.2, 0.8, 0.19]
       },
       "collision": null,
       "keepColors": true,
@@ -4498,9 +2812,7 @@
       "folder": "objets",
       "triangles": 248,
       "luminance": 0.578,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_borne_orange",
@@ -4509,22 +2821,10 @@
       "source": "objet_borne_orange.glb",
       "height": 0.8,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.01
-      ],
+      "offset": [0, 0, -0.01],
       "bounds": {
-        "min": [
-          -0.2,
-          0,
-          -0.17
-        ],
-        "max": [
-          0.2,
-          0.8,
-          0.19
-        ]
+        "min": [-0.2, 0, -0.17],
+        "max": [0.2, 0.8, 0.19]
       },
       "collision": null,
       "keepColors": true,
@@ -4532,9 +2832,7 @@
       "folder": "objets",
       "triangles": 248,
       "luminance": 0.339,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_borne_rouge",
@@ -4543,22 +2841,10 @@
       "source": "objet_borne_rouge.glb",
       "height": 0.8,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.01
-      ],
+      "offset": [0, 0, -0.01],
       "bounds": {
-        "min": [
-          -0.2,
-          0,
-          -0.17
-        ],
-        "max": [
-          0.2,
-          0.8,
-          0.19
-        ]
+        "min": [-0.2, 0, -0.17],
+        "max": [0.2, 0.8, 0.19]
       },
       "collision": null,
       "keepColors": true,
@@ -4566,9 +2852,7 @@
       "folder": "objets",
       "triangles": 248,
       "luminance": 0.163,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_cabine_telephone",
@@ -4577,22 +2861,10 @@
       "source": "objet_cabine_telephone.glb",
       "height": 2.13,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.38,
-          0,
-          -0.25
-        ],
-        "max": [
-          0.38,
-          2.13,
-          0.25
-        ]
+        "min": [-0.38, 0, -0.25],
+        "max": [0.38, 2.13, 0.25]
       },
       "collision": {
         "shape": "rect",
@@ -4604,9 +2876,7 @@
       "folder": "objets",
       "triangles": 96,
       "luminance": 0.423,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_feu_tricolore",
@@ -4615,22 +2885,10 @@
       "source": "objet_feu_tricolore.glb",
       "height": 3.48,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.045
-      ],
+      "offset": [0, 0, -0.045],
       "bounds": {
-        "min": [
-          -0.16,
-          0,
-          -0.15
-        ],
-        "max": [
-          0.16,
-          3.48,
-          0.24
-        ]
+        "min": [-0.16, 0, -0.15],
+        "max": [0.16, 3.48, 0.24]
       },
       "collision": null,
       "keepColors": true,
@@ -4639,9 +2897,7 @@
       "emissive": true,
       "triangles": 188,
       "luminance": 0.267,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_kiosque",
@@ -4650,22 +2906,10 @@
       "source": "objet_kiosque.glb",
       "height": 2.74,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        -0.248
-      ],
+      "offset": [0, 0, -0.248],
       "bounds": {
-        "min": [
-          -1.175,
-          0,
-          -0.875
-        ],
-        "max": [
-          1.175,
-          2.74,
-          1.372
-        ]
+        "min": [-1.175, 0, -0.875],
+        "max": [1.175, 2.74, 1.372]
       },
       "collision": {
         "shape": "rect",
@@ -4677,9 +2921,7 @@
       "folder": "objets",
       "triangles": 240,
       "luminance": 0.468,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_lampadaire_crosse",
@@ -4688,22 +2930,10 @@
       "source": "objet_lampadaire_crosse.glb",
       "height": 5.2,
       "rotationY": -90,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.18,
-          0,
-          -0.22
-        ],
-        "max": [
-          0.991,
-          5.2,
-          0.22
-        ]
+        "min": [-0.18, 0, -0.22],
+        "max": [0.991, 5.2, 0.22]
       },
       "collision": null,
       "keepColors": true,
@@ -4713,9 +2943,7 @@
       "keepOrigin": true,
       "triangles": 234,
       "luminance": 0.133,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_lampadaire_lanterne",
@@ -4724,22 +2952,10 @@
       "source": "objet_lampadaire_lanterne.glb",
       "height": 5.11,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.225,
-          0,
-          -0.26
-        ],
-        "max": [
-          0.225,
-          5.11,
-          0.26
-        ]
+        "min": [-0.225, 0, -0.26],
+        "max": [0.225, 5.11, 0.26]
       },
       "collision": {
         "shape": "circle",
@@ -4751,9 +2967,7 @@
       "emissive": true,
       "triangles": 182,
       "luminance": 0.15,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_panneau_direction",
@@ -4762,22 +2976,10 @@
       "source": "objet_panneau_direction.glb",
       "height": 2.73,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.375,
-          0,
-          -0.1
-        ],
-        "max": [
-          0.375,
-          2.73,
-          0.1
-        ]
+        "min": [-0.375, 0, -0.1],
+        "max": [0.375, 2.73, 0.1]
       },
       "collision": null,
       "keepColors": true,
@@ -4785,9 +2987,7 @@
       "folder": "objets",
       "triangles": 136,
       "luminance": 0.391,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_panneau_rue",
@@ -4796,22 +2996,10 @@
       "source": "objet_panneau_rue.glb",
       "height": 3.34,
       "rotationY": 0,
-      "offset": [
-        -0.36,
-        0,
-        0
-      ],
+      "offset": [-0.36, 0, 0],
       "bounds": {
-        "min": [
-          -0.08,
-          0,
-          -0.08
-        ],
-        "max": [
-          0.8,
-          3.34,
-          0.08
-        ]
+        "min": [-0.08, 0, -0.08],
+        "max": [0.8, 3.34, 0.08]
       },
       "collision": null,
       "keepColors": true,
@@ -4819,9 +3007,7 @@
       "folder": "objets",
       "triangles": 82,
       "luminance": 0.523,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_panneau_sens_interdit",
@@ -4830,22 +3016,10 @@
       "source": "objet_panneau_sens_interdit.glb",
       "height": 2.33,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.3,
-          0,
-          -0.08
-        ],
-        "max": [
-          0.3,
-          2.33,
-          0.08
-        ]
+        "min": [-0.3, 0, -0.08],
+        "max": [0.3, 2.33, 0.08]
       },
       "collision": null,
       "keepColors": true,
@@ -4853,9 +3027,7 @@
       "folder": "objets",
       "triangles": 104,
       "luminance": 0.41,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_panneau_stop",
@@ -4864,22 +3036,10 @@
       "source": "objet_panneau_stop.glb",
       "height": 2.48,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.37,
-          0,
-          -0.1
-        ],
-        "max": [
-          0.37,
-          2.48,
-          0.1
-        ]
+        "min": [-0.37, 0, -0.1],
+        "max": [0.37, 2.48, 0.1]
       },
       "collision": null,
       "keepColors": true,
@@ -4887,9 +3047,7 @@
       "folder": "objets",
       "triangles": 152,
       "luminance": 0.621,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_plot",
@@ -4898,22 +3056,10 @@
       "source": "objet_plot.glb",
       "height": 0.74,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.22,
-          0,
-          -0.22
-        ],
-        "max": [
-          0.22,
-          0.74,
-          0.22
-        ]
+        "min": [-0.22, 0, -0.22],
+        "max": [0.22, 0.74, 0.22]
       },
       "collision": null,
       "keepColors": true,
@@ -4921,9 +3067,7 @@
       "folder": "objets",
       "triangles": 144,
       "luminance": 0.686,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_poubelle_capot",
@@ -4932,22 +3076,10 @@
       "source": "objet_poubelle_capot.glb",
       "height": 0.999,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.33,
-          0,
-          -0.33
-        ],
-        "max": [
-          0.33,
-          0.999,
-          0.33
-        ]
+        "min": [-0.33, 0, -0.33],
+        "max": [0.33, 0.999, 0.33]
       },
       "collision": null,
       "keepColors": true,
@@ -4955,9 +3087,7 @@
       "folder": "objets",
       "triangles": 104,
       "luminance": 0.325,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_poubelle_metal",
@@ -4966,22 +3096,10 @@
       "source": "objet_poubelle_metal.glb",
       "height": 1.201,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0.088
-      ],
+      "offset": [0, 0, 0.088],
       "bounds": {
-        "min": [
-          -0.32,
-          0,
-          -0.496
-        ],
-        "max": [
-          0.32,
-          1.201,
-          0.32
-        ]
+        "min": [-0.32, 0, -0.496],
+        "max": [0.32, 1.201, 0.32]
       },
       "collision": null,
       "keepColors": true,
@@ -4989,9 +3107,7 @@
       "folder": "objets",
       "triangles": 292,
       "luminance": 0.356,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_poubelle_noire",
@@ -5000,22 +3116,10 @@
       "source": "objet_poubelle_noire.glb",
       "height": 1,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.33,
-          0,
-          -0.33
-        ],
-        "max": [
-          0.33,
-          1,
-          0.33
-        ]
+        "min": [-0.33, 0, -0.33],
+        "max": [0.33, 1, 0.33]
       },
       "collision": null,
       "keepColors": true,
@@ -5023,9 +3127,7 @@
       "folder": "objets",
       "triangles": 240,
       "luminance": 0.054,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     },
     {
       "id": "objet_velo",
@@ -5034,22 +3136,10 @@
       "source": "objet_velo.glb",
       "height": 1.01,
       "rotationY": 0,
-      "offset": [
-        0,
-        0,
-        0
-      ],
+      "offset": [0, 0, 0],
       "bounds": {
-        "min": [
-          -0.905,
-          0,
-          -0.25
-        ],
-        "max": [
-          0.905,
-          1.01,
-          0.25
-        ]
+        "min": [-0.905, 0, -0.25],
+        "max": [0.905, 1.01, 0.25]
       },
       "collision": null,
       "keepColors": true,
@@ -5057,9 +3147,7 @@
       "folder": "objets",
       "triangles": 368,
       "luminance": 0.17,
-      "tags": [
-        "objet"
-      ]
+      "tags": ["objet"]
     }
   ]
 }
