@@ -135,6 +135,23 @@ export function mergedPropIds(data: GameData): Set<string> {
   return out;
 }
 
+/**
+ * Façades importées fusionnées en un seul draw call (découpe et néons gardés) : chacune n'est
+ * posée qu'une fois, sans atlas, ni kit, ni pose à la main.
+ */
+export function mergedFacadeIds(data: GameData): Set<string> {
+  const elsewhere = new Set([
+    ...Object.values(data.placements.kits).flatMap((k) => k.props),
+    ...allPlacements(data.placements).map((p) => p.prop),
+  ]);
+  const out = new Set<string>();
+  for (const id of Object.values(data.placements.facades)) {
+    const prop = data.props.get(id);
+    if (prop && !elsewhere.has(id) && !prop.texture && prop.cuttable) out.add(id);
+  }
+  return out;
+}
+
 /** Ajustement d'un bâtiment importé dans une emprise : modèle retenu et échelles par axe. */
 export interface BoxFit {
   id: string;

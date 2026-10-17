@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { footprint, gameData, allPlacements, type Rect } from '@narco/shared';
 import { BoxGeometry } from 'three';
-import { blockModelHeights, mergedPropIds, propKitItems } from './propPlacements';
+import {
+  blockModelHeights,
+  mergedFacadeIds,
+  mergedPropIds,
+  propKitItems,
+} from './propPlacements';
 import { propSize } from './propAssets';
 import { mergeInstances, type PropItem } from './PropKits';
 
@@ -121,6 +126,19 @@ describe("façade importée d'un lieu et props posés fusionnés", () => {
     ])
       expect(merged.has(id), id).toBe(true);
     for (const id of ['epicerie_batiment', 'bush', 'trash']) expect(merged.has(id), id).toBe(false);
+    for (const id of ['banque_distributeur', 'banque_bac_arbuste', 'banque_haie'])
+      expect(merged.has(id), id).toBe(true);
+  });
+
+  it('façades importées (épicerie, banque) fusionnées entre elles, pas avec les props', () => {
+    const facades = mergedFacadeIds(gameData);
+    expect([...facades].sort()).toEqual(['banque_batiment', 'epicerie_batiment']);
+    const merged = mergedPropIds(gameData);
+    for (const id of facades) expect(merged.has(id), id).toBe(false);
+    const loc = gameData.locations.get('banque')!;
+    const placed = items.get('banque_batiment') ?? [];
+    expect(placed).toHaveLength(1);
+    within(worldRect('banque_batiment', placed[0]!), footprint(loc));
   });
 
   it('fusion : géométries placées en monde, sommets additionnés', () => {

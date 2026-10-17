@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import {
+  BufferAttribute,
   Euler,
   Matrix4,
   Quaternion,
@@ -174,9 +175,28 @@ export function mergeInstances(
   return merged;
 }
 
+/** Néons absents (repli, modèle sans néon) : `aEmit` à 0 pour fusionner avec les autres. */
+function withEmit(g: BufferGeometry): BufferGeometry {
+  if (g.attributes.aEmit) return g;
+  const out = g.clone();
+  out.setAttribute('aEmit', new BufferAttribute(new Float32Array(out.attributes.position!.count), 1));
+  return out;
+}
+
+interface MergedGroup extends Omit<KitProps, 'id' | 'items' | 'failed'> {
+  kits: ReadonlyMap<string, PropItem[]>;
+  /** Nom du Mesh et catégorie comptée par l'overlay debug. */
+  name: string;
+  category: PropCategory;
+  /** Découpe et néons (façades) : même matériau pour tout le groupe. */
+  cut?: boolean;
+  emit?: boolean;
+}
+
 /**
- * Props posés fusionnés (`mergedPropIds`) : un seul Mesh (1 draw call) pour les instances des
- * areas chargées, reconstruit quand les areas ou les modèles changent ; cube neutre en repli.
+ * Props posés fusionnés (`mergedPropIds`) ou façades (`mergedFacadeIds`) : un seul Mesh (1 draw
+ * call) pour les instances des areas chargées, reconstruit quand les areas ou les modèles
+ * changent ; cube neutre en repli.
  */
 function MergedProps({
   kits,
@@ -184,7 +204,11 @@ function MergedProps({
   data,
   materialFor,
   propTint = false,
-}: Omit<KitProps, 'id' | 'items' | 'failed'> & { kits: ReadonlyMap<string, PropItem[]> }) {
+  name,
+  category,
+  cut = false,
+  emit = false,
+}: MergedGroup) {
   const visible = useMemo(
     () =>
       loaded
@@ -206,8 +230,7 @@ function MergedProps({
     for (const id of wanted) {
       const prop = gameData.props.get(id);
       const entry = propEntry(id);
-      ofId.set(
-        id,
+      const base =
         entry?.status === 'ready' && prop
           ? tintedGeometry(
               entry.geometry,
@@ -215,8 +238,10 @@ function MergedProps({
               data.config,
               propTint ? data.propsTint[prop.category] : null,
             )
-          : fallbackGeometry(prop, data.config),
-      );
+          : fallbackGeometry(prop, data.config);
+      const g = emit ? withEmit(base) : base;
+      if (g !== base && !(entry?.status === 'ready' && entry.geometry === base)) base.dispose();
+      ofId.set(id, g);
     }
     const merged = mergeInstances(
       visible.map((v) => ({ geometry: ofId.get(v.id)!, item: v.item })),
@@ -231,41 +256,57 @@ function MergedProps({
   }, [visible, wanted, version, data, propTint]);
   useLayoutEffect(() => () => geometry?.dispose(), [geometry]);
   useLayoutEffect(() => {
-    if (geometry) active.set(MERGED, 'props');
-    else active.delete(MERGED);
-    return () => void active.delete(MERGED);
-  }, [geometry]);
+    if (geometry) active.set(name, category);
+    else active.delete(name);
+    return () => void active.delete(name);
+  }, [geometry, name, category]);
   if (!geometry) return null;
-  return <mesh name={MERGED} geometry={geometry} material={materialFor(null, false, false)} />;
+  return <mesh name={name} geometry={geometry} material={materialFor(null, cut, emit)} />;
 }
 
-const MERGED = 'props_fusionnes';
 const NONE: ReadonlySet<string> = new Set();
 
 /**
  * Tous les props : un InstancedMesh par id (`items` par id), sauf les props posés fusionnés
- * (`merged`) dessinés ensemble.
+ * (`merged`) et les façades fusionnées (`facades`), dessinés chacun en un seul Mesh.
  */
 export function PropKits({
   kits,
   merged = NONE,
+  facades = NONE,
   ...rest
 }: Omit<KitProps, 'id' | 'items' | 'failed'> & {
   kits: ReadonlyMap<string, PropItem[]>;
   merged?: ReadonlySet<string>;
+  facades?: ReadonlySet<string>;
 }) {
   const split = useMemo(() => {
     const own = new Map<string, PropItem[]>();
     const fused = new Map<string, PropItem[]>();
-    for (const [id, items] of kits) (merged.has(id) ? fused : own).set(id, items);
-    return { own, fused };
-  }, [kits, merged]);
+    const fronts = new Map<string, PropItem[]>();
+    for (const [id, items] of kits)
+      (merged.has(id) ? fused : facades.has(id) ? fronts : own).set(id, items);
+    const emit = [...fronts.keys()].some((id) => gameData.props.get(id)?.emissive);
+    return { own, fused, fronts, emit };
+  }, [kits, merged, facades]);
   return (
     <>
       {[...split.own].map(([id, items]) => (
         <KitBoundary key={id} id={id} items={items} {...rest} />
       ))}
-      {split.fused.size > 0 && <MergedProps kits={split.fused} {...rest} />}
+      {split.fused.size > 0 && (
+        <MergedProps kits={split.fused} name="props_fusionnes" category="props" {...rest} />
+      )}
+      {split.fronts.size > 0 && (
+        <MergedProps
+          kits={split.fronts}
+          name="facades_fusionnees"
+          category="batiments"
+          cut
+          emit={split.emit}
+          {...rest}
+        />
+      )}
     </>
   );
 }
