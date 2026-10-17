@@ -105,6 +105,18 @@
         "x": -64,
         "z": 105,
         "rotation": 0
+      },
+      {
+        "prop": "quartier_coin",
+        "x": -129.2,
+        "z": 125.1,
+        "rotation": 90
+      },
+      {
+        "prop": "quartier_normal",
+        "x": -115,
+        "z": 123,
+        "rotation": 180
       }
     ],
     "centre_ville": [

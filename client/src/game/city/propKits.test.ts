@@ -89,6 +89,29 @@ describe('décor 3D importé : chargement et rendu', () => {
     }
   });
 
+  it('néons : aEmit sur les faces émissives seulement, coupé par props.json emissive.enabled', async () => {
+    const lit = props.filter((p) => p.emissive);
+    expect(lit.length).toBeGreaterThan(0);
+    for (const p of lit) {
+      const gltf = await new GLTFLoader().parseAsync(await readPublic(p.model), '');
+      const emit = normalizeProp(gltf.scene, p).attributes.aEmit!;
+      const on = Array.from(emit.array as Float32Array).filter((v) => v === 1).length;
+      expect(on, p.id).toBeGreaterThan(0);
+      expect(on, p.id).toBeLessThan(emit.count / 4);
+      const saved = gameData.propsEmissive;
+      gameData.propsEmissive = { ...saved, enabled: false };
+      try {
+        expect(normalizeProp(gltf.scene, p).attributes.aEmit, p.id).toBeUndefined();
+      } finally {
+        gameData.propsEmissive = saved;
+      }
+    }
+    // les autres props n'en portent pas
+    const plain = props.find((p) => !p.emissive)!;
+    const gltf = await new GLTFLoader().parseAsync(await readPublic(plain.model), '');
+    expect(normalizeProp(gltf.scene, plain).attributes.aEmit).toBeUndefined();
+  });
+
   it(`tous les modèles montés, ${TICKS} ticks, 1 draw call par prop, rendus bornés`, async () => {
     setPropReader(readPublic);
     const kits = new Map(props.map((p) => [p.id, [{ x: spawn.x, z: spawn.z }]]));

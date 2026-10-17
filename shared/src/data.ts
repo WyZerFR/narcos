@@ -158,6 +158,8 @@ export interface GameData {
   props: ReadonlyMap<string, Prop>;
   /** Gain de couleur par catégorie de décor importé (`props.json` tint), selon le thème. */
   propsTint: PropsFile['tint'];
+  /** Néons des modèles importés (`props.json` emissive) : activés et intensité. */
+  propsEmissive: PropsFile['emissive'];
   /** Décor généré remplacé par des modèles et props posés (`placements.json`). */
   placements: PlacementsFile;
 }
@@ -695,8 +697,20 @@ export function parseGameData(raw: RawGameData): GameData {
   for (const p of props.values()) {
     if (!p.keepColors && !p.tint)
       errors.push(`props.json : "${p.id}" sans keepColors doit avoir une teinte (tint)`);
-    if (!p.model.startsWith(`models/${p.category}/`))
-      errors.push(`props.json : "${p.id}" doit être dans models/${p.category}/`);
+    const folder = p.folder ?? p.category;
+    if (!p.model.startsWith(`models/${folder}/`))
+      errors.push(`props.json : "${p.id}" doit être dans models/${folder}/`);
+    if (p.family) {
+      if (p.category !== 'batiments')
+        errors.push(`props.json : "${p.id}" (famille ${p.family}) doit être un bâtiment`);
+      if (!p.footprint) errors.push(`props.json : "${p.id}" (famille ${p.family}) sans emprise`);
+      else if (
+        p.collision?.shape !== 'rect' ||
+        p.collision.w > p.footprint.w ||
+        p.collision.d > p.footprint.d
+      )
+        errors.push(`props.json : "${p.id}" : collision rectangle hors de son emprise`);
+    }
     if (p.triangles > config.props.budget[p.category].maxTriangles)
       errors.push(`props.json : "${p.id}" dépasse le budget de triangles de ${p.category}`);
   }
@@ -822,6 +836,7 @@ export function parseGameData(raw: RawGameData): GameData {
     characters,
     appearanceSlots,
     propsTint: propsFile.tint,
+    propsEmissive: propsFile.emissive,
     props,
     placements,
   };

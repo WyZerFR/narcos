@@ -184,7 +184,11 @@ export const ThemeSchema = z.object({
       /** Chances par case d'essai, par area (id d'area → touffes, fleurs, pierres). */
       density: z.record(
         z.string(),
-        z.object({ tufts: z.number().min(0).max(1), flowers: z.number().min(0).max(1), stones: z.number().min(0).max(1) }),
+        z.object({
+          tufts: z.number().min(0).max(1),
+          flowers: z.number().min(0).max(1),
+          stones: z.number().min(0).max(1),
+        }),
       ),
       /** Vent des touffes (vertex shader) : amplitude (m), vitesse (rad/s) ; coupé en basse. */
       wind: z.object({ amplitude: nonNeg, speed: nonNeg }),
@@ -1516,6 +1520,14 @@ export const PropSchema = z.object({
     .optional(),
   /** Percé par la découpe devant le joueur (bâtiments). */
   cuttable: z.boolean(),
+  /** Dossier du modèle (`models/<folder>/`) s'il n'est pas celui de la catégorie. */
+  folder: slug.optional(),
+  /** Bâtiment de quartier modulaire : d'angle (`corner`) ou de rangée (`row`). */
+  family: z.enum(['corner', 'row']).optional(),
+  /** Emprise réservée (m) d'un bâtiment de quartier : la collision y tient. */
+  footprint: z.object({ w: pos, d: pos }).optional(),
+  /** Faces émissives (néons) portées par l'attribut `_EMISSIVE` du GLB. */
+  emissive: z.boolean().optional(),
   triangles: z.number().int().positive(),
   /** Luminance linéaire moyenne des faces (albédo : texture × couleur), mesurée à l'import. */
   luminance: z.number().min(0).max(1),
@@ -1530,6 +1542,11 @@ export const PropsFileSchema = z.object({
    * (`theme.propTint`, jour) : luminosité (facteur) et saturation (1 = inchangée).
    */
   tint: z.record(PropCategorySchema, z.object({ brightness: pos, saturation: pos })),
+  /**
+   * Néons des modèles (`emissive`) : `enabled` faux = faces éclairées comme le reste,
+   * `strength` = intensité émise (× couleur de la face).
+   */
+  emissive: z.object({ enabled: z.boolean(), strength: z.number().min(0) }),
   props: z.array(PropSchema),
 });
 

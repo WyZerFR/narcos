@@ -46,9 +46,10 @@ interface KitProps {
   data: GameData;
   /**
    * Matériau d'un prop : atlas de son pack (null : couleurs de sommets), découpe pour les
-   * bâtiments. Partagé par clé (le fournisseur garde le cache).
+   * bâtiments, néons (`emit` : géométrie avec `aEmit`). Partagé par clé (le fournisseur garde
+   * le cache).
    */
-  materialFor: (texture: Texture | null, cut: boolean) => Material;
+  materialFor: (texture: Texture | null, cut: boolean, emit: boolean) => Material;
   /** Gain de couleur par catégorie (props.json tint), demandé par le thème (jour). */
   propTint?: boolean;
   /** Repli forcé (error boundary). */
@@ -107,7 +108,11 @@ function Kit({ id, items, loaded, data, materialFor, failed, propTint = false }:
     return () => void active.delete(id);
   }, [id, geometry, visible, prop]);
   const texture = status !== 'error' && entry?.status === 'ready' ? entry.texture : null;
-  const material = materialFor(texture, Boolean(prop?.cuttable));
+  const material = materialFor(
+    texture,
+    Boolean(prop?.cuttable),
+    Boolean(geometry?.attributes.aEmit),
+  );
   if (!geometry || items.length === 0) return null;
   return (
     <instancedMesh
