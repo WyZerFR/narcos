@@ -51,8 +51,12 @@ export function resetPropCache(): void {
   for (const fn of listeners) fn();
 }
 
+/** Incrémenté à chaque changement du cache (abonnement à plusieurs props à la fois). */
+let version = 0;
+
 function set(id: string, entry: PropEntry) {
   cache.set(id, entry);
+  version++;
   for (const fn of listeners) fn();
 }
 
@@ -136,6 +140,11 @@ export function usePropEntry(id: string, wanted: boolean): PropEntry | undefined
     if (wanted) requestProp(id);
   }, [id, wanted]);
   return useSyncExternalStore(subscribe, () => cache.get(id));
+}
+
+/** Version du cache : change dès qu'un prop se charge ou échoue. */
+export function usePropCacheVersion(): number {
+  return useSyncExternalStore(subscribe, () => version);
 }
 
 /** Dimensions (m) du prop normalisé : emprise de la boîte, hauteur réelle. */

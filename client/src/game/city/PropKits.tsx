@@ -1,16 +1,33 @@
-import { Component, useLayoutEffect, useMemo, useRef, type ErrorInfo, type ReactNode } from 'react';
+import {
+  Component,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  type ErrorInfo,
+  type ReactNode,
+} from 'react';
 import {
   Euler,
   Matrix4,
   Quaternion,
   Vector3,
+  type BufferGeometry,
   type InstancedMesh,
   type Material,
   type Texture,
 } from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { gameData, type GameData, type PropCategory } from '@narco/shared';
 import { areaIdNear } from '../areaStreaming';
-import { fallbackGeometry, tintedGeometry, usePropEntry } from './propAssets';
+import {
+  fallbackGeometry,
+  propEntry,
+  requestProp,
+  tintedGeometry,
+  usePropCacheVersion,
+  usePropEntry,
+} from './propAssets';
 
 /** Une instance de prop : position au sol, rotation Y, échelle par axe (repère du prop). */
 export interface PropItem {
@@ -138,16 +155,117 @@ class KitBoundary extends Component<KitProps, { failed: boolean }> {
   }
 }
 
-/** Tous les props instanciés : `items` par id de prop. */
+/** Matrice monde d'une instance (repère du prop → monde). */
+function itemMatrix(it: PropItem): Matrix4 {
+  tmpQ.setFromEuler(tmpE.set(0, it.rotY ?? 0, 0));
+  tmpS.set(it.sx ?? 1, it.sy ?? it.sx ?? 1, it.sz ?? it.sx ?? 1);
+  return new Matrix4().compose(tmpP.set(it.x, it.y ?? 0, it.z), tmpQ, tmpS);
+}
+
+/** Fusion des instances (géométrie du prop placée en monde) en une seule géométrie. */
+export function mergeInstances(
+  parts: readonly { geometry: BufferGeometry; item: PropItem }[],
+): BufferGeometry | null {
+  if (parts.length === 0) return null;
+  const placed = parts.map(({ geometry, item }) => geometry.clone().applyMatrix4(itemMatrix(item)));
+  const merged = mergeGeometries(placed);
+  for (const g of placed) g.dispose();
+  merged?.computeBoundingSphere();
+  return merged;
+}
+
+/**
+ * Props posés fusionnés (`mergedPropIds`) : un seul Mesh (1 draw call) pour les instances des
+ * areas chargées, reconstruit quand les areas ou les modèles changent ; cube neutre en repli.
+ */
+function MergedProps({
+  kits,
+  loaded,
+  data,
+  materialFor,
+  propTint = false,
+}: Omit<KitProps, 'id' | 'items' | 'failed'> & { kits: ReadonlyMap<string, PropItem[]> }) {
+  const visible = useMemo(
+    () =>
+      loaded
+        ? [...kits].flatMap(([id, items]) =>
+            items.filter((it) => loaded.has(areaIdNear(it))).map((item) => ({ id, item })),
+          )
+        : [],
+    [kits, loaded],
+  );
+  const wanted = useMemo(() => [...new Set(visible.map((v) => v.id))], [visible]);
+  useEffect(() => {
+    for (const id of wanted) requestProp(id);
+  }, [wanted]);
+  const version = usePropCacheVersion();
+  const geometry = useMemo(() => {
+    // attend que tous les modèles voulus soient prêts (ou en échec) : une seule construction
+    if (wanted.some((id) => (propEntry(id)?.status ?? 'loading') === 'loading')) return null;
+    const ofId = new Map<string, BufferGeometry>();
+    for (const id of wanted) {
+      const prop = gameData.props.get(id);
+      const entry = propEntry(id);
+      ofId.set(
+        id,
+        entry?.status === 'ready' && prop
+          ? tintedGeometry(
+              entry.geometry,
+              prop,
+              data.config,
+              propTint ? data.propsTint[prop.category] : null,
+            )
+          : fallbackGeometry(prop, data.config),
+      );
+    }
+    const merged = mergeInstances(
+      visible.map((v) => ({ geometry: ofId.get(v.id)!, item: v.item })),
+    );
+    // copies seules (teinte, repli) : la géométrie du cache reste partagée
+    for (const [id, g] of ofId) {
+      const entry = propEntry(id);
+      if (!(entry?.status === 'ready' && entry.geometry === g)) g.dispose();
+    }
+    return merged;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- version : cache des modèles muté
+  }, [visible, wanted, version, data, propTint]);
+  useLayoutEffect(() => () => geometry?.dispose(), [geometry]);
+  useLayoutEffect(() => {
+    if (geometry) active.set(MERGED, 'props');
+    else active.delete(MERGED);
+    return () => void active.delete(MERGED);
+  }, [geometry]);
+  if (!geometry) return null;
+  return <mesh name={MERGED} geometry={geometry} material={materialFor(null, false, false)} />;
+}
+
+const MERGED = 'props_fusionnes';
+const NONE: ReadonlySet<string> = new Set();
+
+/**
+ * Tous les props : un InstancedMesh par id (`items` par id), sauf les props posés fusionnés
+ * (`merged`) dessinés ensemble.
+ */
 export function PropKits({
   kits,
+  merged = NONE,
   ...rest
-}: Omit<KitProps, 'id' | 'items' | 'failed'> & { kits: ReadonlyMap<string, PropItem[]> }) {
+}: Omit<KitProps, 'id' | 'items' | 'failed'> & {
+  kits: ReadonlyMap<string, PropItem[]>;
+  merged?: ReadonlySet<string>;
+}) {
+  const split = useMemo(() => {
+    const own = new Map<string, PropItem[]>();
+    const fused = new Map<string, PropItem[]>();
+    for (const [id, items] of kits) (merged.has(id) ? fused : own).set(id, items);
+    return { own, fused };
+  }, [kits, merged]);
   return (
     <>
-      {[...kits].map(([id, items]) => (
+      {[...split.own].map(([id, items]) => (
         <KitBoundary key={id} id={id} items={items} {...rest} />
       ))}
+      {split.fused.size > 0 && <MergedProps kits={split.fused} {...rest} />}
     </>
   );
 }

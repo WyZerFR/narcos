@@ -20,6 +20,8 @@ describe('enseignes et icônes', () => {
       expect(s.w).toBeGreaterThan(s.h);
       expect(s.y).toBeGreaterThanOrEqual(s.h);
     }
+    // façade importée (épicerie) : son enseigne néon remplace le panneau peint
+    expect(texts).not.toContain(gameData.locations.get('epicerie')!.panel);
     expect(gameData.config.theme.day.panels).toBe(true);
     expect(gameData.config.theme.cartel.panels).toBe(false);
   });

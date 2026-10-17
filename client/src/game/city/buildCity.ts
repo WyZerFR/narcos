@@ -19,6 +19,7 @@ import {
   valueNoise,
   themeOf,
   visibleLocations,
+  hasFacade,
 } from '@narco/shared';
 import type { Batch } from './batch';
 import { faceOf, mix, seeded, shade, SIDES, type Face } from './batch';
@@ -77,6 +78,7 @@ export function buildCity(
   };
   buildGround(ctx);
   for (const loc of visibleLocations(data.locations.values())) {
+    if (hasFacade(data, loc.id)) continue; // façade importée (PropKits)
     router.at(loc.position);
     buildLocation(ctx, loc);
   }

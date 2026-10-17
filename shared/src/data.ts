@@ -61,7 +61,7 @@ import { footprint, interactionPoint } from './locations';
 import { interiorBounds, interiorObstacles, scaleInterior } from './zones';
 
 import { findSlits, obstaclesFrom } from './collision';
-import { checkPlacements } from './props';
+import { checkFacades, checkPlacements } from './props';
 import { dialogueVars, textVars } from './dialogue';
 import { areaAt, areaContainsRect, areaRects, areasEnvelope } from './areas';
 import { checkQuartier, generateQuartier, quartierFrame, type QuartierLayout } from './quartiers';
@@ -733,6 +733,7 @@ export function parseGameData(raw: RawGameData): GameData {
       }),
     ),
   );
+  errors.push(...checkFacades(props, placements, locations));
   errors.push(...checkAreas(config, areas, locFile.locations, quartiers));
   errors.push(...checkCity(config, areas, blocks, locFile.locations));
   errors.push(...checkAirport(config, areas));

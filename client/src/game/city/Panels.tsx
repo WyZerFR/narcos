@@ -12,7 +12,13 @@ import {
   Vector3,
   type InstancedMesh,
 } from 'three';
-import { footprint, visibleLocations, type GameData, type Rect } from '@narco/shared';
+import {
+  footprint,
+  hasFacade,
+  visibleLocations,
+  type GameData,
+  type Rect,
+} from '@narco/shared';
 import { faceOf } from './batch';
 import { sideTowardRoad } from './buildCity';
 import { blockModelHeights } from './propPlacements';
@@ -68,7 +74,8 @@ export function panelSpots(data: GameData): PanelSpot[] {
   const { palette } = data.config;
   return [
     ...visibleLocations(data.locations.values()).flatMap((l) => {
-      if (!l.panel) return [];
+      // une façade importée porte sa propre enseigne
+      if (!l.panel || hasFacade(data, l.id)) return [];
       const r = footprint(l);
       return [spot(l.panel, r, l.door ?? sideTowardRoad(data, r), l.height, l.neonColor)];
     }),

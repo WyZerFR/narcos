@@ -862,7 +862,7 @@
     "originTolerance": 0.02,
     "fallbackColor": "wall",
     "tintStrength": 0.7,
-    "drawCallTarget": 60,
+    "drawCallTarget": 62,
     "drawCallBudget": 200,
     "maxStretch": 1.15
   },

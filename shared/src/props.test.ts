@@ -14,7 +14,9 @@ import quartiersJson from '../data/quartiers.json';
 import charactersJson from '../data/characters.json';
 import palettesJson from '../data/palettes.json';
 import propsJson from '../data/props.json';
+import placementsJson from '../data/placements.json';
 import { gameData, parseGameData, type RawGameData } from './data';
+import { facadePlacements, hasFacade } from './props';
 import {
   inspectGltf,
   modelOrigin,
@@ -113,8 +115,60 @@ describe('décor 3D importé (props.json)', () => {
   });
 });
 
+describe('façades de lieux importées (famille facade)', () => {
+  const withFacades = (facades: Record<string, string>): RawGameData => ({
+    ...raw(),
+    placements: { ...structuredClone(placementsJson), facades },
+  });
+
+  it("l'épicerie : modèle dans models/shops, néons, tenu dans la taille du lieu, tourné vers la porte", () => {
+    expect(gameData.placements.facades.epicerie).toBe('epicerie_batiment');
+    const p = gameData.props.get('epicerie_batiment')!;
+    const loc = gameData.locations.get('epicerie')!;
+    expect(p.family).toBe('facade');
+    expect(p.model).toBe('models/shops/epicerie_batiment.glb');
+    expect(p.cuttable).toBe(true);
+    expect(p.emissive).toBe(true);
+    expect(p.triangles).toBeLessThan(gameData.config.props.budget.batiments.maxTriangles);
+    if (p.collision?.shape !== 'rect') throw new Error('collision');
+    expect(p.collision.w).toBeLessThanOrEqual(loc.size.w);
+    expect(p.collision.d).toBeLessThanOrEqual(loc.size.d);
+    expect(facadePlacements(gameData)).toEqual([
+      { locationId: 'epicerie', prop: 'epicerie_batiment', ...loc.position, rotation: 0 },
+    ]);
+    expect(hasFacade(gameData, 'epicerie')).toBe(true);
+    expect(hasFacade(gameData, 'local')).toBe(false);
+  });
+
+  it('avant du modèle tourné vers la porte du lieu', () => {
+    const turned = (door: 'north' | 'east' | 'west') =>
+      facadePlacements({
+        placements: gameData.placements,
+        locations: new Map([['epicerie', { ...gameData.locations.get('epicerie')!, door }]]),
+      })[0]!.rotation;
+    expect([turned('north'), turned('east'), turned('west')]).toEqual([180, 90, 270]);
+  });
+
+  it('refusée : lieu inconnu, prop hors famille facade, façade plus grande que le lieu', () => {
+    expect(() => parseGameData(withFacades({ nulle_part: 'epicerie_batiment' }))).toThrow(
+      /facades\.nulle_part : lieu inconnu/,
+    );
+    expect(() => parseGameData(withFacades({ epicerie: 'quartier_coin' }))).toThrow(
+      /n'est pas un prop de famille facade/,
+    );
+    // emprise 10 × 8 dans un lieu de 8 × 8
+    const small = withFacades({ epicerie: 'epicerie_batiment' });
+    const locs = small.locations as typeof locationsJson;
+    const epicerie = locs.locations.find((l) => l.id === 'epicerie')!;
+    epicerie.size = { w: 8, d: 8 };
+    expect(() => parseGameData(small)).toThrow(/déborde de la taille du lieu/);
+  });
+});
+
 describe('bâtiments de quartier (familles corner et row)', () => {
-  const family = [...gameData.props.values()].filter((p) => p.family);
+  const family = [...gameData.props.values()].filter(
+    (p) => p.family === 'corner' || p.family === 'row',
+  );
 
   it("un d'angle et un de rangée, emprise tenue, néons, posés une fois dans chez_nous", () => {
     expect(family.map((p) => p.family).sort()).toEqual(['corner', 'row']);
