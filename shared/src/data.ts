@@ -733,7 +733,7 @@ export function parseGameData(raw: RawGameData): GameData {
       }),
     ),
   );
-  errors.push(...checkFacades(props, placements, locations));
+  errors.push(...checkFacades(props, placements, locations, blocks));
   errors.push(...checkAreas(config, areas, locFile.locations, quartiers));
   errors.push(...checkCity(config, areas, blocks, locFile.locations));
   errors.push(...checkAirport(config, areas));

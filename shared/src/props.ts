@@ -7,6 +7,7 @@ import type { QuartierLayout } from './quartiers';
 import {
   PROP_KIT_IDS,
   type Area,
+  type Block,
   type DoorSide,
   type GameConfig,
   type GameLocation,
@@ -70,7 +71,7 @@ const FACADE_ROTATION: Record<DoorSide, 0 | 90 | 180 | 270> = {
   west: 270,
 };
 
-/** Façade importée d'un lieu : prop, centre du lieu, rotation vers la porte. */
+/** Façade importée d'un lieu ou d'un bloc : prop, centre, rotation vers la porte. */
 export interface FacadePlacement {
   locationId: string;
   prop: string;
@@ -79,15 +80,33 @@ export interface FacadePlacement {
   rotation: 0 | 90 | 180 | 270;
 }
 
-/** Façades importées (`placements.facades`) des lieux visibles à porte. */
+/** Ce qu'une façade importée recouvre : lieu bâtiment visible ou bloc décoratif, à porte. */
+type FacadeHost = Pick<GameLocation, 'position' | 'size'> & { door: DoorSide };
+
+function facadeHost(
+  locations: ReadonlyMap<string, GameLocation>,
+  blocks: readonly Block[],
+  id: string,
+): FacadeHost | null {
+  const loc = locations.get(id);
+  if (loc)
+    return loc.kind === 'building' && loc.door && !loc.hidden ? { ...loc, door: loc.door } : null;
+  const block = blocks.find((b) => b.id === id);
+  return block?.door ? { ...block, door: block.door } : null;
+}
+
+/**
+ * Façades importées (`placements.facades`) des lieux visibles à porte et des blocs décoratifs
+ * à porte (commissariat : sans interaction).
+ */
 export function facadePlacements(
-  data: Pick<GameData, 'placements' | 'locations'>,
+  data: Pick<GameData, 'placements' | 'locations' | 'blocks'>,
 ): FacadePlacement[] {
   return Object.entries(data.placements.facades).flatMap(([locationId, prop]) => {
-    const loc = data.locations.get(locationId);
-    if (!loc?.door || loc.hidden) return [];
-    const { x, z } = loc.position;
-    return [{ locationId, prop, x, z, rotation: FACADE_ROTATION[loc.door] }];
+    const host = facadeHost(data.locations, data.blocks, locationId);
+    if (!host) return [];
+    const { x, z } = host.position;
+    return [{ locationId, prop, x, z, rotation: FACADE_ROTATION[host.door] }];
   });
 }
 
@@ -104,13 +123,14 @@ export function checkFacades(
   props: ReadonlyMap<string, Prop>,
   placements: PlacementsFile,
   locations: ReadonlyMap<string, GameLocation>,
+  blocks: readonly Block[],
 ): string[] {
   const errors: string[] = [];
   for (const [locId, id] of Object.entries(placements.facades)) {
     const where = `placements.json : facades.${locId}`;
-    const loc = locations.get(locId);
+    const loc = facadeHost(locations, blocks, locId);
     const prop = props.get(id);
-    if (!loc || loc.kind !== 'building' || !loc.door || loc.hidden) {
+    if (!loc) {
       errors.push(`${where} : lieu inconnu, caché ou sans porte`);
       continue;
     }

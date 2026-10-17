@@ -653,6 +653,63 @@
       "height": 0.7,
       "rotationY": 0,
       "tags": ["banque", "vegetal"]
+    },
+    {
+      "id": "police_batiment",
+      "source": "police_batiment.glb",
+      "sourceDir": "public/models/police",
+      "folder": "shops",
+      "category": "batiments",
+      "family": "facade",
+      "footprint": { "w": 30, "d": 12 },
+      "height": 10.6,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["repere", "police"]
+    },
+    {
+      "id": "police_barriere",
+      "node": "police_barriere",
+      "source": "police_props.glb",
+      "sourceDir": "public/models/police",
+      "folder": "shops",
+      "category": "props",
+      "rotationY": 0,
+      "height": 1,
+      "tags": ["police", "mobilier"]
+    },
+    {
+      "id": "police_panneau",
+      "node": "police_panneau",
+      "source": "police_props.glb",
+      "sourceDir": "public/models/police",
+      "folder": "shops",
+      "category": "props",
+      "rotationY": 0,
+      "height": 2.3,
+      "tags": ["police", "mobilier"]
+    },
+    {
+      "id": "police_drapeau",
+      "node": "police_drapeau",
+      "source": "police_props.glb",
+      "sourceDir": "public/models/police",
+      "folder": "shops",
+      "category": "props",
+      "rotationY": 0,
+      "height": 6,
+      "tags": ["police", "mobilier"]
+    },
+    {
+      "id": "police_bac",
+      "node": "police_bac",
+      "source": "police_props.glb",
+      "sourceDir": "public/models/police",
+      "folder": "shops",
+      "category": "props",
+      "rotationY": 0,
+      "height": 1.25,
+      "tags": ["police", "vegetal"]
     }
   ]
 }

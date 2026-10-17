@@ -1606,8 +1606,9 @@ export const PlacementsFileSchema = z.object({
   /** Props posés, par id d'area. */
   areas: z.record(slug, z.array(PropPlacementSchema)),
   /**
-   * Façade importée par id de lieu (prop de famille `facade`) : remplace la silhouette générée,
-   * posée sur le lieu, avant (+Z) tourné vers la porte. Lieu, porte, collision inchangés.
+   * Façade importée par id de lieu ou de bloc décoratif à porte (prop de famille `facade`) :
+   * remplace la silhouette générée, posée au centre, avant (+Z) tourné vers la porte. Lieu,
+   * porte, collision inchangés.
    */
   facades: z.record(slug, slug).default({}),
 });

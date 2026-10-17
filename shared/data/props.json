@@ -1586,6 +1586,132 @@
       "triangles": 30,
       "luminance": 0.117,
       "tags": ["banque", "vegetal"]
+    },
+    {
+      "id": "police_batiment",
+      "category": "batiments",
+      "model": "models/shops/police_batiment.glb",
+      "source": "police_batiment.glb",
+      "height": 10.6,
+      "rotationY": 0,
+      "offset": [0, 0, 0],
+      "bounds": {
+        "min": [-15, 0, -6],
+        "max": [15, 10.6, 6]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 30,
+        "d": 12
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "folder": "shops",
+      "family": "facade",
+      "footprint": {
+        "w": 30,
+        "d": 12
+      },
+      "emissive": true,
+      "triangles": 2022,
+      "luminance": 0.555,
+      "tags": ["repere", "police"]
+    },
+    {
+      "id": "police_barriere",
+      "category": "props",
+      "model": "models/shops/police_barriere.glb",
+      "source": "police_props.glb",
+      "height": 1,
+      "rotationY": 0,
+      "offset": [-20, 0, 0],
+      "bounds": {
+        "min": [19, 0, -0.3],
+        "max": [21, 1, 0.3]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 2,
+        "d": 0.6
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "shops",
+      "triangles": 60,
+      "luminance": 0.34,
+      "tags": ["police", "mobilier"]
+    },
+    {
+      "id": "police_panneau",
+      "category": "props",
+      "model": "models/shops/police_panneau.glb",
+      "source": "police_props.glb",
+      "height": 2.3,
+      "rotationY": 0,
+      "offset": [-24, 0, -0.015],
+      "bounds": {
+        "min": [23.5, 0, -0.05],
+        "max": [24.5, 2.3, 0.08]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 1,
+        "d": 0.13
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "shops",
+      "triangles": 24,
+      "luminance": 0.197,
+      "tags": ["police", "mobilier"]
+    },
+    {
+      "id": "police_drapeau",
+      "category": "props",
+      "model": "models/shops/police_drapeau.glb",
+      "source": "police_props.glb",
+      "height": 6,
+      "rotationY": 0,
+      "offset": [-28.575, 0, 0],
+      "bounds": {
+        "min": [27.7, 0, -0.3],
+        "max": [29.45, 6, 0.3]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 1.75,
+        "d": 0.6
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "shops",
+      "triangles": 36,
+      "luminance": 0.402,
+      "tags": ["police", "mobilier"]
+    },
+    {
+      "id": "police_bac",
+      "category": "props",
+      "model": "models/shops/police_bac.glb",
+      "source": "police_props.glb",
+      "height": 1.25,
+      "rotationY": 0,
+      "offset": [-32, 0, 0],
+      "bounds": {
+        "min": [31.55, 0, -0.45],
+        "max": [32.45, 1.25, 0.45]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 0.9,
+        "d": 0.9
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "shops",
+      "triangles": 24,
+      "luminance": 0.387,
+      "tags": ["police", "vegetal"]
     }
   ]
 }

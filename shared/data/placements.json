@@ -233,6 +233,36 @@
         "x": 30.89,
         "z": -7.952,
         "rotation": 0
+      },
+      {
+        "prop": "police_drapeau",
+        "x": 11.2,
+        "z": 27.7,
+        "rotation": 180
+      },
+      {
+        "prop": "police_bac",
+        "x": 20.6,
+        "z": 27.55,
+        "rotation": 180
+      },
+      {
+        "prop": "police_bac",
+        "x": 27.4,
+        "z": 27.55,
+        "rotation": 180
+      },
+      {
+        "prop": "police_panneau",
+        "x": 31,
+        "z": 27.935,
+        "rotation": 180
+      },
+      {
+        "prop": "police_barriere",
+        "x": 35.5,
+        "z": 27.7,
+        "rotation": 180
       }
     ],
     "commercial": [
@@ -302,6 +332,7 @@
   },
   "facades": {
     "epicerie": "epicerie_batiment",
-    "banque": "banque_batiment"
+    "banque": "banque_batiment",
+    "se_fond": "police_batiment"
   }
 }

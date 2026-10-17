@@ -168,11 +168,37 @@ describe('façades de lieux importées (famille facade)', () => {
       );
   });
 
+  it('le commissariat : bloc décoratif à façade importée, tenue dans le bloc, porte au nord', () => {
+    expect(gameData.placements.facades.se_fond).toBe('police_batiment');
+    const p = gameData.props.get('police_batiment')!;
+    const block = gameData.blocks.find((b) => b.id === 'se_fond')!;
+    expect(block.style).toBe('police');
+    expect(gameData.locations.has('se_fond')).toBe(false); // aucun bouton ACTION
+    expect(p.family).toBe('facade');
+    expect(p.emissive).toBe(true);
+    expect(p.triangles).toBeLessThan(gameData.config.props.budget.batiments.maxTriangles);
+    if (p.collision?.shape !== 'rect') throw new Error('collision');
+    expect(p.collision.w).toBeLessThanOrEqual(block.size.w);
+    expect(p.collision.d).toBeLessThanOrEqual(block.size.d);
+    expect(facadePlacements(gameData)).toContainEqual({
+      locationId: 'se_fond',
+      prop: 'police_batiment',
+      ...block.position,
+      rotation: 180,
+    });
+    expect(hasFacade(gameData, 'se_fond')).toBe(true);
+    for (const id of ['police_barriere', 'police_panneau', 'police_drapeau', 'police_bac'])
+      expect(gameData.props.get(id)!.triangles, id).toBeLessThan(
+        gameData.config.props.budget.props.maxTriangles,
+      );
+  });
+
   it('avant du modèle tourné vers la porte du lieu', () => {
     const turned = (door: 'north' | 'east' | 'west') =>
       facadePlacements({
         placements: gameData.placements,
         locations: new Map([['epicerie', { ...gameData.locations.get('epicerie')!, door }]]),
+        blocks: [],
       })[0]!.rotation;
     expect([turned('north'), turned('east'), turned('west')]).toEqual([180, 90, 270]);
   });
