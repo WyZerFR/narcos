@@ -1289,6 +1289,153 @@
       "triangles": 32,
       "luminance": 0.281,
       "tags": ["epicerie", "caisse"]
+    },
+    {
+      "id": "tour_beige",
+      "category": "batiments",
+      "model": "models/tours/tour_beige.glb",
+      "source": "bulding_batiment.glb",
+      "height": 26.23,
+      "rotationY": 0,
+      "offset": [16, 0, -0.275],
+      "bounds": {
+        "min": [-21.25, 0, -5.25],
+        "max": [-10.75, 26.23, 5.8]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 10.5,
+        "d": 11.05
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "folder": "tours",
+      "emissive": true,
+      "triangles": 1198,
+      "luminance": 0.359,
+      "tags": ["tour", "bureaux"]
+    },
+    {
+      "id": "tour_brique",
+      "category": "batiments",
+      "model": "models/tours/tour_brique.glb",
+      "source": "bulding_batiment.glb",
+      "height": 27.3,
+      "rotationY": 0,
+      "offset": [0, 0, -0.4],
+      "bounds": {
+        "min": [-5.1, 0, -3.7],
+        "max": [5.1, 27.3, 4.5]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 10.2,
+        "d": 8.2
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "folder": "tours",
+      "emissive": true,
+      "triangles": 782,
+      "luminance": 0.172,
+      "tags": ["tour", "immeuble"]
+    },
+    {
+      "id": "tour_verre",
+      "category": "batiments",
+      "model": "models/tours/tour_verre.glb",
+      "source": "bulding_batiment.glb",
+      "height": 26.08,
+      "rotationY": 0,
+      "offset": [-16.06, 0, 0],
+      "bounds": {
+        "min": [11.15, 0, -5.65],
+        "max": [20.97, 26.076, 5.65]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 9.822,
+        "d": 11.302
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "folder": "tours",
+      "emissive": true,
+      "triangles": 820,
+      "luminance": 0.232,
+      "tags": ["tour", "bureaux"]
+    },
+    {
+      "id": "tour_bac_arbuste",
+      "category": "props",
+      "model": "models/tours/tour_bac_arbuste.glb",
+      "source": "bulding_props.glb",
+      "height": 2.28,
+      "rotationY": 0,
+      "offset": [6, 0, -12],
+      "bounds": {
+        "min": [-6.45, 0, 11.55],
+        "max": [-5.55, 2.275, 12.45]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 0.902,
+        "d": 0.902
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "tours",
+      "triangles": 56,
+      "luminance": 0.161,
+      "tags": ["tour", "vegetation"]
+    },
+    {
+      "id": "tour_borne_incendie",
+      "category": "props",
+      "model": "models/tours/tour_borne_incendie.glb",
+      "source": "bulding_props.glb",
+      "height": 0.78,
+      "rotationY": 0,
+      "offset": [3, 0, -12.02],
+      "bounds": {
+        "min": [-3.2, 0, 11.84],
+        "max": [-2.8, 0.78, 12.2]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 0.4,
+        "d": 0.36
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "tours",
+      "triangles": 124,
+      "luminance": 0.147,
+      "tags": ["tour", "mobilier"]
+    },
+    {
+      "id": "tour_boites_lettres",
+      "category": "props",
+      "model": "models/tours/tour_boites_lettres.glb",
+      "source": "bulding_props.glb",
+      "height": 1.12,
+      "rotationY": 0,
+      "offset": [0, 0, -12.003],
+      "bounds": {
+        "min": [-0.52, 0, 11.8],
+        "max": [0.52, 1.12, 12.205]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 1.04,
+        "d": 0.405
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "tours",
+      "triangles": 120,
+      "luminance": 0.071,
+      "tags": ["tour", "mobilier"]
     }
   ]
 }

@@ -24,7 +24,7 @@
       "heightScale": 1.4
     },
     "towers": {
-      "props": ["skyscraper_a", "skyscraper_b", "skyscraper_d", "skyscraper_e"],
+      "props": ["tour_beige", "tour_brique", "tour_verre", "skyscraper_d"],
       "fit": "box"
     },
     "fillers": {
@@ -172,6 +172,30 @@
         "prop": "trash",
         "x": 41,
         "z": -6,
+        "rotation": 0
+      },
+      {
+        "prop": "tour_bac_arbuste",
+        "x": -41.4,
+        "z": -9.549,
+        "rotation": 0
+      },
+      {
+        "prop": "tour_bac_arbuste",
+        "x": -36.6,
+        "z": -9.549,
+        "rotation": 0
+      },
+      {
+        "prop": "tour_borne_incendie",
+        "x": -34.8,
+        "z": -12,
+        "rotation": 0
+      },
+      {
+        "prop": "tour_boites_lettres",
+        "x": -34.48,
+        "z": -15,
         "rotation": 0
       }
     ],

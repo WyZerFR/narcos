@@ -136,3 +136,21 @@ describe("façade importée d'un lieu et props posés fusionnés", () => {
     expect(mergeInstances([])).toBeNull();
   });
 });
+
+describe('tours modélisées (bulding)', () => {
+  it('les trois tours remplacent trois tours Kenney du kit, chacune posée au moins une fois', () => {
+    const ids = ['tour_beige', 'tour_brique', 'tour_verre'];
+    for (const id of ids) {
+      expect(kits.towers.props, id).toContain(id);
+      expect(gameData.props.get(id)?.cuttable, id).toBe(true);
+      expect((items.get(id) ?? []).length, id).toBeGreaterThan(0);
+    }
+    expect(kits.towers.props).toHaveLength(4);
+  });
+
+  it('leurs props au sol, sans texture, rejoignent le draw call fusionné', () => {
+    const merged = mergedPropIds(gameData);
+    for (const id of ['tour_bac_arbuste', 'tour_borne_incendie', 'tour_boites_lettres'])
+      expect(merged.has(id), id).toBe(true);
+  });
+});

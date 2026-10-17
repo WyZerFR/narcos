@@ -516,6 +516,75 @@
       "height": 0.86,
       "rotationY": 0,
       "tags": ["epicerie", "caisse"]
+    },
+    {
+      "id": "tour_beige",
+      "source": "bulding_batiment.glb",
+      "node": "Tour_Beige",
+      "sourceDir": "public/models/bulding",
+      "folder": "tours",
+      "category": "batiments",
+      "height": 26.23,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["tour", "bureaux"]
+    },
+    {
+      "id": "tour_brique",
+      "source": "bulding_batiment.glb",
+      "node": "Tour_Brique",
+      "sourceDir": "public/models/bulding",
+      "folder": "tours",
+      "category": "batiments",
+      "height": 27.3,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["tour", "immeuble"]
+    },
+    {
+      "id": "tour_verre",
+      "source": "bulding_batiment.glb",
+      "node": "Tour_Verre",
+      "sourceDir": "public/models/bulding",
+      "folder": "tours",
+      "category": "batiments",
+      "height": 26.08,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["tour", "bureaux"]
+    },
+    {
+      "id": "tour_bac_arbuste",
+      "source": "bulding_props.glb",
+      "node": "Bac_Arbuste",
+      "sourceDir": "public/models/bulding",
+      "folder": "tours",
+      "category": "props",
+      "height": 2.28,
+      "rotationY": 0,
+      "tags": ["tour", "vegetation"]
+    },
+    {
+      "id": "tour_borne_incendie",
+      "source": "bulding_props.glb",
+      "node": "Borne_Incendie",
+      "sourceDir": "public/models/bulding",
+      "folder": "tours",
+      "category": "props",
+      "height": 0.78,
+      "rotationY": 0,
+      "tags": ["tour", "mobilier"]
+    },
+    {
+      "id": "tour_boites_lettres",
+      "source": "bulding_props.glb",
+      "node": "Boites_Lettres",
+      "sourceDir": "public/models/bulding",
+      "folder": "tours",
+      "category": "props",
+      "height": 1.12,
+      "rotationY": 0,
+      "tags": ["tour", "mobilier"]
     }
   ]
 }
