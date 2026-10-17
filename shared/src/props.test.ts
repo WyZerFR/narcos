@@ -133,11 +133,39 @@ describe('façades de lieux importées (famille facade)', () => {
     if (p.collision?.shape !== 'rect') throw new Error('collision');
     expect(p.collision.w).toBeLessThanOrEqual(loc.size.w);
     expect(p.collision.d).toBeLessThanOrEqual(loc.size.d);
-    expect(facadePlacements(gameData)).toEqual([
-      { locationId: 'epicerie', prop: 'epicerie_batiment', ...loc.position, rotation: 0 },
-    ]);
+    expect(facadePlacements(gameData)).toContainEqual({
+      locationId: 'epicerie',
+      prop: 'epicerie_batiment',
+      ...loc.position,
+      rotation: 0,
+    });
     expect(hasFacade(gameData, 'epicerie')).toBe(true);
     expect(hasFacade(gameData, 'local')).toBe(false);
+  });
+
+  it('la banque : façade importée, enseigne émissive, tenue dans le lieu, porte au sud', () => {
+    expect(gameData.placements.facades.banque).toBe('banque_batiment');
+    const p = gameData.props.get('banque_batiment')!;
+    const loc = gameData.locations.get('banque')!;
+    expect(p.family).toBe('facade');
+    expect(p.model).toBe('models/shops/banque_batiment.glb');
+    expect(p.cuttable).toBe(true);
+    expect(p.emissive).toBe(true);
+    expect(p.triangles).toBeLessThan(gameData.config.props.budget.batiments.maxTriangles);
+    if (p.collision?.shape !== 'rect') throw new Error('collision');
+    expect(p.collision.w).toBeLessThanOrEqual(loc.size.w);
+    expect(p.collision.d).toBeLessThanOrEqual(loc.size.d);
+    expect(facadePlacements(gameData)).toContainEqual({
+      locationId: 'banque',
+      prop: 'banque_batiment',
+      ...loc.position,
+      rotation: 0,
+    });
+    expect(hasFacade(gameData, 'banque')).toBe(true);
+    for (const id of ['banque_distributeur', 'banque_bac_arbuste', 'banque_haie'])
+      expect(gameData.props.get(id)!.triangles, id).toBeLessThan(
+        gameData.config.props.budget.props.maxTriangles,
+      );
   });
 
   it('avant du modèle tourné vers la porte du lieu', () => {

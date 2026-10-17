@@ -19,7 +19,7 @@ import { Halos } from './Halos';
 import { Panels } from './Panels';
 import { GrassTufts } from './GrassTufts';
 import { PropKits } from './PropKits';
-import { mergedPropIds, propKitItems } from './propPlacements';
+import { mergedFacadeIds, mergedPropIds, propKitItems } from './propPlacements';
 import { applyEmission, outlineMaterial, shadedMaterial } from '../materials';
 import { applyCutout, cutoutUniforms, getCutout } from './cutout';
 
@@ -103,6 +103,7 @@ export function City({
   );
   const propKits = useMemo(() => propKitItems(data), [data]);
   const mergedProps = useMemo(() => mergedPropIds(data), [data]);
+  const mergedFacades = useMemo(() => mergedFacadeIds(data), [data]);
   // thème doux (neutre) : halos des devantures et des lampadaires coupés
   const { halos, glow, shading, outline, panels, propTint, grass } = themeOf(
     gameData.config,
@@ -218,6 +219,7 @@ export function City({
       <PropKits
         kits={propKits}
         merged={mergedProps}
+        facades={mergedFacades}
         loaded={warm ? loaded : null}
         data={data}
         materialFor={propMaterials.make}

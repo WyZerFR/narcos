@@ -197,6 +197,42 @@
         "x": -34.48,
         "z": -15,
         "rotation": 0
+      },
+      {
+        "prop": "banque_boite_lettres",
+        "x": 21.48,
+        "z": -7.79,
+        "rotation": 0
+      },
+      {
+        "prop": "banque_bac_arbuste",
+        "x": 22.11,
+        "z": -7.61,
+        "rotation": 0
+      },
+      {
+        "prop": "banque_distributeur",
+        "x": 22.97,
+        "z": -7.61,
+        "rotation": 0
+      },
+      {
+        "prop": "banque_bac_arbuste",
+        "x": 28.95,
+        "z": -7.61,
+        "rotation": 0
+      },
+      {
+        "prop": "banque_haie",
+        "x": 29.94,
+        "z": -7.75,
+        "rotation": 0
+      },
+      {
+        "prop": "banque_panneau",
+        "x": 30.89,
+        "z": -7.952,
+        "rotation": 0
       }
     ],
     "commercial": [
@@ -265,6 +301,7 @@
     ]
   },
   "facades": {
-    "epicerie": "epicerie_batiment"
+    "epicerie": "epicerie_batiment",
+    "banque": "banque_batiment"
   }
 }
