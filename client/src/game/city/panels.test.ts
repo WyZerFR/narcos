@@ -9,7 +9,7 @@ describe('enseignes et icônes', () => {
 
   it('panneaux lisibles des lieux de la référence, hors des façades, à taille de façade', () => {
     const texts = spots.map((s) => s.text);
-    for (const t of ['PD · POLICE','AMMU-NATION', 'LAUNDROMAT', 'BARBERSHOP', 'COMMERCES'])
+    for (const t of ['AMMU-NATION', 'LAUNDROMAT', 'BARBERSHOP', 'COMMERCES'])
       expect(texts, t).toContain(t);
     const solids = [...gameData.locations.values(), ...gameData.blocks].map(footprint);
     for (const s of spots) {
@@ -20,7 +20,8 @@ describe('enseignes et icônes', () => {
       expect(s.w).toBeGreaterThan(s.h);
       expect(s.y).toBeGreaterThanOrEqual(s.h);
     }
-    // façades importées (épicerie, banque) : leur enseigne néon remplace le panneau peint
+    // façades importées (épicerie, banque, commissariat) : leur enseigne néon remplace le panneau
+    expect(texts).not.toContain(gameData.blocks.find((b) => b.style === 'police')!.panel);
     expect(texts).not.toContain(gameData.locations.get('epicerie')!.panel);
     expect(texts).not.toContain(gameData.locations.get('banque')!.panel);
     expect(gameData.config.theme.day.panels).toBe(true);

@@ -83,6 +83,7 @@ export function buildCity(
     buildLocation(ctx, loc);
   }
   for (const block of data.blocks) {
+    if (hasFacade(data, block.id)) continue; // façade importée (commissariat)
     router.at(block.position);
     buildFiller(ctx, block);
   }

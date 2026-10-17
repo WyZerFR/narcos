@@ -80,7 +80,7 @@ export function panelSpots(data: GameData): PanelSpot[] {
       return [spot(l.panel, r, l.door ?? sideTowardRoad(data, r), l.height, l.neonColor)];
     }),
     ...data.blocks.flatMap((b) => {
-      if (!b.panel) return [];
+      if (!b.panel || hasFacade(data, b.id)) return [];
       const r = footprint(b);
       const height = heights.get(b.id) ?? b.height;
       return [

@@ -1,12 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { footprint, gameData, allPlacements, type Rect } from '@narco/shared';
 import { BoxGeometry } from 'three';
-import {
-  blockModelHeights,
-  mergedFacadeIds,
-  mergedPropIds,
-  propKitItems,
-} from './propPlacements';
+import { blockModelHeights, mergedFacadeIds, mergedPropIds, propKitItems } from './propPlacements';
 import { propSize } from './propAssets';
 import { mergeInstances, type PropItem } from './PropKits';
 
@@ -130,9 +125,13 @@ describe("façade importée d'un lieu et props posés fusionnés", () => {
       expect(merged.has(id), id).toBe(true);
   });
 
-  it('façades importées (épicerie, banque) fusionnées entre elles, pas avec les props', () => {
+  it('façades importées (épicerie, banque, commissariat) fusionnées entre elles, pas avec les props', () => {
     const facades = mergedFacadeIds(gameData);
-    expect([...facades].sort()).toEqual(['banque_batiment', 'epicerie_batiment']);
+    expect([...facades].sort()).toEqual([
+      'banque_batiment',
+      'epicerie_batiment',
+      'police_batiment',
+    ]);
     const merged = mergedPropIds(gameData);
     for (const id of facades) expect(merged.has(id), id).toBe(false);
     const loc = gameData.locations.get('banque')!;
