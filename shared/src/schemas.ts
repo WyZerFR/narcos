@@ -1522,9 +1522,12 @@ export const PropSchema = z.object({
   cuttable: z.boolean(),
   /** Dossier du modèle (`models/<folder>/`) s'il n'est pas celui de la catégorie. */
   folder: slug.optional(),
-  /** Bâtiment de quartier modulaire : d'angle (`corner`) ou de rangée (`row`). */
-  family: z.enum(['corner', 'row']).optional(),
-  /** Emprise réservée (m) d'un bâtiment de quartier : la collision y tient. */
+  /**
+   * Bâtiment de quartier modulaire : d'angle (`corner`) ou de rangée (`row`) ; `facade` :
+   * aspect extérieur d'un lieu (`placements.json` `facades`).
+   */
+  family: z.enum(['corner', 'row', 'facade']).optional(),
+  /** Emprise réservée (m) d'un bâtiment de quartier ou d'une façade : la collision y tient. */
   footprint: z.object({ w: pos, d: pos }).optional(),
   /** Faces émissives (néons) portées par l'attribut `_EMISSIVE` du GLB. */
   emissive: z.boolean().optional(),
@@ -1602,6 +1605,11 @@ export const PlacementsFileSchema = z.object({
   ),
   /** Props posés, par id d'area. */
   areas: z.record(slug, z.array(PropPlacementSchema)),
+  /**
+   * Façade importée par id de lieu (prop de famille `facade`) : remplace la silhouette générée,
+   * posée sur le lieu, avant (+Z) tourné vers la porte. Lieu, porte, collision inchangés.
+   */
+  facades: z.record(slug, slug).default({}),
 });
 
 export type PropKit = z.infer<typeof PropKitSchema>;

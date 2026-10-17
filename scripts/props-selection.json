@@ -459,6 +459,63 @@
       "rotationY": 0,
       "cuttable": true,
       "tags": ["quartier", "rangee"]
+    },
+    {
+      "id": "epicerie_batiment",
+      "source": "epicerie_batiment.glb",
+      "sourceDir": "public/models/shops/epicerie",
+      "folder": "shops",
+      "category": "batiments",
+      "family": "facade",
+      "footprint": { "w": 10, "d": 8 },
+      "height": 8.4,
+      "rotationY": 0,
+      "cuttable": true,
+      "tags": ["lieu", "epicerie"]
+    },
+    {
+      "id": "epicerie_etal",
+      "source": "epicerie_props.glb",
+      "node": "Epicerie_Etal_Fruits",
+      "sourceDir": "public/models/shops/epicerie",
+      "folder": "shops",
+      "category": "props",
+      "height": 0.84,
+      "rotationY": 0,
+      "tags": ["epicerie", "caisse"]
+    },
+    {
+      "id": "epicerie_bouteilles",
+      "source": "epicerie_props.glb",
+      "node": "Epicerie_Caisse_Bouteilles",
+      "sourceDir": "public/models/shops/epicerie",
+      "folder": "shops",
+      "category": "props",
+      "height": 0.66,
+      "rotationY": 0,
+      "tags": ["epicerie", "caisse"]
+    },
+    {
+      "id": "epicerie_poubelle",
+      "source": "epicerie_props.glb",
+      "node": "Epicerie_Poubelle",
+      "sourceDir": "public/models/shops/epicerie",
+      "folder": "shops",
+      "category": "props",
+      "height": 1,
+      "rotationY": 0,
+      "tags": ["epicerie", "mobilier"]
+    },
+    {
+      "id": "epicerie_cartons",
+      "source": "epicerie_props.glb",
+      "node": "Epicerie_Cartons",
+      "sourceDir": "public/models/shops/epicerie",
+      "folder": "shops",
+      "category": "props",
+      "height": 0.86,
+      "rotationY": 0,
+      "tags": ["epicerie", "caisse"]
     }
   ]
 }

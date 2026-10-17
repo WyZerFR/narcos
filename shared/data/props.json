@@ -1163,6 +1163,132 @@
       "triangles": 934,
       "luminance": 0.252,
       "tags": ["quartier", "rangee"]
+    },
+    {
+      "id": "epicerie_batiment",
+      "category": "batiments",
+      "model": "models/shops/epicerie_batiment.glb",
+      "source": "epicerie_batiment.glb",
+      "height": 8.4,
+      "rotationY": 0,
+      "offset": [0, 0, 0.02],
+      "bounds": {
+        "min": [-4.98, 0, -3.99],
+        "max": [4.98, 8.4, 3.95]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 9.96,
+        "d": 7.94
+      },
+      "keepColors": true,
+      "cuttable": true,
+      "folder": "shops",
+      "family": "facade",
+      "footprint": {
+        "w": 10,
+        "d": 8
+      },
+      "emissive": true,
+      "triangles": 1845,
+      "luminance": 0.213,
+      "tags": ["lieu", "epicerie"]
+    },
+    {
+      "id": "epicerie_etal",
+      "category": "props",
+      "model": "models/shops/epicerie_etal.glb",
+      "source": "epicerie_props.glb",
+      "height": 0.84,
+      "rotationY": 0,
+      "offset": [2.4, 0, -5.333],
+      "bounds": {
+        "min": [-3.25, 0, 4.84],
+        "max": [-1.55, 0.837, 5.827]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 1.707,
+        "d": 0.991
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "shops",
+      "triangles": 698,
+      "luminance": 0.28,
+      "tags": ["epicerie", "caisse"]
+    },
+    {
+      "id": "epicerie_bouteilles",
+      "category": "props",
+      "model": "models/shops/epicerie_bouteilles.glb",
+      "source": "epicerie_props.glb",
+      "height": 0.66,
+      "rotationY": 0,
+      "offset": [-3.6, 0, -5.401],
+      "bounds": {
+        "min": [3.25, 0, 5.15],
+        "max": [3.95, 0.66, 5.652]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 0.7,
+        "d": 0.502
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "shops",
+      "triangles": 268,
+      "luminance": 0.114,
+      "tags": ["epicerie", "caisse"]
+    },
+    {
+      "id": "epicerie_poubelle",
+      "category": "props",
+      "model": "models/shops/epicerie_poubelle.glb",
+      "source": "epicerie_props.glb",
+      "height": 1,
+      "rotationY": 0,
+      "offset": [-4.4, 0, -4.6],
+      "bounds": {
+        "min": [4.04, 0, 4.258],
+        "max": [4.76, 1, 4.942]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 0.72,
+        "d": 0.685
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "shops",
+      "triangles": 154,
+      "luminance": 0.136,
+      "tags": ["epicerie", "mobilier"]
+    },
+    {
+      "id": "epicerie_cartons",
+      "category": "props",
+      "model": "models/shops/epicerie_cartons.glb",
+      "source": "epicerie_props.glb",
+      "height": 0.86,
+      "rotationY": 0,
+      "offset": [4.35, 0, -4.6],
+      "bounds": {
+        "min": [-4.8, 0, 4.35],
+        "max": [-3.9, 0.86, 4.85]
+      },
+      "collision": {
+        "shape": "rect",
+        "w": 0.9,
+        "d": 0.5
+      },
+      "keepColors": true,
+      "cuttable": false,
+      "folder": "shops",
+      "triangles": 32,
+      "luminance": 0.281,
+      "tags": ["epicerie", "caisse"]
     }
   ]
 }

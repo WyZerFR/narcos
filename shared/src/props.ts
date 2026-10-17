@@ -7,6 +7,7 @@ import type { QuartierLayout } from './quartiers';
 import {
   PROP_KIT_IDS,
   type Area,
+  type DoorSide,
   type GameConfig,
   type GameLocation,
   type PlacementsFile,
@@ -59,6 +60,78 @@ const KIT_CATEGORY: Record<PropKitId, PropCategory> = {
 /** Le décor généré `kit` est-il remplacé par des modèles ? */
 export function kitModelled(data: Pick<GameData, 'placements'>, kit: PropKitId): boolean {
   return data.placements.kits[kit].props.length > 0;
+}
+
+/** Rotation (degrés) qui tourne l'avant d'un modèle (+Z) vers la porte. */
+const FACADE_ROTATION: Record<DoorSide, 0 | 90 | 180 | 270> = {
+  south: 0,
+  east: 90,
+  north: 180,
+  west: 270,
+};
+
+/** Façade importée d'un lieu : prop, centre du lieu, rotation vers la porte. */
+export interface FacadePlacement {
+  locationId: string;
+  prop: string;
+  x: number;
+  z: number;
+  rotation: 0 | 90 | 180 | 270;
+}
+
+/** Façades importées (`placements.facades`) des lieux visibles à porte. */
+export function facadePlacements(
+  data: Pick<GameData, 'placements' | 'locations'>,
+): FacadePlacement[] {
+  return Object.entries(data.placements.facades).flatMap(([locationId, prop]) => {
+    const loc = data.locations.get(locationId);
+    if (!loc?.door || loc.hidden) return [];
+    const { x, z } = loc.position;
+    return [{ locationId, prop, x, z, rotation: FACADE_ROTATION[loc.door] }];
+  });
+}
+
+/** Le lieu a-t-il une façade importée (silhouette et panneau générés sautés) ? */
+export function hasFacade(data: Pick<GameData, 'placements'>, locationId: string): boolean {
+  return locationId in data.placements.facades;
+}
+
+/**
+ * Cohérence des façades : lieu bâtiment visible à porte, prop de famille `facade` dont
+ * l'emprise et la collision, tournées vers la porte, tiennent dans la taille du lieu.
+ */
+export function checkFacades(
+  props: ReadonlyMap<string, Prop>,
+  placements: PlacementsFile,
+  locations: ReadonlyMap<string, GameLocation>,
+): string[] {
+  const errors: string[] = [];
+  for (const [locId, id] of Object.entries(placements.facades)) {
+    const where = `placements.json : facades.${locId}`;
+    const loc = locations.get(locId);
+    const prop = props.get(id);
+    if (!loc || loc.kind !== 'building' || !loc.door || loc.hidden) {
+      errors.push(`${where} : lieu inconnu, caché ou sans porte`);
+      continue;
+    }
+    if (!prop || prop.family !== 'facade' || !prop.footprint) {
+      errors.push(`${where} : "${id}" n'est pas un prop de famille facade`);
+      continue;
+    }
+    const turned = loc.door === 'east' || loc.door === 'west';
+    const w = turned ? loc.size.d : loc.size.w;
+    const d = turned ? loc.size.w : loc.size.d;
+    const c = prop.collision;
+    if (
+      prop.footprint.w > w ||
+      prop.footprint.d > d ||
+      (c?.shape === 'rect' && (c.w > w || c.d > d))
+    )
+      errors.push(
+        `${where} : "${id}" déborde de la taille du lieu (${loc.size.w} × ${loc.size.d})`,
+      );
+  }
+  return errors;
 }
 
 function distanceToRect(p: Vec2, r: Rect): number {

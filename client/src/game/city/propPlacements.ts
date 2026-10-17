@@ -1,5 +1,6 @@
 import {
   allPlacements,
+  facadePlacements,
   footprint,
   greeneryLayout,
   lotCars,
@@ -112,6 +113,25 @@ export function propKitItems(data: GameData): Map<string, PropItem[]> {
   }
   for (const p of allPlacements(data.placements))
     push(p.prop, { x: p.x, z: p.z, rotY: rad(p.rotation), sx: p.scale });
+  for (const f of facadePlacements(data)) push(f.prop, { x: f.x, z: f.z, rotY: rad(f.rotation) });
+  return out;
+}
+
+/**
+ * Props fusionnés en un seul draw call (`MergedProps`) : posés seulement à la main
+ * (`placements.areas`, ni kit ni façade), sans atlas, ni découpe, ni néon (même matériau).
+ */
+export function mergedPropIds(data: GameData): Set<string> {
+  const elsewhere = new Set([
+    ...Object.values(data.placements.kits).flatMap((k) => k.props),
+    ...Object.values(data.placements.facades),
+  ]);
+  const out = new Set<string>();
+  for (const p of allPlacements(data.placements)) {
+    const prop = data.props.get(p.prop);
+    if (prop && !elsewhere.has(p.prop) && !prop.texture && !prop.cuttable && !prop.emissive)
+      out.add(p.prop);
+  }
   return out;
 }
 

@@ -73,6 +73,30 @@
         "x": -110,
         "z": -31,
         "rotation": 0
+      },
+      {
+        "prop": "epicerie_cartons",
+        "x": -66.85,
+        "z": -6.75,
+        "rotation": 0
+      },
+      {
+        "prop": "epicerie_etal",
+        "x": -65.5465,
+        "z": -6.5045,
+        "rotation": 0
+      },
+      {
+        "prop": "epicerie_bouteilles",
+        "x": -58.55,
+        "z": -6.749,
+        "rotation": 0
+      },
+      {
+        "prop": "epicerie_poubelle",
+        "x": -57.84,
+        "z": -6.6575,
+        "rotation": 0
       }
     ],
     "chez_nous": [
@@ -215,5 +239,8 @@
         "rotation": 0
       }
     ]
+  },
+  "facades": {
+    "epicerie": "epicerie_batiment"
   }
 }

@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { footprint, gameData, allPlacements, type Rect } from '@narco/shared';
-import { blockModelHeights, propKitItems } from './propPlacements';
+import { BoxGeometry } from 'three';
+import { blockModelHeights, mergedPropIds, propKitItems } from './propPlacements';
 import { propSize } from './propAssets';
-import type { PropItem } from './PropKits';
+import { mergeInstances, type PropItem } from './PropKits';
 
 /**
  * Décor importé : un modèle remplace la façade générée dans la même emprise (collisions
@@ -98,5 +99,40 @@ describe('proportions des bâtiments importés', () => {
       `emprise couverte : moyenne ${(mean * 100).toFixed(0)} %, min ${(Math.min(...coverage) * 100).toFixed(0)} %`,
     );
     expect(mean).toBeGreaterThan(0.7);
+  });
+});
+
+describe("façade importée d'un lieu et props posés fusionnés", () => {
+  it("la façade de l'épicerie est posée sur le lieu, tenue dans son emprise, une seule fois", () => {
+    const loc = gameData.locations.get('epicerie')!;
+    const placed = items.get('epicerie_batiment') ?? [];
+    expect(placed).toHaveLength(1);
+    expect(placed[0]).toMatchObject({ x: loc.position.x, z: loc.position.z, rotY: 0 });
+    within(worldRect('epicerie_batiment', placed[0]!), footprint(loc));
+  });
+
+  it('props posés sans atlas, découpe ni néon fusionnés ; ceux des kits restent instanciés', () => {
+    const merged = mergedPropIds(gameData);
+    for (const id of [
+      'epicerie_etal',
+      'epicerie_bouteilles',
+      'epicerie_poubelle',
+      'epicerie_cartons',
+    ])
+      expect(merged.has(id), id).toBe(true);
+    for (const id of ['epicerie_batiment', 'bush', 'trash']) expect(merged.has(id), id).toBe(false);
+  });
+
+  it('fusion : géométries placées en monde, sommets additionnés', () => {
+    const box = new BoxGeometry(1, 1, 1).toNonIndexed();
+    const merged = mergeInstances([
+      { geometry: box, item: { x: 10, z: 0 } },
+      { geometry: box, item: { x: -10, z: 5, rotY: Math.PI / 2, sx: 2 } },
+    ])!;
+    expect(merged.attributes.position!.count).toBe(2 * box.attributes.position!.count);
+    merged.computeBoundingBox();
+    expect(merged.boundingBox!.max.x).toBeCloseTo(10.5);
+    expect(merged.boundingBox!.min.x).toBeCloseTo(-11);
+    expect(mergeInstances([])).toBeNull();
   });
 });

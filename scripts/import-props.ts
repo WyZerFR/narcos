@@ -42,6 +42,8 @@ interface Selected {
   folder?: string;
   family?: Prop['family'];
   footprint?: Prop['footprint'];
+  /** Nœud racine à importer seul (fichier à plusieurs props), sinon toute la scène. */
+  node?: string;
 }
 
 interface Selection {
@@ -70,6 +72,7 @@ interface Gltf {
     rotation?: number[];
     scale?: number[];
     matrix?: number[];
+    name?: string;
   }[];
   scenes?: { nodes?: number[] }[];
   scene?: number;
@@ -204,7 +207,7 @@ interface Part {
 }
 
 /** Primitives triangulées de la scène, positions dans le repère de la scène. */
-function partsOf(file: string): Part[] {
+function partsOf(file: string, node?: string): Part[] {
   const { json, bin } = parseGlb(file);
   const images = new Map<number, Part['texture']>();
   const imagePath = (index: number): string | null => {
@@ -265,7 +268,10 @@ function partsOf(file: string): Part[] {
     }
     for (const c of node.children ?? []) visit(c, world);
   };
-  const roots = json.scenes?.[json.scene ?? 0]?.nodes ?? [0];
+  const roots = (json.scenes?.[json.scene ?? 0]?.nodes ?? [0]).filter(
+    (r) => node === undefined || json.nodes![r]!.name === node,
+  );
+  if (roots.length === 0) throw new Error(`${file} : nœud "${node}" introuvable`);
   for (const r of roots) visit(r, new Matrix4());
   return parts;
 }
@@ -461,7 +467,7 @@ const props: Prop[] = [];
 const rejected: string[] = [];
 
 for (const s of selection.models) {
-  const parts = partsOf(join(ROOT, s.sourceDir ?? selection.sourceDir, s.source));
+  const parts = partsOf(join(ROOT, s.sourceDir ?? selection.sourceDir, s.source), s.node);
   const before = parts.reduce((t, p) => t + triangles(p.geometry), 0);
   const max = budget[s.category].maxTriangles;
   let kept = parts;
