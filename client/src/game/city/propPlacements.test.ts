@@ -125,12 +125,20 @@ describe("façade importée d'un lieu et props posés fusionnés", () => {
       expect(merged.has(id), id).toBe(true);
   });
 
-  it('façades importées (épicerie, banque, commissariat) fusionnées entre elles, pas avec les props', () => {
+  it('façades importées et bâtiments posés une fois fusionnés entre eux, pas avec les props', () => {
     const facades = mergedFacadeIds(gameData);
     expect([...facades].sort()).toEqual([
+      'armurerie_batiment',
       'banque_batiment',
+      'barbier_batiment',
+      'concession_batiment',
       'epicerie_batiment',
+      'labo_batiment',
+      'laverie_batiment',
       'police_batiment',
+      'quartier_coin',
+      'quartier_normal',
+      'superette_batiment',
     ]);
     const merged = mergedPropIds(gameData);
     for (const id of facades) expect(merged.has(id), id).toBe(false);

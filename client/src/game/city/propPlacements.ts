@@ -3,6 +3,7 @@ import {
   facadePlacements,
   footprint,
   greeneryLayout,
+  hasFacade,
   lotCars,
   type GameData,
   type PropKitId,
@@ -48,7 +49,9 @@ function spots(data: GameData, kit: PropKitId): Spot[] {
           .map((c) => ({ x: c.x, z: c.z, rotY: c.rotation === 90 ? Math.PI / 2 : 0 })),
         ...layouts.flatMap((l) => l.cars.map((c) => ({ x: c.x, z: c.z, rotY: c.rotY }))),
         ...data.blocks
-          .filter((b) => b.style === 'dealership' || b.style === 'parking')
+          .filter(
+            (b) => (b.style === 'dealership' || b.style === 'parking') && !hasFacade(data, b.id),
+          )
           .flatMap((b) => lotCars(b, decor.carSize, data.config.city.lotCars)),
       ];
     case 'policeCars':
@@ -119,7 +122,7 @@ export function propKitItems(data: GameData): Map<string, PropItem[]> {
 
 /**
  * Props fusionnés en un seul draw call (`MergedProps`) : posés seulement à la main
- * (`placements.areas`, ni kit ni façade), sans atlas, ni découpe, ni néon (même matériau).
+ * (`placements.areas`, ni kit ni façade), sans atlas ni découpe (même matériau, néons compris).
  */
 export function mergedPropIds(data: GameData): Set<string> {
   const elsewhere = new Set([
@@ -129,25 +132,28 @@ export function mergedPropIds(data: GameData): Set<string> {
   const out = new Set<string>();
   for (const p of allPlacements(data.placements)) {
     const prop = data.props.get(p.prop);
-    if (prop && !elsewhere.has(p.prop) && !prop.texture && !prop.cuttable && !prop.emissive)
-      out.add(p.prop);
+    if (prop && !elsewhere.has(p.prop) && !prop.texture && !prop.cuttable) out.add(p.prop);
   }
   return out;
 }
 
 /**
  * Façades importées fusionnées en un seul draw call (découpe et néons gardés) : chacune n'est
- * posée qu'une fois, sans atlas, ni kit, ni pose à la main.
+ * posée qu'une fois (façade, ou bâtiment décoratif posé à la main comme la supérette), sans
+ * atlas ni kit.
  */
 export function mergedFacadeIds(data: GameData): Set<string> {
-  const elsewhere = new Set([
-    ...Object.values(data.placements.kits).flatMap((k) => k.props),
+  const kits = new Set(Object.values(data.placements.kits).flatMap((k) => k.props));
+  const uses = new Map<string, number>();
+  for (const id of [
+    ...Object.values(data.placements.facades),
     ...allPlacements(data.placements).map((p) => p.prop),
-  ]);
+  ])
+    uses.set(id, (uses.get(id) ?? 0) + 1);
   const out = new Set<string>();
-  for (const id of Object.values(data.placements.facades)) {
+  for (const [id, n] of uses) {
     const prop = data.props.get(id);
-    if (prop && !elsewhere.has(id) && !prop.texture && prop.cuttable) out.add(id);
+    if (prop && n === 1 && !kits.has(id) && !prop.texture && prop.cuttable) out.add(id);
   }
   return out;
 }

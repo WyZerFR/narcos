@@ -301,6 +301,61 @@
         "x": 211,
         "z": 9,
         "rotation": 0
+      },
+      {
+        "prop": "laverie_props",
+        "x": 58,
+        "z": -15,
+        "rotation": 0,
+        "scale": 0.95
+      },
+      {
+        "prop": "armurerie_props_a",
+        "x": 95,
+        "z": -16,
+        "rotation": 0
+      },
+      {
+        "prop": "armurerie_props_b",
+        "x": 95,
+        "z": -16,
+        "rotation": 0
+      },
+      {
+        "prop": "barbier_props_a",
+        "x": 120,
+        "z": -15,
+        "rotation": 0
+      },
+      {
+        "prop": "barbier_props_b",
+        "x": 120,
+        "z": -15,
+        "rotation": 0
+      },
+      {
+        "prop": "concession_props_a",
+        "x": 177,
+        "z": -22,
+        "rotation": 0
+      },
+      {
+        "prop": "concession_props_b",
+        "x": 177,
+        "z": -22,
+        "rotation": 0
+      },
+      {
+        "prop": "superette_batiment",
+        "x": 87.5,
+        "z": 13,
+        "rotation": 270
+      },
+      {
+        "prop": "superette_props",
+        "x": 87.5,
+        "z": 13,
+        "rotation": 270
       }
     ],
     "cartel": [
@@ -333,6 +388,11 @@
   "facades": {
     "epicerie": "epicerie_batiment",
     "banque": "banque_batiment",
-    "se_fond": "police_batiment"
+    "se_fond": "police_batiment",
+    "co_ouest": "laverie_batiment",
+    "co_milieu": "armurerie_batiment",
+    "co_est": "barbier_batiment",
+    "co_bras_milieu": "concession_batiment",
+    "local": "labo_batiment"
   }
 }

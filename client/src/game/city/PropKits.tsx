@@ -185,7 +185,10 @@ export function mergeInstances(
 function withEmit(g: BufferGeometry): BufferGeometry {
   if (g.attributes.aEmit) return g;
   const out = g.clone();
-  out.setAttribute('aEmit', new BufferAttribute(new Float32Array(out.attributes.position!.count), 1));
+  out.setAttribute(
+    'aEmit',
+    new BufferAttribute(new Float32Array(out.attributes.position!.count), 1),
+  );
   return out;
 }
 
@@ -292,8 +295,8 @@ export function PropKits({
     const fronts = new Map<string, PropItem[]>();
     for (const [id, items] of kits)
       (merged.has(id) ? fused : facades.has(id) ? fronts : own).set(id, items);
-    const emit = [...fronts.keys()].some((id) => gameData.props.get(id)?.emissive);
-    return { own, fused, fronts, emit };
+    const lit = (ids: Iterable<string>) => [...ids].some((id) => gameData.props.get(id)?.emissive);
+    return { own, fused, fronts, emit: lit(fronts.keys()), fusedEmit: lit(fused.keys()) };
   }, [kits, merged, facades]);
   return (
     <>
@@ -301,7 +304,13 @@ export function PropKits({
         <KitBoundary key={id} id={id} items={items} {...rest} />
       ))}
       {split.fused.size > 0 && (
-        <MergedProps kits={split.fused} name="props_fusionnes" category="props" {...rest} />
+        <MergedProps
+          kits={split.fused}
+          name="props_fusionnes"
+          category="props"
+          emit={split.fusedEmit}
+          {...rest}
+        />
       )}
       {split.fronts.size > 0 && (
         <MergedProps

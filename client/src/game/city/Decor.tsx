@@ -20,6 +20,7 @@ import {
   expandRect,
   interactionPoint,
   greeneryLayout,
+  hasFacade,
   kitModelled,
   lotCars,
   rectFromCenter,
@@ -431,7 +432,9 @@ export function Decor({
       }),
       // concession et parking : voitures rangées dans l'emprise (déjà solide), teintes de la palette
       ...data.blocks
-        .filter((b) => b.style === 'dealership' || b.style === 'parking')
+        .filter(
+          (b) => (b.style === 'dealership' || b.style === 'parking') && !hasFacade(data, b.id),
+        )
         .flatMap((b) =>
           lotCars(b, decor.carSize, data.config.city.lotCars).map((c) => ({
             x: c.x,
