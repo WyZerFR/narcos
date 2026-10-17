@@ -34,7 +34,7 @@ const settle = () => ReactThreeTestRenderer.act(() => new Promise((r) => setTime
 afterAll(() => resetPropCache());
 
 describe('budget de draw calls avec le décor importé', () => {
-  it.each(['day', 'cartel'] as const)(
+  it.each(['day', 'cartel', 'neutral', 'legacy_night'] as const)(
     `%s : chaque area sous ${drawCallTarget} draw calls (objectif), toujours sous ${drawCallBudget}`,
     async (themeId) => {
       vi.spyOn(console, 'warn').mockImplementation(() => undefined);
