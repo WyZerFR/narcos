@@ -1,5 +1,11 @@
 {
   "permissions": {
+    "allow": [
+      "Read(./public/models/**)",
+      "Write(./public/models/**)",
+      "Read(./docs/refs/**)",
+      "Write(./docs/refs/**)"
+    ],
     "deny": [
       "Read(./node_modules/**)",
       "Read(./**/node_modules/**)",
@@ -7,9 +13,7 @@
       "Read(./.shots/**)",
       "Read(./server/.data/**)",
       "Read(./package-lock.json)",
-      "Read(./**/*.map)",
-      "Read(./**/*.png)",
-      "Read(./**/*.jpg)"
+      "Read(./**/*.map)"
     ]
   }
 }

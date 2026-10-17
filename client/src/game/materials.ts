@@ -72,6 +72,37 @@ export function shadedMaterial(
 }
 
 /**
+ * Néons d'un modèle importé dans le même draw call : les faces dont l'attribut `aEmit` vaut 1
+ * émettent leur couleur × `strength` (`props.json` emissive). S'enchaîne avec un
+ * `onBeforeCompile` déjà posé (découpe).
+ */
+export function applyEmission<M extends Material>(material: M, strength: number): M {
+  const previous = material.onBeforeCompile.bind(material);
+  const previousKey = material.customProgramCacheKey.bind(material);
+  material.onBeforeCompile = (shader, renderer) => {
+    previous(shader, renderer);
+    shader.uniforms.uEmitStrength = { value: strength };
+    shader.vertexShader = shader.vertexShader
+      .replace(
+        '#include <common>',
+        '#include <common>\nattribute float aEmit;\nvarying float vEmit;',
+      )
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvEmit = aEmit;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        '#include <common>',
+        '#include <common>\nuniform float uEmitStrength;\nvarying float vEmit;',
+      )
+      .replace(
+        '#include <emissivemap_fragment>',
+        '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * vEmit * uEmitStrength;',
+      );
+  };
+  material.customProgramCacheKey = () => `${previousKey()}|narco-emit`;
+  return material;
+}
+
+/**
  * Contour « coque inversée » : faces arrière seules, sommets poussés le long de leur normale
  * (`width`, m), couleur unie. Un draw call de plus par géométrie contournée.
  */

@@ -113,6 +113,47 @@ describe('décor 3D importé (props.json)', () => {
   });
 });
 
+describe('bâtiments de quartier (familles corner et row)', () => {
+  const family = [...gameData.props.values()].filter((p) => p.family);
+
+  it("un d'angle et un de rangée, emprise tenue, néons, posés une fois dans chez_nous", () => {
+    expect(family.map((p) => p.family).sort()).toEqual(['corner', 'row']);
+    const placed = gameData.placements.areas.chez_nous ?? [];
+    for (const p of family) {
+      expect(p.model.startsWith('models/quartier/'), p.id).toBe(true);
+      expect(p.category, p.id).toBe('batiments');
+      expect(p.rotationY, p.id).toBe(0);
+      expect(p.emissive, p.id).toBe(true);
+      expect(p.collision?.shape, p.id).toBe('rect');
+      if (p.collision?.shape !== 'rect' || !p.footprint) throw new Error(p.id);
+      expect(p.collision.w).toBeLessThanOrEqual(p.footprint.w);
+      expect(p.collision.d).toBeLessThanOrEqual(p.footprint.d);
+      expect(
+        placed.filter((q) => q.prop === p.id),
+        p.id,
+      ).toHaveLength(1);
+      // façade et attribut des néons dans le GLB
+      const glb = glbJson(join(PUBLIC, p.model)) as unknown as {
+        meshes: { primitives: { attributes: Record<string, number> }[] }[];
+      };
+      expect(glb.meshes[0]!.primitives[0]!.attributes._EMISSIVE, p.id).toBeDefined();
+    }
+  });
+
+  it('refusé sans emprise ou avec une collision qui en déborde', () => {
+    const find = (d: RawGameData) =>
+      (d.props as typeof propsJson).props.find((p) => p.id === 'quartier_coin') as unknown as {
+        footprint?: { w: number; d: number };
+      };
+    const bare = raw();
+    delete find(bare).footprint;
+    expect(() => parseGameData(bare)).toThrow(/sans emprise/);
+    const tight = raw();
+    find(tight).footprint = { w: 5, d: 5 };
+    expect(() => parseGameData(tight)).toThrow(/collision rectangle hors de son emprise/);
+  });
+});
+
 describe('atlas de textures des packs', () => {
   const props = [...gameData.props.values()];
   const atlases = new Set(props.flatMap((p) => (p.texture ? [p.texture] : [])));

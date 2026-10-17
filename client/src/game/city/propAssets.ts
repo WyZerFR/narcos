@@ -20,7 +20,8 @@ import { shade } from './batch';
 /**
  * Décor 3D importé (`props.json`) : chargé une fois par id, à la demande (area chargée),
  * géométrie normalisée : pied centré à l'origine, avant vers +Z, hauteur réelle en mètres,
- * couleurs de sommets (rgb) et attribut `aCut` (1 = percé par la découpe : bâtiments).
+ * couleurs de sommets (rgb) et attribut `aCut` (1 = percé par la découpe : bâtiments),
+ * `aEmit` (1 = néon) pour un prop `emissive`.
  * Un modèle en échec est journalisé et remplacé par un cube neutre de la même emprise.
  */
 export type PropEntry =
@@ -83,8 +84,15 @@ export function normalizeProp(root: Object3D, prop: Prop): BufferGeometry {
     'aCut',
     new BufferAttribute(new Float32Array(count).fill(prop.cuttable ? 1 : 0), 1),
   );
+  // néons : attribut `_EMISSIVE` du GLB (1 = face émissive), seulement si le prop en porte
+  const emissive = g.attributes._emissive;
+  if (prop.emissive && emissive && gameData.propsEmissive.enabled) {
+    const emit = new Float32Array(count);
+    for (let i = 0; i < count; i++) emit[i] = emissive.getX(i);
+    g.setAttribute('aEmit', new BufferAttribute(emit, 1));
+  }
   for (const name of Object.keys(g.attributes))
-    if (!['position', 'color', 'aCut', 'uv'].includes(name)) g.deleteAttribute(name);
+    if (!['position', 'color', 'aCut', 'aEmit', 'uv'].includes(name)) g.deleteAttribute(name);
   g.computeVertexNormals();
   g.computeBoundingBox();
   return g;
